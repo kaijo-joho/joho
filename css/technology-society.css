@@ -1,0 +1,54 @@
+@charset "UTF-8";
+/* Technology and society: original diagrams and comparison layouts only. */
+.is-technology .ts-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 20px; align-items: center; }
+.is-technology .ts-grid > * { min-width: 0; }
+.is-technology .ts-visual { padding: 12px; background: var(--is-soft); border: 1px solid var(--is-border); border-radius: 12px; }
+.is-technology .ts-visual svg { display: block; width: min(100%, 520px); margin: auto; color: var(--is-accent); }
+.is-technology .ts-visual svg text { font-family: inherit; fill: currentColor; stroke: none; }
+.is-technology .ts-caption { margin-top: 8px; }
+.is-technology .ts-facts { display: grid; gap: 10px; margin: 0; }
+.is-technology .ts-facts > div { padding: 10px 12px; border-left: 3px solid var(--is-accent); background: var(--is-soft); }
+.is-technology .ts-facts dt { font-weight: 700; }
+.is-technology .ts-facts dd { margin: 3px 0 0; }
+.is-technology .ts-era { display: inline-block; margin-bottom: .6em; padding: .3em .65em; border: 1px solid var(--is-border); border-radius: 6px; background: var(--is-soft); font-size: .88em; }
+.is-technology .ts-time-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); list-style: none; gap: 10px; padding: 0; }
+.is-technology .ts-time-list li { margin: 0; padding: 10px; border-top: 4px solid var(--is-accent); background: var(--is-soft); }
+.is-technology .ts-time-list strong, .is-technology .ts-time-list span { display: block; }
+.is-technology .ts-time-list span { font-size: .85em; margin-top: .3em; }
+.is-technology .ts-two { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.is-technology .ts-two > * { min-width: 0; }
+.is-technology .ts-model-note { margin: .4em 0; color: var(--is-muted); font-size: .82em; }
+.is-technology [data-progress-controls] { display: none; }
+.is-technology .lesson-progress-ready > [data-progress-controls] { display: flex; }
+.is-technology [data-is-model]:not([data-is-ready]) .is-tabs { display: none; }
+.is-technology .ts-problems { display: grid; gap: 18px; }
+.is-technology .ts-problems details { padding: 0 14px; }
+.is-technology .ts-problems summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-weight: 700; }
+.is-technology .ts-problems h3 { margin-top: .3em; }
+.is-technology .ts-response { width: 100%; box-sizing: border-box; min-height: 6em; resize: vertical; padding: 10px; border: 1px solid var(--is-border); border-radius: 8px; background: var(--is-panel); color: var(--is-text); font: inherit; line-height: 1.6; }
+.is-technology textarea:focus-visible { outline: 3px solid var(--is-focus); outline-offset: 3px; }
+@media (max-width: 800px) {
+  .is-technology .ts-grid, .is-technology .ts-two { grid-template-columns: minmax(0,1fr); }
+  .is-technology .ts-visual svg { max-height: 290px; }
+  .is-technology .ts-time-list { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 480px) { .is-technology .ts-time-list { grid-template-columns: minmax(0,1fr); } }
+@media print {
+  .is-technology { --is-panel: #fff; --is-soft: #f4f6f8; --is-text: #203040; --is-muted: #53697b; --is-accent: #225386; --is-border: #bbcede; background: #fff !important; }
+  .is-technology .skip-link, .is-technology #site-footer { display: none !important; }
+  .is-technology :focus-visible { outline: none !important; }
+  .is-technology .lesson-slide, .is-technology section article { background: #fff !important; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .is-technology [data-lesson-slide] :is(h1, h2) { color: var(--is-accent) !important; }
+  .is-technology .is-model { break-inside: auto; }
+  .is-technology [data-lesson-progress] > [data-lesson-stage-from="1"] { break-after: avoid; }
+  .is-technology .is-observe { break-before: avoid; }
+  .is-technology [data-is-panel] { break-inside: avoid; }
+  .is-technology :is(h2, h3, summary) { break-after: avoid; }
+  .is-technology .is-terms details { break-inside: avoid; }
+  .is-technology .lesson-progress-ready > [data-progress-controls] { display: none !important; }
+  .is-technology .ts-grid { grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: 4mm; }
+  .is-technology .ts-visual svg { width: min(100%,85mm); max-height: 45mm; }
+  .is-technology .ts-problems > div { break-inside: avoid; }
+  .is-technology .ts-response { min-height: 22mm; }
+  .is-technology .ts-facts > div { break-inside: avoid; }
+}

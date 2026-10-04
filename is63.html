@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI・IoTなどの技術活用 | 情報社会</title>
+    <link rel="stylesheet" href="./css/css.css">
+    <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+    <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
+    <link rel="stylesheet" href="./css/lesson-progress.css">
+    <link rel="stylesheet" href="./css/technology-society.css" integrity="sha384-BxlvNxoUiXaJRXZ0qj+fJRdnb1xt8BkDPS6Duiv2JaSxDKXDk8hd80CfMIg+ZrqA">
+    <script defer src="./js/main.js"></script>
+    <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
+    <script defer src="./js/lesson-progress.js"></script>
+    <script defer src="./js/technology-society.js" integrity="sha384-HfWB81qPVe37nmWut3jVDLOdQETDQ50NkSKmU0cSdPeiW0/E6gsqelH9lY7TT25E"></script>
+    <script defer src="./js/lesson-slide-deck.js"></script>
+  </head>
+  <body class="is-lesson is-technology" data-lesson-slide-deck>
+    <section data-lesson-slide data-lesson-slide-title="集める・処理する・利用する">
+      <article>
+        <h2 id="headline_1">(1) 集める・処理する・利用する</h2>
+        <p class="is-lead"><strong>IoTは物の状態などをネットワークで扱うこと、AIは予測・分類・推薦・生成などを助ける技術</strong>です。同じ技術ではありませんが、組み合わせて利用できます。</p>
+        <div data-lesson-progress id="is63-pipeline-progress" data-progress-count="3">
+          <div class="is-prompt" data-lesson-stage="0">
+            <strong>
+              予想する
+            </strong>
+            <p>畑の状態を離れた場所で知り、水やりを助けるには、どんな情報の流れが必要でしょうか。</p>
+          </div>
+          <div data-progress-controls>
+            <button type="button" data-progress-prev>前の段階</button>
+            <span data-progress-status></span>
+            <button type="button" data-progress-next>Next</button>
+            <button type="button" data-progress-reset>予想に戻す</button>
+          </div>
+          <div data-lesson-stage-from="1">
+            <div class="is-model" data-is-model="is63-pipeline" data-is-default="collect">
+              <p class="ts-model-note">架空の畑の簡略モデルです。農作物に適した水やりの基準を示すものではありません。</p>
+              <div class="is-tabs" role="group" aria-label="畑の状態を離れた場所で知り、水やりを助けるには、どんな情報の流れが必要でしょうか。">
+                <button type="button" data-is-select="collect" aria-pressed="false">データを集める</button>
+                <button type="button" data-is-select="process" aria-pressed="false">データを処理する</button>
+                <button type="button" data-is-select="act" aria-pressed="false">判断・行動につなげる</button>
+              </div>
+              <div data-is-panel="collect">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-p-collect-title is63-p-collect-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-p-collect-title">物の状態を、データにする</title>
+                      <desc id="is63-p-collect-desc">土の湿り具合をセンサーで測り、測定データにする。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">土の状態</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">センサー</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">測定データ</text>
+                    </svg>
+                    <figcaption>物の状態を、データにする</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>IoTの入口：実世界を測る</h3>
+                    <p>物に取り付けたセンサーなどからデータを得ます。IoTでは物がネットワークにつながり、データ交換や遠隔の利用が可能になります。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="process">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-p-process-title is63-p-process-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-p-process-title">決めた条件や、学習したモデルで処理する</title>
+                      <desc id="is63-p-process-desc">測定データを処理し、水やりが必要かを知らせる通知の候補を作る。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">測定データ</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">処理</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">通知候補</text>
+                    </svg>
+                    <figcaption>決めた条件や、学習したモデルで処理する</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>処理の方法を目的に合わせる</h3>
+                    <p>決めた条件で比較する処理も、データからパターンを学習したAIを使う処理もあります。ネットにつながる物すべてがAIを使うわけではありません。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="act">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-p-act-title is63-p-act-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-p-act-title">処理の結果を、そのまま行動にするか考える</title>
+                      <desc id="is63-p-act-desc">通知候補を人が確認し、水やりの行動につなげる。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">通知候補</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">人の確認</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">水やり</text>
+                    </svg>
+                    <figcaption>処理の結果を、そのまま行動にするか考える</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>人の判断や、装置の制御を助ける</h3>
+                    <p>担当者へ知らせたり、決めた条件で装置を制御したりします。目的や誤りの影響に応じ、確認や停止の方法を設けます。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="is-tabs">
+                <button type="button" data-is-reset>比較を最初に戻す</button>
+              </div>
+            </div>
+          </div>
+          <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>「測る」「処理する」「行動する」のどこに、IoTやAIが関係しますか。</p>
+        </div>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="IoT：離れた場所の状態を知る">
+      <article>
+        <h2 id="headline_2">(2) IoT：離れた場所の状態を知る</h2>
+        <p class="is-lead">物がネットワークにつながると、離れた場所の状態を確認できます。<strong>測定値の日時や通信の状態</strong>も、利用する情報の一部です。</p>
+        <div data-lesson-progress id="is63-iot-progress" data-progress-count="3">
+          <div class="is-prompt" data-lesson-stage="0">
+            <strong>
+              予想する
+            </strong>
+            <p>画面に「25%」とあれば、今の土の状態だと考えてよいでしょうか。</p>
+          </div>
+          <div data-progress-controls>
+            <button type="button" data-progress-prev>前の段階</button>
+            <span data-progress-status></span>
+            <button type="button" data-progress-next>Next</button>
+            <button type="button" data-progress-reset>予想に戻す</button>
+          </div>
+          <div data-lesson-stage-from="1">
+            <div class="is-model" data-is-model="is63-iot" data-is-default="normal">
+              <p class="ts-model-note">値25%と通知・停止は学習用の架空設定です。通信停止時の動きは製品や設計によって異なります。</p>
+              <div class="is-tabs" role="group" aria-label="画面に「25%」とあれば、今の土の状態だと考えてよいでしょうか。">
+                <button type="button" data-is-select="normal" aria-pressed="false">最新の測定値</button>
+                <button type="button" data-is-select="stale" aria-pressed="false">古い測定値</button>
+                <button type="button" data-is-select="offline" aria-pressed="false">通信が止まる</button>
+              </div>
+              <div data-is-panel="normal">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-i-normal-title is63-i-normal-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-i-normal-title">ネットワークにつながるセンサーと水やり</title>
+                      <desc id="is63-i-normal-desc">土のセンサーが湿り具合を測り、ネットワークで処理側へ送り、通知や水やりに使う。最新、古い記録、通信停止を比較する。</desc>
+                      <rect x="15" y="35" width="140" height="60" rx="10" fill="var(--is-panel)"/>
+                      <text x="85.0" y="73.0" text-anchor="middle" font-size="24">センサー</text>
+                      <rect x="170" y="35" width="140" height="60" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="73.0" text-anchor="middle" font-size="24">処理</text>
+                      <rect x="325" y="35" width="140" height="60" rx="10" fill="var(--is-panel)"/>
+                      <text x="395.0" y="73.0" text-anchor="middle" font-size="24">水やり</text>
+                      <path d="M155 65 L168 65"/>
+                      <path d="M160 58 L168 65 L160 72"/>
+                      <path d="M310 65 L323 65"/>
+                      <path d="M315 58 L323 65 L315 72"/>
+                      <path d="M80 104 V150 M50 153 H110 L102 222 H58 Z M80 150 V116 M80 135 Q48 100 56 135 M80 123 Q108 92 109 128"/>
+                      <text x="240" y="150" text-anchor="middle" font-size="26">最新 25%</text>
+                      <text x="390" y="157" text-anchor="middle" font-size="24">通知</text>
+                      <path d="M370 172 L370 210 M390 172 L390 225 M410 172 L410 205"/>
+                    </svg>
+                    <figcaption>土の湿り具合 → 通信 → 処理 → 通知・水やり。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <dl class="ts-facts">
+                      <div>
+                        <dt>得られること</dt>
+                        <dd>最新の値を離れた場所から確認でき、必要な作業を知らせられます。</dd>
+                      </div>
+                      <div>
+                        <dt>判断の条件</dt>
+                        <dd>測定場所、測定日時、センサーが正しく働いているかを確かめます。</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="stale">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-i-stale-title is63-i-stale-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-i-stale-title">ネットワークにつながるセンサーと水やり</title>
+                      <desc id="is63-i-stale-desc">土のセンサーが湿り具合を測り、ネットワークで処理側へ送り、通知や水やりに使う。最新、古い記録、通信停止を比較する。</desc>
+                      <rect x="15" y="35" width="140" height="60" rx="10" fill="var(--is-panel)"/>
+                      <text x="85.0" y="73.0" text-anchor="middle" font-size="24">センサー</text>
+                      <rect x="170" y="35" width="140" height="60" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="73.0" text-anchor="middle" font-size="24">処理</text>
+                      <rect x="325" y="35" width="140" height="60" rx="10" fill="var(--is-panel)"/>
+                      <text x="395.0" y="73.0" text-anchor="middle" font-size="24">水やり</text>
+                      <path d="M155 65 L168 65"/>
+                      <path d="M160 58 L168 65 L160 72"/>
+                      <path d="M310 65 L323 65"/>
+                      <path d="M315 58 L323 65 L315 72"/>
+                      <path d="M80 104 V150 M50 153 H110 L102 222 H58 Z M80 150 V116 M80 135 Q48 100 56 135 M80 123 Q108 92 109 128"/>
+                      <text x="240" y="148" text-anchor="middle" font-size="26">昨日 25%</text>
+                      <text x="390" y="160" text-anchor="middle" font-size="24">要確認</text>
+                      <circle cx="390" cy="200" r="22"/>
+                      <text x="390" y="209" text-anchor="middle" font-size="27">?</text>
+                    </svg>
+                    <figcaption>土の湿り具合 → 通信 → 処理 → 通知・水やり。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <dl class="ts-facts">
+                      <div>
+                        <dt>変わった条件</dt>
+                        <dd>画面の値は昨日の記録です。現在も同じ状態とは限りません。</dd>
+                      </div>
+                      <div>
+                        <dt>対応</dt>
+                        <dd>日時を示し、今の状態を別の方法で確認します。古い値で自動制御し続ける設計は見直します。</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="offline">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-i-offline-title is63-i-offline-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-i-offline-title">ネットワークにつながるセンサーと水やり</title>
+                      <desc id="is63-i-offline-desc">土のセンサーが湿り具合を測り、ネットワークで処理側へ送り、通知や水やりに使う。最新、古い記録、通信停止を比較する。</desc>
+                      <rect x="15" y="35" width="140" height="60" rx="10" fill="var(--is-panel)"/>
+                      <text x="85.0" y="73.0" text-anchor="middle" font-size="24">センサー</text>
+                      <rect x="170" y="35" width="140" height="60" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="73.0" text-anchor="middle" font-size="24">処理</text>
+                      <rect x="325" y="35" width="140" height="60" rx="10" fill="var(--is-panel)"/>
+                      <text x="395.0" y="73.0" text-anchor="middle" font-size="24">水やり</text>
+                      <path d="M155 65 L168 65"/>
+                      <path d="M160 58 L168 65 L160 72"/>
+                      <path d="M310 65 L323 65"/>
+                      <path d="M315 58 L323 65 L315 72"/>
+                      <path d="M80 104 V150 M50 153 H110 L102 222 H58 Z M80 150 V116 M80 135 Q48 100 56 135 M80 123 Q108 92 109 128"/>
+                      <path d="M151 45 L179 85 M151 85 L179 45" stroke-width="5"/>
+                      <text x="240" y="155" text-anchor="middle" font-size="24">更新なし</text>
+                      <text x="390" y="195" text-anchor="middle" font-size="24">停止</text>
+                    </svg>
+                    <figcaption>土の湿り具合 → 通信 → 処理 → 通知・水やり。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <dl class="ts-facts">
+                      <div>
+                        <dt>失われること</dt>
+                        <dd>新しい測定値を遠隔の処理側へ送れません。端末に以前の値が残る場合もあります。</dd>
+                      </div>
+                      <div>
+                        <dt>対応</dt>
+                        <dd>更新停止を分かるようにし、現場での確認や安全な停止などの方法を用意します。</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+              <div class="is-tabs">
+                <button type="button" data-is-reset>比較を最初に戻す</button>
+              </div>
+            </div>
+          </div>
+          <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>値だけでなく、どの情報を一緒に表示すると誤解を減らせますか。</p>
+        </div>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="AI：学習した例と利用する場面">
+      <article>
+        <h2 id="headline_3">(3) AI：学習した例と利用する場面</h2>
+        <p class="is-lead">多くのAIは、データからパターンを学習して新しい入力に利用します。<strong>学習データの偏りや、利用する場面の違い</strong>が結果に影響します。</p>
+        <div data-lesson-progress id="is63-ai-progress" data-progress-count="3">
+          <div class="is-prompt" data-lesson-stage="0">
+            <strong>
+              予想する
+            </strong>
+            <p>丸形と四角形の例で学習した分類を、どんな入力でも同じように信頼できるでしょうか。</p>
+          </div>
+          <div data-progress-controls>
+            <button type="button" data-progress-prev>前の段階</button>
+            <span data-progress-status></span>
+            <button type="button" data-progress-next>Next</button>
+            <button type="button" data-progress-reset>予想に戻す</button>
+          </div>
+          <div data-lesson-stage-from="1">
+            <div class="is-model" data-is-model="is63-ai" data-is-default="familiar">
+              <p class="ts-model-note">図形は概念説明の模型です。AIを実行した結果や、性能・正答率を示す図ではありません。</p>
+              <div class="is-tabs" role="group" aria-label="丸形と四角形の例で学習した分類を、どんな入力でも同じように信頼できるでしょうか。">
+                <button type="button" data-is-select="familiar" aria-pressed="false">似た例のある入力</button>
+                <button type="button" data-is-select="unfamiliar" aria-pressed="false">例にない入力</button>
+                <button type="button" data-is-select="changed" aria-pressed="false">見え方が違う入力</button>
+              </div>
+              <div data-is-panel="familiar">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-a-familiar-title is63-a-familiar-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-a-familiar-title">学習用の例と新しい入力の比較</title>
+                      <desc id="is63-a-familiar-desc">学習用の例は丸形と四角形。新しい入力が似た丸形、例にない三角形、線で隠れた四角形の三つに変わる。</desc>
+                      <rect x="15" y="15" width="205" height="195" rx="10" fill="var(--is-panel)"/>
+                      <text x="117.5" y="120.5" text-anchor="middle" font-size="24"></text>
+                      <text x="117" y="48" text-anchor="middle" font-size="23">学習用の例</text>
+                      <circle cx="65" cy="85" r="15" fill="var(--is-soft)"/>
+                      <rect x="101" y="71" width="28" height="28" fill="var(--is-soft)"/>
+                      <circle cx="165" cy="85" r="15" fill="var(--is-soft)"/>
+                      <circle cx="65" cy="140" r="15" fill="var(--is-soft)"/>
+                      <rect x="101" y="126" width="28" height="28" fill="var(--is-soft)"/>
+                      <circle cx="165" cy="140" r="15" fill="var(--is-soft)"/>
+                      <text x="117" y="187" text-anchor="middle" font-size="22">丸形・四角形</text>
+                      <path d="M230 112 L264 112"/>
+                      <path d="M256 105 L264 112 L256 119"/>
+                      <rect x="277" y="15" width="188" height="195" rx="10" fill="var(--is-panel)"/>
+                      <text x="371.0" y="120.5" text-anchor="middle" font-size="24"></text>
+                      <text x="371" y="48" text-anchor="middle" font-size="23">新しい入力</text>
+                      <circle cx="370" cy="110" r="26" fill="var(--is-soft)"/>
+                      <text x="371" y="183" text-anchor="middle" font-size="22">似た例がある</text>
+                    </svg>
+                    <figcaption>学習した例と、利用時の入力がどれだけ対応しているかを考えます。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>似た例がある場面</h3>
+                    <p>学習データに近い入力では、学習したパターンが役立つ可能性があります。ただし、似た例があるだけで必ず正しいとは限りません。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="unfamiliar">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-a-unfamiliar-title is63-a-unfamiliar-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-a-unfamiliar-title">学習用の例と新しい入力の比較</title>
+                      <desc id="is63-a-unfamiliar-desc">学習用の例は丸形と四角形。新しい入力が似た丸形、例にない三角形、線で隠れた四角形の三つに変わる。</desc>
+                      <rect x="15" y="15" width="205" height="195" rx="10" fill="var(--is-panel)"/>
+                      <text x="117.5" y="120.5" text-anchor="middle" font-size="24"></text>
+                      <text x="117" y="48" text-anchor="middle" font-size="23">学習用の例</text>
+                      <circle cx="65" cy="85" r="15" fill="var(--is-soft)"/>
+                      <rect x="101" y="71" width="28" height="28" fill="var(--is-soft)"/>
+                      <circle cx="165" cy="85" r="15" fill="var(--is-soft)"/>
+                      <circle cx="65" cy="140" r="15" fill="var(--is-soft)"/>
+                      <rect x="101" y="126" width="28" height="28" fill="var(--is-soft)"/>
+                      <circle cx="165" cy="140" r="15" fill="var(--is-soft)"/>
+                      <text x="117" y="187" text-anchor="middle" font-size="22">丸形・四角形</text>
+                      <path d="M230 112 L264 112"/>
+                      <path d="M256 105 L264 112 L256 119"/>
+                      <rect x="277" y="15" width="188" height="195" rx="10" fill="var(--is-panel)"/>
+                      <text x="371.0" y="120.5" text-anchor="middle" font-size="24"></text>
+                      <text x="371" y="48" text-anchor="middle" font-size="23">新しい入力</text>
+                      <path d="M370 78 L398 130 H342 Z" fill="var(--is-soft)"/>
+                      <text x="371" y="183" text-anchor="middle" font-size="22">例にない形</text>
+                    </svg>
+                    <figcaption>学習した例と、利用時の入力がどれだけ対応しているかを考えます。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>経験していない場面</h3>
+                    <p>例にない種類へ、既存の分類を無理に当てはめることがあります。実際のAIは、誤った結果をもっともらしく出す場合もあるため、利用前に確かめます。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="changed">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-a-changed-title is63-a-changed-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-a-changed-title">学習用の例と新しい入力の比較</title>
+                      <desc id="is63-a-changed-desc">学習用の例は丸形と四角形。新しい入力が似た丸形、例にない三角形、線で隠れた四角形の三つに変わる。</desc>
+                      <rect x="15" y="15" width="205" height="195" rx="10" fill="var(--is-panel)"/>
+                      <text x="117.5" y="120.5" text-anchor="middle" font-size="24"></text>
+                      <text x="117" y="48" text-anchor="middle" font-size="23">学習用の例</text>
+                      <circle cx="65" cy="85" r="15" fill="var(--is-soft)"/>
+                      <rect x="101" y="71" width="28" height="28" fill="var(--is-soft)"/>
+                      <circle cx="165" cy="85" r="15" fill="var(--is-soft)"/>
+                      <circle cx="65" cy="140" r="15" fill="var(--is-soft)"/>
+                      <rect x="101" y="126" width="28" height="28" fill="var(--is-soft)"/>
+                      <circle cx="165" cy="140" r="15" fill="var(--is-soft)"/>
+                      <text x="117" y="187" text-anchor="middle" font-size="22">丸形・四角形</text>
+                      <path d="M230 112 L264 112"/>
+                      <path d="M256 105 L264 112 L256 119"/>
+                      <rect x="277" y="15" width="188" height="195" rx="10" fill="var(--is-panel)"/>
+                      <text x="371.0" y="120.5" text-anchor="middle" font-size="24"></text>
+                      <text x="371" y="48" text-anchor="middle" font-size="23">新しい入力</text>
+                      <rect x="344" y="82" width="50" height="50" fill="var(--is-soft)"/>
+                      <path d="M328 89 L410 122 M325 117 L408 91"/>
+                      <text x="371" y="183" text-anchor="middle" font-size="22">見え方が違う</text>
+                    </svg>
+                    <figcaption>学習した例と、利用時の入力がどれだけ対応しているかを考えます。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>条件が違う場面</h3>
+                    <p>同じ対象でも、明るさや隠れ方などが違えば結果が変わることがあります。利用する条件に合ったデータで検証することが必要です。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="is-tabs">
+                <button type="button" data-is-reset>比較を最初に戻す</button>
+              </div>
+            </div>
+          </div>
+          <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>AIを利用する前に、「どんなデータ」と「どんな利用条件」を確認しますか。</p>
+        </div>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="生成AI：下書きと確認">
+      <article>
+        <h2 id="headline_4">(4) 生成AI：下書きと確認</h2>
+        <p class="is-lead"><strong>生成AI</strong>は、文章・画像・音声などを生成するAIです。案や下書きを得る助けになりますが、<strong>自然な表現であることと、内容が正しいことは別</strong>です。</p>
+        <div data-lesson-progress id="is63-generation-progress" data-progress-count="3">
+          <div class="is-prompt" data-lesson-stage="0">
+            <strong>
+              予想する
+            </strong>
+            <p>学校行事の案内文を生成AIで作ったとき、そのまま配布してよいでしょうか。</p>
+          </div>
+          <div data-progress-controls>
+            <button type="button" data-progress-prev>前の段階</button>
+            <span data-progress-status></span>
+            <button type="button" data-progress-next>Next</button>
+            <button type="button" data-progress-reset>予想に戻す</button>
+          </div>
+          <div data-lesson-stage-from="1">
+            <div class="is-model" data-is-model="is63-generation" data-is-default="draft">
+              <p class="ts-model-note">架空の学校行事を使った比較です。生成AIへの問い合わせや外部への送信は行いません。</p>
+              <div class="is-tabs" role="group" aria-label="学校行事の案内文を生成AIで作ったとき、そのまま配布してよいでしょうか。">
+                <button type="button" data-is-select="draft" aria-pressed="false">案を作る</button>
+                <button type="button" data-is-select="unverified" aria-pressed="false">確認せず配る</button>
+                <button type="button" data-is-select="checked" aria-pressed="false">確認して仕上げる</button>
+              </div>
+              <div data-is-panel="draft">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-g-draft-title is63-g-draft-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-g-draft-title">表現の候補を得る</title>
+                      <desc id="is63-g-draft-desc">人が目的や条件を伝え、生成AIから文案を得る。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">目的・条件</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">生成AI</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">文案</text>
+                    </svg>
+                    <figcaption>表現の候補を得る</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>下書きとして利用する</h3>
+                    <p>相手、目的、必要な項目などを伝え、文章の案を比較できます。入力する情報の扱いも、利用するサービスの条件に合わせて考えます。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="unverified">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-g-risk-title is63-g-risk-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-g-risk-title">誤った日時や場所も、文章に混ざり得る</title>
+                      <desc id="is63-g-risk-desc">生成された文案を確かめず、そのまま配布する。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">文案</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">確認なし</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">配布</text>
+                    </svg>
+                    <figcaption>誤った日時や場所も、文章に混ざり得る</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>文章が整っていても誤り得る</h3>
+                    <p>存在しない情報や誤った説明を含む場合があります。出典のような表示があっても、実在するか、その内容を支えるかは別に確認します。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="checked">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-g-check-title is63-g-check-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-g-check-title">人が根拠と用途を確かめる</title>
+                      <desc id="is63-g-check-desc">文案を学校の正式資料と照合して、必要な修正後に配布する。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">文案</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">資料と確認</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">配布</text>
+                    </svg>
+                    <figcaption>人が根拠と用途を確かめる</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>資料と照合し、修正する</h3>
+                    <p>行事の正式な資料で、日時・場所・対象などを確認します。相手に分かる表現へ直し、配布の責任を持つ人が仕上げます。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="is-tabs">
+                <button type="button" data-is-reset>比較を最初に戻す</button>
+              </div>
+            </div>
+          </div>
+          <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>文案のどの部分を、どの資料で確認すればよいか具体的に挙げましょう。</p>
+        </div>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="任せる範囲を決める">
+      <article>
+        <h2 id="headline_5">(5) 任せる範囲を決める</h2>
+        <p class="is-lead">自動化の範囲は、<strong>目的、誤りの影響、人が確認できる条件</strong>に合わせて決めます。IoT・AI・決めたルールを組み合わせる場合も同じです。</p>
+        <div data-lesson-progress id="is63-control-progress" data-progress-count="3">
+          <div class="is-prompt" data-lesson-stage="0">
+            <strong>
+              予想する
+            </strong>
+            <p>水やりを自動化すると、担当者の仕事はすべてなくなるでしょうか。</p>
+          </div>
+          <div data-progress-controls>
+            <button type="button" data-progress-prev>前の段階</button>
+            <span data-progress-status></span>
+            <button type="button" data-progress-next>Next</button>
+            <button type="button" data-progress-reset>予想に戻す</button>
+          </div>
+          <div data-lesson-stage-from="1">
+            <div class="is-model" data-is-model="is63-control" data-is-default="manual">
+              <p class="ts-model-note">学習用の設計比較です。実際の作物や水量の制御方法を示していません。</p>
+              <div class="is-tabs" role="group" aria-label="水やりを自動化すると、担当者の仕事はすべてなくなるでしょうか。">
+                <button type="button" data-is-select="manual" aria-pressed="false">人が測って判断</button>
+                <button type="button" data-is-select="support" aria-pressed="false">通知を人が確認</button>
+                <button type="button" data-is-select="automatic" aria-pressed="false">条件で自動制御</button>
+              </div>
+              <div data-is-panel="manual">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-c-manual-title is63-c-manual-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-c-manual-title">状態の確認から人が担当する</title>
+                      <desc id="is63-c-manual-desc">人が現場で測り、判断して水やりをする。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">現場で測る</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">人の判断</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">人が水やり</text>
+                    </svg>
+                    <figcaption>状態の確認から人が担当する</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>現場の事情を見て判断する</h3>
+                    <p>現場へ行く時間が必要です。数値以外の様子も見られますが、確認回数や担当者の負担には限りがあります。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="support">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-c-support-title is63-c-support-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-c-support-title">測定を助け、判断に人が関わる</title>
+                      <desc id="is63-c-support-desc">測定と処理で通知候補を作り、人が確認して水やりを行う。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">測定・処理</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">人の確認</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">水やり</text>
+                    </svg>
+                    <figcaption>測定を助け、判断に人が関わる</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>離れた場所から判断を助ける</h3>
+                    <p>測定の手間を減らし、必要な場面を知らせます。誤った通知を確かめる担当者や、通知を見逃した場合の対応が必要です。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="automatic">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-c-auto-title is63-c-auto-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is63-c-auto-title">行動まで自動化する</title>
+                      <desc id="is63-c-auto-desc">測定値を処理し、決めた条件に従って装置が水やりを行う。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">測定・処理</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">条件に従う</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="111.5" text-anchor="middle" font-size="22">装置が</text>
+                      <text x="400.0" y="138.5" text-anchor="middle" font-size="22">水やり</text>
+                    </svg>
+                    <figcaption>行動まで自動化する</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>速く繰り返すが、設計が大切</h3>
+                    <p>担当者が毎回操作しなくても動きます。誤測定や停止への対応、上限、現場で止める方法などを設け、動作を点検します。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="is-tabs">
+                <button type="button" data-is-reset>比較を最初に戻す</button>
+              </div>
+            </div>
+          </div>
+          <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>自動化で減る作業と、新しく必要になる作業を一つずつ挙げましょう。</p>
+        </div>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="語句まとめ・ポイントまとめ">
+      <article>
+        <h2 id="headline_6">(6) 語句まとめ・ポイントまとめ</h2>
+        <p class="is-lead">語句をクリックして説明を確認し、図で比べた変化を自分の言葉でまとめましょう。</p>
+        <div class="is-review">
+          <div class="is-terms">
+            <details open>
+              <summary>IoT（Internet of Things）</summary>
+              <p>物がネットワークにつながり、データを交換・利用するしくみ。センサー、制御装置、家電などが関係します。</p>
+            </details>
+            <details open>
+              <summary>センサー</summary>
+              <p>温度や湿り具合など、実世界の状態を測定し、データとして扱うための装置。</p>
+            </details>
+            <details open>
+              <summary>AI（人工知能）</summary>
+              <p>予測・分類・推薦・生成など、人の知的な活動を助ける処理に使われる技術。目的や利用条件に合うかを確かめます。</p>
+            </details>
+            <details open>
+              <summary>機械学習</summary>
+              <p>データからパターンなどを学習し、新しい入力に利用するAIの方法の一つ。データや利用条件が結果に影響します。</p>
+            </details>
+            <details open>
+              <summary>生成AI</summary>
+              <p>文章・画像・音声などの内容を生成するAI。もっともらしい出力に誤りが含まれる場合もあります。</p>
+            </details>
+          </div>
+          <div class="is-card">
+            <h3>ポイントまとめ</h3>
+            <ol>
+              <li>IoTの収集・交換、AIなどの処理、人や装置による判断・行動を区別する。</li>
+              <li>日時、測定条件、学習データ、利用場面を確かめ、結果の限界を考える。</li>
+              <li>利点と誤りの影響を比べて任せる範囲を決め、人の確認や停止を設計する。</li>
+            </ol>
+          </div>
+        </div>
+        <p class="is-source">出典の確認：<a href="https://csrc.nist.gov/glossary/term/internet_of_things" target="_blank" rel="noopener noreferrer">NIST：IoTの用語説明</a>、<a href="https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf" target="_blank" rel="noopener noreferrer">NIST：AI RMF 1.0</a>、<a href="https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf" target="_blank" rel="noopener noreferrer">NIST：生成AIプロファイル</a>（2026-10-04確認）。図・比較の場面は本教材独自の整理です。</p>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="問題演習">
+      <article>
+        <h2 id="headline_7">(7) 問題演習</h2>
+        <p class="is-lead">まず自分の説明を書き、そのあと説明例と比べます。用語だけでなく、変化や条件を具体的に述べましょう。</p>
+        <div class="ts-problems">
+          <div class="is-card">
+            <h3>問1</h3>
+            <p>土の状態を表示する画面に昨日の値が残っています。値がもっともらしいからと、そのまま自動で水やりをしてよいでしょうか。理由と対応を説明してください。</p>
+            <label for="is63-answer-1">自分の説明</label>
+            <textarea class="ts-response" id="is63-answer-1" rows="3">
+            </textarea>
+            <details open>
+              <summary>説明例を見る</summary>
+              <p>昨日の記録は現在の状態を示すとは限らない。測定日時や更新停止を表示し、今の状態を確かめる。通信停止や古い値の場合にどう止めるかなども設計する。</p>
+            </details>
+          </div>
+          <div class="is-card">
+            <h3>問2</h3>
+            <p>生成AIが作った学校行事の案内文が読みやすくできました。配布までに人が行うことを二つ挙げ、その目的を説明してください。</p>
+            <label for="is63-answer-2">自分の説明</label>
+            <textarea class="ts-response" id="is63-answer-2" rows="3">
+            </textarea>
+            <details open>
+              <summary>説明例を見る</summary>
+              <p>正式な資料で日時・場所・対象を確認し、誤情報を防ぐ。相手に分かる表現か、必要な項目がそろっているかを確認し、案内の目的に合う文章へ仕上げる。</p>
+            </details>
+          </div>
+        </div>
+        <p class="is-note">説明は一例です。入力は外部へ送信されず、ページの再読み込みで消えます。</p>
+      </article>
+    </section>
+  </body>
+</html>

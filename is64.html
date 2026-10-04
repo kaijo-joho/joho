@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>これからの情報社会 | 情報社会</title>
+    <link rel="stylesheet" href="./css/css.css">
+    <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+    <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
+    <link rel="stylesheet" href="./css/lesson-progress.css">
+    <link rel="stylesheet" href="./css/technology-society.css" integrity="sha384-BxlvNxoUiXaJRXZ0qj+fJRdnb1xt8BkDPS6Duiv2JaSxDKXDk8hd80CfMIg+ZrqA">
+    <script defer src="./js/main.js"></script>
+    <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
+    <script defer src="./js/lesson-progress.js"></script>
+    <script defer src="./js/technology-society.js" integrity="sha384-HfWB81qPVe37nmWut3jVDLOdQETDQ50NkSKmU0cSdPeiW0/E6gsqelH9lY7TT25E"></script>
+    <script defer src="./js/lesson-slide-deck.js"></script>
+  </head>
+  <body class="is-lesson is-technology" data-lesson-slide-deck>
+    <section data-lesson-slide data-lesson-slide-title="便利さを、使う人から考える">
+      <article>
+        <h2 id="headline_1">(1) 便利さを、使う人から考える</h2>
+        <p class="is-lead">情報社会のサービスは生活を便利にします。同時に、<strong>誰が利用できるか、誰が判断するか、何に依存するか</strong>も考えます。</p>
+        <div data-lesson-progress id="is64-benefit-progress" data-progress-count="3">
+          <div class="is-prompt" data-lesson-stage="0">
+            <strong>
+              予想する
+            </strong>
+            <p>町の施設予約をオンライン化すると、すべての人に同じように便利になるでしょうか。</p>
+          </div>
+          <div data-progress-controls>
+            <button type="button" data-progress-prev>前の段階</button>
+            <span data-progress-status></span>
+            <button type="button" data-progress-next>Next</button>
+            <button type="button" data-progress-reset>予想に戻す</button>
+          </div>
+          <div data-lesson-stage-from="1">
+            <div class="is-model" data-is-model="is64-benefit" data-is-default="user">
+              <p class="ts-model-note">架空の町の施設予約です。特定の自治体やサービスの現状を示す例ではありません。</p>
+              <div class="is-tabs" role="group" aria-label="町の施設予約をオンライン化すると、すべての人に同じように便利になるでしょうか。">
+                <button type="button" data-is-select="user" aria-pressed="false">利用者の視点</button>
+                <button type="button" data-is-select="worker" aria-pressed="false">担当者の視点</button>
+                <button type="button" data-is-select="excluded" aria-pressed="false">使いにくい人の視点</button>
+              </div>
+              <div data-is-panel="user">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-b-user-title is64-b-user-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-b-user-title">移動せずに申し込める</title>
+                      <desc id="is64-b-user-desc">利用者が端末で空きを確認し、予約する。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">端末で申込</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">空きを確認</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">予約</text>
+                    </svg>
+                    <figcaption>移動せずに申し込める</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>時間や移動の負担を減らす</h3>
+                    <p>接続できる人は、窓口へ行かずに空きを確認して申し込めます。使える端末や操作の分かりやすさが関係します。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="worker">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-b-worker-title is64-b-worker-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-b-worker-title">集計の作業を助ける</title>
+                      <desc id="is64-b-worker-desc">担当者が申込情報を集計し、確認して調整する。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">申込情報</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">集計・確認</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">調整</text>
+                    </svg>
+                    <figcaption>集計の作業を助ける</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>作業と役割が変わる</h3>
+                    <p>転記や集計の手間を減らせます。例外への対応、利用者への説明、システムの管理などの役割は必要です。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="excluded">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-b-excluded-title is64-b-excluded-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-b-excluded-title">便利さを利用できる条件も整える</title>
+                      <desc id="is64-b-excluded-desc">申し込みたい人が端末や操作などの障壁に出会い、支援や別の窓口を必要とする。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">申込したい</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">利用の障壁</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="111.5" text-anchor="middle" font-size="22">支援・</text>
+                      <text x="400.0" y="138.5" text-anchor="middle" font-size="22">別窓口</text>
+                    </svg>
+                    <figcaption>便利さを利用できる条件も整える</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>利用できる方法を用意する</h3>
+                    <p>端末や接続がない人、操作や読み取りが難しい人もいます。支援や電話・窓口などを組み合わせ、申込の機会を確保します。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="is-tabs">
+                <button type="button" data-is-reset>比較を最初に戻す</button>
+              </div>
+            </div>
+          </div>
+          <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>便利さが生まれる条件と、利用しにくい人を支える方法を提案しましょう。</p>
+        </div>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="情報格差：接続だけでは足りない">
+      <article>
+        <h2 id="headline_2">(2) 情報格差：接続だけでは足りない</h2>
+        <p class="is-lead"><strong>情報格差（デジタルデバイド）</strong>は、情報技術を利用する条件の違いから、情報の入手・発信やサービス利用の機会に差が生じることです。</p>
+        <div data-lesson-progress id="is64-divide-progress" data-progress-count="3">
+          <div class="is-prompt" data-lesson-stage="0">
+            <strong>
+              予想する
+            </strong>
+            <p>端末を配るだけで、オンライン申込を使える条件はすべて整うでしょうか。</p>
+          </div>
+          <div data-progress-controls>
+            <button type="button" data-progress-prev>前の段階</button>
+            <span data-progress-status></span>
+            <button type="button" data-progress-next>Next</button>
+            <button type="button" data-progress-reset>予想に戻す</button>
+          </div>
+          <div data-lesson-stage-from="1">
+            <div class="is-model" data-is-model="is64-divide" data-is-default="device">
+              <p class="ts-model-note">障壁は複数が重なることがあります。年齢や所得だけで、個人の能力を決めつけません。</p>
+              <div class="is-tabs" role="group" aria-label="端末を配るだけで、オンライン申込を使える条件はすべて整うでしょうか。">
+                <button type="button" data-is-select="device" aria-pressed="false">端末・費用</button>
+                <button type="button" data-is-select="connection" aria-pressed="false">通信環境</button>
+                <button type="button" data-is-select="skills" aria-pressed="false">知識・経験</button>
+                <button type="button" data-is-select="access" aria-pressed="false">読みやすさ・使いやすさ</button>
+              </div>
+              <div data-is-panel="device">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-d-device-title is64-d-device-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-d-device-title">機器を使える条件</title>
+                      <desc id="is64-d-device-desc">端末を用意できない状態を、貸出や費用の支援で補う。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">端末なし</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">貸出・支援</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">利用へ</text>
+                    </svg>
+                    <figcaption>機器を使える条件</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>使う機器を用意できるか</h3>
+                    <p>端末の価格や維持の費用が利用を難しくすることがあります。貸出や利用できる場所などを検討します。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="connection">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-d-connection-title is64-d-connection-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-d-connection-title">ネットに接続できる条件</title>
+                      <desc id="is64-d-connection-desc">接続しにくい状態を、通信環境の整備などで補う。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="111.5" text-anchor="middle" font-size="22">接続し</text>
+                      <text x="80.0" y="138.5" text-anchor="middle" font-size="22">にくい</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">環境の整備</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">利用へ</text>
+                    </svg>
+                    <figcaption>ネットに接続できる条件</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>地域や場所による違い</h3>
+                    <p>端末があっても、通信環境が十分でなければ利用しにくくなります。使える場所や別の申込方法も考えます。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="skills">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-d-skills-title is64-d-skills-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-d-skills-title">使い方を理解できる条件</title>
+                      <desc id="is64-d-skills-desc">操作方法が分からない状態を、学習や支援で補う。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">操作が不明</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">学習・支援</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">利用へ</text>
+                    </svg>
+                    <figcaption>使い方を理解できる条件</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>知識と相談できる人</h3>
+                    <p>操作方法や情報の扱いに慣れていない人もいます。分かりやすい案内、練習、質問できる支援が役立ちます。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="access">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-d-access-title is64-d-access-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-d-access-title">多様な人が扱える条件</title>
+                      <desc id="is64-d-access-desc">表示が読みにくい状態を、表示の改善などで補う。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">読みにくい</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">表示の改善</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">利用へ</text>
+                    </svg>
+                    <figcaption>多様な人が扱える条件</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>サービス側の設計も関係する</h3>
+                    <p>小さい文字や分かりにくい操作などが利用を妨げます。表示や操作を改善し、別の方法も用意します。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="is-tabs">
+                <button type="button" data-is-reset>比較を最初に戻す</button>
+              </div>
+            </div>
+          </div>
+          <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>一つの障壁を選び、それを小さくする方法と、別の障壁が残らないかを考えましょう。</p>
+        </div>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="仕事は作業と役割に分けて見る">
+      <article>
+        <h2 id="headline_3">(3) 仕事は作業と役割に分けて見る</h2>
+        <p class="is-lead">技術が仕事を変えるときは、職業名だけでなく、<strong>その中の作業、人の判断、必要になる能力</strong>を分けて考えます。</p>
+        <div data-lesson-progress id="is64-work-progress" data-progress-count="3">
+          <div class="is-prompt" data-lesson-stage="0">
+            <strong>
+              予想する
+            </strong>
+            <p>施設予約の集計を自動化したら、担当者の仕事はどのように変わるでしょうか。</p>
+          </div>
+          <div data-progress-controls>
+            <button type="button" data-progress-prev>前の段階</button>
+            <span data-progress-status></span>
+            <button type="button" data-progress-next>Next</button>
+            <button type="button" data-progress-reset>予想に戻す</button>
+          </div>
+          <div data-lesson-stage-from="1">
+            <div class="is-model" data-is-model="is64-work" data-is-default="before">
+              <p class="ts-model-note">自動化の効果は条件によります。特定の職業がなくなることや、必ず負担が減ることを予測する図ではありません。</p>
+              <div class="is-tabs" role="group" aria-label="施設予約の集計を自動化したら、担当者の仕事はどのように変わるでしょうか。">
+                <button type="button" data-is-select="before" aria-pressed="false">手作業で集計</button>
+                <button type="button" data-is-select="after" aria-pressed="false">集計を自動化</button>
+                <button type="button" data-is-select="prepare" aria-pressed="false">学び直しと運用</button>
+              </div>
+              <div data-is-panel="before">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-w-before-title is64-w-before-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-w-before-title">一人が複数の作業を担う</title>
+                      <desc id="is64-w-before-desc">担当者が転記と集計を行い、内容を確認して相談や調整に対応する。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">転記・集計</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">人が確認</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">相談・調整</text>
+                    </svg>
+                    <figcaption>一人が複数の作業を担う</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>集計に時間を使う</h3>
+                    <p>作業量が多いと、確認や相談への時間が少なくなることがあります。目的や利用者との調整は、人が担っています。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="after">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-w-after-title is64-w-after-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-w-after-title">減る作業と、残る判断を分ける</title>
+                      <desc id="is64-w-after-desc">機械が集計し、人が結果を検証して相談や調整に対応する。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">機械が集計</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">人が検証</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">相談・調整</text>
+                    </svg>
+                    <figcaption>減る作業と、残る判断を分ける</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>人の役割を組み直す</h3>
+                    <p>集計の手間を減らし、確認や相談に時間を使える可能性があります。条件の設定、例外対応、誤りの確認などは必要です。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="prepare">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-w-prepare-title is64-w-prepare-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-w-prepare-title">変化に合わせて能力や分担を整える</title>
+                      <desc id="is64-w-prepare-desc">目的を理解し、しくみを運用・点検して改善に結び付ける。</desc>
+                      <rect x="15" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="80.0" y="125.5" text-anchor="middle" font-size="24">目的の理解</text>
+                      <path d="M145 118 L172 118"/>
+                      <path d="M164 111 L172 118 L164 125"/>
+                      <rect x="175" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="240.0" y="125.5" text-anchor="middle" font-size="24">運用・点検</text>
+                      <path d="M305 118 L332 118"/>
+                      <path d="M324 111 L332 118 L324 125"/>
+                      <rect x="335" y="80" width="130" height="75" rx="10" fill="var(--is-panel)"/>
+                      <text x="400.0" y="125.5" text-anchor="middle" font-size="24">改善</text>
+                    </svg>
+                    <figcaption>変化に合わせて能力や分担を整える</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>変化に対応する</h3>
+                    <p>新しい操作を学ぶだけでなく、どの結果を使うか、どんな場合に確かめるかを学びます。負担や利益が誰に生じるかも確認します。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="is-tabs">
+                <button type="button" data-is-reset>比較を最初に戻す</button>
+              </div>
+            </div>
+          </div>
+          <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>一つの仕事の中で「減る作業」「人が担う判断」「新しく必要な能力」を挙げましょう。</p>
+        </div>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="匿名性：公開名と記録を分ける">
+      <article>
+        <h2 id="headline_4">(4) 匿名性：公開名と記録を分ける</h2>
+        <p class="is-lead"><strong>匿名やハンドルネーム</strong>は、実名を公表せずに発言する方法です。公に見える名前と、サービス側の記録や発言の責任を分けて考えます。</p>
+        <div data-lesson-progress id="is64-anonymity-progress" data-progress-count="3">
+          <div class="is-prompt" data-lesson-stage="0">
+            <strong>
+              予想する
+            </strong>
+            <p>画面に実名が出ないとき、発言の責任や通信の記録もなくなるでしょうか。</p>
+          </div>
+          <div data-progress-controls>
+            <button type="button" data-progress-prev>前の段階</button>
+            <span data-progress-status></span>
+            <button type="button" data-progress-next>Next</button>
+            <button type="button" data-progress-reset>予想に戻す</button>
+          </div>
+          <div data-lesson-stage-from="1">
+            <div class="is-model" data-is-model="is64-anonymity" data-is-default="public">
+              <p class="ts-model-note">一般的な考え方を示す図です。特定のサービスで必ず本人が特定できるとは断定しません。</p>
+              <div class="is-tabs" role="group" aria-label="画面に実名が出ないとき、発言の責任や通信の記録もなくなるでしょうか。">
+                <button type="button" data-is-select="public" aria-pressed="false">実名で公開</button>
+                <button type="button" data-is-select="handle" aria-pressed="false">ハンドルネーム</button>
+                <button type="button" data-is-select="records" aria-pressed="false">記録の視点</button>
+              </div>
+              <div data-is-panel="public">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-a-public-title is64-a-public-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-a-public-title">投稿の公開表示と記録の違い</title>
+                      <desc id="is64-a-public-desc">投稿は、他の利用者が見る公開表示と、サービス側などに残る通信等の記録の二つに分かれる。別名でも記録がなくなるわけではない。</desc>
+                      <rect x="15" y="85" width="150" height="80" rx="10" fill="var(--is-panel)"/>
+                      <text x="90.0" y="133.0" text-anchor="middle" font-size="24">実名の投稿</text>
+                      <rect x="310" y="20" width="155" height="70" rx="10" fill="var(--is-panel)"/>
+                      <text x="387.5" y="63.0" text-anchor="middle" font-size="24">公開の画面</text>
+                      <rect x="310" y="160" width="155" height="70" rx="10" fill="var(--is-panel)"/>
+                      <text x="387.5" y="189.0" text-anchor="middle" font-size="22">通信等</text>
+                      <text x="387.5" y="216.0" text-anchor="middle" font-size="22">の記録</text>
+                      <path d="M166 125 H235 V55 H300 M285 46 L300 55 L285 64 M235 125 V195 H300 M285 186 L300 195 L285 204"/>
+                    </svg>
+                    <figcaption>他の利用者に見える名前と、サービス側などの記録は別です。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>名前が見える場面</h3>
+                    <p>他の利用者が実名を知る状態です。発言内容だけでなく、公開する個人情報の範囲も考えます。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="handle">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-a-handle-title is64-a-handle-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-a-handle-title">投稿の公開表示と記録の違い</title>
+                      <desc id="is64-a-handle-desc">投稿は、他の利用者が見る公開表示と、サービス側などに残る通信等の記録の二つに分かれる。別名でも記録がなくなるわけではない。</desc>
+                      <rect x="15" y="85" width="150" height="80" rx="10" fill="var(--is-panel)"/>
+                      <text x="90.0" y="133.0" text-anchor="middle" font-size="24">別名の投稿</text>
+                      <rect x="310" y="20" width="155" height="70" rx="10" fill="var(--is-panel)"/>
+                      <text x="387.5" y="63.0" text-anchor="middle" font-size="24">公開の画面</text>
+                      <rect x="310" y="160" width="155" height="70" rx="10" fill="var(--is-panel)"/>
+                      <text x="387.5" y="189.0" text-anchor="middle" font-size="22">通信等</text>
+                      <text x="387.5" y="216.0" text-anchor="middle" font-size="22">の記録</text>
+                      <path d="M166 125 H235 V55 H300 M285 46 L300 55 L285 64 M235 125 V195 H300 M285 186 L300 195 L285 204"/>
+                    </svg>
+                    <figcaption>他の利用者に見える名前と、サービス側などの記録は別です。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>実名を出さずに話す利点</h3>
+                    <p>立場や実名を公表せずに相談や発言をしやすくなる面があります。一方、他者を傷つける発言が許されるという意味ではありません。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="records">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-a-record-title is64-a-record-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-a-record-title">投稿の公開表示と記録の違い</title>
+                      <desc id="is64-a-record-desc">投稿は、他の利用者が見る公開表示と、サービス側などに残る通信等の記録の二つに分かれる。別名でも記録がなくなるわけではない。</desc>
+                      <rect x="15" y="85" width="150" height="80" rx="10" fill="var(--is-panel)"/>
+                      <text x="90.0" y="133.0" text-anchor="middle" font-size="24">投稿</text>
+                      <rect x="310" y="20" width="155" height="70" rx="10" fill="var(--is-panel)"/>
+                      <text x="387.5" y="63.0" text-anchor="middle" font-size="24">公開の画面</text>
+                      <rect x="310" y="160" width="155" height="70" rx="10" fill="var(--is-panel)"/>
+                      <text x="387.5" y="189.0" text-anchor="middle" font-size="22">通信等</text>
+                      <text x="387.5" y="216.0" text-anchor="middle" font-size="22">の記録</text>
+                      <path d="M166 125 H235 V55 H300 M285 46 L300 55 L285 64 M235 125 V195 H300 M285 186 L300 195 L285 204"/>
+                    </svg>
+                    <figcaption>他の利用者に見える名前と、サービス側などの記録は別です。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>完全な匿名が保証されるわけではない</h3>
+                    <p>サービス側などに記録が残り、条件によって投稿者の確認に結び付くことがあります。残る記録や確認できる範囲は、サービスと状況によります。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="is-tabs">
+                <button type="button" data-is-reset>比較を最初に戻す</button>
+              </div>
+            </div>
+          </div>
+          <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>「実名を公表しないこと」の利点と、「責任や記録がなくなるわけではないこと」を両方説明しましょう。</p>
+        </div>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="見える情報と、繰り返す意見">
+      <article>
+        <h2 id="headline_5">(5) 見える情報と、繰り返す意見</h2>
+        <p class="is-lead">情報の偏りには、<strong>表示される情報が選ばれること</strong>と、<strong>似た意見の人どうしで反響すること</strong>があります。二つの模型を比べます。</p>
+        <div data-lesson-progress id="is64-bubble-progress" data-progress-count="3">
+          <div class="is-prompt" data-lesson-stage="0">
+            <strong>
+              予想する
+            </strong>
+            <p>新刊ばかり見る人の画面に、定番や予算の情報も同じように表示されるでしょうか。</p>
+          </div>
+          <div data-progress-controls>
+            <button type="button" data-progress-prev>前の段階</button>
+            <span data-progress-status></span>
+            <button type="button" data-progress-next>Next</button>
+            <button type="button" data-progress-reset>予想に戻す</button>
+          </div>
+          <div data-lesson-stage-from="1">
+            <div class="is-model" data-is-model="is64-bubble" data-is-default="narrow">
+              <p class="ts-model-note">本の選び方を使う架空の模型です。特定サービスの推薦アルゴリズムや、必ず起こる効果を示していません。</p>
+              <div class="is-tabs" role="group" aria-label="新刊ばかり見る人の画面に、定番や予算の情報も同じように表示されるでしょうか。">
+                <button type="button" data-is-select="narrow" aria-pressed="false">関心に合う情報だけ</button>
+                <button type="button" data-is-select="varied" aria-pressed="false">別の視点も探す</button>
+              </div>
+              <div data-is-panel="narrow">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-f-narrow-title is64-f-narrow-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-f-narrow-title">表示される情報の偏りのモデル</title>
+                      <desc id="is64-f-narrow-desc">新刊、定番、予算という三つの視点から、関心に合う新刊だけを表示する状態と、他の視点も表示する状態を比較する。点線は表示されない候補。</desc>
+                      <rect x="15" y="15" width="115" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="72.5" y="50.5" text-anchor="middle" font-size="24">A 新刊</text>
+                      <rect x="15" y="95" width="115" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="72.5" y="130.5" text-anchor="middle" font-size="24">B 定番</text>
+                      <rect x="15" y="175" width="115" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="72.5" y="210.5" text-anchor="middle" font-size="24">C 予算</text>
+                      <rect x="333" y="70" width="130" height="110" rx="10" fill="var(--is-panel)"/>
+                      <text x="398.0" y="133.0" text-anchor="middle" font-size="24">表示</text>
+                      <rect x="167" y="78" width="125" height="95" rx="10" fill="var(--is-panel)"/>
+                      <text x="229.5" y="133.5" text-anchor="middle" font-size="24">選択</text>
+                      <path d="M133 42 L166 122"/>
+                      <path d="M158 115 L166 122 L158 129"/>
+                      <path d="M133 122 L166 122" stroke-dasharray="6 5"/>
+                      <path d="M158 115 L166 122 L158 129"/>
+                      <path d="M133 202 L166 122" stroke-dasharray="6 5"/>
+                      <path d="M158 115 L166 122 L158 129"/>
+                      <path d="M295 122 L329 122"/>
+                      <path d="M321 115 L329 122 L321 129"/>
+                      <text x="398" y="159" text-anchor="middle" font-size="22">A・A</text>
+                    </svg>
+                    <figcaption>情報は存在していても、選び方によって目に入る範囲が変わります。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>フィルターバブル</h3>
+                    <p>関心や利用履歴などに応じた選択で、似た視点の情報に囲まれ、他の視点に触れにくくなることがあります。表示の選択は便利さも生みますが、見えている情報が全体とは限りません。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="varied">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-f-varied-title is64-f-varied-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-f-varied-title">表示される情報の偏りのモデル</title>
+                      <desc id="is64-f-varied-desc">新刊、定番、予算という三つの視点から、関心に合う新刊だけを表示する状態と、他の視点も表示する状態を比較する。点線は表示されない候補。</desc>
+                      <rect x="15" y="15" width="115" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="72.5" y="50.5" text-anchor="middle" font-size="24">A 新刊</text>
+                      <rect x="15" y="95" width="115" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="72.5" y="130.5" text-anchor="middle" font-size="24">B 定番</text>
+                      <rect x="15" y="175" width="115" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="72.5" y="210.5" text-anchor="middle" font-size="24">C 予算</text>
+                      <rect x="333" y="70" width="130" height="110" rx="10" fill="var(--is-panel)"/>
+                      <text x="398.0" y="133.0" text-anchor="middle" font-size="24">表示</text>
+                      <rect x="167" y="78" width="125" height="95" rx="10" fill="var(--is-panel)"/>
+                      <text x="229.5" y="133.5" text-anchor="middle" font-size="24">選択</text>
+                      <path d="M133 42 L166 122"/>
+                      <path d="M158 115 L166 122 L158 129"/>
+                      <path d="M133 122 L166 122"/>
+                      <path d="M158 115 L166 122 L158 129"/>
+                      <path d="M133 202 L166 122"/>
+                      <path d="M158 115 L166 122 L158 129"/>
+                      <path d="M295 122 L329 122"/>
+                      <path d="M321 115 L329 122 L321 129"/>
+                      <text x="398" y="159" text-anchor="middle" font-size="22">A・B・C</text>
+                    </svg>
+                    <figcaption>情報は存在していても、選び方によって目に入る範囲が変わります。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>見える範囲を広げる</h3>
+                    <p>表示された候補だけで決めず、定番や予算など別の観点を検索したり、異なる情報源を調べたりします。違う意見の根拠にも目を向けます。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="is-tabs">
+                <button type="button" data-is-reset>比較を最初に戻す</button>
+              </div>
+            </div>
+          </div>
+          <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>表示されていない視点を確かめるために、どんな行動を追加しますか。</p>
+        </div>
+        <div data-lesson-progress id="is64-echo-progress" data-progress-count="3">
+          <div class="is-prompt" data-lesson-stage="0">
+            <strong>
+              予想する
+            </strong>
+            <p>同じ意見を何度も聞くことは、独立した根拠が何件も増えることと同じでしょうか。</p>
+          </div>
+          <div data-progress-controls>
+            <button type="button" data-progress-prev>前の段階</button>
+            <span data-progress-status></span>
+            <button type="button" data-progress-next>Next</button>
+            <button type="button" data-progress-reset>予想に戻す</button>
+          </div>
+          <div data-lesson-stage-from="1">
+            <div class="is-model" data-is-model="is64-echo" data-is-default="same">
+              <p class="ts-model-note">AとBは本の選び方の視点です。実際の意見の変化を計算・予測する模型ではありません。</p>
+              <div class="is-tabs" role="group" aria-label="同じ意見を何度も聞くことは、独立した根拠が何件も増えることと同じでしょうか。">
+                <button type="button" data-is-select="same" aria-pressed="false">似た意見の集まり</button>
+                <button type="button" data-is-select="different" aria-pressed="false">別の視点と根拠を聞く</button>
+              </div>
+              <div data-is-panel="same">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-e-same-title is64-e-same-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-e-same-title">繰り返し聞く意見のモデル</title>
+                      <desc id="is64-e-same-desc">同じ意見Aの人どうしが話し、同じ意見が反響する状態。比較状態ではBの視点も加えて意見の根拠を尋ねる。円は話し合う集まりを示す。</desc>
+                      <circle cx="240" cy="124" r="95" stroke-dasharray="7 5"/>
+                      <rect x="175" y="20" width="90" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="220.0" y="55.5" text-anchor="middle" font-size="24">A</text>
+                      <rect x="100" y="158" width="90" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="145.0" y="193.5" text-anchor="middle" font-size="24">A</text>
+                      <rect x="290" y="158" width="90" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="335.0" y="193.5" text-anchor="middle" font-size="24">A</text>
+                      <path d="M163 70 Q117 90 142 146 M162 130 L142 146 L139 121 M207 192 H277 M263 181 L277 192 L263 203 M337 145 Q366 92 282 67 M294 82 L282 67 L303 61"/>
+                    </svg>
+                    <figcaption>繰り返し聞くことと、独立した根拠が増えることは同じではありません。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>エコーチェンバー</h3>
+                    <p>同じような意見の人どうしで話すと、似た意見が繰り返し反響し、考えが強まることがあります。繰り返された回数だけで、根拠の強さは決まりません。</p>
+                  </div>
+                </div>
+              </div>
+              <div data-is-panel="different">
+                <div class="ts-grid">
+                  <figure class="ts-visual">
+                    <svg viewBox="0 0 480 250" role="img" aria-labelledby="is64-e-different-title is64-e-different-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <title id="is64-e-different-title">繰り返し聞く意見のモデル</title>
+                      <desc id="is64-e-different-desc">同じ意見Aの人どうしが話し、同じ意見が反響する状態。比較状態ではBの視点も加えて意見の根拠を尋ねる。円は話し合う集まりを示す。</desc>
+                      <circle cx="240" cy="124" r="95" stroke-dasharray="7 5"/>
+                      <rect x="175" y="20" width="90" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="220.0" y="55.5" text-anchor="middle" font-size="24">A</text>
+                      <rect x="100" y="158" width="90" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="145.0" y="193.5" text-anchor="middle" font-size="24">A</text>
+                      <rect x="290" y="158" width="90" height="55" rx="10" fill="var(--is-panel)"/>
+                      <text x="335.0" y="193.5" text-anchor="middle" font-size="24">B</text>
+                      <path d="M163 70 Q117 90 142 146 M162 130 L142 146 L139 121 M207 192 H277 M263 181 L277 192 L263 203 M337 145 Q366 92 282 67 M294 82 L282 67 L303 61"/>
+                    </svg>
+                    <figcaption>繰り返し聞くことと、独立した根拠が増えることは同じではありません。</figcaption>
+                  </figure>
+                  <div data-lesson-stage-from="2">
+                    <h3>違いを比較する</h3>
+                    <p>異なる立場の人が何を根拠に考えているかを聞きます。意見が違うだけで正しいとも誤りとも決めず、条件や根拠を比べます。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="is-tabs">
+                <button type="button" data-is-reset>比較を最初に戻す</button>
+              </div>
+            </div>
+          </div>
+          <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>フィルターバブルとエコーチェンバーで、偏りが生じる経路はどう違いますか。</p>
+        </div>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="語句まとめ・ポイントまとめ">
+      <article>
+        <h2 id="headline_6">(6) 語句まとめ・ポイントまとめ</h2>
+        <p class="is-lead">語句をクリックして説明を確認し、図で比べた変化を自分の言葉でまとめましょう。</p>
+        <div class="is-review">
+          <div class="is-terms">
+            <details open>
+              <summary>情報格差（デジタルデバイド）</summary>
+              <p>端末・通信環境・利用能力などの条件の違いから、情報の入手・発信やサービス利用の機会に差が生じること。</p>
+            </details>
+            <details open>
+              <summary>匿名性</summary>
+              <p>実名などを明かさずに活動する性質。公開名が匿名でも、責任やサービス側の記録がなくなるわけではありません。</p>
+            </details>
+            <details open>
+              <summary>ハンドルネーム</summary>
+              <p>インターネット上などで実名の代わりに用いる名前。表示名だけで、完全な匿名性を判断できません。</p>
+            </details>
+            <details open>
+              <summary>フィルターバブル</summary>
+              <p>関心などに応じた情報の選択によって、似た視点の情報に囲まれ、他の視点に触れにくくなる状態。</p>
+            </details>
+            <details open>
+              <summary>エコーチェンバー</summary>
+              <p>同じような意見の人どうしで意見が繰り返し反響し、考えが強まることがある現象。</p>
+            </details>
+          </div>
+          <div class="is-card">
+            <h3>ポイントまとめ</h3>
+            <ol>
+              <li>便利さと課題を、利用者・担当者・使いにくい人などの立場から比較する。</li>
+              <li>端末や通信だけでなく、学習・支援・表示や操作・別の利用方法を整える。</li>
+              <li>表示の選択と意見の反響を区別し、多様な視点の根拠を自ら確かめる。</li>
+            </ol>
+          </div>
+        </div>
+        <p class="is-source">主な内容の基準：日文『情報Ⅰ ADVANCED』12〜14・27〜29頁。匿名性・情報格差は授業PPT「情報社会」11〜13枚目も参照。図と施設予約・本選びの例は本教材独自の整理です。</p>
+        <p class="is-source">出典の確認：<a href="https://www.itu.int/en/history/Pages/ITUsHistory-page-8.aspx" target="_blank" rel="noopener noreferrer">ITU：情報格差への対応</a>（2026-10-04確認）。図・比較の場面は本教材独自の整理です。</p>
+      </article>
+    </section>
+    <section data-lesson-slide data-lesson-slide-title="問題演習">
+      <article>
+        <h2 id="headline_7">(7) 問題演習</h2>
+        <p class="is-lead">まず自分の説明を書き、そのあと説明例と比べます。用語だけでなく、変化や条件を具体的に述べましょう。</p>
+        <div class="ts-problems">
+          <div class="is-card">
+            <h3>問1</h3>
+            <p>オンライン申込のページを作りましたが、端末は持っているのに利用できない人がいます。端末以外の理由を二つ考え、対応を提案してください。</p>
+            <label for="is64-answer-1">自分の説明</label>
+            <textarea class="ts-response" id="is64-answer-1" rows="3">
+            </textarea>
+            <details open>
+              <summary>説明例を見る</summary>
+              <p>通信環境が弱ければ、利用できる場所や別の申込方法を用意する。操作や文字の読み取りが難しければ、案内・支援や、読みやすい表示と分かりやすい操作に改善する。</p>
+            </details>
+          </div>
+          <div class="is-card">
+            <h3>問2</h3>
+            <p>関心に合う記事ばかり表示される状態と、同じ意見の仲間が繰り返し話す状態を区別し、それぞれへの対処を説明してください。</p>
+            <label for="is64-answer-2">自分の説明</label>
+            <textarea class="ts-response" id="is64-answer-2" rows="3">
+            </textarea>
+            <details open>
+              <summary>説明例を見る</summary>
+              <p>前者は表示される情報の選択に関わるフィルターバブルで、別の観点や情報源を自ら探す。後者は意見が反響するエコーチェンバーで、異なる立場の人の根拠や条件を聞いて比べる。</p>
+            </details>
+          </div>
+        </div>
+        <p class="is-note">説明は一例です。入力は外部へ送信されず、ページの再読み込みで消えます。</p>
+      </article>
+    </section>
+  </body>
+</html>
