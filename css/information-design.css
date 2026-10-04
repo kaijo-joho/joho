@@ -127,6 +127,7 @@
 .id-extra-case :is([data-id-input-demo],[data-id-booking-demo]) > :is(input,select,button) { justify-self: start; }
 .id-extra-case :is(label,.id-input-help) { margin: 0; }
 .id-extra-case input[type="text"] { min-height: 44px; width: min(100%, 12em); box-sizing: border-box; border: 1px solid var(--is-border); border-radius: 8px; padding: 8px; background: var(--is-panel); color: var(--is-text); font: inherit; }
+.id-extra-case select { appearance: none; min-height: 44px; max-width: 100%; box-sizing: border-box; border: 1px solid var(--is-border); border-radius: 8px; padding: 8px 2.25em 8px 10px; background-color: var(--is-panel); color: var(--is-text); font: inherit; background-image: linear-gradient(45deg, transparent 50%, var(--is-text) 50%), linear-gradient(135deg, var(--is-text) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 11px) 50%; background-size: 7px 7px; background-repeat: no-repeat; }
 .id-extra-case input[aria-invalid="true"] { border: 3px double var(--is-change); }
 .id-extra-case [data-id-booking-review] button { margin: 8px 8px 0 0; }
 .id-example-task { display: grid; gap: 8px; padding: 16px; border: 2px solid var(--is-accent); }

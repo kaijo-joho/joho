@@ -129,6 +129,7 @@ for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(','
       await go(page,n);await fit(page,`${name} ${id} ${width} ${theme} ${size} slide${n}`);
       for(const model of await page.locator('.lesson-slide:not([hidden]) [data-id-extra-case] [data-is-model]').all())for(const state of ['before','after']) {
        await model.locator(`[data-is-select=${state}]`).press('Enter');await fit(page,`${name} ${id} ${width} ${theme} ${size} ${await model.getAttribute('data-is-model')} ${state}`);
+       assert.ok(await model.locator('select:visible,input[type="text"]:visible').evaluateAll(nodes=>nodes.every(node=>node.getBoundingClientRect().height>=44)),`${name} ${id} ${width} ${theme} ${size}: new select/text input touch targets`);
       }
      }
     }

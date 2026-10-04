@@ -48,6 +48,8 @@ SVGは短いラベル・図形を中心にし、長い説明はHTMLへ置く。�
 
 IS共通と専用CSS/JSのSRIを各HTMLへ設定。共通progressのSRIは統合時に主担当が設定する。共通ファイルは本担当のコミットに含めない。
 
+追加の予約時刻欄はWebKitでnative selectの高さが小さくなるため、追加例だけにappearance:noneと装飾用chevronを適用し、44px以上の操作領域を確保した。native selectの選択・キーボード操作を維持し、追加例のBefore/After・各幅・テーマ・文字サイズでselectと文字入力の実高さを検証する。
+
 ## 根拠と既存教材との分担
 
 - 日文『情報Ⅰ ADVANCED』34〜39頁。提供された`textbook-match/body-evidence.csv`、v838/v845抽出本文、v838のPDF20〜22枚目の画像を確認。LATCH、UD、カラーUD、アクセシビリティ/ユーザビリティ、シグニファイアを基準にした。
