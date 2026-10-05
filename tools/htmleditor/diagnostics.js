@@ -12,6 +12,23 @@
   const RAW = new Set('script style title textarea xmp iframe noembed noframes noscript'.split(' '));
   const OPTIONAL = new Set('html head body p li dt dd rt rp option optgroup colgroup thead tbody tfoot tr td th'.split(' '));
   const BLOCK = new Set('address article aside blockquote div dl fieldset figure footer form h1 h2 h3 h4 h5 h6 header hr main nav ol p pre section table ul'.split(' '));
+  // 全属性の適否ではなく、主要属性への明確な1文字誤記だけを調べる。新しい属性を一律に拒否しない。
+  const COMMON_ATTRIBUTES = 'id class style title lang dir href target rel download src alt width height charset name content http-equiv colspan rowspan border type value disabled'.split(' ');
+  const KNOWN_ATTRIBUTES = new Set((COMMON_ATTRIBUTES.join(' ') + ' ' +
+    'accesskey autocapitalize autocorrect autofocus contenteditable draggable enterkeyhint hidden inert inputmode is itemid itemprop itemref itemscope itemtype nonce part popover role slot spellcheck tabindex translate ' +
+    'accept accept-charset action align allow allowfullscreen alpha as async autocomplete autoplay background bgcolor capture cellpadding cellspacing checked cite color colorspace cols compact controls coords crossorigin data datetime decoding default defer dirname enctype face fetchpriority for form formaction formenctype formmethod formnovalidate formtarget headers hreflang imagesizes imagesrcset integrity ismap label language list loading loop max maxlength media method min minlength multiple muted nomodule novalidate nowrap open optimum pattern ping placeholder playsinline popovertarget popovertargetaction poster preload readonly referrerpolicy required reversed rows sandbox scope selected shape size sizes span srcdoc srclang srcset start step summary usemap valign wrap').split(' '));
+  const CHILDREN = new Map(Object.entries({
+    html:'head body', head:'base link meta noscript script style template title',
+    ul:'li script template', ol:'li script template', menu:'li script template', dl:'dt dd div script template',
+    table:'caption colgroup thead tbody tfoot tr script template', colgroup:'col template',
+    thead:'tr script template', tbody:'tr script template', tfoot:'tr script template', tr:'td th script template'
+  }).map(([tag, children]) => [tag, new Set(children.split(' '))]));
+  const PARENTS = new Map(Object.entries({
+    head:'html', body:'html', li:'ul ol menu', caption:'table', colgroup:'table', col:'colgroup',
+    thead:'table', tbody:'table', tfoot:'table', tr:'table thead tbody tfoot', td:'tr', th:'tr'
+  }).map(([tag, parents]) => [tag, new Set(parents.split(' '))]));
+  const PHRASING_ONLY = new Set('h1 h2 h3 h4 h5 h6 span strong em b i u s small mark sub sup code q abbr pre'.split(' '));
+  const TRANSPARENT = new Set('a ins del'.split(' '));
   const PROPERTIES = new Set(('color background background-color background-image background-position background-repeat background-size background-attachment ' +
     'font font-family font-size font-style font-weight line-height text-align text-decoration text-indent text-transform letter-spacing word-spacing white-space vertical-align ' +
     'margin margin-top margin-right margin-bottom margin-left padding padding-top padding-right padding-bottom padding-left ' +
@@ -88,7 +105,20 @@
           }
         }
       } else {
-        if (!inert && (tag === 'html' || tag === 'body')) {
+        // 属性名と値の位置を分ける。raw text要素の属性も、本文を読み飛ばす前に調べる。
+        const attrBase = offset + token[0].length;
+        const attrs = attributes(text.slice(attrBase, end));
+        if (!foreign) for (const attr of attrs) {
+          if (!ownForeign && TAGS.has(tag) && !KNOWN_ATTRIBUTES.has(attr.name) && !/^(?:data-|aria-|on)/.test(attr.name) && /^[a-z][a-z0-9-]*$/.test(attr.name) &&
+              COMMON_ATTRIBUTES.some(name => distanceOne(name, attr.name))) {
+            add(attrBase + attr.nameAt, 'html-attribute-name', 'HTMLの属性名として確認できません。つづりを見直してください。');
+          }
+          // 独自要素やsvg/math開始タグのstyle値も、従来どおりCSSとして確認する。
+          if (attr.name === 'style' && attr.hasValue && !/&(?:#\w+|\w+);/.test(attr.value)) {
+            css(attr.value, attrBase + attr.at, true, add, options);
+          }
+        }
+        if (!inert && (tag === 'html' || tag === 'head' || tag === 'body')) {
           if (found.has(tag)) add(offset, 'html-duplicate-structure', '文書の構成タグが重複しています。');
           found.add(tag);
         }
@@ -103,6 +133,7 @@
           if (tag === 'a' && stack.some(item => item.tag === 'a') ||
               ['td','th','tr'].includes(tag) && ['td','th'].includes(stack.at(-1)?.tag)) add(offset, 'html-nesting', 'タグが正しく入れ子になっていません。囲む順番を見直してください。');
         }
+        if (!inert && TAGS.has(tag)) placement(tag, stack, found, attrs, offset, add);
         if (!VOID.has(tag) || foreign) {
           if (!(selfClosing && (foreign || ownForeign))) {
             if (stack.length >= 256) { add(offset, 'source-depth', 'タグの入れ子が検査の上限を超えています。文書の構成を見直してください。'); break; }
@@ -117,18 +148,38 @@
           if (tag === 'style') css(text.slice(end + 1, match.index), end + 1, false, add, options);
           stack.pop(); i = close.lastIndex; continue;
         }
-        if (!foreign) {
-          // 属性値はタグ字句からのみ取得する。CSS内の < や > をHTMLタグと混同しない。
-          const attrs = text.slice(offset + token[0].length, end);
-          for (const attr of attributes(attrs)) if (attr.name === 'style' && !/&(?:#\w+|\w+);/.test(attr.value)) {
-            css(attr.value, offset + token[0].length + attr.at, true, add, options);
-          }
-        }
       }
       i = end + 1;
     }
     stack.forEach(unclosed);
     ['html','body'].forEach(tag => { if (!found.has(tag)) add(0, 'html-required-' + tag, '<' + tag + '> の開始タグがありません。この実習では文書の構成を明示して書きます。'); });
+  }
+  function placement(tag, stack, found, attrs, offset, add) {
+    const parent = stack.at(-1)?.tag;
+    const warn = message => add(offset, 'html-placement', message);
+    if (tag === 'html' && parent || tag !== 'html' && !parent || PARENTS.has(tag) && !PARENTS.get(tag).has(parent)) {
+      warn('<' + tag + '> を置く場所が合っていません。外側のタグとの関係を見直してください。'); return;
+    }
+    if (CHILDREN.has(parent) && !CHILDREN.get(parent).has(tag)) {
+      warn('<' + tag + '> はこの位置に直接置けません。外側のタグとの関係を見直してください。'); return;
+    }
+    if (tag === 'head' && found.has('body')) warn('headとbodyの順序を見直してください。');
+    if (['base','title','style'].includes(tag) && parent !== 'head' ||
+        tag === 'meta' && parent !== 'head' && !attrs.some(attr => attr.name === 'itemprop')) {
+      warn('<' + tag + '> を置く場所が合っていません。文書の構成を見直してください。');
+    }
+    const dlGroup = parent === 'div' && stack.at(-2)?.tag === 'dl';
+    if (['dt','dd'].includes(tag) && parent !== 'dl' && !dlGroup ||
+        dlGroup && !['dt','dd','script','template'].includes(tag)) {
+      warn('説明リストのタグを置く場所が合っていません。外側のタグとの関係を見直してください。');
+    }
+    // a等は外側の内容モデルを引き継ぐ。aでdivを囲むだけでは誤りにしない。
+    let enclosing = stack.length - 1;
+    while (enclosing >= 0 && TRANSPARENT.has(stack[enclosing].tag)) enclosing--;
+    if (PHRASING_ONLY.has(stack[enclosing]?.tag) && BLOCK.has(tag)) {
+      warn('このタグの中には、このまとまりのタグを置けません。囲む関係を見直してください。');
+    }
+    if (tag === 'form' && stack.some(item => item.tag === 'form')) warn('formを重ねて囲んでいないか確認してください。');
   }
   function attributes(text) {
     const result = []; let i = 0;
@@ -136,15 +187,15 @@
       while (/\s/.test(text[i] || '') || text[i] === '/') i++;
       const match = /^[^\s=/>"'<]+/.exec(text.slice(i));
       if (!match) { i++; continue; }
-      const name = match[0].toLowerCase(); i += match[0].length;
+      const nameAt = i, name = match[0].toLowerCase(); i += match[0].length;
       while (/\s/.test(text[i] || '')) i++;
-      if (text[i] !== '=') continue;
+      if (text[i] !== '=') { result.push({name, nameAt, at:i, value:'', hasValue:false}); continue; }
       i++; while (/\s/.test(text[i] || '')) i++;
       const quote = ['"',"'"].includes(text[i]) ? text[i++] : '';
       const at = i;
       if (quote) { while (i < text.length && text[i] !== quote) i++; }
       else { while (i < text.length && !/\s/.test(text[i])) i++; }
-      result.push({name,value:text.slice(at, i),at});
+      result.push({name, nameAt, value:text.slice(at, i), at, hasValue:true});
       if (quote) i++;
     }
     return result;

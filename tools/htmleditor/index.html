@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-error-hints-20261005">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-attribute-layout-20261005">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -182,6 +182,7 @@
     <p>画像や別ファイルのCSSを使うときは、フォルダ全体を読み込みます。<code>images/photo.jpg</code>はHTMLのある場所からの相対パスです。読み込んだフォルダ外は参照できません。</p>
     <p>見つからない画像を教材サイトから自動補完しません。外部画像・外部CSSなどの自動通信を止めているため、通常のブラウザと表示が異なる場合があります。HTML/CSS実習用のプレビューであり、入力したJavaScriptは実行しません。</p>
     <p>プレビュー更新時に、編集中のHTMLとその中のCSSを限定的に検査します。問題があれば以前のプレビューと題名を消して、修正を促します。実習ではhtml・bodyを明示し、br・imgなど終了タグを使わない要素以外は終了タグも書きます。HTML規格では省略できる場合もありますが、この実習用の条件は通常のブラウザとは異なります。</p>
+    <p>class・style・href・srcなど主要属性の明確なつづり間違いと、head・body、リスト・説明リスト・表、見出しなどの基本的な囲む関係も確認します。data-*・aria-*や独自要素の属性は、このつづり検査から除きます。属性値・リンク先の正しさや、すべての配置規則を判定するものではありません。</p>
     <p>まずは自分で見直してください。必要なときだけ「エラーを探す」を押すと行番号に⚠が付き、⚠を押すと短いヒントが出ます。最初に利用記録の送信を確認します。記録するのはボタンの利用回数・時刻・行番号・検査項目だけで、入力履歴は記録せず、自動減点もしません。編集すると古い印は消えます。</p>
     <p>検査はHTML/CSS規格のすべてや、文章・class/idの自由な名前のスペル・見た目の正解を確認するものではありません。別ファイルのCSSはそのCSSを開いて確認します。画像やCSSの読み込み不足は、コードのエラーとは別の案内です。</p>
     <p>別のHTMLへの相対リンクは、未保存の変更を確認してからそのファイルを開きます。外部サイトへのリンクは、クリックしたときだけ別タブで開きます。</p>
@@ -236,7 +237,7 @@
 <script src="recovery.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-j5rv44DgQetWLG8LlvUQBTDmR8Ex6u3HktVI3w2QwWplULJLYh8Jn7Oqn+spWRUO" crossorigin="anonymous"></script>
 <script src="filesystem.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-BU8+p22BQ95NYFZFChyOkjVdBRj5GdiTgCyn/yXDY6FkPcEHW+hEnw8gVzlNSxFQ" crossorigin="anonymous"></script>
 <script src="folder-memory.js?v=html-editor-v3-20261002-enabled" integrity="sha384-X0jCctHQJZmYAtsq/o7avFraHuzzySbJTNpOMmVbYCw0Ct4ywp/H5hccAHB8XF1v" crossorigin="anonymous"></script>
-<script src="diagnostics.js?v=html-editor-error-hints-20261005" data-editor-required integrity="sha384-6lb7Ag4+TaVtZbSJAumkhOrOOTFP4mCtwYjsnDc2Pewi4qHlO7giUA/cLn1Rdzpk" crossorigin="anonymous"></script>
+<script src="diagnostics.js?v=html-editor-attribute-layout-20261005" data-editor-required integrity="sha384-ArVXRo/o4B+2o0hz+bvR5rrrSaHmmMwrKhoVZp37OVlfV/7RBl6fOrmaSIP8oTWC" crossorigin="anonymous"></script>
 <script src="hint-usage.js?v=html-editor-error-hints-20261005" integrity="sha384-IshffaAoBNtrVXRzCv6fdav0aNzXw/vCGhz5nr4rpbuEs8A7Ug/z2NY/0JyjOMm1" crossorigin="anonymous"></script>
 <script src="preview.js?v=html-editor-error-hints-20261005" data-editor-required integrity="sha384-C1Js8wW1lZRL+q3EsofcXVK7a9QxSN8JBWKD1V/H9oF2EFOi65rLmCj6ufQHsFiC" crossorigin="anonymous"></script>
 <script src="onboarding.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-095gWiJ23P9TNSH9Rsv92W9ZVXOqY2gz8wDrNXP+yzViGrDKiaGwrcw3n+j2Wt/E" crossorigin="anonymous"></script>
