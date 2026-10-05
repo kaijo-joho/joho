@@ -1,7 +1,12 @@
-// 9教材の入口。埋込でも学校名を含む通常教材を表示し、実習操作は親エディタへ集約する。
+// 10教材の入口。埋込でも学校名を含む通常教材を表示し、実習操作は親エディタへ集約する。
 (function () {
   'use strict';
   const doc = document;
+  // 教材・課題URLの互換性を確認済みの配備だけを許可する。日付更新だけで入口を止めない。
+  const EDITOR_BUILDS = Object.freeze([
+    'html-editor-v3-20261002-enabled',
+    'html-editor-account-name-20261004'
+  ]);
   function element(tag, text, parent) {
     const node = doc.createElement(tag);
     if (text) node.textContent = text;
@@ -25,6 +30,23 @@
     else if (parent === window) standalone(routes, parsed);
   }
   function standalone(routes, parsed) {
+    // 単独で開いた対象10教材だけ、後から生成される取得ボタンも現行エディタへ揃える。
+    // 配付カタログ、提出ボタン、非HTMLの配付先は変更しない。
+    function routeAcquisitionLinks() {
+      doc.querySelectorAll('.html-practice-entry').forEach(entry => {
+        const task = entry.querySelector('.html-practice-entry__filename')?.textContent.match(/^(html\d{2}-\d{2})\.html$/)?.[1];
+        const link = entry.querySelector('.html-practice-entry__actions a');
+        if (!task?.startsWith(parsed.selection.lessonId + '-') || !link) return;
+        let url;
+        try { url = routes.editorUrl({...parsed.selection, taskId:task}); }
+        catch { return; }
+        if (link.href === url) return;
+        link.href = url; link.textContent = 'エディタで開いて取得';
+        link.setAttribute('aria-label', task + '：エディタで開いて取得');
+      });
+    }
+    routeAcquisitionLinks();
+    new MutationObserver(routeAcquisitionLinks).observe(doc.body, {childList:true, subtree:true});
     // 共通レイアウトがSECTIONを本文へまとめるため、案内も本文と同じ並びに置く。
     const bar = element('section'); bar.id = 'htmlPracticeEntry'; bar.setAttribute('aria-label', '教材の開き方');
     const status = element('p', '解説のみを表示しています。印刷はブラウザの印刷を使ってください。', bar);
@@ -32,6 +54,8 @@
     const open = element('a', 'エディタで開く（別タブ）', bar);
     open.id = 'htmlPracticeEditorLink'; open.href = routes.editorUrl(parsed.selection);
     open.target = '_blank'; open.rel = 'noopener noreferrer';
+    open.style.fontWeight = 'bold';
+    element('p', '実習ファイルはエディタ上部の「ダウンロード」から取得します。編集済みのファイルは取得し直さず、「開く」で保存済みのファイルを選んでください。', bar);
     doc.body.prepend(bar);
     if (parsed.view === 'lesson') return;
     let stopped = false, controller;
@@ -56,7 +80,7 @@
         const response = await fetch(probe, {signal:controller.signal, cache:'no-store', credentials:'same-origin', redirect:'error'});
         if (!response.ok || response.url !== probe || !/text\/html/i.test(response.headers.get('content-type') || '')) throw Error('editor unavailable');
         const source = await response.text();
-        if (!source.includes('data-html-editor-shell="1"') || !source.includes('data-html-editor-build="html-editor-v3-20261002-enabled"')) throw Error('editor not ready');
+        if (!source.includes('data-html-editor-shell="1"') || !EDITOR_BUILDS.some(build => source.includes('data-html-editor-build="' + build + '"'))) throw Error('editor not ready');
         if (!stopped) location.replace(routes.editorUrl(parsed.selection));
       } catch {
         if (!stopped) {
@@ -67,6 +91,12 @@
     }
     retry.addEventListener('click', launch);
     window.addEventListener('pagehide', () => { stopped = true; controller?.abort(); });
+    window.addEventListener('pageshow', event => {
+      if (event.persisted && stopped && !cancel.hidden) {
+        status.textContent = '解説に戻りました。エディタを開くには、リンクまたは再試行ボタンを使ってください。';
+        retry.hidden = false;
+      }
+    });
     launch();
   }
   function embedded(routes, parsed, bridge) {
