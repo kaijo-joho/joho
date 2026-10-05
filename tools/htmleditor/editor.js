@@ -5,11 +5,14 @@
   const Practice = window.HtmlPracticeEditor;
   const Workflow = window.HtmlEditorWorkflow;
   const Onboarding = window.HtmlEditorOnboarding;
+  const Diagnostics = window.HtmlEditorDiagnostics;
+  const HintUsage = window.HtmlEditorHintUsage || {missing:status => ({v:1,status}),create() { throw Error('ヒント記録を利用できません。'); }};
   const catalog = Practice.lessons(window.HtmlLessons.LESSONS);
   let cm, fs, preview, recovery, doc, selectedLesson, navigation, busy = false, replacing = false;
   let autoTimer, toastTimer, submissionPanel = null;
   let folderMemory = null, rememberedFolder = null, folderMemoryIssue = '';
   let localDownloads=null, updateFileIdentity=()=>{};
+  let diagnostics = null, hintUsage = null;
   const editable = path => /\.(html?|css)$/i.test(path);
   const content = () => cm.getValue();
   const dirty = () => doc && content() !== doc.savedContent;
@@ -27,6 +30,8 @@
     $('dirtyMark').hidden = !dirty();
     $('saveState').textContent = dirty() ? '未保存の変更があります。' : doc?.saveMessage || '';
     for (const id of ['saveBtn','folderSaveBtn','downloadBtn','submitBtn','runBtn','openPreviewTabBtn']) $(id).disabled = !doc || busy;
+    $('findErrorsBtn').hidden = !diagnostics?.result.errors.length;
+    $('findErrorsBtn').disabled = !doc || busy;
     for (const id of ['openFilesBtn','practiceOpenBtn','openOtherFileBtn','connectFolderBtn','settingsFolderBtn','reconnectFolderBtn']) $(id).disabled = busy;
     $('disconnectBtn').disabled = !fs.getFileList().length && !fs.isConnected() && !rememberedFolder && !folderMemoryIssue || busy;
     $('folderStatusText').textContent = fs.isConnected() ? '保存先フォルダ：' + fs.getDirectoryName() :
@@ -89,6 +94,7 @@
   }
   function replaceDocument(text, fileName, options = {}) {
     clearTimeout(autoTimer);
+    clearDiagnostics(); hintUsage = null;
     replacing = true;
     const task = Practice.taskForFile(fileName);
     doc = {docId:crypto.randomUUID(), fileName, lessonId:task ? task.slice(0,6) : options.lessonId || selectedLesson.id,
@@ -100,6 +106,11 @@
     try {
       const proof = Practice.inspect(content());
       if (proof) {
+        try {
+          let storage = null; try { storage = localStorage; } catch { /* 任意記録だけ利用不可 */ }
+          hintUsage = HintUsage.create(storage, {fileKey:proof.localFileId || proof.issueId,
+            targetId:proof.assignmentId, fileName:proof.fileName, validatorVersion:Diagnostics.VERSION});
+        } catch { /* 記録の失敗で編集・提出を止めない。 */ }
         const start = content().indexOf(proof.marker), label = document.createElement('span');
         label.className = 'issued-marker'; label.textContent = '本人用の配付情報（編集しない）';
         cm.markText(cm.posFromIndex(start), cm.posFromIndex(start + proof.marker.length),
@@ -263,10 +274,75 @@
   function runPreview() {
     if (!doc) return;
     if (/\.css$/i.test(doc.fileName)) {
-      $('previewNotice').textContent = 'CSSは保存してから、参照しているHTMLを開いて確認します。';
-      $('previewNotice').hidden = false; preview.update('<html><body></body></html>', doc.fileName); return;
+      const result = Diagnostics.check(content(), {mode:'css', supports:(name, value) => CSS.supports(name, value),
+        selector:value => { try { document.createDocumentFragment().querySelector(value); return true; } catch { return false; } }});
+      preview.update('<html><body></body></html>', doc.fileName);
+      if (!result.valid) preview.showBlocked();
+      $('previewNotice').textContent = result.valid ? 'CSSは保存してから、参照しているHTMLを開いて確認します。' : 'コードに問題があります。修正してから更新してください。';
+      $('previewNotice').hidden = false; receiveDiagnostics(result); return;
     }
     preview.update(content(), doc.fileName);
+  }
+  function clearDiagnostics() {
+    diagnostics = null;
+    cm?.clearGutter('error-hints');
+    if ($('findErrorsBtn')) $('findErrorsBtn').hidden = true;
+    if ($('hintNotice')) $('hintNotice').hidden = true;
+  }
+  function receiveDiagnostics(result) {
+    clearDiagnostics();
+    if (doc) diagnostics = {result, docId:doc.docId, source:content()};
+    displayState();
+  }
+  function currentDiagnostics() {
+    return diagnostics && doc?.docId === diagnostics.docId && content() === diagnostics.source;
+  }
+  async function hintConsent() {
+    if (doc.hintConsent || hintUsage?.hasConsent()) return true;
+    const result = await modal('ヒントを使う前に', (body, button) => {
+      textNode(body, 'まずは自分でコードを見直してみましょう。ヒントを使うと、その利用記録が提出時に授業担当者へ送られます。');
+      textNode(body, '記録するのは「エラーを探す」と⚠を押した回数・時刻・利用時点の行番号・検査項目だけです。入力履歴は記録せず、自動減点もしません。編集後の行番号とは異なる場合があります。');
+      textNode(body, 'フォルダへ直接保存して、この画面の提出フォームにファイルを渡す場合だけ送信します。ダウンロード保存・手動のファイル選択・別タブでは送信できません。保存領域の障害でも記録が欠けます。記録がないことは、ヒントを使わなかった証明にはなりません。');
+      button('自分で見直す', 'cancel'); button('ヒントを使う', 'use');
+    });
+    if (result !== 'use') return false;
+    doc.hintConsent = true; hintUsage?.consent(); return true;
+  }
+  function recordHint(kind, diagnostic) {
+    try { hintUsage?.record(kind, diagnostic); } catch { /* 任意記録だけ失敗。 */ }
+    $('hintNotice').textContent = 'ヒントの利用記録は、保存確認済みファイルをここから提出したときに授業担当者へ送られます。まずは自分で見直しましょう。' +
+      (!hintUsage || hintUsage.isPartial() ? ' この環境では記録の全部または一部を保存できません。編集・提出は続けられます。' : '');
+    $('hintNotice').hidden = false;
+  }
+  function findErrors() {
+    exclusive(async () => {
+      if (!currentDiagnostics() || !diagnostics.result.errors.length || !await hintConsent() || !currentDiagnostics()) return;
+      const byLine = new Map();
+      for (const error of diagnostics.result.errors) {
+        if (!byLine.has(error.line)) byLine.set(error.line, []);
+        byLine.get(error.line).push(error);
+      }
+      cm.clearGutter('error-hints');
+      for (const [line, errors] of byLine) {
+        const marker = document.createElement('button');
+        marker.type = 'button'; marker.className = 'error-hint-marker'; marker.textContent = '⚠';
+        marker.setAttribute('aria-label', line + '行目のエラーのヒントを表示');
+        marker.dataset.tip = 'ヒントを表示します。利用記録は提出時に授業担当者へ送られます。';
+        marker.addEventListener('click', () => exclusive(async () => {
+          if (!currentDiagnostics()) return;
+          await modal(line + '行目のヒント', (body, button) => {
+            errors.forEach(error => textNode(body, error.message));
+            textNode(body, 'この表示の利用記録も提出時に授業担当者へ送られます。修正方法は自分で考えてみましょう。');
+            button('閉じる', 'close');
+            // 表示した内容のみ記録し、プレビュー更新やキャンセルは数えない。
+            recordHint('detail', errors[0]);
+          });
+        }));
+        cm.setGutterMarker(line - 1, 'error-hints', marker);
+      }
+      recordHint('locations');
+      notify('行番号の横の⚠からヒントを確認できます。編集すると印は消えます。');
+    });
   }
   function safeRelativeLink(href, base) {
     if (/^[a-z][a-z0-9+.-]*:|^\/|\\|[\u0000-\u001f\u007f]|%(?:2f|5c|00)/i.test(href)) return null;
@@ -471,6 +547,8 @@
       if (!state.ready) { notify(state.message); return; }
       const receipt = Practice.submission(window.pages, doc.fileName, content(), window.htmlPracticeLinks);
       const fixed = {docId:doc.docId, source:content(), fileName:doc.fileName, url:receipt.url};
+      let hintSnapshot = HintUsage.missing('unavailable');
+      try { if (hintUsage) hintSnapshot = hintUsage.snapshot(); } catch { /* 提出自体は継続 */ }
       let savedToFile = false;
       if (doc.binding && doc.binding === fs.dirHandle) {
         savedToFile = await saveToFile();
@@ -488,7 +566,7 @@
         function openForm() {
           submissionPanel = window.HtmlEditorSubmission.create({container:body, dialog:$('actionDialog'),
             url:fixed.url, targetId:receipt.proof.assignmentId, isCurrent:unchanged, requestClose:() => finish('close'),
-            savedFile:savedToFile ? {fileName:fixed.fileName, text:fixed.source} : null});
+            savedFile:savedToFile ? {fileName:fixed.fileName, text:fixed.source, hintUsage:hintSnapshot} : null});
         }
         button('閉じる', 'close');
         // 接続先へ書込・読戻し確認済み。ダウンロード用の自己確認は重ねない。
@@ -593,7 +671,7 @@
     fs = new window.HtmlFileSystem();
     try { recovery = window.HtmlEditorRecovery.create(localStorage); } catch { recovery = null; }
     try { folderMemory = window.HtmlEditorFolderMemory.create(indexedDB); } catch { folderMemoryIssue = 'この環境ではフォルダを記憶できません。接続は今回のみ有効です。'; }
-    preview = new window.HtmlPreview({iframe:$('previewIframe'), fs,
+    preview = new window.HtmlPreview({iframe:$('previewIframe'), fs, onDiagnostics:receiveDiagnostics,
       onTitle:title => {
         const label = $('previewTitle');
         label.hidden = title === null || /\.css$/i.test(doc?.fileName || '');
@@ -608,7 +686,7 @@
         await loadFile(path);
       })});
     cm = CodeMirror.fromTextArea($('codeEditor'), {
-      mode:'htmlmixed', lineNumbers:true, autoCloseTags:false, smartIndent:false, electricChars:false,
+      mode:'htmlmixed', lineNumbers:true, gutters:['CodeMirror-linenumbers','error-hints'], autoCloseTags:false, smartIndent:false, electricChars:false,
       indentUnit:2, tabSize:2, lineWrapping:true, readOnly:'nocursor',
       extraKeys:{Tab:editor => { if (doc && !busy) editor.replaceSelection('  ', 'end', '+input'); },
         Enter:editor => { if (doc && !busy) editor.replaceSelection('\n', 'end', '+input'); },
@@ -624,6 +702,7 @@
     displayState();
     cm.on('change', () => {
       if (replacing || !doc) return;
+      clearDiagnostics();
       doc.hasWork = true; displayState(); clearTimeout(autoTimer); autoTimer = setTimeout(autoSave, 500);
     });
     $('lessonSelect').addEventListener('change', async event => {
@@ -654,6 +733,7 @@
     $('restoreBtn').addEventListener('click', event => { closeMenus(event.currentTarget); exclusive(() => restore()); });
     $('submitBtn').addEventListener('click', event => { event.currentTarget.focus(); submit(); });
     $('runBtn').addEventListener('click', runPreview);
+    $('findErrorsBtn').addEventListener('click', findErrors);
     $('openPreviewTabBtn').addEventListener('click', () => { if (doc && !busy) { runPreview(); preview.openInNewTab(); } });
     $('toggleLessonBtn').addEventListener('click', event => {
       const collapsed = document.body.classList.toggle('left-collapsed');
@@ -761,7 +841,7 @@
         // Reads local data only; another tab's change never triggers Google authentication.
         window.addEventListener('focus',()=>renderIdentity().catch(identityReadFailed));
         accountMenu.addEventListener('toggle',()=>{if(accountMenu.open)renderIdentity().catch(identityReadFailed);});
-      }catch(e){status.textContent='新方式を準備できませんでした。既存の配付を利用してください。';warningMessage.textContent='⚠ 本人確認を準備できません。ページを開き直し、同じ表示が続く場合は教員に知らせてください。';warningButton.disabled=true;localDownloads=null;}
+      }catch(e){status.textContent='新方式を準備できませんでした。既存の配付を利用してください。';warningMessage.textContent='⚠ 本人確認を準備できません。ページを開き直し、同じ表示が続く場合は授業担当者に知らせてください。';warningButton.disabled=true;localDownloads=null;}
     }
     // Include the dynamically created account menu in positioning and exclusive opening.
     document.querySelectorAll('.menu-wrap').forEach(details => details.addEventListener('toggle', () => {

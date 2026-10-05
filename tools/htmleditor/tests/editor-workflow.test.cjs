@@ -82,7 +82,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     disconnect() { calls.disconnect++; this.dirHandle = null; this.files = []; this.readOnly = false; }
     onChange() { return () => {}; }
   }
-  const cm = {value:'', setOption() {}, setValue(value) { this.value = value; }, getValue() { return this.value; }, clearHistory() {}, on() {}, refresh() {}, markText() {}, posFromIndex() { return {}; }, replaceSelection() {}};
+  const cm = {value:'', setOption() {}, setValue(value) { this.value = value; }, getValue() { return this.value; }, clearHistory() {}, on() {}, refresh() {}, markText() {}, posFromIndex() { return {}; }, replaceSelection() {}, clearGutter() {}, setGutterMarker() {}};
   const memory = {async load() { return remembered ? handle : null; }, async save() {}, async forget() { calls.forget++; }};
   const testTimeout = (fn, delay) => {
     const timer = setTimeout(fn, delay);
@@ -96,6 +96,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     HtmlEditorFolderMemory:{create:() => { if (memoryFails) throw Error('IndexedDB unavailable'); return memory; }},
     HtmlEditorRecovery:{create:() => ({save() {}, list:() => ({items:recoveryItems, errors:[]})})},
     HtmlPreview:class { constructor(options) { this.fs = options.fs; calls.previewOptions = options; } update() {} openInNewTab() {} },
+    HtmlEditorDiagnostics:require('../diagnostics.js'), HtmlEditorHintUsage:require('../hint-usage.js'), CSS:{supports:() => true},
     HtmlPracticeEditor:{lessons:() => [{id:'html11', title:'HTML', files:[]}], taskForFile:() => null, inspect:() => null, submission() {}},
     HtmlEditorWorkflow:{distribution:() => ({message:'', kind:'ready'}), submission:() => ({ready:false, message:''})},
     HtmlEditorOnboarding:{assess:() => ({active:false, ready:false, steps:[], message:''})},

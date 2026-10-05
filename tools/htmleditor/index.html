@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-preview-title-20261005">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-error-hints-20261005">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-v3-20261002-enabled" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
   <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-v3-20261002-enabled" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
   <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
-  <link rel="stylesheet" href="editor.css?v=html-editor-preview-title-20261005" data-editor-required integrity="sha384-jsZef2Re4ZXWpghMH8lxj/lVeiXYC37qyNWPOKFeYWx7qXjuXRTnbb1tkk3OKGPO" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-editor-error-hints-20261005" data-editor-required integrity="sha384-+wT16hM/GPXVmY0fzF3cLu0C0nvb43cbFQNhOON3xjYnxquTdqCMIe7u4rtZn9ot" crossorigin="anonymous">
 </head>
 <body class="mode-lesson" data-pane="center">
 <section id="startupFallback" aria-labelledby="startupTitle">
@@ -118,8 +118,10 @@
     <section class="pane" id="centerPane" aria-label="コード">
       <div class="pane-header">
         <div class="breadcrumb"><span id="currentFileLabel"></span><span id="dirtyMark" aria-label="未保存の変更" hidden>＊</span></div>
+        <button class="btn" id="findErrorsBtn" type="button" data-tip="自分で見直しても見つからないときに、行番号へ⚠を表示します。利用記録は提出時に授業担当者へ送られます。" hidden>エラーを探す</button>
         <button class="btn" id="saveBtn" type="button" data-tip="開いている実習ファイルに上書き保存します（⌘S）。直接保存できない場合は保存方法を案内します。" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l4 4v14H3V3zM7 3v6h10V3M7 21v-8h10v8"/></svg><span>保存</span></button>
       </div>
+      <p id="hintNotice" hidden></p>
       <div id="editorContainer"><textarea id="codeEditor" aria-label="HTML・CSSコード"></textarea></div>
     </section>
     <div class="splitter" id="splitRight" role="separator" aria-label="コードとプレビューの幅" aria-orientation="vertical" tabindex="0"></div>
@@ -179,7 +181,9 @@
     <h3>画像・CSS・リンク</h3>
     <p>画像や別ファイルのCSSを使うときは、フォルダ全体を読み込みます。<code>images/photo.jpg</code>はHTMLのある場所からの相対パスです。読み込んだフォルダ外は参照できません。</p>
     <p>見つからない画像を教材サイトから自動補完しません。外部画像・外部CSSなどの自動通信を止めているため、通常のブラウザと表示が異なる場合があります。HTML/CSS実習用のプレビューであり、入力したJavaScriptは実行しません。</p>
-    <p>実習では文書の構成を確認するため、<code>&lt;html&gt;</code>または<code>&lt;body&gt;</code>の開始タグがないときは本文を表示せず警告を出します。これはこのエディタの実習用の条件で、通常のブラウザとは異なります。</p>
+    <p>プレビュー更新時に、編集中のHTMLとその中のCSSを限定的に検査します。問題があれば以前のプレビューと題名を消して、修正を促します。実習ではhtml・bodyを明示し、br・imgなど終了タグを使わない要素以外は終了タグも書きます。HTML規格では省略できる場合もありますが、この実習用の条件は通常のブラウザとは異なります。</p>
+    <p>まずは自分で見直してください。必要なときだけ「エラーを探す」を押すと行番号に⚠が付き、⚠を押すと短いヒントが出ます。最初に利用記録の送信を確認します。記録するのはボタンの利用回数・時刻・行番号・検査項目だけで、入力履歴は記録せず、自動減点もしません。編集すると古い印は消えます。</p>
+    <p>検査はHTML/CSS規格のすべてや、文章・class/idの自由な名前のスペル・見た目の正解を確認するものではありません。別ファイルのCSSはそのCSSを開いて確認します。画像やCSSの読み込み不足は、コードのエラーとは別の案内です。</p>
     <p>別のHTMLへの相対リンクは、未保存の変更を確認してからそのファイルを開きます。外部サイトへのリンクは、クリックしたときだけ別タブで開きます。</p>
     <details><summary>対応範囲とファイルの上限</summary><p>HTML/HTM/CSSの本文はUTF-8・1ファイル2MiBまで、フォルダは200ファイル・合計50MiB・深さ8までです。CSS内の画像URL・@import・フォント、srcsetによる画像切替はプレビューの対応範囲外です。フォルダ全体の一括提出や、サイトの公開機能はありません。</p></details>
   </section>
@@ -191,6 +195,7 @@
       <li>「提出」で保存済みファイルを準備し、フォームの「提出する」を押します。別タブ・ダウンロード保存ではファイルを選択します。</li></ol>
     <p>提出画面を開いただけでは提出は完了していません。受領と採点結果は提出画面で確認してください。何度でも提出できますが、続けて提出するときは60秒以上空けます。採点項目を満たすと★が付きます。</p>
     <p>本人・対象学年・利用期限・配付情報の署名は、学校アカウントで開く配付・提出画面が確認します。このエディタ内の照合だけで本人確認が済んだことにはなりません。</p>
+    <p>このブラウザで保持したファイルごとのヒント利用記録は、フォルダへの直接保存を確認し、そのファイルを渡す埋め込みフォームで「提出する」を押したとき、授業担当者へ送ります。ダウンロード保存・手動のファイル選択・別タブ・他のブラウザ・CotEditorからの提出や、保存領域の障害・データ消去では記録がない、または一部だけになることがあります。行番号はヒント利用時点の位置であり、提出したコードの位置とは異なる場合があります。未同意や記録なしを0回と扱わず、利用記録だけで本人制作や不正を判定しません。</p>
   </section>
   <section data-help-topic="shortcuts" data-help-title="ショートカット">
     <h3>ショートカット</h3>
@@ -199,7 +204,7 @@
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.7 BETA（2026年9月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>HTMLエディタ 0.8 BETA（2026年10月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
     <p>通常の編集はこの端末とブラウザで処理します。「提出」を押すと、保存確認済みの内容をモーダル内の学校アカウント用フォームへ渡します。提出記録の作成は、フォーム内の「提出する」を押したときだけです。ログインや表示がうまくいかない場合は「表示・ログインで困ったとき」から「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
@@ -225,14 +230,16 @@
 <script src="practice.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-CsnEnzT/kOKZbB3mRBefi0tDQ638fb29+zhietnLMu4kNkgCHCVX8xC6bEmL/sT1" crossorigin="anonymous"></script>
 <script src="workflow.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-oJmPBn0EqhE7xQ26mqno+/eqlUXowH64e8RobjuanKiallBhN4dh8LgTasUBMqJ5" crossorigin="anonymous"></script>
 <script src="download.js?v=html-editor-submit-ui-20261004" data-editor-required integrity="sha384-QMsVJ5/4SqjH37OmJLAN9dcbX4qDlqgAlyK71ZYHCryGGH8HdA0T3ditUwRHVdnx" crossorigin="anonymous"></script>
-<script src="submission.js?v=html-editor-review-fixes-20261004" data-editor-required integrity="sha384-uC2bwqMSZmX4edPY/1awfN6hXzpCoPb246r5PprPAl872n4sl3yeztuSivOZuTle" crossorigin="anonymous"></script>
+<script src="submission.js?v=html-editor-error-hints-20261005" data-editor-required integrity="sha384-M2++9RI6wcG3HOI2dfOO1dIAVumy8+2vl0yEddYiq6yyn48DkaNw6WMZsorC3dm+" crossorigin="anonymous"></script>
 <script src="routing.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
 <script src="navigation.js?v=html-editor-review-fixes-20261004" data-editor-required integrity="sha384-ons43bCWZXwh/NBct0QOGjorsnHSO8hlR+X0g8S16AocKnyIdlLxSIIoETI/pwhe" crossorigin="anonymous"></script>
 <script src="recovery.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-j5rv44DgQetWLG8LlvUQBTDmR8Ex6u3HktVI3w2QwWplULJLYh8Jn7Oqn+spWRUO" crossorigin="anonymous"></script>
 <script src="filesystem.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-BU8+p22BQ95NYFZFChyOkjVdBRj5GdiTgCyn/yXDY6FkPcEHW+hEnw8gVzlNSxFQ" crossorigin="anonymous"></script>
 <script src="folder-memory.js?v=html-editor-v3-20261002-enabled" integrity="sha384-X0jCctHQJZmYAtsq/o7avFraHuzzySbJTNpOMmVbYCw0Ct4ywp/H5hccAHB8XF1v" crossorigin="anonymous"></script>
-<script src="preview.js?v=html-editor-preview-title-20261005" data-editor-required integrity="sha384-cLCB6TsCcuUcbm4R4QAU0TnP+auLLZIvpKL41czS3gPKyyKsTzVWDtzWtrMXv57Z" crossorigin="anonymous"></script>
+<script src="diagnostics.js?v=html-editor-error-hints-20261005" data-editor-required integrity="sha384-6lb7Ag4+TaVtZbSJAumkhOrOOTFP4mCtwYjsnDc2Pewi4qHlO7giUA/cLn1Rdzpk" crossorigin="anonymous"></script>
+<script src="hint-usage.js?v=html-editor-error-hints-20261005" integrity="sha384-IshffaAoBNtrVXRzCv6fdav0aNzXw/vCGhz5nr4rpbuEs8A7Ug/z2NY/0JyjOMm1" crossorigin="anonymous"></script>
+<script src="preview.js?v=html-editor-error-hints-20261005" data-editor-required integrity="sha384-C1Js8wW1lZRL+q3EsofcXVK7a9QxSN8JBWKD1V/H9oF2EFOi65rLmCj6ufQHsFiC" crossorigin="anonymous"></script>
 <script src="onboarding.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-095gWiJ23P9TNSH9Rsv92W9ZVXOqY2gz8wDrNXP+yzViGrDKiaGwrcw3n+j2Wt/E" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-editor-preview-title-20261005" data-editor-required integrity="sha384-MtXhEp2Xk70o5N4k2LUex905SOtk8aGqjqomwTzVxipl7Uo6CIaGCM3qmZIc/6lP" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-editor-error-hints-20261005" data-editor-required integrity="sha384-xrjDbofyIDNwRbz0p/mZL2QtYrKhgpHQm3S9/HKxk+YVhzAVi39Fw59Izch1RlTQ" crossorigin="anonymous"></script>
 </body>
 </html>

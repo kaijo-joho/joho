@@ -29,7 +29,8 @@
     if (!validUrl(url, targetId) || !isCurrent()) throw Error('提出先を確認できません。保存してから提出を準備し直してください。');
     if (savedFile && (savedFile.fileName !== targetId + '.html' || typeof savedFile.text !== 'string' || !savedFile.text.length ||
         new TextEncoder().encode(savedFile.text).length > 2 * 1024 * 1024)) throw Error('保存済みファイルを確認できません。');
-    const file = savedFile ? Object.freeze({fileName:savedFile.fileName, text:savedFile.text}) : null;
+    const file = savedFile ? Object.freeze({fileName:savedFile.fileName, text:savedFile.text,
+      hintUsage:root.HtmlEditorHintUsage ? root.HtmlEditorHintUsage.normalize(savedFile.hintUsage, targetId, savedFile.fileName) : {v:1,status:'unavailable'}}) : null;
     let phase = 'loading', protectedResult = '', source = null, sourceOrigin = '', disposed = false, slowTimer, transfer = false, frame = null, bridge = '';
     const node = (parent, text, tag = 'p', className = '') => {
       const element = document.createElement(tag); element.textContent = text;

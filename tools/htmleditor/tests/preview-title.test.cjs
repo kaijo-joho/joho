@@ -6,6 +6,7 @@ const source = fs.readFileSync(require.resolve('../preview.js'), 'utf8');
 
 function setup(title = '実習のページ') {
   const calls = {titles:[], parsed:[], opened:[], blobs:[]}, iframe = {addEventListener() {}}, context = {
+    HtmlEditorDiagnostics:require('../diagnostics.js'),
     DOMParser:class {
       parseFromString(html, type) {
         assert.equal(type, 'text/html'); calls.parsed.push(html);

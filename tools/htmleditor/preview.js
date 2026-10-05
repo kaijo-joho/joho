@@ -1,8 +1,8 @@
 /* HTML/CSSのみのプレビュー。元のエディタ内容・配付コメントは変更しない。 */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.HtmlPreview = factory();
-})(typeof globalThis === 'undefined' ? this : globalThis, function () {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./diagnostics.js'));
+  else root.HtmlPreview = factory(root.HtmlEditorDiagnostics);
+})(typeof globalThis === 'undefined' ? this : globalThis, function (diagnostics) {
   'use strict';
   const CSP = "default-src 'none'; script-src 'none'; img-src blob: data:; style-src 'unsafe-inline' blob:; font-src data:; object-src 'none'; base-uri 'none'; form-action 'none'";
   // DOMParserは省略したhtml/bodyを補うため、入力中の開始タグを先に確認する。
@@ -49,6 +49,7 @@
       this.onNavigate = options.onNavigate || (() => {});
       this.onNotice = options.onNotice || (() => {});
       this.onTitle = options.onTitle || (() => {});
+      this.onDiagnostics = options.onDiagnostics || (() => {});
       this.pageTitle = '';
       this.lastHtml = ''; this.basePath = '';
       this.localLinks = new Map();
@@ -68,17 +69,20 @@
       this.lastHtml = source; this.basePath = basePath;
       if (this.iframe) this.iframe.srcdoc = this.transform(source);
     }
+    blocked(detached = false) {
+      if (!detached) { this.localLinks.clear(); this.pageTitle = ''; this.onTitle(null); }
+      const message = 'コードに問題があります。修正してからプレビューを更新してください。まずは自分で見直し、必要なときは「エラーを探す」を使えます。';
+      this.onNotice(message);
+      return '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' + CSP + '"></head><body>' +
+        '<div role="alert" style="font-family:sans-serif;line-height:1.7;padding:20px;background:#fff4df;color:#723c00">' +
+        '<strong>プレビューを表示していません</strong><p>' + message + '</p></div></body></html>';
+    }
+    showBlocked() { if (this.iframe) this.iframe.srcdoc = this.blocked(); }
     transform(source, detached = false) {
-      const absent = missingStructure(source);
-      if (absent.length) {
-        if (!detached) { this.localLinks.clear(); this.pageTitle = ''; this.onTitle(null); }
-        const message = absent.map(tag => '<' + tag + '>').join(' と ') +
-          ' の開始タグがありません。文書の構成を確認してから、プレビューを更新してください。';
-        this.onNotice(message);
-        return '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' + CSP + '"></head><body>' +
-          '<div role="alert" style="font-family:sans-serif;line-height:1.7;padding:20px;background:#fff4df;color:#723c00">' +
-          '<strong>プレビューを表示していません</strong><p>' + message.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p></div></body></html>';
-      }
+      const result = diagnostics.check(source, {supports:typeof CSS === 'undefined' ? null : (name, value) => CSS.supports(name, value),
+        selector:value => { try { document.createDocumentFragment().querySelector(value); return true; } catch { return false; } }});
+      if (!detached) this.onDiagnostics(result);
+      if (!result.valid) return this.blocked(detached);
       // DOMParserの入力時点から通信禁止の方針を先頭へ置く。生徒のCSP等は後で除去する。
       const doc = new DOMParser().parseFromString('<meta http-equiv="Content-Security-Policy" content="' + CSP + '">' + source, 'text/html');
       const missing = new Set();
