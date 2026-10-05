@@ -48,6 +48,8 @@
       this.iframe = options.iframe; this.fs = options.fs;
       this.onNavigate = options.onNavigate || (() => {});
       this.onNotice = options.onNotice || (() => {});
+      this.onTitle = options.onTitle || (() => {});
+      this.pageTitle = '';
       this.lastHtml = ''; this.basePath = '';
       this.localLinks = new Map();
       this.iframe?.addEventListener('load', () => {
@@ -69,7 +71,7 @@
     transform(source, detached = false) {
       const absent = missingStructure(source);
       if (absent.length) {
-        if (!detached) this.localLinks.clear();
+        if (!detached) { this.localLinks.clear(); this.pageTitle = ''; this.onTitle(null); }
         const message = absent.map(tag => '<' + tag + '>').join(' と ') +
           ' の開始タグがありません。文書の構成を確認してから、プレビューを更新してください。';
         this.onNotice(message);
@@ -82,6 +84,7 @@
       const missing = new Set();
       const localLinks = new Map(), navigationId = crypto.randomUUID();
       doc.querySelectorAll('script,base,iframe,object,embed,meta[http-equiv],audio,video,source,track').forEach(node => node.remove());
+      if (!detached) { this.pageTitle = doc.title; this.onTitle(this.pageTitle); }
       doc.querySelectorAll('*').forEach(node => [...node.attributes].forEach(attribute => {
         if (/^on/i.test(attribute.name) || ['srcset','ping','autofocus'].includes(attribute.name)) node.removeAttribute(attribute.name);
       }));
@@ -131,7 +134,8 @@
     openInNewTab() {
       const transformed = this.transform(this.lastHtml, true);
       const srcdoc = transformed.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-      const wrapper = '<!doctype html><html lang="ja"><meta charset="utf-8"><title>HTMLプレビュー</title>' +
+      const title = (this.pageTitle || 'HTMLプレビュー').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const wrapper = '<!doctype html><html lang="ja"><meta charset="utf-8"><title>' + title + '</title>' +
         '<style>body{margin:0;font-family:sans-serif}p{margin:0;padding:8px}iframe{display:block;border:0;width:100%;height:calc(100vh - 48px)}</style>' +
         '<p>ファイル間の移動は元のエディタで確認してください。</p>' +
         '<iframe title="HTMLプレビュー" sandbox="allow-popups allow-popups-to-escape-sandbox" srcdoc="' + srcdoc + '"></iframe></html>';

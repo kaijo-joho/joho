@@ -443,6 +443,10 @@ body:not(.has-document) #splitRight { display: none !important; }
   flex: none;
 }
 
+.preview-heading { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex: 1; }
+.preview-heading .pane-title { flex: none; }
+#previewTitle { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+
 /* 左ペイン内部 */
 #leftPaneContent {
   flex: 1;

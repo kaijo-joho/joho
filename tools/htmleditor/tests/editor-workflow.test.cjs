@@ -95,7 +95,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     CodeMirror:{fromTextArea:() => cm}, HtmlFileSystem:FakeFs,
     HtmlEditorFolderMemory:{create:() => { if (memoryFails) throw Error('IndexedDB unavailable'); return memory; }},
     HtmlEditorRecovery:{create:() => ({save() {}, list:() => ({items:recoveryItems, errors:[]})})},
-    HtmlPreview:class { constructor(options) { this.fs = options.fs; } update() {} openInNewTab() {} },
+    HtmlPreview:class { constructor(options) { this.fs = options.fs; calls.previewOptions = options; } update() {} openInNewTab() {} },
     HtmlPracticeEditor:{lessons:() => [{id:'html11', title:'HTML', files:[]}], taskForFile:() => null, inspect:() => null, submission() {}},
     HtmlEditorWorkflow:{distribution:() => ({message:'', kind:'ready'}), submission:() => ({ready:false, message:''})},
     HtmlEditorOnboarding:{assess:() => ({active:false, ready:false, steps:[], message:''})},
@@ -115,6 +115,25 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
   for (const fn of windowEvents.get('DOMContentLoaded') || []) fn();
   return {nodes, handle, calls, cm, tick, disk, windowEvents};
 }
+
+test('プレビューのtitleはテキスト表示し、未設定・構造不足・CSS切替で古い題名を残さない', async () => {
+  const app = makeHarness({remembered:false});
+  await app.tick();
+  app.calls.previewOptions.onTitle('海城 & <img src=x>');
+  assert.equal(app.nodes.previewTitle.textContent, '海城 & <img src=x>');
+  assert.equal(app.nodes.previewTitle.hidden, false);
+  assert.equal(app.nodes.previewTitle.dataset.tip, 'HTMLのtitleタグ：海城 & <img src=x>');
+  app.calls.previewOptions.onTitle('');
+  assert.equal(app.nodes.previewTitle.textContent, 'タイトル未設定');
+  app.calls.previewOptions.onTitle(null);
+  assert.equal(app.nodes.previewTitle.textContent, '');
+  assert.equal(app.nodes.previewTitle.hidden, true);
+  app.nodes.fileInput.files = [{name:'style.css', size:0, async arrayBuffer() { return Buffer.from(''); }}];
+  app.nodes.fileInput.dispatch('change'); await app.tick();
+  app.calls.previewOptions.onTitle('');
+  assert.equal(app.nodes.previewTitle.textContent, '');
+  assert.equal(app.nodes.previewTitle.hidden, true);
+});
 
 test('起動時は許可済みフォルダだけを再接続し、文書・復旧候補は自動で開かない', async () => {
   const app = makeHarness({permission:'granted', recoveryItems:[{fileName:'old.html', content:'old'}]});

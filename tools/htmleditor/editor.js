@@ -594,6 +594,12 @@
     try { recovery = window.HtmlEditorRecovery.create(localStorage); } catch { recovery = null; }
     try { folderMemory = window.HtmlEditorFolderMemory.create(indexedDB); } catch { folderMemoryIssue = 'この環境ではフォルダを記憶できません。接続は今回のみ有効です。'; }
     preview = new window.HtmlPreview({iframe:$('previewIframe'), fs,
+      onTitle:title => {
+        const label = $('previewTitle');
+        label.hidden = title === null || /\.css$/i.test(doc?.fileName || '');
+        label.textContent = label.hidden ? '' : title || 'タイトル未設定';
+        label.dataset.tip = label.hidden ? '' : title ? 'HTMLのtitleタグ：' + title : 'HTMLのtitleタグがないか、中が空です。';
+      },
       onNotice:message => { if (/\.css$/i.test(doc?.fileName || '')) return; $('previewNotice').textContent = message; $('previewNotice').hidden = !message; },
       onNavigate:href => exclusive(async () => {
         if (!doc) return;
