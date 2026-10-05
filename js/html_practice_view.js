@@ -2,8 +2,10 @@
 (function () {
   'use strict';
   const doc = document;
-  // 教材・課題URLの互換性を確認済みの配備だけを許可する。日付更新だけで入口を止めない。
-  const EDITOR_BUILDS = Object.freeze([
+  // lesson/task/アンカーの入口仕様。見た目や機能の更新日は互換性判定に使わない。
+  const EDITOR_ENTRY_VERSION = '1';
+  // 互換性番号を持たない、確認済みの旧配備との切替途中も開けるようにする。
+  const LEGACY_EDITOR_BUILDS = Object.freeze([
     'html-editor-v3-20261002-enabled',
     'html-editor-account-name-20261004'
   ]);
@@ -80,7 +82,11 @@
         const response = await fetch(probe, {signal:controller.signal, cache:'no-store', credentials:'same-origin', redirect:'error'});
         if (!response.ok || response.url !== probe || !/text\/html/i.test(response.headers.get('content-type') || '')) throw Error('editor unavailable');
         const source = await response.text();
-        if (!source.includes('data-html-editor-shell="1"') || !EDITOR_BUILDS.some(build => source.includes('data-html-editor-build="' + build + '"'))) throw Error('editor not ready');
+        const shell = new DOMParser().parseFromString(source, 'text/html').documentElement;
+        const version = shell.getAttribute('data-html-editor-entry-version');
+        const compatible = version === EDITOR_ENTRY_VERSION ||
+          (version === null && LEGACY_EDITOR_BUILDS.includes(shell.getAttribute('data-html-editor-build')));
+        if (shell.getAttribute('data-html-editor-shell') !== '1' || !compatible) throw Error('editor not ready');
         if (!stopped) location.replace(routes.editorUrl(parsed.selection));
       } catch {
         if (!stopped) {
