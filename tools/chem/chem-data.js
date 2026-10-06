@@ -393,4 +393,43 @@ const reactionPreset = key => REACTION_PRESETS.find(p => p.key === key) || null;
 
 Object.assign(api, {REACTION_PRESETS, reactionPreset});
 
+
+// ---- 追記（反応速度と化学平衡 0.2）：速度を調べるタブで使う値と、反応を 2 つ足す。上の値は変えない ----
+// catEa：触媒が下げる活性化エネルギー（模型。基準の温度で約 8 倍速くなる大きさ。実際の触媒はもっと大きく下げることが多い）
+// Tmin・Tmax・Tstep：温度のスライダーの範囲（K）。c0Range：初めの濃度のスライダー [最小, 最大, 刻み]（mol/L）
+Object.assign(reactionPreset('hi'), {
+  catEa: 12.5, catNote: '実際の白金触媒では、HI の分解の活性化エネルギーが 184 kJ/mol から 59 kJ/mol まで下がる（もっとずっと速くなる）。',
+  Tmin: 650, Tmax: 800, Tstep: 5,
+  c0Range: {H2: [0.01, 0.10, 0.01], I2: [0.01, 0.10, 0.01]}});
+// 値を表から計算できない反応（記号の反応）は、dH・M を直接書く
+function rxPresetOwn(p){
+  p.species.forEach(s => { if (s.M == null) s.M = molarMass(s.atoms); });
+  if (p.dH == null) p.dH = rxDH(p.react, p.prod, p.species);
+  return p;
+}
+REACTION_PRESETS.push(
+  rxPresetOwn({key: 'ab', name: '記号の反応（一次反応）', short: 'A ⇄ B', abstract: true,
+    species: [
+      {key: 'A', f: 'A', st: '気', name: 'A', atoms: ['A'], M: 50},
+      {key: 'B', f: 'B', st: '気', name: 'B', atoms: ['B'], M: 50}],
+    react: [['A', 1]], prod: [['B', 1]], dH: -10,
+    Tref: 300, Kref: 3, Ea1: 60, k1ref: 0.12, V: 1,
+    catEa: 5.2, Tmin: 270, Tmax: 350, Tstep: 5, c0Range: {A: [0.2, 2.0, 0.2]},
+    starts: [
+      {key: 'react', label: 'A から', c: {A: 1.0, B: 0}},
+      {key: 'prod', label: 'B から', c: {A: 0, B: 1.0}}]}),
+  // 過酸化水素の分解：v = −d[H₂O₂]/dt = k[H₂O₂]（一次反応）。逆反応は考えない（不可逆）。
+  // ΔH は H₂O₂ 1 mol あたり −98.0 kJ（式全体で −196.0）。Ea₁ = 75 kJ/mol（触媒なし。一般的な値）
+  rxPresetOwn({key: 'h2o2', name: '過酸化水素の分解（水溶液）', short: '2H₂O₂ → 2H₂O + O₂',
+    species: [
+      {key: 'H2O2', f: 'H2O2', st: '液', name: '過酸化水素', atoms: ['H', 'O', 'O', 'H']},
+      {key: 'H2O', f: 'H2O', st: '液', name: '水', atoms: ['H', 'O', 'H'], solvent: true},
+      {key: 'O2', f: 'O2', st: '気', name: '酸素', atoms: ['O', 'O']}],
+    react: [['H2O2', 2]], prod: [['H2O', 2], ['O2', 1]], order: {H2O2: 1}, vRef: 'H2O2',
+    Tref: 298, Kref: null, Ea1: 75, k1ref: 0.03, V: 1,
+    catEa: 5.2, catNote: '実際の触媒では、活性化エネルギーが 75 kJ/mol から、白金で約 49 kJ/mol、カタラーゼ（酵素）で約 23 kJ/mol まで下がる。',
+    Tmin: 278, Tmax: 338, Tstep: 2, c0Range: {H2O2: [0.2, 2.0, 0.2]},
+    starts: [{key: 'react', label: 'H₂O₂ から', c: {H2O2: 1.0, H2O: 0, O2: 0}}]})
+);
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

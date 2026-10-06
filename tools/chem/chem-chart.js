@@ -96,7 +96,66 @@ function lineChart(ctx, rect, spec){
   return {X, Y, plot};
 }
 
-const api = {fitCanvas, niceStep, niceMax, ticks, tickText, lineChart};
+// ---- 反応のエネルギー図（反応の進み方 × エネルギー）。SVG の文字列を返す。色は CSS（.ep-*）で付ける ----
+// o = {Ea1, dH, EaCat（触媒ありの Ea₁。なければ null）, react, prod（物質の文字。SVG の tspan を含めてよい）, irreversible}
+function energyProfileSVG(o){
+  const W = 330, H = 210, top = 26, bot = 160;
+  const lo = Math.min(0, o.dH), hi = o.Ea1;
+  const y = E => top + (hi - E) / (hi - lo || 1) * (bot - top);
+  const y0 = y(0), yP = y(o.Ea1), yD = y(o.dH);
+  const curve = peak => 'M34 ' + y0 + ' L98 ' + y0 + ' C130 ' + y0 + ' 138 ' + peak + ' 165 ' + peak + ' C192 ' + peak + ' 200 ' + yD + ' 232 ' + yD + ' L296 ' + yD;
+  const n = v => (Math.round(v * 10) / 10).toString().replace('-', '−');
+  const arrow = (x, ya, yb, cls) => '<line class="ep-ar ' + (cls || '') + '" x1="' + x + '" y1="' + ya + '" x2="' + x + '" y2="' + yb + '" marker-end="url(#epHead)"/>';
+  let s = '<svg class="ep" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="反応のエネルギー図">' +
+    '<defs><marker id="epHead" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8z" class="ep-head"/></marker></defs>' +
+    '<line class="ep-axis" x1="18" y1="' + (bot + 18) + '" x2="18" y2="10" marker-end="url(#epHead)"/><text class="ep-t sm" x="22" y="14">エネルギー</text>' +
+    '<line class="ep-axis" x1="18" y1="' + (bot + 18) + '" x2="' + (W - 8) + '" y2="' + (bot + 18) + '" marker-end="url(#epHead)"/><text class="ep-t sm" x="' + (W - 10) + '" y="' + (bot + 32) + '" text-anchor="end">反応の進み方</text>';
+  // 触媒ありの道すじ（点線）と、右上の凡例
+  if (o.EaCat != null) s += '<path class="ep-cat" d="' + curve(y(o.EaCat)) + '"/>' +
+    '<line class="ep-cat" x1="' + (W - 158) + '" y1="9" x2="' + (W - 138) + '" y2="9"/><text class="ep-t cat" x="' + (W - 134) + '" y="13">触媒あり（Ea₁ ' + n(o.EaCat) + '）</text>';
+  s += '<path class="ep-curve" d="' + curve(yP) + '"/>';
+  // 活性化エネルギー（正反応・逆反応）と ΔH の矢印
+  s += '<line class="ep-guide" x1="98" y1="' + yP + '" x2="296" y2="' + yP + '"/>';
+  s += arrow(66, y0, yP + 2, 'f') + '<text class="ep-t f" x="62" y="' + ((y0 + yP) / 2) + '" text-anchor="end">Ea₁</text><text class="ep-t f sm" x="62" y="' + ((y0 + yP) / 2 + 13) + '" text-anchor="end">' + n(o.Ea1) + '</text>';
+  if (o.EaCat != null) s += arrow(82, y0, y(o.EaCat) + 2, 'cat');
+  s += arrow(268, yD, yP + 2, o.irreversible ? 'b dim' : 'b') + '<text class="ep-t b" x="273" y="' + ((yD + yP) / 2) + '">Ea₂</text><text class="ep-t b sm" x="273" y="' + ((yD + yP) / 2 + 13) + '">' + n(o.Ea1 - o.dH) + '</text>';
+  s += '<line class="ep-guide" x1="232" y1="' + y0 + '" x2="314" y2="' + y0 + '"/>';
+  if (Math.abs(yD - y0) > 6) s += arrow(308, y0, yD - (yD > y0 ? 2 : -2), 'h');
+  // ΔH の文字は、矢印の出発点（反応物の高さ）の線の上か下に（生成物の文字と重ならないように）
+  s += '<text class="ep-t h" x="' + (W - 4) + '" y="' + (yD > y0 ? y0 - 4 : y0 + 13) + '" text-anchor="end">ΔH = ' + n(o.dH) + '</text>';
+  s += '<text class="ep-t lv" x="66" y="' + (y0 + 15) + '" text-anchor="middle">' + o.react + '</text>';
+  s += '<text class="ep-t lv" x="250" y="' + (yD + (yD >= y0 - 1 ? 15 : -6) + (Math.abs(yD - y0) < 16 && yD >= y0 ? 0 : 0)) + '" text-anchor="middle">' + o.prod + '</text>';
+  return s + '</svg>';
+}
+
+// ---- 分子のエネルギーの分布（形の目安）。横軸のエネルギーは縮めて、Ea を「基準の温度の kT の 4 倍」の位置に描く ----
+// o = {T, Tcmp（比べる温度）, Tref, Ea, EaCat（なければ null）}。f(E) ∝ √E·exp(−E/kT)（教科書の図と同じ形）
+function distributionSVG(o){
+  const W = 330, H = 176, x0 = 30, x1 = W - 12, yb = 140, yt = 22;
+  const unit = 1 / 4;                        // 基準の温度の kT を Ea の 1/4 として描く
+  const th = T => unit * T / o.Tref;         // 横軸は Ea = 1
+  const Emax = 1.7;
+  const f = (E, T) => { const t = th(T); return Math.sqrt(E) * Math.exp(-E / t) / Math.pow(t, 1.5); };
+  const fmax = Math.max(f(th(Math.min(o.T, o.Tcmp)) / 2, Math.min(o.T, o.Tcmp)), 1e-9) * 1.08;
+  const X = E => x0 + E / Emax * (x1 - x0), Y = v => yb - v / fmax * (yb - yt);
+  const pts = (T, from = 0) => { const a = []; for (let i = 0; i <= 120; i++){ const E = from + (Emax - from) * i / 120; a.push(X(E).toFixed(1) + ' ' + Y(f(E, T)).toFixed(1)); } return a; };
+  const line = T => 'M' + pts(T).join(' L');
+  const area = (T, from) => 'M' + X(from).toFixed(1) + ' ' + yb + ' L' + pts(T, from).join(' L') + ' L' + X(Emax).toFixed(1) + ' ' + yb + 'z';
+  let s = '<svg class="mb" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="分子のエネルギーの分布">';
+  if (o.EaCat != null) s += '<path class="mb-area cat" d="' + area(o.T, o.EaCat) + '"/>';
+  s += '<path class="mb-area" d="' + area(o.T, 1) + '"/>';
+  s += '<path class="mb-cmp" d="' + line(o.Tcmp) + '"/><path class="mb-line" d="' + line(o.T) + '"/>';
+  s += '<line class="mb-ea" x1="' + X(1) + '" y1="' + (yt - 6) + '" x2="' + X(1) + '" y2="' + yb + '"/><text class="ep-t f" x="' + (X(1) + 4) + '" y="' + (yt + 4) + '">Ea</text>';
+  if (o.EaCat != null) s += '<line class="mb-ea cat" x1="' + X(o.EaCat) + '" y1="' + (yt + 10) + '" x2="' + X(o.EaCat) + '" y2="' + yb + '"/><text class="ep-t cat" x="' + (X(o.EaCat) - 4) + '" y="' + (yt + 20) + '" text-anchor="end">触媒あり</text>';
+  s += '<line class="ep-axis" x1="' + x0 + '" y1="' + yb + '" x2="' + x1 + '" y2="' + yb + '"/><line class="ep-axis" x1="' + x0 + '" y1="' + yb + '" x2="' + x0 + '" y2="' + (yt - 10) + '"/>';
+  s += '<text class="ep-t sm" x="' + x1 + '" y="' + (yb + 15) + '" text-anchor="end">分子のエネルギー →</text>';
+  s += '<text class="ep-t sm" x="' + (x0 - 4) + '" y="' + (yt - 12) + '">分子の数の割合</text>';
+  s += '<line class="mb-line" x1="' + (x1 - 120) + '" y1="' + (yt + 40) + '" x2="' + (x1 - 100) + '" y2="' + (yt + 40) + '"/><text class="ep-t sm" x="' + (x1 - 95) + '" y="' + (yt + 44) + '">' + o.T + ' K</text>';
+  s += '<line class="mb-cmp" x1="' + (x1 - 120) + '" y1="' + (yt + 56) + '" x2="' + (x1 - 100) + '" y2="' + (yt + 56) + '"/><text class="ep-t sm" x="' + (x1 - 95) + '" y="' + (yt + 60) + '">' + o.Tcmp + ' K</text>';
+  return s + '</svg>';
+}
+
+const api = {fitCanvas, niceStep, niceMax, ticks, tickText, lineChart, energyProfileSVG, distributionSVG};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemChart = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

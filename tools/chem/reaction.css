@@ -10,7 +10,7 @@
   --ok:#6fd08c; --warn:#f5b453; --kf:#f59e0b; --kb:#2dd4bf;
 }
 /* 操作部だけを拡大する（箱とグラフは画面に合わせて大きさが変わる） */
-.top,.side,.info,#hint,.head,.panel-head,.mlegend{zoom:var(--ui-k, 1)}
+.top,.side,.info,#hint,.head,.panel-head,.mlegend,.player{zoom:var(--ui-k, 1)}
 .tool-help{font-size:var(--ui-size, 14px)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -33,12 +33,6 @@ button,select,input{font:inherit;color:inherit}
 .top button.ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .top button.ic.wide{width:auto;padding:0 8px;gap:5px;font-size:12.5px;font-weight:500}
 .top button.ic.wide .caret{font-size:9px;color:var(--muted)}
-#btnPlay .i-play{fill:currentColor;stroke-width:1.4}
-#btnPlay .i-pause{display:none;stroke-width:2.6}
-#btnPlay.on .i-play{display:none}
-#btnPlay.on .i-pause{display:inline}
-#btnPlay.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
-#btnReset path:last-child{fill:currentColor;stroke-width:1.4}
 .sep{width:1px;height:22px;background:var(--line);margin:0 2px}
 .spacer{flex:1 1 0!important;min-width:0}
 .hmenu{position:relative;display:inline-flex}
@@ -183,3 +177,78 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .top.tightest button.ic{width:28px}
 .top.tightest button.ic.wide{padding:0 5px}
 .top.tightest #btnRx .caret{display:none}
+
+/* ==== 0.2：再生の操作（箱の下）・条件のスライダー・速さのパネル ==== */
+.viewseg button{height:28px;padding:0 12px}
+.head{row-gap:8px}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctl .lbl{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.ctl .seg button{padding:4px 12px}
+.ctl.slider input[type=range]{width:150px}
+.ctl .val{font-size:12.5px;font-variant-numeric:tabular-nums;min-width:8.5em;white-space:nowrap}
+.mini-sl{display:inline-flex;align-items:center;gap:5px;font-size:12.5px}
+.mini-sl > span:first-child{font-family:Arial,"Hiragino Sans",sans-serif;font-weight:700;white-space:nowrap}
+.mini-sl input[type=range]{width:96px}
+.mini-sl .val{min-width:2.6em}
+input[type=range]{accent-color:var(--accent);cursor:pointer}
+.sbtn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:7px;padding:4px 12px;cursor:pointer;font-size:12.5px;white-space:nowrap}
+.sbtn:hover{background:var(--hover)}
+.player{display:flex;align-items:center;gap:6px;padding:6px 10px;border-top:1px solid var(--line)}
+.pbtn{width:34px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--panel);border-radius:7px;cursor:pointer;color:var(--text);padding:0}
+.pbtn:hover{background:var(--hover)}
+.pbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#btnPlay .i-play{fill:currentColor;stroke-width:1.4}
+#btnPlay .i-pause{display:none;stroke-width:2.6}
+#btnPlay.on .i-play{display:none}
+#btnPlay.on .i-pause{display:inline}
+#btnPlay{width:40px;background:var(--accent);border-color:var(--accent);color:#fff}
+#btnPlay:hover{filter:brightness(1.08)}
+#btnPlay.on{background:var(--accent-soft);color:var(--accent)}
+#btnReset path:last-child{fill:currentColor;stroke-width:1.4}
+#seek{flex:1;min-width:60px}
+.tlabel{font-size:12.5px;font-variant-numeric:tabular-nums;min-width:4.2em;text-align:right}
+.spd{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.spd select{border:1px solid var(--line);border-radius:6px;padding:2px 4px;background:var(--panel);color:var(--text);font-size:12.5px}
+.bigplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:76px;height:76px;border-radius:50%;border:0;cursor:pointer;
+  background:var(--accent);color:#fff;box-shadow:0 6px 22px #14233740;display:flex;align-items:center;justify-content:center;opacity:.93}
+.bigplay:hover{opacity:1;transform:translate(-50%,-50%) scale(1.05)}
+.bigplay svg{width:40px;height:40px;fill:currentColor;margin-left:5px}
+.scale-note{position:absolute;right:10px;bottom:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:2px 10px;font-size:12px;color:var(--warn);opacity:.94;pointer-events:none}
+.vchip{cursor:pointer}
+.clegend .gh{display:inline-flex;align-items:center;gap:5px}
+.clegend i.dot2{width:18px;height:0;border:0;border-top:2px dotted var(--muted)}
+.clegend .x{border:0;background:none;cursor:pointer;color:var(--muted);font-size:14px;padding:0 3px;line-height:1}
+.clegend .x:hover{color:var(--danger)}
+.mut{color:var(--muted)}
+.rec-btns{display:flex;gap:6px;margin:6px 0}
+.ntbl.rec td,.ntbl.rec th{padding:2px 3px}
+/* エネルギー図・分布（chem-chart.js の SVG） */
+.ep,.mb{width:100%;height:auto;display:block}
+.ep-curve{fill:none;stroke:var(--text);stroke-width:2.2}
+.ep-cat{fill:none;stroke:var(--ok);stroke-width:2;stroke-dasharray:6 4}
+.ep-guide{stroke:var(--line);stroke-width:1;stroke-dasharray:3 3}
+.ep-axis{stroke:var(--muted);stroke-width:1.2;fill:none}
+.ep-head{fill:var(--muted)}
+.ep-ar{stroke-width:1.6}
+.ep-ar.f{stroke:var(--kf)} .ep-ar.b{stroke:var(--kb)} .ep-ar.h{stroke:var(--muted)} .ep-ar.cat{stroke:var(--ok)}
+.ep-ar.dim{opacity:.5}
+.ep-t{font-size:12px;fill:var(--text);font-family:-apple-system,"Hiragino Sans",sans-serif}
+.ep-t.sm{font-size:10.5px;fill:var(--muted)}
+.ep-t.f{fill:var(--kf);font-weight:700} .ep-t.b{fill:var(--kb);font-weight:700} .ep-t.h{fill:var(--muted)} .ep-t.cat{fill:var(--ok);font-size:11px;font-weight:600}
+.ep-t.lv{font-weight:700;font-family:Arial,"Hiragino Sans",sans-serif}
+.ep-t.f.sm,.ep-t.b.sm{font-size:10.5px}
+.mb-line{fill:none;stroke:var(--accent);stroke-width:2.2}
+.mb-cmp{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:5 4}
+.mb-area{fill:var(--kf);opacity:.45}
+.mb-area.cat{fill:var(--ok);opacity:.25}
+.mb-ea{stroke:var(--kf);stroke-width:1.4;stroke-dasharray:4 3}
+.mb-ea.cat{stroke:var(--ok)}
+@media (max-width:560px){
+  .ctl.slider input[type=range]{width:110px}
+  .ctl .val{min-width:0}
+  .mini-sl input[type=range]{width:80px}
+  .player{gap:4px;padding:5px 6px}
+  .spd > span{display:none}
+  .viewseg button{padding:0 7px}
+}
+.top.tightest .viewseg button{padding:0 6px}

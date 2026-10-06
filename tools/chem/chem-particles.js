@@ -16,23 +16,34 @@ const S = (typeof module === 'object' && module.exports) ? require('./chem-sim.j
 const ATOM = {
   H: {r: 4.6, color: '#ffffff'}, C: {r: 6.8, color: '#333333'}, N: {r: 6.6, color: '#2152e6'}, O: {r: 6.3, color: '#e01f1f'},
   F: {r: 5.8, color: '#8fe050'}, Cl: {r: 7.6, color: '#1fb840'}, Br: {r: 8.2, color: '#8c2919'}, I: {r: 8.8, color: '#7a2ea1'},
-  S: {r: 7.6, color: '#f2d11a'}, Na: {r: 8.0, color: '#ab5cf2'}
+  S: {r: 7.6, color: '#f2d11a'}, Na: {r: 8.0, color: '#ab5cf2'},
+  // 記号だけの反応（A ⇄ B）の粒子。元素ではないので、粒子に文字も書く
+  A: {r: 9.5, color: '#60a5fa', letter: true}, B: {r: 9.5, color: '#fb923c', letter: true}
 };
 const atomOf = el => ATOM[el] || {r: 6.5, color: '#9aa3ad'};
 const BOND = 0.72;   // 結合している原子どうしの重なり（中心の間の距離 = (r₁ + r₂) × BOND）
 
-// 分子の形（いまは原子を横一列に並べる。3 原子までなら教科書の図に近い）
+// 分子の形。ふつうは原子を横一列に並べる。水（折れ線形）と過酸化水素（ジグザグ）は形を決めておく。
 function moleculeShape(atoms){
-  const parts = []; let x = 0;
-  atoms.forEach((el, i) => {
-    const a = atomOf(el);
-    if (i > 0) x += (atomOf(atoms[i - 1]).r + a.r) * BOND;
-    parts.push({el, x, y: 0, r: a.r, color: a.color});
-  });
-  const mid = (parts[0].x + parts[parts.length - 1].x) / 2;
-  parts.forEach(p => { p.x -= mid; });
-  const r = Math.max(...parts.map(p => Math.abs(p.x) + p.r));
-  return {parts, r};
+  const key = atoms.join(''), parts = [];
+  const put = (el, x, y) => { const a = atomOf(el); parts.push({el, x, y, r: a.r, color: a.color}); };
+  const d = (a, b) => (atomOf(a).r + atomOf(b).r) * BOND;
+  if (key === 'HOH'){   // 水：H–O–H が約 105°
+    const h = d('H', 'O'), t = 52.5 * Math.PI / 180;
+    put('H', -h * Math.sin(t), h * Math.cos(t)); put('O', 0, 0); put('H', h * Math.sin(t), h * Math.cos(t));
+  } else if (key === 'HOOH'){   // 過酸化水素：O–O の両はしに H（平面に描くのでジグザグ）
+    const oo = d('O', 'O') / 2, h = d('H', 'O'), t = 70 * Math.PI / 180;
+    put('H', -oo - h * Math.cos(t), -h * Math.sin(t)); put('O', -oo, 0); put('O', oo, 0); put('H', oo + h * Math.cos(t), h * Math.sin(t));
+  } else {
+    let x = 0;
+    atoms.forEach((el, i) => { if (i > 0) x += d(atoms[i - 1], el); put(el, x, 0); });
+  }
+  // 中心を、原子の円をすべて囲む範囲のまん中にする
+  const xs = parts.flatMap(p => [p.x - p.r, p.x + p.r]), ys = parts.flatMap(p => [p.y - p.r, p.y + p.r]);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  parts.forEach(p => { p.x -= cx; p.y -= cy; });
+  const r = Math.max(...parts.map(p => Math.hypot(p.x, p.y) + p.r));
+  return {parts, r, letter: atoms.length === 1 && !!atomOf(atoms[0]).letter};
 }
 
 // 見やすさのため、重い分子と軽い分子の速さの差を小さくする：箱の中の質量 = (M/2)^(1/3)（H₂ を 1 とする）
@@ -49,11 +60,11 @@ function createBox(opt){
   const rand = S.rng(opt.seed || 1);
   const sp = opt.species.map(s => {
     const shape = moleculeShape(s.atoms || [s.key]);
-    return {key: s.key, shape, r: shape.r, m: effMass(s.M || 2), tint: s.tint || null};
+    return {key: s.key, shape, r: shape.r, m: effMass(s.M || 2), tint: s.tint || null, faint: !!s.solvent, label: s.label || s.key};
   });
   const nS = sp.length;
   const channels = (opt.channels || []).map(ch => ({reac: ch.reac.slice(), prod: ch.prod.slice(),
-    kind: ch.reac.length === 1 ? 'uni' : ch.reac.length === 2 ? 'bi' : 'event', Estar: Infinity, p: 0, saturated: false, events: 0,
+    kind: ch.kind || (ch.reac.length === 1 ? 'uni' : ch.reac.length === 2 ? 'bi' : 'event'), Estar: Infinity, p: 0, saturated: false, events: 0,
     eff: {req: 0, got: 0}}));
   const box = {w: opt.w, h: opt.h, kT: opt.kT || 1, sp, channels, P: [], counts: new Array(nS).fill(0), flashes: [], time: 0,
     // 衝突の回数の見込みの補正（実際の回数 ÷ 見込みの回数。粒子の大きさで混み合うと 1 より大きくなる）
@@ -256,6 +267,27 @@ function createBox(opt){
     }
     return best;
   }
+  // ぶつかって起こる反応（bi）の、1 秒にぶつかる回数の見込み（補正つき）。時間の進み方を決めるのに使う
+  box.zOf = ci => { const ch = channels[ci]; if (!ch || ch.kind !== 'bi') return 0; return gOf(pairKey(ch.reac[0], ch.reac[1])) * zExpected(ch.reac[0], ch.reac[1]); };
+  // ---- いまの状態を記録する・戻す（時間のスライダーで前の場面に戻るため） ----
+  box.snapshot = () => {
+    const P = box.P, a = new Float32Array(P.length * 7);
+    P.forEach((p, i) => { a.set([p.s, p.x, p.y, p.vx, p.vy, p.a, p.w], i * 7); });
+    return {P: a, counts: box.counts.slice(), kT: box.kT, time: box.time, w: box.w, h: box.h,
+      coll: [...box.coll].map(([k, v]) => [k, v.obs, v.exp]), gAll: Object.assign({}, box.gAll),
+      ch: channels.map(c => [c.events, c.eff.req, c.eff.got])};
+  };
+  box.restore = snap => {
+    box.P = []; for (let i = 0; i < snap.P.length; i += 7){ const v = snap.P; box.P.push({s: v[i], x: v[i + 1], y: v[i + 2], vx: v[i + 3], vy: v[i + 4], a: v[i + 5], w: v[i + 6]}); }
+    box.counts = snap.counts.slice(); box.kT = snap.kT; box.time = snap.time; box.w = snap.w; box.h = snap.h; box.flashes = [];
+    box.coll = new Map(snap.coll.map(([k, o, e]) => [k, {obs: o, exp: e}])); box.gAll = Object.assign({}, snap.gAll);
+    channels.forEach((c, i) => { [c.events, c.eff.req, c.eff.got] = snap.ch[i]; });
+  };
+  // 記録した場面を描くための、軽い箱（drawBox にそのまま渡せる）
+  box.viewOf = snap => {
+    const P = []; for (let i = 0; i < snap.P.length; i += 7){ const v = snap.P; P.push({s: v[i], x: v[i + 1], y: v[i + 2], a: v[i + 5]}); }
+    return {w: snap.w, h: snap.h, sp, P, counts: snap.counts, flashes: [], time: 0};
+  };
   // 温度の目安（いまの運動エネルギーから。基準の温度で 1）
   box.kTnow = () => { let ke = 0; for (const p of box.P) ke += 0.5 * sp[p.s].m * (p.vx * p.vx + p.vy * p.vy); return box.P.length ? ke / box.P.length / KT_UNIT : 0; };
   return box;
@@ -284,28 +316,38 @@ function drawBox(ctx, box, view, opt = {}){
   const edge = opt.dark ? '#0b0d10' : '#3b4048';
   ctx.lineWidth = Math.max(0.8, 1.1 * k);
   for (const p of box.P){
-    const shp = box.sp[p.s].shape, ca = Math.cos(p.a), sa = Math.sin(p.a);
+    const spc = box.sp[p.s], shp = spc.shape, ca = Math.cos(p.a), sa = Math.sin(p.a);
+    ctx.globalAlpha = spc.faint ? 0.4 : 1;   // 溶媒（水）はうすく
     for (const a of shp.parts){
       const ax = ox + (p.x + a.x * ca - a.y * sa) * k, ay = oy + (p.y + a.x * sa + a.y * ca) * k;
       ctx.beginPath(); ctx.arc(ax, ay, a.r * k, 0, Math.PI * 2);
       ctx.fillStyle = a.color; ctx.fill(); ctx.strokeStyle = edge; ctx.stroke();
     }
-    if (opt.labels){
+    if (shp.letter){   // 記号だけの粒子は、いつも文字を書く
+      ctx.font = '700 ' + Math.max(8, 11 * k) + 'px -apple-system, "Hiragino Sans", sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#10243e';
+      ctx.fillText(spc.label, ox + p.x * k, oy + p.y * k + 0.5);
+    } else if (opt.labels){
       ctx.font = '600 ' + Math.max(8, 9 * k) + 'px -apple-system, "Hiragino Sans", sans-serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.lineWidth = 3; ctx.strokeStyle = opt.dark ? '#000' : '#fff'; ctx.strokeText(box.sp[p.s].label || box.sp[p.s].key, ox + p.x * k, oy + p.y * k);
-      ctx.fillStyle = opt.dark ? '#fff' : '#111'; ctx.fillText(box.sp[p.s].label || box.sp[p.s].key, ox + p.x * k, oy + p.y * k);
-      ctx.lineWidth = Math.max(0.8, 1.1 * k);
+      ctx.lineWidth = 3; ctx.strokeStyle = opt.dark ? '#000' : '#fff'; ctx.strokeText(spc.label, ox + p.x * k, oy + p.y * k);
+      ctx.fillStyle = opt.dark ? '#fff' : '#111'; ctx.fillText(spc.label, ox + p.x * k, oy + p.y * k);
     }
+    ctx.lineWidth = Math.max(0.8, 1.1 * k);
   }
+  ctx.globalAlpha = 1;
   ctx.restore();
 }
 // 1 つの分子の形だけを描く（凡例用）
-function drawMolecule(ctx, shape, x, y, k, dark){
+function drawMolecule(ctx, shape, x, y, k, dark, label){
   ctx.save(); ctx.lineWidth = 1;
   for (const a of shape.parts){
     ctx.beginPath(); ctx.arc(x + a.x * k, y + a.y * k, a.r * k, 0, Math.PI * 2);
     ctx.fillStyle = a.color; ctx.fill(); ctx.strokeStyle = dark ? '#0b0d10' : '#3b4048'; ctx.stroke();
+  }
+  if (shape.letter && label){
+    ctx.font = '700 ' + Math.max(8, 11 * k) + 'px -apple-system, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#10243e'; ctx.fillText(label, x, y + 0.5);
   }
   ctx.restore();
 }

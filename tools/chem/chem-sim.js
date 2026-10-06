@@ -20,7 +20,8 @@ function compile(net){
     const nu = new Float64Array(net.species.length);
     for (const [i, n] of reac) nu[i] -= n;
     for (const [i, n] of prod) nu[i] += n;
-    return {reac, prod, ordF, ordB, nu, kf: r.kf, kb: r.kb || 0};
+    // reversible：逆反応の道があるか（いまの kb が 0 でも、逆反応を「止めた」だけなら道は残す）
+    return {reac, prod, ordF, ordB, nu, kf: r.kf, kb: r.kb || 0, reversible: r.reversible ?? !!r.kb};
   });
   return {species: net.species.slice(), idx, rx, n: net.species.length};
 }
@@ -130,12 +131,23 @@ const fractionAbove = (EkJ, T) => Math.exp(-EkJ * 1000 / (R * T));
 // ---- 反応のプリセットから、いまの条件の速度定数を作る ----
 // pre = {species, react:[[key, n]], prod:[[key, n]], Tref, Kref, k1ref, Ea1, dH}（chem-data.js の REACTION_PRESETS）
 // 触媒は正反応・逆反応の活性化エネルギーを同じだけ下げる（catEa kJ/mol）。だから K は変わらない。
+// 速度定数 k₁・k₂ は教科書の決め方：v は基準の物質（pre.vRef。ふつうは最初の反応物）が減る速さ。
+// 例：2H₂O₂ → 2H₂O + O₂ で v = −d[H₂O₂]/dt = k[H₂O₂]。ΔH・Ea も基準の物質 1 mol あたり（dHref）で考える。
+// opt.reverse === false：逆反応を止める（速度の単元で、初めは逆反応を考えないとき）。不可逆の反応（Kref なし）は K = ∞。
 function constants(pre, T, opt = {}){
   const lower = opt.catalyst ? (pre.catEa || 0) : 0;
-  const Ea1 = pre.Ea1 - lower, Ea2 = pre.Ea1 - pre.dH - lower;
-  const K = vantHoff(pre.Kref, pre.dH, T, pre.Tref);
+  const nu = nuRef(pre), dHref = pre.dH / nu;
+  const Ea1 = pre.Ea1 - lower, Ea2 = pre.Ea1 - dHref - lower;
+  const K = pre.Kref == null ? Infinity : vantHoff(pre.Kref, pre.dH, T, pre.Tref);
   const k1 = arrhenius(pre.k1ref, pre.Ea1, T, pre.Tref) * Math.exp(lower * 1000 / (R * T));
-  return {T, Ea1, Ea2, dH: pre.dH, K, k1, k2: k1 / K, dn: dnGas(pre)};
+  const k2 = isFinite(K) && opt.reverse !== false ? k1 / K : 0;
+  return {T, Ea1, Ea2, dH: pre.dH, dHref, nu, K, k1, k2, catalyst: !!lower, reverse: k2 > 0, reversible: isFinite(K), dn: dnGas(pre)};
+}
+// 基準の物質の係数（v を「この物質が減る速さ」とするので、式の上の速さは v/係数）
+function nuRef(pre){
+  const key = pre.vRef || pre.react[0][0];
+  const e = pre.react.find(([k]) => k === key) || pre.prod.find(([k]) => k === key);
+  return e ? e[1] : 1;
 }
 function dnGas(pre){
   const st = k => (pre.species.find(s => s.key === k) || {}).st;
@@ -144,7 +156,12 @@ function dnGas(pre){
 }
 function network(pre, consts){
   return compile({species: pre.species.map(s => s.key),
-    reactions: [{r: Object.fromEntries(pre.react), p: Object.fromEntries(pre.prod), kf: consts.k1, kb: consts.k2}]});
+    reactions: [{r: Object.fromEntries(pre.react), p: Object.fromEntries(pre.prod), order: pre.order || null,
+      kf: consts.k1 / consts.nu, kb: consts.k2 / consts.nu, reversible: consts.reversible}]});
+}
+// 条件（温度・触媒・逆反応）を変えたとき、反応のかたちはそのままで速度定数だけを入れかえる
+function setConstants(cn, consts){
+  cn.rx[0].kf = consts.k1 / consts.nu; cn.rx[0].kb = consts.k2 / consts.nu;
 }
 // 圧平衡定数 Kp = Kc·(RT)^Δn（Pa、R = 8.314×10³ Pa·L/(K·mol)）
 const Kp = (Kc, T, dn) => Kc * Math.pow(R_PA_L * T, dn);
@@ -152,9 +169,17 @@ const partialPressure = (c, T) => c * R_PA_L * T;   // Pa
 
 // ---- 粒子の箱とのつなぎ（設計 2.2） ----
 // 反応ごとに「正反応」「逆反応」の 2 つの道（channel）を作る。係数の数だけ粒子を並べる（H₂ + I₂ → 2HI なら [H₂, I₂] → [HI, HI]）。
+// 次数の合計と粒子の数が同じなら、ぶつかって（または 1 つで）起こる反応。違えば（2H₂O₂ の一次反応など）、回数を決めて粒子を集める。
 function channelsOf(cn){
   const expand = list => list.flatMap(([i, n]) => Array(n).fill(i));
-  return cn.rx.flatMap(r => [{reac: expand(r.reac), prod: expand(r.prod)}, ...(r.kb > 0 ? [{reac: expand(r.prod), prod: expand(r.reac)}] : [])]);
+  const kindOf = (parts, ord) => {
+    const o = ord.reduce((s, [, n]) => s + n, 0);
+    return o === parts.length && parts.length <= 2 ? (parts.length === 1 ? 'uni' : 'bi') : 'event';
+  };
+  return cn.rx.flatMap(r => {
+    const f = expand(r.reac), b = expand(r.prod);
+    return [{reac: f, prod: b, kind: kindOf(f, r.ordF)}, ...(r.reversible ? [{reac: b, prod: f, kind: kindOf(b, r.ordB)}] : [])];
+  });
 }
 // 粒子の数から、各道のほしい反応の回数（回/粒子の箱の 1 秒）。
 // sigma：1 mol/L あたりの粒子の数（いまの体積で）。scale：粒子の箱の 1 秒が模型の時間の何秒か。
@@ -162,7 +187,7 @@ function particleRates(cn, counts, sigma, scale = 1){
   const c = counts.map(n => n / sigma), out = [];
   for (const r of cn.rx){
     out.push(r.kf * powProd(c, r.ordF) * sigma * scale);
-    if (r.kb > 0) out.push(r.kb * powProd(c, r.ordB) * sigma * scale);
+    if (r.reversible) out.push(r.kb * powProd(c, r.ordB) * sigma * scale);
   }
   return out;
 }
@@ -217,7 +242,7 @@ const SUP = {'-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵'
 const supNum = e => String(e).split('').map(ch => SUP[ch]).join('');
 
 const api = {R, R_PA_L, compile, rates, deriv, integrate, simulate, equilibrium, lnQ, Q, bisect, arrhenius, vantHoff, fractionAbove,
-  constants, network, dnGas, channelsOf, particleRates, Kp, partialPressure, crossTime, timeToFraction, rng, sig, supNum};
+  constants, nuRef, network, setConstants, dnGas, channelsOf, particleRates, Kp, partialPressure, crossTime, timeToFraction, rng, sig, supNum};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemSim = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
