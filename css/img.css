@@ -558,6 +558,21 @@ figure.concept-figure--scroll{
   --concept-min-width: 820px;
 }
 
+figure.concept-figure--swap:focus-visible{
+  outline: 3px solid var(--theme-color, #285b8d);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.concept-diagram--swap .concept-diagram__path.concept-diagram__transfer{
+  stroke: var(--diagram-accent);
+  stroke-width: 4;
+}
+
+.concept-diagram--swap .concept-diagram__transfer-arrow{
+  fill: var(--diagram-accent);
+}
+
 .concept-diagram .concept-diagram__surface{
   fill: var(--diagram-surface);
   stroke: var(--diagram-line);
