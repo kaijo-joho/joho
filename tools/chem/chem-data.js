@@ -359,4 +359,38 @@ const elementBySym = sym => ELEMENTS.find(e => e.sym === sym) || null;
 
 Object.assign(api, {ELEMENTS, ELEMENT_ROWS, ION_RADIUS, ION_CHARGES, ionKey, elementBySym, elementPosition, electronShells});
 
+
+// ======================================================================
+// 追記（反応速度と化学平衡 reaction.html 用）：反応のプリセット。既存の表には手を入れず、api に足すだけ。
+// 値の出典は docs/DEVELOPMENT.md の「定数の出典（反応速度と化学平衡）」。
+// ΔH は上の生成エンタルピーの表から計算する（表を 2 重に持たない）。Ea₂ = Ea₁ − ΔH。
+// k1ref は「模型の時間」での正反応の速度定数（基準の温度 Tref で）。実際の反応はもっと遅い。
+// ======================================================================
+const rxDH = (react, prod, species) => {
+  const st = k => species.find(s => s.key === k).st;
+  const h = list => list.reduce((s, [k, n]) => s + n * enthalpyOf(k + '|' + st(k)), 0);
+  return Math.round((h(prod) - h(react)) * 10) / 10;
+};
+const molarMass = atoms => Math.round(atoms.reduce((s, sym) => s + elementBySym(sym).mass, 0) * 1000) / 1000;
+function rxPreset(p){
+  p.species.forEach(s => { s.M = molarMass(s.atoms); });
+  p.dH = rxDH(p.react, p.prod, p.species);
+  return p;
+}
+const REACTION_PRESETS = [
+  rxPreset({key: 'hi', name: 'ヨウ化水素の生成', short: 'H₂ + I₂ ⇄ 2HI',
+    species: [
+      {key: 'H2', f: 'H2', st: '気', name: '水素', atoms: ['H', 'H']},
+      {key: 'I2', f: 'I2', st: '気', name: 'ヨウ素', atoms: ['I', 'I'], tint: '#7a2ea1'},   // 紫色の気体
+      {key: 'HI', f: 'HI', st: '気', name: 'ヨウ化水素', atoms: ['H', 'I']}],
+    react: [['H2', 1], ['I2', 1]], prod: [['HI', 2]],
+    Tref: 721, Kref: 50, Ea1: 174, k1ref: 2.5, V: 10,
+    starts: [
+      {key: 'react', label: 'H₂ と I₂ から', c: {H2: 0.050, I2: 0.050, HI: 0}},
+      {key: 'prod', label: 'HI から', c: {H2: 0, I2: 0, HI: 0.100}}]})
+];
+const reactionPreset = key => REACTION_PRESETS.find(p => p.key === key) || null;
+
+Object.assign(api, {REACTION_PRESETS, reactionPreset});
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);
