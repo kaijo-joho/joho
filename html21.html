@@ -122,14 +122,15 @@
         <tr>
           <td>em</td>
           <td>エム</td>
-          <td class="text-align-left">親要素の大文字Mの高さ（＝フォントサイズ）を１としたときの相対的な高さ</td>
+          <td class="text-align-left">その要素のフォントサイズを基準とする長さの単位（1em＝その要素のフォントサイズ）</td>
         </tr>
         <tr>
           <td>rem</td>
           <td>レム</td>
-          <td class="text-align-left">html要素の大文字Mの高さ（＝フォントサイズ）を１としたときの相対的な高さ</td>
+          <td class="text-align-left">ルート要素（html要素）のフォントサイズを基準とする長さの単位（1rem＝html要素のフォントサイズ）</td>
         </tr>
       </table>
+      <p><code>font-size</code>を<code>em</code>で指定する場合は、親要素のフォントサイズが基準になります。例えば、親要素が16pxなら、<code>font-size: 1.5em;</code>は24pxになります。</p>
 
       <h3>色の指定</h3>
       <p>文字や背景の色を指定するには、次の方法があります。</p>
