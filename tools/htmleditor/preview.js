@@ -51,12 +51,18 @@
       this.onTitle = options.onTitle || (() => {});
       this.onDiagnostics = options.onDiagnostics || (() => {});
       this.pageTitle = '';
-      this.lastHtml = ''; this.basePath = '';
+      this.lastHtml = ''; this.basePath = ''; this.fragment = '';
       this.localLinks = new Map();
       this.iframe?.addEventListener('load', () => {
         try {
-          const href = this.localLinks.get(this.iframe.contentWindow.location.href);
-          if (!href) return;
+          const location = this.iframe.contentWindow.location;
+          const href = this.localLinks.get(location.href);
+          if (!href) {
+            // リンク先のsrcdocが読み込まれてから、ブラウザ本来の位置移動を使う。
+            // 次のupdateで解除するため、古いloadが先に届いても指定を失わない。
+            if (this.fragment && location.href.startsWith('about:srcdoc')) location.hash = this.fragment;
+            return;
+          }
           // WebKitではscripts禁止iframe内の親製click handlerも働かない。
           // 通信を伴わないabout:blankへのネイティブ遷移を、親のloadで受ける。
           // 未保存確認を取り消しても、元のプレビューを失わない。
@@ -65,12 +71,13 @@
         } catch { /* 親がアクセスできない画面には介入しない。 */ }
       });
     }
-    update(source, basePath = '') {
+    update(source, basePath = '', fragment = '') {
       this.lastHtml = source; this.basePath = basePath;
+      this.fragment = typeof fragment === 'string' && fragment.startsWith('#') ? fragment : '';
       if (this.iframe) this.iframe.srcdoc = this.transform(source);
     }
     blocked(detached = false) {
-      if (!detached) { this.localLinks.clear(); this.pageTitle = ''; this.onTitle(null); }
+      if (!detached) { this.localLinks.clear(); this.fragment = ''; this.pageTitle = ''; this.onTitle(null); }
       const message = 'コードに問題があります。修正してからプレビューを更新してください。まずは自分で見直し、必要なときは「エラーを探す」を使えます。';
       this.onNotice(message);
       return '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' + CSP + '"></head><body>' +

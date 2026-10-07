@@ -119,7 +119,7 @@
     } catch { /* 不正な配付情報でも本文は保持。提出時に案内する。 */ }
     cm.clearHistory();
     if (!options.restored) doc.savedContent = content();
-    replacing = false; displayState(); runPreview();
+    replacing = false; displayState(); runPreview(options.fragment);
     requestAnimationFrame(() => cm.refresh());
     if (doc.hasWork) autoSave();
   }
@@ -271,7 +271,7 @@
     if (icon) badge.append(icon.cloneNode(true));
     badge.append(document.createTextNode(label)); parent.append(badge);
   }
-  function runPreview() {
+  function runPreview(fragment = '') {
     if (!doc) return;
     if (/\.css$/i.test(doc.fileName)) {
       const result = Diagnostics.check(content(), {mode:'css', supports:(name, value) => CSS.supports(name, value),
@@ -281,7 +281,7 @@
       $('previewNotice').textContent = result.valid ? 'CSSは保存してから、参照しているHTMLを開いて確認します。' : 'コードに問題があります。修正してから更新してください。';
       $('previewNotice').hidden = false; receiveDiagnostics(result); return;
     }
-    preview.update(content(), doc.fileName);
+    preview.update(content(), doc.fileName, fragment);
   }
   function clearDiagnostics() {
     diagnostics = null;
@@ -347,7 +347,9 @@
   function safeRelativeLink(href, base) {
     if (/^[a-z][a-z0-9+.-]*:|^\/|\\|[\u0000-\u001f\u007f]|%(?:2f|5c|00)/i.test(href)) return null;
     try {
-      const [relative] = href.split('#');
+      const separator = href.indexOf('#');
+      const relative = separator < 0 ? href : href.slice(0, separator);
+      const fragment = separator < 0 ? '' : href.slice(separator);
       if (relative.includes('?')) return null;
       const parts = base.split('/').slice(0, -1);
       for (const part of decodeURIComponent(relative).split('/')) {
@@ -356,10 +358,10 @@
         else parts.push(part);
       }
       const path = parts.join('/');
-      return editable(path) && fs.fileEntries.has(path) ? path : null;
+      return editable(path) && fs.fileEntries.has(path) ? {path, fragment} : null;
     } catch { return null; }
   }
-  async function loadFile(path) {
+  async function loadFile(path, fragment = '') {
     let value = await fs.readFile(path); // 読取失敗は現在の文書に触れない。
     const hadChanges = dirty();
     if (!await allowReplace()) return;
@@ -368,7 +370,7 @@
     if (hadChanges) value = await fs.readFile(path);
     autoSave();
     replaceDocument(value, path, {binding:fs.isConnected() ? fs.dirHandle : null,
-      openedFrom:fs.isConnected() ? fs.dirHandle : null, diskContent:value, hasWork:true});
+      openedFrom:fs.isConnected() ? fs.dirHandle : null, diskContent:value, hasWork:true, fragment});
     if (Practice.taskForFile(path)) setLesson(doc.lessonId, Practice.taskForFile(path));
     setPane('center');
   }
@@ -681,9 +683,9 @@
       onNotice:message => { if (/\.css$/i.test(doc?.fileName || '')) return; $('previewNotice').textContent = message; $('previewNotice').hidden = !message; },
       onNavigate:href => exclusive(async () => {
         if (!doc) return;
-        const path = safeRelativeLink(href, doc.fileName);
-        if (!path) throw Error('リンク先を読み込んだフォルダ内で見つけられません。パスを確認してください。');
-        await loadFile(path);
+        const link = safeRelativeLink(href, doc.fileName);
+        if (!link) throw Error('リンク先を読み込んだフォルダ内で見つけられません。パスを確認してください。');
+        await loadFile(link.path, link.fragment);
       })});
     cm = CodeMirror.fromTextArea($('codeEditor'), {
       mode:'htmlmixed', lineNumbers:true, gutters:['CodeMirror-linenumbers','error-hints'], autoCloseTags:false, smartIndent:false, electricChars:false,
@@ -691,7 +693,7 @@
       extraKeys:{Tab:editor => { if (doc && !busy) editor.replaceSelection('  ', 'end', '+input'); },
         Enter:editor => { if (doc && !busy) editor.replaceSelection('\n', 'end', '+input'); },
         'Cmd-S':save, 'Ctrl-S':save, 'Cmd-O':openSavedFile, 'Ctrl-O':openSavedFile,
-        'Cmd-Enter':runPreview, 'Ctrl-Enter':runPreview}
+        'Cmd-Enter':() => runPreview(), 'Ctrl-Enter':() => runPreview()}
     });
     for (const lesson of catalog) {
       const option = document.createElement('option'); option.value = lesson.id; option.textContent = lesson.title; $('lessonSelect').append(option);
@@ -732,7 +734,7 @@
     $('downloadBtn').addEventListener('click', event => { closeMenus(event.currentTarget); if (!busy) download(); });
     $('restoreBtn').addEventListener('click', event => { closeMenus(event.currentTarget); exclusive(() => restore()); });
     $('submitBtn').addEventListener('click', event => { event.currentTarget.focus(); submit(); });
-    $('runBtn').addEventListener('click', runPreview);
+    $('runBtn').addEventListener('click', () => runPreview());
     $('findErrorsBtn').addEventListener('click', findErrors);
     $('openPreviewTabBtn').addEventListener('click', () => { if (doc && !busy) { runPreview(); preview.openInNewTab(); } });
     $('toggleLessonBtn').addEventListener('click', event => {

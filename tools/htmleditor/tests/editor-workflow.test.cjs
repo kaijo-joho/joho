@@ -95,7 +95,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     CodeMirror:{fromTextArea:() => cm}, HtmlFileSystem:FakeFs,
     HtmlEditorFolderMemory:{create:() => { if (memoryFails) throw Error('IndexedDB unavailable'); return memory; }},
     HtmlEditorRecovery:{create:() => ({save() {}, list:() => ({items:recoveryItems, errors:[]})})},
-    HtmlPreview:class { constructor(options) { this.fs = options.fs; calls.previewOptions = options; } update() {} openInNewTab() {} },
+    HtmlPreview:class { constructor(options) { this.fs = options.fs; calls.previewOptions = options; calls.previewUpdates = []; } update(...args) { calls.previewUpdates.push(args); } openInNewTab() {} },
     HtmlEditorDiagnostics:require('../diagnostics.js'), HtmlEditorHintUsage:require('../hint-usage.js'), CSS:{supports:() => true},
     HtmlPracticeEditor:{lessons:() => [{id:'html11', title:'HTML', files:[]}], taskForFile:() => null, inspect:() => null, submission() {}},
     HtmlEditorWorkflow:{distribution:() => ({message:'', kind:'ready'}), submission:() => ({ready:false, message:''})},
@@ -307,3 +307,51 @@ test('本人情報の不一致は編集中に警告するだけ。キャッシ�
  verdict='unknown';h.windowEvents.get('focus')[0]();await h.tick();assert.equal(h.nodes.fileIdentityWarning.hidden,true);
  assert.equal(h.cm.getValue(),'old saved content');assert.equal(h.calls.writes,0);assert.equal(h.calls.downloads,0);
 });
+
+
+for (const fragment of ['#topic-c', '#%E6%9C%AA%E6%9D%A5', '#topic#c', '']) {
+  test('別ファイルへのリンクは保存先と位置を引き継ぐ: ' + (fragment || '位置指定なし'), async () => {
+    const h = makeHarness(); await h.tick(); await chooseSample(h);
+    h.disk.set('second.html', '<html><body><h2 id="topic-c">未来</h2></body></html>');
+    await h.calls.previewOptions.onNavigate('./second.html' + fragment);
+    assert.equal(h.nodes.currentFileLabel.textContent, 'second.html');
+    assert.equal(h.cm.getValue(), h.disk.get('second.html'));
+    assert.equal(h.calls.previewUpdates.at(-1)[1], 'second.html');
+    assert.equal(h.calls.previewUpdates.at(-1)[2], fragment);
+    assert.equal(h.calls.writes, 0);
+  });
+}
+
+test('位置指定付きのリンクもフォルダ外・外部URL・クエリ指定を開かない', async () => {
+  const h = makeHarness(); await h.tick(); await chooseSample(h);
+  h.disk.set('second.html', 'destination');
+  const updates = h.calls.previewUpdates.length;
+  for (const href of ['../second.html#topic-c', '%2e%2e/second.html#topic-c', '/second.html#topic-c',
+    'https://example.com/second.html#topic-c', 'second.html?query=1#topic-c', '%2fsecond.html#topic-c']) {
+    await h.calls.previewOptions.onNavigate(href);
+    assert.equal(h.nodes.currentFileLabel.textContent, 'sample.html');
+    assert.equal(h.cm.getValue(), 'old saved content');
+  }
+  assert.equal(h.calls.previewUpdates.length, updates);
+});
+
+for (const mode of ['save', 'discard', 'cancel', 'writeFailure', 'readFailure']) {
+  test('位置指定付きのファイル移動で未保存確認を維持する: ' + mode, async () => {
+    const h = makeHarness({failWrite:mode === 'writeFailure', failReadAfterWrite:mode === 'readFailure'});
+    await h.tick(); await chooseSample(h);
+    h.disk.set('second.html', 'destination'); h.cm.setValue('edited content');
+    const updates = h.calls.previewUpdates.length;
+    const navigation = h.calls.previewOptions.onNavigate('second.html#topic-c'); await h.tick();
+    assert.equal(h.calls.previewUpdates.length, updates, '確認が済むまで移動しない');
+    h.nodes.actionButtons.children.find(n => n.dataset.choice ===
+      (mode === 'cancel' ? 'cancel' : mode === 'discard' ? 'discard' : 'save')).click();
+    await h.tick();
+    await navigation;
+    const moved = mode === 'save' || mode === 'discard';
+    assert.equal(h.nodes.currentFileLabel.textContent, moved ? 'second.html' : 'sample.html');
+    assert.equal(h.cm.getValue(), moved ? 'destination' : 'edited content');
+    assert.equal(h.calls.previewUpdates.length, updates + Number(moved));
+    if (moved) assert.equal(h.calls.previewUpdates.at(-1)[2], '#topic-c');
+    assert.equal(h.disk.get('sample.html'), mode === 'save' || mode === 'readFailure' ? 'edited content' : 'old saved content');
+  });
+}
