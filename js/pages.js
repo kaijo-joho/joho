@@ -1,4 +1,4 @@
-//2026-10-04 01:04:18;
+//2026-10-07 03:54:10;
 const pages = {
   "index": {
     "id": "index",
@@ -1089,11 +1089,11 @@ const pages = {
     "back": "html00",
     "next": [
       {
-        "id": "html25",
+        "id": "html26",
         "title": "CSSの応用",
         "text": "CSSの応用",
         "release": true,
-        "url": "html25.html",
+        "url": "html26.html",
         "detail": "その他のCSSについて学びます。"
       }
     ],
@@ -1244,12 +1244,12 @@ const pages = {
     "back": "html00",
     "next": [
       {
-        "id": "html18",
-        "title": "HTMLの応用",
-        "text": "HTMLの応用",
+        "id": "html25",
+        "title": "2-5. HTML/CSSの総合実習",
+        "text": "2-5. HTML/CSSの総合実習",
         "release": true,
-        "url": "html18.html",
-        "detail": "その他のHTMLタグと、情報を整理して伝える要素を学びます。"
+        "url": "html25.html",
+        "detail": "HTMLとCSSを組み合わせ、架空の公園を紹介する1ページを制作します。"
       }
     ],
     "show": true,
@@ -1261,6 +1261,41 @@ const pages = {
     "fileName": "html25.html",
     "mainTitle": "HTML実習",
     "category": "2. CSSの基本",
+    "title": "2-5. HTML/CSSの総合実習",
+    "detail": "HTMLとCSSを組み合わせ、架空の公園を紹介する1ページを制作します。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "html00",
+    "next": [
+      {
+        "id": "html18",
+        "title": "HTMLの応用",
+        "text": "HTMLの応用",
+        "release": true,
+        "url": "html18.html",
+        "detail": "その他のHTMLタグと、情報を整理して伝える要素を学びます。"
+      },
+      {
+        "id": "html26",
+        "title": "CSSの応用",
+        "text": "CSSの応用",
+        "release": true,
+        "url": "html26.html",
+        "detail": "その他のCSSについて学びます。"
+      }
+    ],
+    "show": true,
+    "backFile": "html00.html"
+  },
+  "html26": {
+    "id": "html26",
+    "release": true,
+    "fileName": "html26.html",
+    "mainTitle": "HTML実習",
+    "category": "2. CSSの基本",
     "title": "CSSの応用",
     "detail": "その他のCSSについて学びます。",
     "practiceFile": false,
@@ -1270,33 +1305,6 @@ const pages = {
     "quizForm": false,
     "back": "html00",
     "next": false,
-    "show": true,
-    "backFile": "html00.html"
-  },
-  "html26": {
-    "id": "html26",
-    "release": false,
-    "fileName": "html26.html",
-    "mainTitle": "HTML実習",
-    "category": "2. CSSの基本",
-    "title": "2-6. ",
-    "detail": "",
-    "practiceFile": false,
-    "dlFile": false,
-    "exampleFile": false,
-    "questionFile": false,
-    "quizForm": false,
-    "back": "html00",
-    "next": [
-      {
-        "id": "html00",
-        "title": "HTML実習の目次",
-        "text": "HTML実習の目次",
-        "release": true,
-        "url": "html00.html",
-        "detail": "HTMLとCSSの基本を学び、Webページ制作に取り組みます。"
-      }
-    ],
     "show": true,
     "backFile": "html00.html"
   },
