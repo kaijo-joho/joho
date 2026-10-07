@@ -256,9 +256,16 @@
     },
     {
       id: 'html25',
-      title: '2-5. CSSの応用',
+      title: '2-5. HTML/CSSの総合実習',
       category: '2. CSSの基本',
       docUrl: '../../html25.html',
+      files: []
+    },
+    {
+      id: 'html26',
+      title: 'CSSの応用',
+      category: '2. CSSの基本',
+      docUrl: '../../html26.html',
       files: []
     }
   ];

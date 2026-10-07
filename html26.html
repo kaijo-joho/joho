@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme: light dark; background: transparent; }
+    @media (prefers-color-scheme: dark) {
+      html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+    }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme: dark) {
+      body { background-color:#0b0b0b; }
+    }
+  </style>
+  <title>海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/html25.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/html25.js"></script>
+</head>
+
+<body>
+  <section>
+    <article>
+      <h2 id="headline_1">発展CSSの試し方</h2>
+      <p>このページでは、自由製作に取り入れやすいCSSを、値を変えながら試すことができます。作りたい表現に近い実例を選び、操作したときの変化と表示されるCSSを見比べてみましょう。</p>
+      <ol class="normal-list css-lab-intro">
+        <li>スライダーや選択欄で値を変える</li>
+        <li>プレビューで変化を確かめる</li>
+        <li>表示されたCSSから、必要な指定を自分の作品へ取り入れる</li>
+        <li>さらに工夫したいときは、各実例の「検索語」を使って調べる</li>
+      </ol>
+    </article>
+
+    <article>
+      <h2 id="headline_2">ページの幅と余白</h2>
+      <p><code>max-width</code>で本文が広がりすぎないようにし、左右の<code>margin</code>を<code>auto</code>にすると、内容を中央に配置できます。<code>padding</code>は内容と端の間に余白を作ります。</p>
+
+      <div class="css-lab" data-lab="page">
+        <fieldset class="css-lab__controls">
+          <legend>値を変えてみる</legend>
+          <div class="css-lab__control">
+            <label for="page-max-width">本文の最大幅 <code>max-width</code></label>
+            <div class="css-lab__input-row">
+              <input id="page-max-width" type="range" min="320" max="680" step="20" value="600">
+              <output for="page-max-width" id="page-max-width-output">600px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="page-padding">内側の余白 <code>padding</code></label>
+            <div class="css-lab__input-row">
+              <input id="page-padding" type="range" min="0" max="48" step="4" value="24">
+              <output for="page-padding" id="page-padding-output">24px</output>
+            </div>
+          </div>
+          <button class="css-lab__reset" type="button" data-reset-lab="page">初期値に戻す</button>
+        </fieldset>
+
+        <div class="css-lab__stage css-lab__stage--page">
+          <div class="demo-page" id="page-preview">
+            <p class="demo-page__eyebrow">SPOT GUIDE</p>
+            <h3>海辺の展望台</h3>
+            <p>最大幅を小さくすると文章の折り返しが増えます。余白を変えると、内容と枠の距離が変わります。</p>
+          </div>
+        </div>
+
+        <pre class="css example copy-ok css-lab__code" data-live-code="page"><code>.page {
+  box-sizing: border-box;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS max-width margin auto ページ 中央</p>
+      </div>
+    </article>
+
+    <article>
+      <h2 id="headline_3">写真の見せ方</h2>
+      <p><code>aspect-ratio</code>で写真を表示する枠の比率を決め、<code>object-fit</code>で枠に合わせた表示方法を選べます。<code>object-position</code>を変えると、切り取る位置を調整できます。</p>
+
+      <div class="css-lab" data-lab="image">
+        <fieldset class="css-lab__controls">
+          <legend>値を変えてみる</legend>
+          <div class="css-lab__control">
+            <label for="image-stage-width">表示領域の幅</label>
+            <div class="css-lab__input-row">
+              <input id="image-stage-width" type="range" min="260" max="640" step="20" value="560">
+              <output for="image-stage-width" id="image-stage-width-output">560px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="image-ratio">写真枠の比率 <code>aspect-ratio</code></label>
+            <select id="image-ratio">
+              <option value="16 / 9" selected>16 : 9</option>
+              <option value="4 / 3">4 : 3</option>
+              <option value="1 / 1">1 : 1</option>
+            </select>
+          </div>
+          <div class="css-lab__control">
+            <label for="image-fit">枠への収め方 <code>object-fit</code></label>
+            <select id="image-fit">
+              <option value="cover" selected>cover（枠を埋める）</option>
+              <option value="contain">contain（全体を見せる）</option>
+            </select>
+          </div>
+          <div class="css-lab__control">
+            <label for="image-position">左右の表示位置 <code>object-position</code></label>
+            <div class="css-lab__input-row">
+              <input id="image-position" type="range" min="0" max="100" step="5" value="50">
+              <output for="image-position" id="image-position-output">50%</output>
+            </div>
+          </div>
+          <button class="css-lab__reset" type="button" data-reset-lab="image">初期値に戻す</button>
+        </fieldset>
+
+        <div class="css-lab__viewport-shell" tabindex="0" aria-label="幅を変えられる写真のプレビュー">
+          <div class="css-lab__viewport" id="image-viewport">
+            <img id="image-preview" class="demo-photo" src="./img/html25_landscape.svg" alt="山と湖を描いた写真枠の表示例">
+          </div>
+        </div>
+
+        <pre class="css example copy-ok css-lab__code" data-live-code="image"><code>.hero-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: 50% center;
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS object-fit aspect-ratio 画像 トリミング</p>
+      </div>
+    </article>
+
+    <article>
+      <h2 id="headline_4">Flexboxによる横並び</h2>
+      <p><code>display: flex</code>を使うと、複数の要素を横や縦に並べられます。<code>gap</code>で要素間の距離を決め、<code>flex-wrap</code>を使うと、入りきらない要素を次の行へ送れます。</p>
+
+      <div class="css-lab" data-lab="flex">
+        <fieldset class="css-lab__controls">
+          <legend>値を変えてみる</legend>
+          <div class="css-lab__control">
+            <label for="flex-stage-width">表示領域の幅</label>
+            <div class="css-lab__input-row">
+              <input id="flex-stage-width" type="range" min="280" max="640" step="20" value="600">
+              <output for="flex-stage-width" id="flex-stage-width-output">600px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="flex-direction">並べる方向 <code>flex-direction</code></label>
+            <select id="flex-direction">
+              <option value="row" selected>row（横）</option>
+              <option value="column">column（縦）</option>
+            </select>
+          </div>
+          <div class="css-lab__control">
+            <label for="flex-gap">要素間の距離 <code>gap</code></label>
+            <div class="css-lab__input-row">
+              <input id="flex-gap" type="range" min="0" max="40" step="4" value="16">
+              <output for="flex-gap" id="flex-gap-output">16px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="flex-basis">カードの基準幅 <code>flex-basis</code></label>
+            <div class="css-lab__input-row">
+              <input id="flex-basis" type="range" min="120" max="240" step="20" value="180">
+              <output for="flex-basis" id="flex-basis-output">180px</output>
+            </div>
+          </div>
+          <label class="css-lab__check" for="flex-wrap">
+            <input id="flex-wrap" type="checkbox" checked>
+            入りきらないときに折り返す
+          </label>
+          <button class="css-lab__reset" type="button" data-reset-lab="flex">初期値に戻す</button>
+        </fieldset>
+
+        <div class="css-lab__viewport-shell" tabindex="0" aria-label="幅を変えられるFlexboxのプレビュー">
+          <div class="css-lab__viewport" id="flex-viewport">
+            <div class="demo-spot-list" id="flex-preview">
+              <div class="demo-spot-card"><span>01</span><strong>景色</strong><small>眺めを紹介</small></div>
+              <div class="demo-spot-card"><span>02</span><strong>歴史</strong><small>背景を紹介</small></div>
+              <div class="demo-spot-card"><span>03</span><strong>アクセス</strong><small>行き方を紹介</small></div>
+            </div>
+          </div>
+        </div>
+
+        <pre class="css example copy-ok css-lab__code" data-live-code="flex"><code>.spot-list {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.spot-card {
+  flex: 1 1 180px;
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS Flexbox gap flex-wrap カード 横並び</p>
+      </div>
+    </article>
+
+    <article>
+      <h2 id="headline_5">カード風のデザイン</h2>
+      <p>背景色・余白・角の丸み・影を組み合わせると、情報のまとまりをカードのように見せられます。それぞれの値を変え、印象の違いを比べてみましょう。</p>
+
+      <div class="css-lab" data-lab="card">
+        <fieldset class="css-lab__controls">
+          <legend>値を変えてみる</legend>
+          <div class="css-lab__control css-lab__control--color">
+            <label for="card-color">背景色 <code>background-color</code></label>
+            <input id="card-color" type="color" value="#e5f1ff">
+          </div>
+          <div class="css-lab__control">
+            <label for="card-padding">内側の余白 <code>padding</code></label>
+            <div class="css-lab__input-row">
+              <input id="card-padding" type="range" min="8" max="48" step="4" value="24">
+              <output for="card-padding" id="card-padding-output">24px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="card-radius">角の丸み <code>border-radius</code></label>
+            <div class="css-lab__input-row">
+              <input id="card-radius" type="range" min="0" max="32" step="4" value="16">
+              <output for="card-radius" id="card-radius-output">16px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="card-shadow">影 <code>box-shadow</code></label>
+            <select id="card-shadow">
+              <option value="none">なし</option>
+              <option value="soft" selected>やわらかい影</option>
+              <option value="strong">はっきりした影</option>
+            </select>
+          </div>
+          <button class="css-lab__reset" type="button" data-reset-lab="card">初期値に戻す</button>
+        </fieldset>
+
+        <div class="css-lab__stage">
+          <div class="demo-info-card" id="card-preview">
+            <p class="demo-info-card__label">HIGHLIGHT</p>
+            <h3>夕暮れの景色</h3>
+            <p>色や余白、角の丸み、影の組み合わせによって、同じ内容でも印象が変わります。</p>
+          </div>
+        </div>
+
+        <pre class="css example copy-ok css-lab__code" data-live-code="card"><code>.info-card {
+  background-color: #e5f1ff;
+  color: #1b2733;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS border-radius box-shadow カード デザイン</p>
+      </div>
+    </article>
+
+    <article>
+      <h2 id="headline_6">画面幅に応じたレイアウト</h2>
+      <p><code>@media</code>を使うと、画面幅に応じてCSSを切り替えられます。表示領域の幅と切り替え位置を動かし、2列から1列へ変わる境目を確かめてみましょう。</p>
+
+      <div class="css-lab" data-lab="media">
+        <fieldset class="css-lab__controls">
+          <legend>値を変えてみる</legend>
+          <div class="css-lab__control">
+            <label for="media-stage-width">表示領域の幅</label>
+            <div class="css-lab__input-row">
+              <input id="media-stage-width" type="range" min="300" max="680" step="20" value="640">
+              <output for="media-stage-width" id="media-stage-width-output">640px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="media-breakpoint">1列に切り替える幅</label>
+            <div class="css-lab__input-row">
+              <input id="media-breakpoint" type="range" min="400" max="620" step="20" value="520">
+              <output for="media-breakpoint" id="media-breakpoint-output">520px</output>
+            </div>
+          </div>
+          <button class="css-lab__reset" type="button" data-reset-lab="media">初期値に戻す</button>
+        </fieldset>
+
+        <p class="css-lab__state" id="media-state">現在は2列表示です。</p>
+        <div class="css-lab__viewport-shell" tabindex="0" aria-label="幅を変えられるレスポンシブレイアウトのプレビュー">
+          <div class="css-lab__viewport" id="media-viewport">
+            <div class="demo-responsive-layout" id="media-preview">
+              <div class="demo-responsive-layout__visual" aria-hidden="true"></div>
+              <div class="demo-responsive-layout__text">
+                <p class="demo-page__eyebrow">VIEW POINT</p>
+                <h3>街を見渡す丘</h3>
+                <p>広い画面では写真と文章を横に並べ、狭い画面では縦に並べます。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <pre class="css example copy-ok css-lab__code" data-live-code="media"><code>.spot-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 520px) {
+  .spot-layout {
+    grid-template-columns: 1fr;
+  }
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS media query レスポンシブ Grid 1列</p>
+      </div>
+    </article>
+
+    <article>
+      <h2 id="headline_7">リンクの反応</h2>
+      <p><code>:hover</code>はマウスポインタを重ねたとき、<code>:focus-visible</code>はキーボード操作などでフォーカスが見えるときのスタイルです。動く距離と変化にかける時間を調整できます。</p>
+
+      <div class="css-lab" data-lab="link">
+        <fieldset class="css-lab__controls">
+          <legend>値を変えてみる</legend>
+          <div class="css-lab__control">
+            <label for="link-lift">上へ動く距離</label>
+            <div class="css-lab__input-row">
+              <input id="link-lift" type="range" min="0" max="10" step="1" value="3">
+              <output for="link-lift" id="link-lift-output">3px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="link-duration">変化にかける時間</label>
+            <div class="css-lab__input-row">
+              <input id="link-duration" type="range" min="0" max="600" step="50" value="200">
+              <output for="link-duration" id="link-duration-output">200ms</output>
+            </div>
+          </div>
+          <label class="css-lab__check" for="link-fixed">
+            <input id="link-fixed" type="checkbox">
+            変化後の状態を固定して比べる
+          </label>
+          <button class="css-lab__reset" type="button" data-reset-lab="link">初期値に戻す</button>
+        </fieldset>
+
+        <div class="css-lab__stage css-lab__stage--link">
+          <a class="demo-detail-link" id="link-preview" href="#headline_7">詳しい見どころを見る <span aria-hidden="true">→</span></a>
+        </div>
+
+        <pre class="css example copy-ok css-lab__code" data-live-code="link"><code>.detail-link {
+  transition: transform 200ms ease,
+              background-color 200ms ease;
+}
+
+.detail-link:hover,
+.detail-link:focus-visible {
+  transform: translateY(-3px);
+  background-color: #17456f;
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS hover focus-visible transition リンク</p>
+      </div>
+    </article>
+
+    <article>
+      <h2 id="headline_8">ナビゲーションのデザイン</h2>
+      <p><code>nav</code>の中のリンクを<code>display: flex</code>で並べると、ページ内の案内を見つけやすくできます。並ぶ向き・間隔・角の丸みを変えて、作品に合う形を探してみましょう。</p>
+
+      <div class="css-lab" data-lab="nav">
+        <fieldset class="css-lab__controls">
+          <legend>値を変えてみる</legend>
+          <div class="css-lab__control">
+            <label for="nav-direction">並ぶ向き <code>flex-direction</code></label>
+            <select id="nav-direction">
+              <option value="row" selected>row（横）</option>
+              <option value="column">column（縦）</option>
+            </select>
+          </div>
+          <div class="css-lab__control">
+            <label for="nav-gap">リンクの間隔 <code>gap</code></label>
+            <div class="css-lab__input-row">
+              <input id="nav-gap" type="range" min="0" max="32" step="2" value="12">
+              <output for="nav-gap" id="nav-gap-output">12px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="nav-radius">角の丸み <code>border-radius</code></label>
+            <div class="css-lab__input-row">
+              <input id="nav-radius" type="range" min="0" max="24" step="2" value="8">
+              <output for="nav-radius" id="nav-radius-output">8px</output>
+            </div>
+          </div>
+          <button class="css-lab__reset" type="button" data-reset-lab="nav">初期値に戻す</button>
+        </fieldset>
+
+        <div class="css-lab__stage css-lab__stage--compact">
+          <nav class="demo-site-nav" id="nav-preview" aria-label="観光サイトのナビゲーション例">
+            <a href="#headline_8" aria-current="page">見どころ</a>
+            <a href="#headline_8">歴史</a>
+            <a href="#headline_8">アクセス</a>
+          </nav>
+        </div>
+
+        <pre class="css example copy-ok css-lab__code" data-live-code="nav"><code>.site-nav {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+}
+
+.site-nav a {
+  padding: 10px 16px;
+  border-radius: 8px;
+  background-color: #225386;
+  color: white;
+  text-decoration: none;
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS nav flex ナビゲーション メニュー</p>
+      </div>
+    </article>
+
+    <article>
+      <h2 id="headline_9"><code>ul</code>・<code>ol</code>のデザイン</h2>
+      <p><code>list-style-type</code>で箇条書きの記号や番号を選べます。<code>::marker</code>を使うと、記号や番号だけに色や太さを指定できます。</p>
+
+      <div class="css-lab" data-lab="list">
+        <fieldset class="css-lab__controls">
+          <legend>値を変えてみる</legend>
+          <div class="css-lab__control">
+            <label for="ul-marker"><code>ul</code>の記号</label>
+            <select id="ul-marker">
+              <option value="disc">disc（●）</option>
+              <option value="circle">circle（○）</option>
+              <option value="square" selected>square（■）</option>
+            </select>
+          </div>
+          <div class="css-lab__control">
+            <label for="ol-marker"><code>ol</code>の番号</label>
+            <select id="ol-marker">
+              <option value="decimal">decimal（1, 2, 3）</option>
+              <option value="decimal-leading-zero" selected>decimal-leading-zero（01, 02, 03）</option>
+              <option value="upper-roman">upper-roman（I, II, III）</option>
+            </select>
+          </div>
+          <div class="css-lab__control">
+            <label for="list-indent">左側の余白 <code>padding-left</code></label>
+            <div class="css-lab__input-row">
+              <input id="list-indent" type="range" min="16" max="52" step="2" value="32">
+              <output for="list-indent" id="list-indent-output">32px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="list-marker-color">記号・番号の色</label>
+            <input id="list-marker-color" type="color" value="#c14f2b">
+          </div>
+          <button class="css-lab__reset" type="button" data-reset-lab="list">初期値に戻す</button>
+        </fieldset>
+
+        <div class="css-lab__stage">
+          <div class="demo-list-layout">
+            <div class="demo-list-panel">
+              <h3><code>ul</code>：順序のない一覧</h3>
+              <ul id="ul-preview">
+                <li>季節の景色</li>
+                <li>展望スポット</li>
+                <li>地元の名物</li>
+              </ul>
+            </div>
+            <div class="demo-list-panel">
+              <h3><code>ol</code>：順序のある一覧</h3>
+              <ol id="ol-preview">
+                <li>駅を出発する</li>
+                <li>参道を歩く</li>
+                <li>展望台に到着する</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <pre class="css example copy-ok css-lab__code" data-live-code="list"><code>.feature-list,
+.route-list {
+  padding-left: 32px;
+}
+
+.feature-list {
+  list-style-type: square;
+}
+
+.route-list {
+  list-style-type: decimal-leading-zero;
+}
+
+.feature-list li::marker,
+.route-list li::marker {
+  color: #c14f2b;
+  font-weight: bold;
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS list-style-type marker ul ol</p>
+      </div>
+    </article>
+
+    <article>
+      <h2 id="headline_10"><code>details</code>・<code>summary</code>のデザイン</h2>
+      <p><code>summary</code>はクリックできる見出しです。<code>details[open]</code>を使うと、開いているときだけ見た目を変えられます。「最初から開く」を切り替えて、HTMLの<code>open</code>属性の働きも確かめましょう。</p>
+
+      <div class="css-lab" data-lab="details">
+        <fieldset class="css-lab__controls">
+          <legend>値を変えてみる</legend>
+          <div class="css-lab__control">
+            <label for="details-color">見出しの色</label>
+            <input id="details-color" type="color" value="#225386">
+          </div>
+          <div class="css-lab__control">
+            <label for="details-radius">角の丸み <code>border-radius</code></label>
+            <div class="css-lab__input-row">
+              <input id="details-radius" type="range" min="0" max="24" step="2" value="12">
+              <output for="details-radius" id="details-radius-output">12px</output>
+            </div>
+          </div>
+          <label class="css-lab__check" for="details-open">
+            <input id="details-open" type="checkbox" checked>
+            最初から開く（<code>open</code>属性）
+          </label>
+          <button class="css-lab__reset" type="button" data-reset-lab="details">初期値に戻す</button>
+        </fieldset>
+
+        <div class="css-lab__stage css-lab__stage--compact">
+          <details class="demo-spot-details" id="details-preview" open>
+            <summary>おすすめの時間帯</summary>
+            <p>夕暮れ前に到着すると、昼の景色と夕景の両方を楽しめます。</p>
+          </details>
+        </div>
+
+        <pre class="css example copy-ok css-lab__code" data-live-code="details"><code>.spot-details {
+  border: 2px solid #225386;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.spot-details summary {
+  padding: 12px 16px;
+  background-color: #225386;
+  color: white;
+  cursor: pointer;
+}
+
+.spot-details[open] summary {
+  border-bottom: 1px solid #225386;
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS details summary open アコーディオン</p>
+      </div>
+    </article>
+  </section>
+</body>
+</html>
