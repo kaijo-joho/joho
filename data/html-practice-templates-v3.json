@@ -1,6 +1,6 @@
 {
   "v": 3,
-  "revision": "reviewed-20261002-1",
+  "revision": "inquiry-20261007-2",
   "templates": [
     {
       "assignmentId": "html11-01",
@@ -25,9 +25,9 @@
     {
       "assignmentId": "html13-01",
       "fileName": "html13-01.html",
-      "templateVersion": "2026-10-local-1",
-      "templateSha256": "ad8c06c6ea32c5e868809bec4a16624a72b5427850c8faf789a7d0bfdd038c0a",
-      "sourcePath": "/html/templates/v3/html13-01/2026-10-local-1.html",
+      "templateVersion": "2026-10-inquiry-1",
+      "templateSha256": "d6a45ef2a3c7bd4f12bcfc6729d797a2466417132a712fe174155a3714c958f7",
+      "sourcePath": "/html/templates/v3/html13-01/2026-10-inquiry-1.html",
       "editableRegions": [
         "document"
       ]
@@ -35,9 +35,9 @@
     {
       "assignmentId": "html13-02",
       "fileName": "html13-02.html",
-      "templateVersion": "2026-10-local-1",
-      "templateSha256": "4266148a137dcc90bd2a5c3a7b1d98249b3a1bb49b253b04d11743f590abb38d",
-      "sourcePath": "/html/templates/v3/html13-02/2026-10-local-1.html",
+      "templateVersion": "2026-10-inquiry-1",
+      "templateSha256": "37ee445827051f6b0d5f5815f7a1bda4a001797d14c8e5377c88d25718a13de6",
+      "sourcePath": "/html/templates/v3/html13-02/2026-10-inquiry-1.html",
       "editableRegions": [
         "document"
       ]
@@ -45,9 +45,9 @@
     {
       "assignmentId": "html14-01",
       "fileName": "html14-01.html",
-      "templateVersion": "2026-10-local-1",
-      "templateSha256": "a72683b1bff48698fc4966fcc30de8e379ef94da6eb17531740ef58fe963bb1e",
-      "sourcePath": "/html/templates/v3/html14-01/2026-10-local-1.html",
+      "templateVersion": "2026-10-inquiry-1",
+      "templateSha256": "79bf0cdaf5f3142fd6e009028c5609e10845240563a5da0d22d2ce1fa58132b4",
+      "sourcePath": "/html/templates/v3/html14-01/2026-10-inquiry-1.html",
       "editableRegions": [
         "document"
       ]
@@ -55,9 +55,9 @@
     {
       "assignmentId": "html15-01",
       "fileName": "html15-01.html",
-      "templateVersion": "2026-10-local-1",
-      "templateSha256": "27a7b952d4e00c8eb8f5f8bea8656cf396150ee76eb75d4604589db165ffbe08",
-      "sourcePath": "/html/templates/v3/html15-01/2026-10-local-1.html",
+      "templateVersion": "2026-10-inquiry-1",
+      "templateSha256": "102fa200489813d37f93c93b139612a9d9e1501076c23806dae47b8ad6ab05eb",
+      "sourcePath": "/html/templates/v3/html15-01/2026-10-inquiry-1.html",
       "editableRegions": [
         "document"
       ]
@@ -65,9 +65,9 @@
     {
       "assignmentId": "html15-02",
       "fileName": "html15-02.html",
-      "templateVersion": "2026-10-local-1",
-      "templateSha256": "ae7ec4ee8c4789662f5f151397219cabc1578811c88b55b90f71a668f839a7a6",
-      "sourcePath": "/html/templates/v3/html15-02/2026-10-local-1.html",
+      "templateVersion": "2026-10-inquiry-1",
+      "templateSha256": "3496c42b7c0086ca8a7f4d405a16fabb72e956e0145e923bf0ef61b6625a753a",
+      "sourcePath": "/html/templates/v3/html15-02/2026-10-inquiry-1.html",
       "editableRegions": [
         "document"
       ]
@@ -75,9 +75,9 @@
     {
       "assignmentId": "html16-01",
       "fileName": "html16-01.html",
-      "templateVersion": "2026-10-local-1",
-      "templateSha256": "7d1b31df5bde23e8dc3cbda1baa349feec47430b8857a43a030037b689c8de28",
-      "sourcePath": "/html/templates/v3/html16-01/2026-10-local-1.html",
+      "templateVersion": "2026-10-inquiry-1",
+      "templateSha256": "8a53640e333a9cd8db79a95e0e024b3344a97ea018b4c4a3aca3f80855b05724",
+      "sourcePath": "/html/templates/v3/html16-01/2026-10-inquiry-1.html",
       "editableRegions": [
         "document"
       ]
@@ -85,9 +85,9 @@
     {
       "assignmentId": "html17-01",
       "fileName": "html17-01.html",
-      "templateVersion": "2026-10-local-1",
-      "templateSha256": "16f10e1d3bb64c11bb4f2dec978437bbc97fe4e9e06f2f20e2542ad00b5585e2",
-      "sourcePath": "/html/templates/v3/html17-01/2026-10-local-1.html",
+      "templateVersion": "2026-10-inquiry-1",
+      "templateSha256": "7459c8704d29c3b89a3f9d0c31fb88fc8080a42d00129b7848563b3abd90e158",
+      "sourcePath": "/html/templates/v3/html17-01/2026-10-inquiry-1.html",
       "editableRegions": [
         "document"
       ]
@@ -95,9 +95,9 @@
     {
       "assignmentId": "html22-01",
       "fileName": "html22-01.html",
-      "templateVersion": "2026-10-local-1",
-      "templateSha256": "9a4565dbf9d7696beee9540b0022933239081fbfa659f21ef5866ed8d873da46",
-      "sourcePath": "/html/templates/v3/html22-01/2026-10-local-1.html",
+      "templateVersion": "2026-10-inquiry-2",
+      "templateSha256": "cbd1c9681f553a5bfb7846fe4d7007f1532ac8723cd091bc6584fcac9d5d5530",
+      "sourcePath": "/html/templates/v3/html22-01/2026-10-inquiry-2.html",
       "editableRegions": [
         "document"
       ]
@@ -105,9 +105,9 @@
     {
       "assignmentId": "html22-02",
       "fileName": "html22-02.html",
-      "templateVersion": "2026-10-local-1",
-      "templateSha256": "cee69d8de3e0c14b708bdfe1cfba6a60a24621b97a3fbfc13b6f6dfb9eb49ca2",
-      "sourcePath": "/html/templates/v3/html22-02/2026-10-local-1.html",
+      "templateVersion": "2026-10-inquiry-2",
+      "templateSha256": "247399f4a68f91ad5f244c404ab319b2ac92e5256062b9d590516d02afcc4db7",
+      "sourcePath": "/html/templates/v3/html22-02/2026-10-inquiry-2.html",
       "editableRegions": [
         "document"
       ]
@@ -115,9 +115,9 @@
     {
       "assignmentId": "html23-01",
       "fileName": "html23-01.html",
-      "templateVersion": "2026-10-local-1",
-      "templateSha256": "5d311d494f2dddb938ee3906c126f513836fcfb4beb0189ae2fd79c01d702971",
-      "sourcePath": "/html/templates/v3/html23-01/2026-10-local-1.html",
+      "templateVersion": "2026-10-inquiry-2",
+      "templateSha256": "1b1f0664f8a178ea44616c3bcaf92f9c8db20f746c093fc4bb2dae071392b2e8",
+      "sourcePath": "/html/templates/v3/html23-01/2026-10-inquiry-2.html",
       "editableRegions": [
         "document"
       ]
@@ -125,9 +125,9 @@
     {
       "assignmentId": "html24-01",
       "fileName": "html24-01.html",
-      "templateVersion": "2026-10-local-1",
-      "templateSha256": "608e1aa7cb66db8add334f645afa57a231b97bc199ed9ec8a63f1002cf84c51d",
-      "sourcePath": "/html/templates/v3/html24-01/2026-10-local-1.html",
+      "templateVersion": "2026-10-inquiry-1",
+      "templateSha256": "806268a44637de72d55fd9fe10ffe31c8242a187a7922a557ae4f0dd7402e7bc",
+      "sourcePath": "/html/templates/v3/html24-01/2026-10-inquiry-1.html",
       "editableRegions": [
         "document"
       ]
