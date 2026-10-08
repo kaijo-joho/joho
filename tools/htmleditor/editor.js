@@ -9,26 +9,48 @@
   const HintUsage = window.HtmlEditorHintUsage || {missing:status => ({v:1,status}),create() { throw Error('ヒント記録を利用できません。'); }};
   const catalog = Practice.lessons(window.HtmlLessons.LESSONS);
   let cm, fs, preview, recovery, doc, selectedLesson, navigation, busy = false, replacing = false;
-  let autoTimer, toastTimer, submissionPanel = null;
+  let autoTimer, toastTimer, issuedMarker = null, submissionPanel = null;
   let folderMemory = null, rememberedFolder = null, folderMemoryIssue = '';
   let localDownloads=null, updateFileIdentity=()=>{};
   let diagnostics = null, hintUsage = null;
   const editable = path => /\.(html?|css)$/i.test(path);
   const content = () => cm.getValue();
   const dirty = () => doc && content() !== doc.savedContent;
-  function notify(message) {
-    $('toast').textContent = message; $('toast').style.display = 'block';
+  function positionNotice() {
+    const workspace = $('workspace').getBoundingClientRect(), panes = $('editingPanes').getBoundingClientRect();
+    const headers = [...document.querySelectorAll('#editingPanes .pane-header')].filter(node => node.getClientRects().length);
+    const top = headers.length ? Math.max(...headers.map(node => node.getBoundingClientRect().bottom)) : panes.top;
+    $('toast').style.top = Math.max(8, top + 8) + 'px';
+    $('toast').style.left = (workspace.left + workspace.width / 2) + 'px';
+    $('toast').style.maxWidth = Math.min(650, Math.max(240, workspace.width - 24)) + 'px';
+  }
+  function notify(message, kind = 'info') {
+    $('toast').textContent = message; $('toast').dataset.kind = kind; $('toast').style.display = 'block';
+    positionNotice();
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { $('toast').style.display = 'none'; }, 5000);
+  }
+  function setupPaneHeaders() {
+    const contents = [...document.querySelectorAll('#editingPanes .pane-header-content')];
+    function sync() {
+      const heights = contents.filter(node => node.getClientRects().length).map(node => node.getBoundingClientRect().height);
+      $('editingPanes').style.setProperty('--pane-header-content-height', Math.max(44, ...heights) + 'px');
+      positionNotice();
+    }
+    if (window.ResizeObserver) {
+      const observer = new ResizeObserver(sync);
+      contents.forEach(node => observer.observe(node));
+      observer.observe($('workspace'));
+    }
+    window.addEventListener('resize', sync);
+    requestAnimationFrame(sync);
   }
   function errorMessage(error) { return error && error.message || '操作を完了できませんでした。'; }
   function displayState() {
     document.body.classList.toggle('has-document', Boolean(doc));
     $('emptyState').hidden = Boolean(doc);
-    $('documentStatus').hidden = !doc;
     $('currentFileLabel').textContent = doc?.fileName || '';
     $('dirtyMark').hidden = !dirty();
-    $('saveState').textContent = dirty() ? '未保存の変更があります。' : doc?.saveMessage || '';
     for (const id of ['saveBtn','folderSaveBtn','downloadBtn','submitBtn','runBtn','openPreviewTabBtn']) $(id).disabled = !doc || busy;
     $('findErrorsBtn').hidden = !diagnostics?.result.errors.length;
     $('findErrorsBtn').disabled = !doc || busy;
@@ -95,7 +117,7 @@
   function replaceDocument(text, fileName, options = {}) {
     clearTimeout(autoTimer);
     clearDiagnostics(); hintUsage = null;
-    replacing = true;
+    replacing = true; issuedMarker = null;
     const task = Practice.taskForFile(fileName);
     doc = {docId:crypto.randomUUID(), fileName, lessonId:task ? task.slice(0,6) : options.lessonId || selectedLesson.id,
       binding:options.binding || null, openedFrom:options.openedFrom || null, verifiedSave:null, diskContent:options.diskContent ?? text,
@@ -111,24 +133,28 @@
           hintUsage = HintUsage.create(storage, {fileKey:proof.localFileId || proof.issueId,
             targetId:proof.assignmentId, fileName:proof.fileName, validatorVersion:Diagnostics.VERSION});
         } catch { /* 記録の失敗で編集・提出を止めない。 */ }
-        const start = content().indexOf(proof.marker), label = document.createElement('span');
-        label.className = 'issued-marker'; label.textContent = '本人用の配付情報（編集しない）';
-        cm.markText(cm.posFromIndex(start), cm.posFromIndex(start + proof.marker.length),
-          {replacedWith:label, atomic:true, readOnly:true});
+        protectIssuance(proof.marker, content().indexOf(proof.marker));
       }
     } catch { /* 不正な配付情報でも本文は保持。提出時に案内する。 */ }
     cm.clearHistory();
     if (!options.restored) doc.savedContent = content();
     replacing = false; displayState(); runPreview(options.fragment);
+    notify(doc.saveMessage, options.restored || !options.binding ? 'warning' : 'success');
     requestAnimationFrame(() => cm.refresh());
     if (doc.hasWork) autoSave();
+  }
+  function protectIssuance(marker, start) {
+    const label = document.createElement('span');
+    label.className = 'issued-marker'; label.textContent = '本人用の配付情報（編集しない）'; label.draggable = false;
+    issuedMarker = cm.markText(cm.posFromIndex(start), cm.posFromIndex(start + marker.length),
+      {replacedWith:label, atomic:true, readOnly:true});
   }
   async function exclusive(action) {
     if (busy || $('actionDialog').open) return;
     const opener = document.activeElement;
     busy = true; cm.setOption('readOnly', true); $('app').setAttribute('aria-busy', 'true'); displayState();
     try { await action(); }
-    catch (error) { if (error.name !== 'AbortError') notify(errorMessage(error)); }
+    catch (error) { if (error.name !== 'AbortError') notify(errorMessage(error), 'error'); }
     finally {
       busy = false; cm.setOption('readOnly', doc ? false : 'nocursor'); $('app').removeAttribute('aria-busy'); displayState();
       if (!$('actionDialog').open && document.activeElement === document.body && opener?.isConnected && !opener.disabled) opener.focus();
@@ -404,7 +430,7 @@
       }
       if (doc) { doc.binding = null; doc.openedFrom = null; doc.verifiedSave = null; } // 同名ファイルが別フォルダにあっても自動上書きしない。
       displayState(); runPreview();
-      notify(folderMemoryIssue || 'フォルダを接続・記憶しました。開くファイルを選んでください。');
+      notify(folderMemoryIssue || 'フォルダを接続・記憶しました。開くファイルを選んでください。', folderMemoryIssue ? 'warning' : 'success');
       await fileList();
     });
   }
@@ -431,11 +457,11 @@
     return exclusive(async () => {
       if (!rememberedFolder) return;
       if (!await fs.reconnectDirectory(rememberedFolder, {requestPermission:true})) {
-        notify('フォルダの利用が許可されませんでした。内容は保持しています。「設定」から選び直すこともできます。'); return;
+        notify('フォルダの利用が許可されませんでした。内容は保持しています。「設定」から選び直すこともできます。', 'warning'); return;
       }
       if (doc) { doc.binding = null; doc.openedFrom = null; doc.verifiedSave = null; }
       displayState(); runPreview();
-      notify('前回のフォルダへ再接続しました。');
+      notify('前回のフォルダへ再接続しました。', 'success');
       if (openList) await fileList();
     });
   }
@@ -447,7 +473,7 @@
         if (rememberedFolder) await fs.reconnectDirectory(rememberedFolder); // 起動時に許可を要求しない。
       } catch {
         folderMemoryIssue = '前回のフォルダに自動接続できませんでした。「設定」から再接続・選び直しができます。';
-        notify(folderMemoryIssue);
+        notify(folderMemoryIssue, 'warning');
       }
       // 接続先だけを復元する。編集中のファイル・ブラウザの控えは開かない。
     });
@@ -504,7 +530,7 @@
       if (!recovery) throw Error('保存領域を利用できません。');
       recovery.save({...snapshot('manual', 'file'), content:saved.content});
     } catch { $('recoveryState').textContent = 'Macへ保存できましたが、ブラウザの控えは保存できませんでした。'; }
-    displayState(); notify(doc.saveMessage);
+    displayState(); notify(doc.saveMessage, 'success');
     return content() === saved.content;
   }
   function save() {
@@ -533,7 +559,7 @@
     try {
       if (!recovery) throw Error('ブラウザの保存領域を利用できません。');
       result = recovery.list();
-    } catch (error) { $('recoveryState').textContent = errorMessage(error); notify(errorMessage(error)); return; }
+    } catch (error) { $('recoveryState').textContent = errorMessage(error); notify(errorMessage(error), 'error'); return; }
     const choice = await modal('復旧候補', (body, button, finish) => {
       textNode(body, '日時とファイル名を確認して選んでください。選ぶと編集画面に取り出しますが、Macのファイルは上書きしません。選ばなかった控えも削除しません。');
       textNode(body, '自動保存は編集を止めた後の控え、ファイル保存時の控えは保存成功時の内容です。画像・フォルダ一式や編集履歴すべてのバックアップではありません。');
@@ -559,7 +585,7 @@
   async function submit() {
     await exclusive(async () => {
       const state = submissionState();
-      if (!state.ready) { notify(state.message); return; }
+      if (!state.ready) { notify(state.message, 'warning'); return; }
       const receipt = Practice.submission(window.pages, doc.fileName, content(), window.htmlPracticeLinks);
       const fixed = {docId:doc.docId, source:content(), fileName:doc.fileName, url:receipt.url};
       let hintSnapshot = HintUsage.missing('unavailable');
@@ -600,7 +626,7 @@
         link.hidden = !savedToFile;
         if (savedToFile) textNode(body, 'Macのファイルへの保存を確認しました。');
         down.addEventListener('click', () => {
-          if (!unchanged()) { notify('内容または提出先が変わりました。確認画面を閉じて、もう一度提出を準備してください。'); return; }
+          if (!unchanged()) { notify('内容または提出先が変わりました。確認画面を閉じて、もう一度提出を準備してください。', 'warning'); return; }
           download(fixed.source, fixed.fileName); downloaded = true; check.checked = false; link.hidden = !savedToFile;
         });
         check.addEventListener('change', () => { link.hidden = !savedToFile && !(downloaded && check.checked); });
@@ -660,7 +686,7 @@
       folderMemoryIssue = folderMemory ? '' : 'この環境では記憶領域を使えません。今回の接続だけを解除しました。以前の記憶がある場合は削除できていません。';
       autoSave(); fs.disconnect(); if (doc) { doc.binding = null; doc.openedFrom = null; doc.verifiedSave = null; }
       displayState(); runPreview();
-      notify(folderMemoryIssue || 'フォルダの接続と記憶を解除しました。編集中の内容は保持しています。');
+      notify(folderMemoryIssue || 'フォルダの接続と記憶を解除しました。編集中の内容は保持しています。', folderMemoryIssue ? 'warning' : 'info');
     });
   }
   function setupHelp() {
@@ -708,10 +734,12 @@
         'Cmd-S':save, 'Ctrl-S':save, 'Cmd-O':openSavedFile, 'Ctrl-O':openSavedFile,
         'Cmd-Enter':() => runPreview(), 'Ctrl-Enter':() => runPreview()}
     });
+    window.HtmlEditorClipboard.install(cm, () => issuedMarker, notify);
+    setupPaneHeaders();
     for (const lesson of catalog) {
       const option = document.createElement('option'); option.value = lesson.id; option.textContent = lesson.title; $('lessonSelect').append(option);
     }
-    navigation = window.HtmlEditorNavigationMount({iframe:$('lessonIframe'), onSelect:renderLesson, onError:notify,
+    navigation = window.HtmlEditorNavigationMount({iframe:$('lessonIframe'), onSelect:renderLesson, onError:message => notify(message, 'error'),
       beforeVisit:beforeLessonVisit, hasUnsaved:dirty, openExternal:externalLessonVisit});
     // 起動時は空のまま。ローカルファイルも復旧候補も自動では開かない。
     displayState();
@@ -793,10 +821,10 @@
       const switchButton=textNode(accountActions,'利用するアカウントを変更','button');switchButton.type='button';switchButton.className='btn';switchButton.hidden=true;
       const renewalButton=textNode(accountActions,'開いている実習ファイルの確認情報を更新','button');renewalButton.type='button';renewalButton.className='btn';
       async function register(switchAccount){
-        if(busy || submissionPanel?.needsAttention() || dirty()){notify('未保存の変更を保存し、提出処理を終えてから本人確認してください。');return;}
+        if(busy || submissionPanel?.needsAttention() || dirty()){notify('未保存の変更を保存し、提出処理を終えてから本人確認してください。', 'warning');return;}
         if(switchAccount && !window.confirm('本人確認情報を切り替えます。保存済みファイルは変更しません。続けますか？'))return;
         const opener=document.activeElement;
-        confirmButton.disabled=profileButton.disabled=switchButton.disabled=warningButton.disabled=true;accountMenu.open=false;status.textContent=switchAccount?'利用するアカウントを確認しています…':'学校アカウントを確認しています…';
+        confirmButton.disabled=profileButton.disabled=switchButton.disabled=warningButton.disabled=true;accountMenu.open=false;status.hidden=false;status.textContent=switchAccount?'利用するアカウントを確認しています…':'学校アカウントを確認しています…';
         try {await localDownloads.register({switchAccount,safeToSwitch:true});await renderIdentity();}
         catch(e){status.textContent=e.message==='identity_confirmation_canceled'?'本人確認を中止しました。編集内容はそのままです。':e.message==='switch_confirmation_required'?'前回と異なるアカウントです。「学校アカウント」から「利用するアカウントを変更」を選んでください。':'本人確認を完了できませんでした。もう一度確認してください。（'+errorMessage(e)+'）';}
         finally{confirmButton.disabled=profileButton.disabled=switchButton.disabled=warningButton.disabled=false;(opener===warningButton && !warning.hidden ? warningButton : accountSummary).focus();}
@@ -810,14 +838,14 @@
         const revision=++identityViewRevision,state=await localDownloads.load(),ready=state.status==='ready';
         if(revision!==identityViewRevision)return;
         identityState=state;
-        accountSummary.textContent=ready ? state.displayName || state.label || '確認済み' : '⚠️未接続';
+        accountSummary.textContent=ready ? state.displayName || state.label || '学校アカウント' : '⚠️未接続';
         accountSummary.setAttribute('aria-label',ready?'確認済みの学校アカウント：'+(state.displayName || state.label || ''):'学校アカウント未接続。本人確認する');
         accountSummary.dataset.tip=ready?'確認済みの氏名・ユーザーIDを表示します。アカウントの再確認・変更もできます。':'学校アカウントの本人確認を行います。';
         profileInfo.hidden=!ready;
         profileName.textContent='氏名：'+(state.displayName || '未取得（再確認すると取得できます）');
         profileId.textContent='ユーザーID：'+(state.label || '');
         profileButton.hidden=!ready || Boolean(state.displayName);
-        status.textContent=ready?'確認済み':state.status==='expired'?'学校アカウントの確認期限が切れています。':'学校アカウント未確認';
+        status.hidden=ready;status.textContent=ready?'':state.status==='expired'?'学校アカウントの確認期限が切れています。':'学校アカウント未確認';
         confirmButton.hidden=ready;switchButton.hidden=!['ready','expired'].includes(state.status);warning.hidden=ready;
         warningMessage.textContent=state.status==='expired'?'⚠ 本人確認の期限が切れています。学校アカウントをもう一度確認してください。':'⚠ 学校アカウントが未確認です。実習ファイルの取得前に本人確認してください。';
         updateFileIdentity();
@@ -825,18 +853,18 @@
       function identityReadFailed(){
         identityViewRevision++;identityState=null;accountSummary.textContent='⚠️未接続';accountSummary.setAttribute('aria-label','学校アカウントの確認情報を読み込めません');
         profileInfo.hidden=profileButton.hidden=true;confirmButton.hidden=false;switchButton.hidden=true;
-        status.textContent='確認情報を読み込めません。既存のファイルは保持しています。';warning.hidden=false;
+        status.hidden=false;status.textContent='確認情報を読み込めません。既存のファイルは保持しています。';warning.hidden=false;
         warningMessage.textContent='⚠ 本人確認の状態を読み込めません。ページを開き直してください。既存の実習ファイルは保持しています。';updateFileIdentity();
       }
       async function bridge(ticket,oldToken='') {let response;const controller=new AbortController();try{await modal('学校アカウントの本人確認',(body,button,finish)=>{
-        button('閉じる','close');window.HtmlEditorLocalDownloads.confirmationBridge({container:body,dialog:$('actionDialog'),url:config.identityUrl,ticket,oldToken,signal:controller.signal}).then(r=>{response=r;finish('confirmed');}).catch(e=>{if(e.message!=='identity_confirmation_canceled')notify(errorMessage(e));finish('failed');});
+        button('閉じる','close');window.HtmlEditorLocalDownloads.confirmationBridge({container:body,dialog:$('actionDialog'),url:config.identityUrl,ticket,oldToken,signal:controller.signal}).then(r=>{response=r;finish('confirmed');}).catch(e=>{if(e.message!=='identity_confirmation_canceled')notify(errorMessage(e), 'error');finish('failed');});
       });}finally{controller.abort();}if(!response)throw Error('identity_confirmation_canceled');return response;}
       try {
         localDownloads=window.HtmlEditorLocalDownloads.create({confirm:ticket=>bridge(ticket)});
         confirmButton.addEventListener('click',()=>register(false));warningButton.addEventListener('click',()=>register(false));switchButton.addEventListener('click',()=>register(true));profileButton.addEventListener('click',()=>register(true));
         renewalButton.addEventListener('click',()=>exclusive(async()=>{
-          if(submissionPanel?.needsAttention()){notify('提出処理を終えてから確認情報を更新してください。');return;}
-          if(!doc)return;const snapshot=content(),proof=Practice.inspect(snapshot);if(proof?.protocolVersion!==3){notify('この実習ファイルは確認情報の更新対象ではありません。');return;}
+          if(submissionPanel?.needsAttention()){notify('提出処理を終えてから確認情報を更新してください。', 'warning');return;}
+          if(!doc)return;const snapshot=content(),proof=Practice.inspect(snapshot);if(proof?.protocolVersion!==3){notify('この実習ファイルは確認情報の更新対象ではありません。', 'warning');return;}
           const ticket=await localDownloads.cache.beginConfirmation({refreshForFile:true,safeToSwitch:true});
           try {
           const reply=await bridge(ticket,proof.identity),replacement=await localDownloads.renewFile(snapshot,reply);
@@ -846,8 +874,7 @@
           cm.operation(()=>{
             cm.getAllMarks().forEach(mark=>{const at=mark.find();if(at?.from.line===0 && at?.from.ch===0)mark.clear();});
             cm.replaceRange(newProof.marker,{line:0,ch:0},{line:0,ch:proof.marker.length},'+identity-update');
-            const label=document.createElement('span');label.className='issued-marker';label.textContent='本人確認・課題情報（編集しない）';
-            cm.markText({line:0,ch:0},{line:0,ch:newProof.marker.length},{replacedWith:label,atomic:true,readOnly:true});
+            protectIssuance(newProof.marker, 0);
           });
           displayState();await renderIdentity();notify('本文を保持して確認情報を更新しました。「保存」でMacの実習ファイルへ保存してください。');
           }catch(error){localDownloads.cache.cancelConfirmation();throw error;}

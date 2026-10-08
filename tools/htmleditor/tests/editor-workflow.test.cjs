@@ -33,7 +33,7 @@ class Node {
   querySelectorAll() { return []; }
   closest() { return null; }
   cloneNode() { return new Node(this.tagName); }
-  getBoundingClientRect() { return {bottom:0}; }
+  getBoundingClientRect() { return {top:100, bottom:144, left:0, width:640, height:44}; }
   setPointerCapture() {}
   showModal() { this.open = true; }
   close() { this.open = false; }
@@ -83,21 +83,23 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     disconnect() { calls.disconnect++; this.dirHandle = null; this.files = []; this.readOnly = false; }
     onChange() { return () => {}; }
   }
-  const cm = {value:'', setOption() {}, setValue(value) { this.value = value; }, getValue() { return this.value; }, clearHistory() {}, on() {}, refresh() {}, markText() {}, posFromIndex() { return {}; }, replaceSelection() {}, clearGutter() {}, setGutterMarker() {}};
+  const wrapper = new Node();
+  const cm = {value:'', setOption() {}, getWrapperElement:() => wrapper, setValue(value) { this.value = value; }, getValue() { return this.value; }, clearHistory() {}, on() {}, refresh() {}, markText() {}, posFromIndex() { return {}; }, replaceSelection() {}, clearGutter() {}, setGutterMarker() {}};
   const memory = {async load() { return remembered ? handle : null; }, async save() {}, async forget() { calls.forget++; }};
   const testTimeout = (fn, delay) => {
     const timer = setTimeout(fn, delay);
     if (delay >= 1000) timer.unref();
+    calls.timers ||= []; calls.timers.push({fn, delay, timer});
     return timer;
   };
   const context = {
     window:null, document, console, confirm:()=>true, setTimeout:testTimeout, clearTimeout, requestAnimationFrame:fn => fn(),
     crypto:{randomUUID:() => 'test-document'}, indexedDB:{}, localStorage:{}, Blob:class {}, URL:{createObjectURL() { calls.downloads++; return 'blob:test'; }, revokeObjectURL() {}},
-    CodeMirror:{fromTextArea:() => cm}, HtmlFileSystem:FakeFs,
+    CodeMirror:{fromTextArea:(node, options) => { calls.cmOptions = options; return cm; }}, HtmlFileSystem:FakeFs,
     HtmlEditorFolderMemory:{create:() => { if (memoryFails) throw Error('IndexedDB unavailable'); return memory; }},
     HtmlEditorRecovery:{create:() => ({save() {}, list:() => ({items:recoveryItems, errors:[]})})},
     HtmlPreview:class { constructor(options) { this.fs = options.fs; calls.previewOptions = options; calls.previewUpdates = []; } update(...args) { calls.previewUpdates.push(args); } openInNewTab() {} },
-    HtmlEditorDiagnostics:require('../diagnostics.js'), HtmlEditorHintUsage:require('../hint-usage.js'), CSS:{supports:() => true},
+    HtmlEditorDiagnostics:require('../diagnostics.js'), HtmlEditorHintUsage:require('../hint-usage.js'), HtmlEditorClipboard:require('../clipboard.js'), CSS:{supports:() => true},
     HtmlPracticeEditor:{lessons:() => [{id:'html11', title:'HTML', files:[]}], taskForFile:() => null, inspect:() => null, submission() {}},
     HtmlEditorWorkflow:{distribution:() => ({message:'', kind:'ready'}), submission:() => ({ready:false, message:''})},
     HtmlEditorOnboarding:{assess:() => ({active:false, ready:false, steps:[], message:''})},
@@ -270,7 +272,7 @@ test('v3実エディタ起動は既存proofを読むだけ。確認・切替・�
  assert.equal(h.nodes.currentFileLabel.textContent,'');assert.equal(h.calls.downloads,0);assert.equal(h.calls.writes,0);
  confirm.click();await h.tick();assert.equal(calls.register,1);assert.equal(confirm.hidden,true);
  assert.equal(box.children[1].children[0].textContent,'synthetic');
- assert.equal(box.children[0].textContent,'確認済み');
+ assert.equal(box.children[0].textContent,'');assert.equal(box.children[0].hidden,true,'氏名/IDボタンと警告の消去で確認状態を示す');
  assert.equal(warning.hidden,true,'本人確認済みなら赤い警告を消す');
  const second=makeHarness({v3:true,localDownloads});await second.tick();assert.equal(calls.register,1);
  assert.equal(second.nodes.currentFileLabel.textContent,'');
@@ -320,6 +322,31 @@ for(const mode of ['cancel','discard','writeFailure','readFailure'])test('同じ
  assert.equal(h.cm.getValue(),mode==='discard'?'old saved content':'edited content');
  assert.equal(h.disk.get('sample.html'),mode==='readFailure'?'edited content':'old saved content');
 });
+test('開く・保存・失敗を上部の一時通知へ表示し、固定の保存状況欄を置かない', async () => {
+  assert.equal(htmlIds.has('documentStatus'), false); assert.equal(htmlIds.has('saveState'), false);
+  const h = makeHarness(); await h.tick(); await chooseSample(h);
+  assert.equal(h.nodes.toast.textContent, 'ファイルを開きました。'); assert.equal(h.nodes.toast.dataset.kind, 'success');
+  assert.equal(h.nodes.toast.style.top, '108px');
+  h.cm.setValue('saved revision'); h.nodes.saveBtn.click(); await h.tick();
+  assert.match(h.nodes.toast.textContent, /Macのファイルに保存しました/); assert.equal(h.nodes.toast.dataset.kind, 'success');
+  const timer = h.calls.timers.filter(timer => timer.delay === 5000).at(-1); timer.fn(); clearTimeout(timer.timer);
+  assert.equal(h.nodes.toast.style.display, 'none');
+  const failed = makeHarness({failWrite:true}); await failed.tick(); await chooseSample(failed);
+  failed.cm.setValue('unsaved revision'); failed.nodes.saveBtn.click(); await failed.tick();
+  assert.equal(failed.nodes.toast.dataset.kind, 'error'); assert.match(failed.nodes.toast.textContent, /synthetic write failure/);
+  assert.equal(failed.cm.getValue(), 'unsaved revision');
+});
+test('⌘Enterはプレビューのみ、⌘Sは保存後のプレビュー更新。両者を混同しない', async () => {
+  const h = makeHarness(); await h.tick(); await chooseSample(h);
+  h.cm.setValue('new preview'); const previews = h.calls.previewUpdates.length;
+  h.calls.cmOptions.extraKeys['Cmd-Enter']();
+  assert.equal(h.calls.writes, 0); assert.equal(h.disk.get('sample.html'), 'old saved content');
+  assert.equal(h.calls.previewUpdates.length, previews + 1);
+  await h.calls.cmOptions.extraKeys['Cmd-S']();
+  assert.equal(h.calls.writes, 1); assert.equal(h.disk.get('sample.html'), 'new preview');
+  assert.equal(h.calls.previewUpdates.length, previews + 2);
+});
+
 test('期限切れでも別アカウントへの明示切替を選べる。通常の再確認と区別',async()=>{
  const calls=[];const h=makeHarness({v3:true,localDownloads:{create:()=>({load:async()=>({status:'expired'}),register:async r=>calls.push(r)})}});await h.tick();
  const box=h.nodes.toolbar.children.find(n=>n.className==='identity-toolbar'),button=box.children[1].children[1].children.find(n=>n.textContent==='利用するアカウントを変更');

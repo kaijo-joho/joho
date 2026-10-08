@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-open-save-icons-20261008">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-copy-status-20261008">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-v3-20261002-enabled" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
   <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-v3-20261002-enabled" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
   <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
-  <link rel="stylesheet" href="editor.css?v=html-editor-open-save-icons-20261008" data-editor-required integrity="sha384-L8jcDFGZ2xKKi+UvqHS138zKu/Cug8SHQ5Lvm4gj1A0hNhCSqAeXjLqq9/rcgX5d" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-editor-copy-status-20261008" data-editor-required integrity="sha384-4Cy1pbeZZKz3kjeCOQ9DrstyonDEZXHEwlk0RugS/6rJ3awFPZn2drVrw1fGRcwU" crossorigin="anonymous">
 </head>
 <body class="mode-lesson" data-pane="center">
 <section id="startupFallback" aria-labelledby="startupTitle">
@@ -53,7 +53,7 @@
     <div class="splitter" id="splitLeft" role="separator" aria-label="教材と編集領域の幅" aria-orientation="vertical" tabindex="0"></div>
     <section id="workspace" aria-label="HTML・CSSの編集">
   <header id="toolbar" aria-label="エディタの操作">
-    <a class="brand" href="../index.html" aria-label="ツール一覧へ戻る"><img class="brand-icon" src="icon.svg" alt=""><span>HTMLエディタ <small class="beta-tag">BETA</small></span></a>
+    <a class="brand" href="../index.html" aria-label="ツール一覧へ戻る"><img class="brand-icon" src="icon.svg" alt=""><span>HTMLエディタ</span></a>
     <div class="practice-actions" role="group" aria-label="実習の操作">
     <button class="btn" id="openFilesBtn" type="button" data-tip="OSのファイル選択で保存済みの実習ファイルを開きます（⌘O）。接続した実習フォルダ内のファイルを選んでください。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V4h6l2 3h10v3M3 7h7l2 3h10l-3 10H3z"/></svg><span>開く</span></button>
     <button class="btn" id="taskDownloadBtn" type="button" data-tip="学校アカウントで新しい実習ファイルをダウンロードします。編集中の内容を保存する操作ではありません。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><span>ダウンロード</span></button>
@@ -83,18 +83,18 @@
           <section class="settings-section" aria-label="保存先フォルダ">
             <p id="folderStatusText">フォルダ未接続</p>
             <p id="folderMemoryNotice"></p>
-            <button class="menu-item" id="reconnectFolderBtn" type="button" hidden>前回のフォルダへ再接続</button>
-            <button class="menu-item" id="settingsFolderBtn" type="button">フォルダを接続・変更…</button>
-            <button class="menu-item" id="disconnectBtn" type="button" disabled>フォルダの接続を解除</button>
+            <button class="menu-item" id="reconnectFolderBtn" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 9m0-5v5h-5M20 12a8 8 0 0 1-13.7 5.7L4 15m0 5v-5h5"/></svg><span>前回のフォルダへ再接続</span></button>
+            <button class="menu-item" id="settingsFolderBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V4h6l2 3h10v3M3 7h7l2 3h10l-3 10H3z"/></svg><span>フォルダを接続・変更…</span></button>
+            <button class="menu-item" id="disconnectBtn" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5-4 4a4 4 0 0 0 6 6l1-1M15 19l4-4a4 4 0 0 0-6-6l-1 1M3 3l18 18"/></svg><span>フォルダの接続を解除</span></button>
           </section>
           <section class="settings-section recovery-entry" aria-label="困ったときの復旧">
             <p>困ったときの復旧：ブラウザの控えを選んで取り出します。</p>
-            <button class="btn" id="restoreBtn" type="button">復旧候補を開く…</button>
+            <button class="btn" id="restoreBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6M12 7v6l4 2"/></svg><span>復旧候補を開く…</span></button>
           </section>
           <details class="settings-section"><summary>保存の補助操作</summary>
-            <button class="menu-item" id="folderSaveBtn" type="button">接続したフォルダへ保存…</button>
-            <button class="menu-item" id="downloadBtn" type="button">編集中のファイルのコピーをダウンロード</button>
-            <button class="menu-item" id="openOtherFileBtn" type="button">別の場所からファイルを開く…</button>
+            <button class="menu-item" id="folderSaveBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l4 4v14H3V3zM7 3v6h10V3M7 21v-8h10v8"/></svg><span>接続したフォルダへ保存…</span></button>
+            <button class="menu-item" id="downloadBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><span>編集中のファイルのコピーをダウンロード</span></button>
+            <button class="menu-item" id="openOtherFileBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7"/></svg><span>別の場所からファイルを開く…</span></button>
           </details>
           <p id="usageNotice">基本編集・保存はログイン不要です。ローカルのHTML/CSSを開いて使います。</p>
         </div>
@@ -106,7 +106,6 @@
     <p><strong>フォルダ未接続</strong><span id="folderAlertMessage">上書き保存や画像・リンクの確認には、実習フォルダを接続してください。</span></p>
     <button class="btn" id="connectFolderBtn" type="button">フォルダを接続…</button>
   </div>
-  <div id="documentStatus" hidden><span id="saveState"></span></div>
   <section id="fileIdentityWarning" class="identity-alert" role="alert" hidden><p>⚠ 開いている実習ファイルの本人情報が、確認済みのアカウントと一致しません。自分のファイルか確認してください。別のアカウントを使う場合は、上部の氏名・IDボタンから切り替えます。提出時には学校アカウントを改めて確認します。</p></section>
   <section id="onboardingStatus" aria-label="導入課題の準備確認" hidden>
     <strong>導入課題：実習の準備</strong>
@@ -117,19 +116,21 @@
     <div id="emptyState"><button class="btn primary" id="practiceOpenBtn" type="button">保存済みの実習ファイルを開く…</button></div>
     <section class="pane" id="centerPane" aria-label="コード">
       <div class="pane-header">
+        <div class="pane-header-content">
         <div class="breadcrumb"><span id="currentFileLabel"></span><span id="dirtyMark" aria-label="未保存の変更" hidden>＊</span><span class="save-shortcut">⌘Sで保存・プレビュー更新</span></div>
         <button class="btn" id="findErrorsBtn" type="button" data-tip="自分で見直しても見つからないときに、行番号へ⚠を表示します。利用記録は提出時に授業担当者へ送られます。" hidden>エラーを探す</button>
         <button class="btn" id="saveBtn" type="button" data-tip="開いている実習ファイルに上書き保存し、プレビューを更新します（⌘S）。直接保存できない場合は保存方法を案内します。" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l4 4v14H3V3zM7 3v6h10V3M7 21v-8h10v8"/></svg><span>保存</span></button>
+        </div>
       </div>
       <p id="hintNotice" hidden></p>
       <div id="editorContainer"><textarea id="codeEditor" aria-label="HTML・CSSコード"></textarea></div>
     </section>
     <div class="splitter" id="splitRight" role="separator" aria-label="コードとプレビューの幅" aria-orientation="vertical" tabindex="0"></div>
     <section class="pane" id="rightPane" aria-label="プレビュー">
-      <div class="pane-header"><div class="preview-heading"><div class="pane-title">プレビュー</div><span id="previewTitle" hidden></span></div><div class="pane-actions">
-        <button class="btn icon-only" id="runBtn" type="button" aria-label="プレビューを更新" title="プレビューを更新（Command+Enter）" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.364-6.364L21 8.272m0-4v4h-4M21 12a9 9 0 0 1-15.364 6.364L3 15.728m0 4v-4h4"/></svg></button>
+      <div class="pane-header"><div class="pane-header-content"><div class="preview-heading"><div class="pane-title">プレビュー</div><span id="previewTitle" hidden></span></div><div class="pane-actions">
+        <button class="btn icon-only" id="runBtn" type="button" aria-label="プレビューを更新" data-tip="プレビューのみを更新します（⌘Enter）。Macのファイルには保存しません。" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.364-6.364L21 8.272m0-4v4h-4M21 12a9 9 0 0 1-15.364 6.364L3 15.728m0 4v-4h4"/></svg></button>
         <button class="btn icon-only" id="openPreviewTabBtn" type="button" aria-label="プレビューを別タブで開く" title="プレビューを別タブで開く" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7"/></svg></button>
-      </div></div>
+      </div></div></div>
       <p id="previewNotice" hidden></p>
       <div id="previewContainer"><div id="previewWrapper"><iframe id="previewIframe" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" title="Webページプレビュー"></iframe></div></div>
     </section>
@@ -205,7 +206,7 @@
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.8.3 BETA（2026年10月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>HTMLエディタ 0.8.4（2026年10月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
     <p>通常の編集はこの端末とブラウザで処理します。「提出」を押すと、保存確認済みの内容をモーダル内の学校アカウント用フォームへ渡します。提出記録の作成は、フォーム内の「提出する」を押したときだけです。ログインや表示がうまくいかない場合は「表示・ログインで困ったとき」から「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
@@ -241,6 +242,7 @@
 <script src="hint-usage.js?v=html-editor-error-hints-20261005" integrity="sha384-IshffaAoBNtrVXRzCv6fdav0aNzXw/vCGhz5nr4rpbuEs8A7Ug/z2NY/0JyjOMm1" crossorigin="anonymous"></script>
 <script src="preview.js?v=html-editor-fragment-navigation-20261007" data-editor-required integrity="sha384-uifpG3fjjpkS9EPtaTZKmPv81sP2sXIXByVBoAjnH9vIezDwVXhx3idI1Y5yFWmv" crossorigin="anonymous"></script>
 <script src="onboarding.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-095gWiJ23P9TNSH9Rsv92W9ZVXOqY2gz8wDrNXP+yzViGrDKiaGwrcw3n+j2Wt/E" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-editor-open-save-icons-20261008" data-editor-required integrity="sha384-pDHO5Zsjrqa8bOU6/vUoOktwgss6+FD8wJ+qAWpGaZRESdXdEhQqNxwCEYn34RyO" crossorigin="anonymous"></script>
+<script src="clipboard.js?v=html-editor-copy-status-20261008" data-editor-required integrity="sha384-pIZWyXvpzypp+4Phg7thVMcAANiPEi74SXZCQAP8w8XspUx+5xaNfKsA3/IThSAc" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-editor-copy-status-20261008" data-editor-required integrity="sha384-mDZ7h9WIFKiA3eNOuNr+ssG9l6V3mI057cHU02+Yx0a13bwYCAMVtTeILD2zXRrA" crossorigin="anonymous"></script>
 </body>
 </html>
