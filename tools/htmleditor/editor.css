@@ -424,6 +424,7 @@ body:not(.has-document) #splitRight { display: none !important; }
   width: 100%;
 }
 .pane-header-content .btn { min-height: 44px; }
+.pane-header-content > .pane-title { flex: none; }
 
 .pane-title {
   font-weight: 700;
@@ -650,6 +651,7 @@ body.left-collapsed #splitLeft {
 #toolbar .brand > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 #toolbar .practice-actions { display: flex; align-items: center; flex: 1 1 auto; min-width: 0; flex-wrap: wrap; gap: 6px; }
 #toolbar .practice-actions > * { flex: none; }
+#toolbar .practice-support-actions { display: flex; align-items: center; gap: 6px; margin-inline-start: 6px; padding-inline-start: 12px; border-inline-start: 1px solid var(--line); }
 #toolbar .btn, #saveBtn { min-height: 44px; }
 #toolbar .toolbar-right { flex: none; margin-left: auto; }
 #toolbar .icon-only { min-width: 44px; }
