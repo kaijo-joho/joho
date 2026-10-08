@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="./css/css.css?v=html-editor-v3-20261002-enabled" integrity="sha384-kaFs8U9pieFZULBk6Q0xfKli7pQRNK4EdeBPG5EjierKT18zsqkLdnkpX89oI6tG" crossorigin="anonymous">
   <link rel="stylesheet" href="./css/html_practice_lesson.css?v=html-editor-v3-20261002-enabled" integrity="sha384-6BES8JOV8q15UEhSXYFco3ywDM3rPeHaQ9ss80Llip+nC64fEOaOz427Irdrq2FO" crossorigin="anonymous">
   <link rel="stylesheet" href="./css/html_practice_view.css?v=html-editor-v3-20261002-enabled" integrity="sha384-gqn+EejaA9Hg4/ExhKc5A73OnOoD4mMJxfapvoIbacyHL6gHtAyZ1B+P6ab8LQeV" crossorigin="anonymous">
+  <link rel="stylesheet" href="./css/html-file-tree.css?v=html-file-tree-svg-20261008" integrity="sha384-vyf/jtlnyYUSqkFximORCHnHjlNlMPv7yX4WF8rraOQpvIS5FCB/3R6itChFFSXa" crossorigin="anonymous">
   <script defer src="./tools/htmleditor/lessons.js?v=html-combined-20261007" integrity="sha384-Q3UR1+Lio4HJ1Rnmg8MsASqTz1YC03LGJfjzqsKlBOSrnY5OsYpH8x0Pmv/a65jN" crossorigin="anonymous"></script>
   <script defer src="./tools/htmleditor/practice.js?v=html-editor-v3-20261002-enabled" integrity="sha384-CsnEnzT/kOKZbB3mRBefi0tDQ638fb29+zhietnLMu4kNkgCHCVX8xC6bEmL/sT1" crossorigin="anonymous"></script>
   <script defer src="./tools/htmleditor/routing.js?v=html-editor-v3-20261002-enabled" integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
@@ -65,14 +66,47 @@
         Webサイトの画像はサイト内のどこに保存されていても呼び出すことは可能ですが、多くのサイトでは画像専用のフォルダを作成して保存しています。この実習でも基本的には画像専用のフォルダ（<b>images</b>フォルダ）を作成し、そこに画像を保存することにします。
       </p>
 
-      <pre class="html-practice-tree" aria-label="HTML実習フォルダの中にHTMLとimagesフォルダを保存する構成">HTML実習/
-├── html14-01.html
-└── images/
-    ├── photo01.jpg
-    ├── photo02.jpg
-    ├── photo03.jpg
-    ├── photo04.jpg
-    └── photo05.jpg</pre>
+      <figure class="concept-figure html-file-tree">
+        <svg class="concept-diagram" viewBox="0 0 350 392" role="img" aria-labelledby="html-tree-saved-title html-tree-saved-desc">
+          <title id="html-tree-saved-title">実習ファイルと画像の保存場所</title>
+          <desc id="html-tree-saved-desc">HTML実習フォルダの直下にhtml14-01.htmlとimagesフォルダを置きます。imagesの中にはphoto01.jpg、photo02.jpg、photo03.jpg、photo04.jpg、photo05.jpgを保存します。</desc>
+          <defs>
+            <symbol id="html-tree-folder-icon" viewBox="0 0 24 24">
+              <path class="html-file-tree__folder" d="M2 5h7l2 3h11v12H2Z"/>
+              <path class="html-file-tree__glyph" d="M2 9h20"/>
+            </symbol>
+            <symbol id="html-tree-html-icon" viewBox="0 0 24 24">
+              <path class="html-file-tree__paper" d="M4 2h10l6 6v14H4Z M14 2v6h6"/>
+              <path class="html-file-tree__glyph" d="m9 12-3 3 3 3m6-6 3 3-3 3m-2-7-2 10"/>
+            </symbol>
+            <symbol id="html-tree-image-icon" viewBox="0 0 24 24">
+              <path class="html-file-tree__paper" d="M4 2h10l6 6v14H4Z M14 2v6h6"/>
+              <path class="html-file-tree__glyph" d="m6 19 4-5 3 3 2-2 3 4Z"/>
+              <circle class="html-file-tree__glyph" cx="8" cy="10" r="1.5"/>
+            </symbol>
+          </defs>
+          <g aria-hidden="true">
+            <path class="html-file-tree__branches" d="M32 40V120 M32 72H56 M32 120H56 M80 136V360 M80 168H104 M80 216H104 M80 264H104 M80 312H104 M80 360H104"/>
+            <use href="#html-tree-folder-icon" x="16" y="8" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--folder" x="60" y="30">HTML実習</text>
+            <use href="#html-tree-html-icon" x="64" y="56" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="108" y="78">html14-01.html</text>
+            <use href="#html-tree-folder-icon" x="64" y="104" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--folder" x="108" y="126">images</text>
+            <use href="#html-tree-image-icon" x="112" y="152" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="156" y="174">photo01.jpg</text>
+            <use href="#html-tree-image-icon" x="112" y="200" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="156" y="222">photo02.jpg</text>
+            <use href="#html-tree-image-icon" x="112" y="248" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="156" y="270">photo03.jpg</text>
+            <use href="#html-tree-image-icon" x="112" y="296" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="156" y="318">photo04.jpg</text>
+            <use href="#html-tree-image-icon" x="112" y="344" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="156" y="366">photo05.jpg</text>
+          </g>
+        </svg>
+        <figcaption>HTML実習の中に実習ファイルとimagesを置き、画像はimagesの中へ保存します。</figcaption>
+      </figure>
       <p>画像はHTMLとは別のファイルです。提出するのは <b>html14-01.html</b> ですが、プレビューや通常のブラウザで確認するために画像もこの配置で保存してください。</p>
 
 
@@ -243,9 +277,30 @@
       <h4>呼び出し元と同一フォルダにあるファイルを参照</h4>
       <p>呼び出し元のファイルと同一フォルダにあるファイルは、「<b>./</b>」のあとに続けてファイル名を記述します。例えば、同じフォルダにあるphoto01.jpgという画像を表示する場合は次のように記述します。</p>
 
-      <p class="center">
-        <img src="./img/html14_002.png" style="width:80%;" alt="呼び出し元HTMLと画像ファイルが同じフォルダにある構成図" decoding="async" loading="lazy">
-      </p>
+      <figure class="concept-figure html-file-tree">
+        <svg class="concept-diagram" viewBox="0 0 350 344" role="img" aria-labelledby="html-tree-same-title html-tree-same-desc">
+          <title id="html-tree-same-title">HTMLと画像が同じフォルダにある場合</title>
+          <desc id="html-tree-same-desc">HTML実習フォルダの直下に呼び出し元.htmlとphoto01.jpg、photo02.jpg、photo03.jpg、photo04.jpg、photo05.jpgがあります。呼び出し元からphoto01.jpgへの相対パスは./photo01.jpgです。</desc>
+          <g aria-hidden="true">
+            <path class="html-file-tree__branches" d="M32 40V312 M32 72H56 M32 120H56 M32 168H56 M32 216H56 M32 264H56 M32 312H56"/>
+            <use href="#html-tree-folder-icon" x="16" y="8" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--folder" x="60" y="30">HTML実習</text>
+            <use href="#html-tree-html-icon" x="64" y="56" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="108" y="78">呼び出し元.html</text>
+            <use href="#html-tree-image-icon" x="64" y="104" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="108" y="126">photo01.jpg</text>
+            <use href="#html-tree-image-icon" x="64" y="152" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="108" y="174">photo02.jpg</text>
+            <use href="#html-tree-image-icon" x="64" y="200" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="108" y="222">photo03.jpg</text>
+            <use href="#html-tree-image-icon" x="64" y="248" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="108" y="270">photo04.jpg</text>
+            <use href="#html-tree-image-icon" x="64" y="296" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="108" y="318">photo05.jpg</text>
+          </g>
+        </svg>
+        <figcaption>呼び出し元HTMLと画像が同じ階層に並んでいます。</figcaption>
+      </figure>
 
 
 
@@ -262,9 +317,32 @@
       <h4>特定のフォルダ内にあるファイルを参照</h4>
       <p>特定のフォルダ内にあるファイルを指定する場合は、「<b>/</b>」を使って「<b>フォルダ名/ファイル名</b>」と記述します。</p>
       <p>呼び出し元と同一フォルダにある「<b>images</b>」というフォルダの中にある場合は次のように記述します。</p>
-      <p class="center">
-        <img src="./img/html14_003.png" style="width:80%;" alt="呼び出し元HTMLとimagesフォルダが同じ階層にある構成図" decoding="async" loading="lazy">
-      </p>
+      <figure class="concept-figure html-file-tree">
+        <svg class="concept-diagram" viewBox="0 0 350 392" role="img" aria-labelledby="html-tree-images-title html-tree-images-desc">
+          <title id="html-tree-images-title">画像がimagesフォルダの中にある場合</title>
+          <desc id="html-tree-images-desc">HTML実習フォルダの直下に呼び出し元.htmlとimagesフォルダがあります。photo01.jpg、photo02.jpg、photo03.jpg、photo04.jpg、photo05.jpgはimagesの中にあります。呼び出し元からphoto01.jpgへの相対パスは./images/photo01.jpgです。</desc>
+          <g aria-hidden="true">
+            <path class="html-file-tree__branches" d="M32 40V120 M32 72H56 M32 120H56 M80 136V360 M80 168H104 M80 216H104 M80 264H104 M80 312H104 M80 360H104"/>
+            <use href="#html-tree-folder-icon" x="16" y="8" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--folder" x="60" y="30">HTML実習</text>
+            <use href="#html-tree-html-icon" x="64" y="56" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="108" y="78">呼び出し元.html</text>
+            <use href="#html-tree-folder-icon" x="64" y="104" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--folder" x="108" y="126">images</text>
+            <use href="#html-tree-image-icon" x="112" y="152" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="156" y="174">photo01.jpg</text>
+            <use href="#html-tree-image-icon" x="112" y="200" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="156" y="222">photo02.jpg</text>
+            <use href="#html-tree-image-icon" x="112" y="248" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="156" y="270">photo03.jpg</text>
+            <use href="#html-tree-image-icon" x="112" y="296" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="156" y="318">photo04.jpg</text>
+            <use href="#html-tree-image-icon" x="112" y="344" width="32" height="32"/>
+            <text class="html-file-tree__label html-file-tree__label--file" x="156" y="366">photo05.jpg</text>
+          </g>
+        </svg>
+        <figcaption>呼び出し元HTMLとimagesは同じ階層で、画像はその一つ下の階層です。</figcaption>
+      </figure>
 
       <pre class="html example"><code>
         &lt;img src="./images/photo01.jpg"&gt;

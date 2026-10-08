@@ -1,0 +1,58 @@
+/* フォルダ構成図。配色は既存のconcept-diagramのテーマ変数を共用する。 */
+figure.html-file-tree {
+  --concept-max-width: 24em;
+  --concept-min-width: 0;
+}
+.html-file-tree__branches {
+  fill: none;
+  stroke: var(--diagram-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.html-file-tree__folder {
+  fill: var(--diagram-active);
+  stroke: var(--diagram-line);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.html-file-tree__paper {
+  fill: var(--diagram-surface-strong);
+  stroke: var(--diagram-muted);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.html-file-tree__glyph {
+  fill: none;
+  stroke: var(--diagram-line);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.html-file-tree__label {
+  fill: var(--diagram-text);
+  font-size: 20px;
+  font-weight: 500;
+}
+.html-file-tree__label--folder { font-weight: 700; }
+.html-file-tree__label--file {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+.html-file-tree figcaption {
+  margin-block-start: .5em;
+  color: var(--font-color-sub-text, inherit);
+  font-size: .9em;
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media print {
+  figure.html-file-tree { break-inside: avoid; }
+  .html-file-tree__label { fill: #000; }
+  .html-file-tree__branches,
+  .html-file-tree__folder,
+  .html-file-tree__paper { stroke: #555; }
+  .html-file-tree__glyph { stroke: #222; }
+  .html-file-tree__folder { fill: #f4f4f4; }
+  .html-file-tree__paper { fill: #fff; }
+}
