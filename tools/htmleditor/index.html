@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-toolbar-groups-20261008">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-direct-download-20261008">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-v3-20261002-enabled" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
   <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-v3-20261002-enabled" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
   <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
-  <link rel="stylesheet" href="editor.css?v=html-editor-toolbar-groups-20261008" data-editor-required integrity="sha384-Vt5xdkP0NVQyZVGOmTI8mclxss4f8u/wcTyjqR8fNtvWw3Cwj59GVyw5t01CCM1C" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-editor-direct-download-20261008" data-editor-required integrity="sha384-LbFqPay32a9ksGk7wUbEviwpY0OjKd+Odr5mpd6h1Df8YN0ukcF49gCC6Vc4WcOa" crossorigin="anonymous">
 </head>
 <body class="mode-lesson" data-pane="center">
 <section id="startupFallback" aria-labelledby="startupTitle">
@@ -59,7 +59,7 @@
     <button class="btn" id="openFilesBtn" type="button" data-tip="OSのファイル選択で保存済みの実習ファイルを開きます（⌘O）。接続した実習フォルダ内のファイルを選んでください。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V4h6l2 3h10v3M3 7h7l2 3h10l-3 10H3z"/></svg><span>開く</span></button>
     <button class="btn" id="submitBtn" type="button" aria-describedby="submissionState" data-tip="保存済みの実習ファイルを提出します。送信前に保存と提出条件を確認します。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4H5v17h14V4h-2M9 3h6v4H9zM12 17v-6M9 14l3-3 3 3"/></svg><span id="submitLabel">提出</span></button>
     <div class="practice-support-actions" role="group" aria-label="手順と表示">
-    <button class="btn" id="practiceStepsBtn" type="button" data-tip="取得・フォルダ接続・編集・保存・提出の手順を確認します。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M2 5l1 1 2-3M2 12l1 1 2-3M2 19l1 1 2-3"/></svg><span>手順</span></button>
+    <button class="btn" id="practiceStepsBtn" type="button" data-tip="フォルダ接続・取得・編集・保存・提出の手順を確認します。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M2 5l1 1 2-3M2 12l1 1 2-3M2 19l1 1 2-3"/></svg><span>手順</span></button>
     <details class="menu-wrap" id="viewMenu">
       <summary class="btn" data-tip="エディタを広く表示したり、解説を別タブで開いたりします。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM9 4v16"/></svg><span>表示</span></summary>
       <div class="menu-dropdown">
@@ -165,9 +165,10 @@
   <section data-help-topic="school" data-help-title="学校の実習を始める">
     <h3>学校の実習を始める</h3>
     <p>実習ファイルの取得と提出は、海城の学校アカウントと、対象学年・年度・利用期間などの課題の条件を確認する別画面で行います。</p>
-    <ol><li>教材のリンクからエディタを開き、上部の「ダウンロード」で対象ファイルを選び、学校アカウントで受け取ります。「手順」から詳しい操作を確認できます。</li>
-      <li>通常はMacの「ダウンロード」に入ります。Finderで指定のファイル名のまま「書類／HTML実習」フォルダへ移動します。</li>
-      <li>初回は「設定」でフォルダを接続し、「開く」でOSのファイル選択から実習ファイルを選びます。</li></ol>
+    <ol><li>教材のリンクからエディタを開き、学校アカウントを確認します。初回はFinderで「書類／HTML実習」を作り、「設定」か取得画面から接続します。</li>
+      <li>上部の「ダウンロード」で対象ファイルを取得すると、接続先へ直接保存します。「保存しました」と保存先・ファイル名を確認します。同名の保存済みファイルは上書きしません。</li>
+      <li>上部の「開く」でOSのファイル選択から実習ファイルを選びます。「手順」から詳しい操作を確認できます。</li></ol>
+    <p>直接保存できない環境では通常のダウンロードを使います。Finderで保存先を確認し、「ダウンロード」に入った場合は指定の名前のまま「書類／HTML実習」へ移動します。</p>
     <p>教材の選択だけでは、編集中のファイルは変わりません。課題が2つある単元では「課題」で切り替えます。</p>
     <p>このエディタはログイン状態を判定しません。一般の方も公開教材と基本編集を使えますが、学校用の配付・提出は利用できません。配付リンクが使えない場合も、編集中の内容は保存できます。</p>
   </section>
@@ -209,7 +210,7 @@
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.8.5（2026年10月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>HTMLエディタ 0.8.6（2026年10月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
     <p>通常の編集はこの端末とブラウザで処理します。「提出」を押すと、保存確認済みの内容をモーダル内の学校アカウント用フォームへ渡します。提出記録の作成は、フォーム内の「提出する」を押したときだけです。ログインや表示がうまくいかない場合は「表示・ログインで困ったとき」から「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
@@ -230,7 +231,7 @@
 <script src="identity-cache.js?v=html-editor-account-name-20261004" integrity="sha384-6PJR82qpS0MkNvQRCfoHtjj7lhSVV8WZ+/IRmi2sZIcrgu+OLDR//oRcuEmZ1z59" crossorigin="anonymous"></script>
 <script src="public-original.js?v=html-editor-v3-20261002-enabled" integrity="sha384-aaVRfh6S+kTfr0E6cW3ZDGA9D97QUO2gfNEXPXuOITjv0TatLP3c+yjhIiZHPTyK" crossorigin="anonymous"></script>
 <script src="confirmation-coordinator.js?v=html-editor-v3-20261002-enabled" integrity="sha384-kJMoWhjr/K1dHuwDOHnneUihdhnOIqgMgRNzzzOTsrY5MsBwBaubuh4zUr7RtE0u" crossorigin="anonymous"></script>
-<script src="local-downloads.js?v=html-editor-account-name-20261004" integrity="sha384-SNAAIfE3he7vBcd6j5F8yedmG4BRDkidfqJvBg1X5KbS9fbJmDHp171oAstE3y/3" crossorigin="anonymous"></script>
+<script src="local-downloads.js?v=html-editor-direct-download-20261008" integrity="sha384-4B0M56RIKmWJhWUj1Uu2w3Fbh3kXJouuulvtaITjw7MSn4GwNEVCCDybQr72keyH" crossorigin="anonymous"></script>
 <script src="local-v3-config.js?v=html-editor-v3-20261002-school" integrity="sha384-0TV/bltJ4+XJdpR30o57T6K8v0q9rDKkbXzWPy9CwqpCoDCfqSINLRIPz0grMNww" crossorigin="anonymous"></script>
 <script src="practice.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-CsnEnzT/kOKZbB3mRBefi0tDQ638fb29+zhietnLMu4kNkgCHCVX8xC6bEmL/sT1" crossorigin="anonymous"></script>
 <script src="workflow.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-oJmPBn0EqhE7xQ26mqno+/eqlUXowH64e8RobjuanKiallBhN4dh8LgTasUBMqJ5" crossorigin="anonymous"></script>
@@ -239,13 +240,13 @@
 <script src="routing.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
 <script src="navigation.js?v=html-editor-review-fixes-20261004" data-editor-required integrity="sha384-ons43bCWZXwh/NBct0QOGjorsnHSO8hlR+X0g8S16AocKnyIdlLxSIIoETI/pwhe" crossorigin="anonymous"></script>
 <script src="recovery.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-j5rv44DgQetWLG8LlvUQBTDmR8Ex6u3HktVI3w2QwWplULJLYh8Jn7Oqn+spWRUO" crossorigin="anonymous"></script>
-<script src="filesystem.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-BU8+p22BQ95NYFZFChyOkjVdBRj5GdiTgCyn/yXDY6FkPcEHW+hEnw8gVzlNSxFQ" crossorigin="anonymous"></script>
+<script src="filesystem.js?v=html-editor-direct-download-20261008" data-editor-required integrity="sha384-1KY7yZW+jEibbZKyjQun5jvbQGvwcmUPmn1aO3IbIcbjoiy6ditWuvpRWLP95aTh" crossorigin="anonymous"></script>
 <script src="folder-memory.js?v=html-editor-v3-20261002-enabled" integrity="sha384-X0jCctHQJZmYAtsq/o7avFraHuzzySbJTNpOMmVbYCw0Ct4ywp/H5hccAHB8XF1v" crossorigin="anonymous"></script>
 <script src="diagnostics.js?v=html-editor-attribute-layout-20261005" data-editor-required integrity="sha384-ArVXRo/o4B+2o0hz+bvR5rrrSaHmmMwrKhoVZp37OVlfV/7RBl6fOrmaSIP8oTWC" crossorigin="anonymous"></script>
 <script src="hint-usage.js?v=html-editor-error-hints-20261005" integrity="sha384-IshffaAoBNtrVXRzCv6fdav0aNzXw/vCGhz5nr4rpbuEs8A7Ug/z2NY/0JyjOMm1" crossorigin="anonymous"></script>
 <script src="preview.js?v=html-editor-fragment-navigation-20261007" data-editor-required integrity="sha384-uifpG3fjjpkS9EPtaTZKmPv81sP2sXIXByVBoAjnH9vIezDwVXhx3idI1Y5yFWmv" crossorigin="anonymous"></script>
 <script src="onboarding.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-095gWiJ23P9TNSH9Rsv92W9ZVXOqY2gz8wDrNXP+yzViGrDKiaGwrcw3n+j2Wt/E" crossorigin="anonymous"></script>
 <script src="clipboard.js?v=html-editor-copy-status-20261008" data-editor-required integrity="sha384-pIZWyXvpzypp+4Phg7thVMcAANiPEi74SXZCQAP8w8XspUx+5xaNfKsA3/IThSAc" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-editor-copy-status-20261008" data-editor-required integrity="sha384-mDZ7h9WIFKiA3eNOuNr+ssG9l6V3mI057cHU02+Yx0a13bwYCAMVtTeILD2zXRrA" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-editor-direct-download-20261008" data-editor-required integrity="sha384-xP5WRfE8Q2Q2ZmFJ6cFaR8B4zfPk7MPs7cW1fUjX/M0TwyMKgDsS7afzY0mO5ETE" crossorigin="anonymous"></script>
 </body>
 </html>

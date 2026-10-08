@@ -71,11 +71,29 @@ function create(options){
   load:()=>cache.load(),
   compareFileIdentity:(state,source)=>root.HtmlIdentityCache.compareFileIdentity(state,source,codec,Date.now()),
   register:request=>coordinator.ensure({userInitiated:true,...request}),
-  createPanel({container,lesson}){
-   let busy=false,disposed=false;node(container,lesson.title);
-   node(container,'「新しくダウンロード」を押すと、公開中の最新版を取得して保存を開始します。編集中のファイルは差し替えません。');
+  createPanel({container,lesson,fileSystem=null,connectFolder=null}){
+   let busy=false,disposed=false,saving=false;node(container,lesson.title);
+   const direct=Boolean(fileSystem?.isSupported());
+   node(container,direct ? '「新しくダウンロード」を押すと、接続したフォルダへ実習ファイルを直接保存します。取得後は、この画面を閉じて上部の「開く」から選びます。編集中のファイルは差し替えません。' :
+     '「新しくダウンロード」を押すと、公開中の最新版を取得して保存を開始します。編集中のファイルは差し替えません。');
+   const destination=direct ? node(container,'') : null;
+   const connect=direct ? node(container,'HTML実習フォルダを接続…','button') : null;
+   if(connect){connect.type='button';connect.className='btn';}
    const files=node(container,'','div');files.className='local-download-files';
    const entries=[];
+   function refresh(){
+    if(disposed)return;
+    const connected=!direct || fileSystem.isConnected();
+    if(destination)destination.textContent=connected ? '保存先：'+fileSystem.getDirectoryName()+'（実習ファイルはこのフォルダの直下へ保存します）' : '先にFinderで「書類／HTML実習」を作り、そのフォルダを接続してください。';
+    if(connect){connect.hidden=connected;connect.disabled=busy || !connectFolder;}
+    entries.forEach(e=>{e.button.disabled=busy || !connected;});
+   }
+   if(connect)connect.addEventListener('click',async()=>{
+    if(busy||disposed||!connectFolder)return;const moveFocus=document.activeElement===connect;busy=true;refresh();
+    try{await connectFolder();}
+    catch(e){if(!disposed)destination.textContent=e.name==='AbortError'?'フォルダ選択を取り消しました。まだ取得・保存していません。':e.message;}
+    finally{busy=false;if(!disposed){const message=destination.textContent;refresh();if(!fileSystem.isConnected())destination.textContent=message;if(moveFocus)(fileSystem.isConnected()?entries[0]?.button:connect)?.focus();}}
+   });
    for(const task of lesson.files){
     const row=node(files,'','section');row.className='local-download-file';row.setAttribute('aria-label',task.fileName);
     node(row,task.fileName,'h3');
@@ -83,17 +101,34 @@ function create(options){
     const button=node(actions,'新しくダウンロード','button');button.type='button';button.className='btn';button.setAttribute('aria-label',task.fileName+' を新しくダウンロード');
     const link=node(actions,'保存されなかった場合は、もう一度保存','a');link.className='local-download-retry';link.hidden=true;link.setAttribute('aria-label',task.fileName+' が保存されなかった場合は、もう一度保存');
     const status=node(row,'まだ取得していません。');status.setAttribute('role','status');
-    const entry={button,link,status,url:null};entries.push(entry);
+    const entry={button,link,status,url:null,result:null,completed:false};entries.push(entry);
     function clear(){if(entry.url)URL.revokeObjectURL(entry.url);entry.url=null;link.hidden=true;link.removeAttribute('href');link.removeAttribute('download');}
     entry.clear=clear;
     link.addEventListener('click',event=>{if(disposed||busy||!entry.url){event.preventDefault();return;}status.textContent='保存を開始しました。通常は「ダウンロード」に保存されます。'+task.fileName+' を確認し、「書類／HTML実習」へ移動してください。';});
-    button.addEventListener('click',async()=>{if(busy||disposed||entry.url)return;busy=true;let moveFocus=false;entries.forEach(e=>{e.button.disabled=true;});clear();status.textContent='最新のひな形を取得しています…';
-     try{const result=await provider.generateFresh(task.id,cache);if(disposed)return;
+    button.addEventListener('click',async()=>{if(busy||disposed||entry.url||entry.completed||direct&&!fileSystem.isConnected())return;busy=true;let moveFocus=document.activeElement===button;refresh();clear();status.setAttribute('aria-busy','true');status.textContent='最新のひな形を取得しています…';
+     try{
+      const directory=direct ? await fileSystem.requireWritePermission() : null;
+      if(disposed)return;
+      if(direct&&!entry.result&&await fileSystem.hasFile(task.fileName,directory)){const e=Error('同名ファイルがあります。上書きせず、上部の「開く」から保存済みファイルを開いてください。');e.name='FileExistsError';throw e;}
+      const result=entry.result || await provider.generateFresh(task.id,cache);if(disposed)return;
       if(result.fileName!==task.fileName)throw Error('file_name_mismatch');
+      if(direct){
+       entry.result=result;saving=true;status.textContent=fileSystem.getDirectoryName()+'/'+result.fileName+' へ保存しています…';
+       await fileSystem.writeNewFile(result.fileName,result.html,directory);
+       if(disposed)return;
+       entry.completed=true;entry.result=null;button.hidden=true;
+       status.textContent='保存しました：'+fileSystem.getDirectoryName()+'/'+result.fileName+'。保存後の内容も確認しました。この画面を閉じて「開く」から選んでください。';
+       status.setAttribute('tabindex','-1');if(moveFocus)status.focus();
+       return;
+      }
       entry.url=URL.createObjectURL(new Blob([result.html],{type:'text/html;charset=utf-8'}));link.href=entry.url;link.download=result.fileName;link.hidden=false;
       moveFocus=document.activeElement===button;button.hidden=true;
-     }catch(e){if(!disposed){clear();button.hidden=false;status.textContent='取得できませんでした。学校アカウントの確認状態を確認し、もう一度取得してください。（'+e.message+'）';}}
-     finally{busy=false;if(!disposed)entries.forEach(e=>{e.button.disabled=false;});}
+     }catch(e){if(!disposed){clear();button.hidden=false;
+      button.textContent=entry.result?'保存を再試行':'新しくダウンロード';
+      button.setAttribute('aria-label',task.fileName+' を'+button.textContent);
+      status.textContent=e.name==='FileExistsError'?e.message:entry.result?'保存完了を確認できませんでした。取得済みの同じ内容で「保存を再試行」できます。通常のダウンロードへは切り替えていません。（'+e.message+'）':
+       '取得・保存を開始できませんでした。学校アカウントとフォルダの許可を確認し、もう一度操作してください。（'+e.message+'）';}}
+     finally{busy=false;saving=false;status.removeAttribute('aria-busy');refresh();if(!disposed&&!entry.completed&&!entry.url&&moveFocus)button.focus();}
      if(!disposed && entry.url){
       // The small link also remains available if the browser blocks the automatic download.
       try{link.click();}catch(e){status.textContent='実習ファイルを取得しました。保存されない場合は「もう一度保存」を押してください。';}
@@ -101,7 +136,8 @@ function create(options){
      }
     });
    }
-   return {canClose:()=>!busy || root.confirm('ひな形の取得中です。閉じますか？'),dispose:()=>{disposed=true;entries.forEach(e=>{e.clear();e.button.disabled=true;});}};
+   refresh();
+   return {canClose:()=>!saving&&(!busy || root.confirm('ひな形の取得中です。閉じますか？'))&&(!direct||!entries.some(e=>e.result)||root.confirm('取得した実習ファイルの保存が確認できていません。この画面を閉じると同じ内容での再試行ができなくなります。閉じますか？')),dispose:()=>{disposed=true;entries.forEach(e=>{e.clear();e.result=null;e.button.disabled=true;});}};
   },
   async renewFile(source,response){const before=P.parseLocal(source,codec),tokenHash=await sha256(before.envelope.identity);
     if(response.replacesTokenSha256!==tokenHash)throw Error('renewal_mismatch');

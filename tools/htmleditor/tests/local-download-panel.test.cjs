@@ -13,11 +13,11 @@ class Element {
   if (!prevented) this.downloads.push({url: this.href, name: this.download});
  }
 }
-function setup() {
+function setup(panelOptions = {}) {
  let sequence = 0, resolve;
  const revoked = [], calls = [], blobs = new Map();
  const document = {activeElement: null, createElement: t => new Element(t, document)};
- const context = {document, Blob, TextEncoder, URL: {
+ const prompts=[], context = {document, Blob, TextEncoder, confirm:text=>{prompts.push(text);return false;}, URL: {
   createObjectURL: blob => { const url = 'blob:' + (++sequence); blobs.set(url, blob); return url; }, revokeObjectURL: u => revoked.push(u)
  }, HtmlLocalProtocol: {}, HtmlConfirmationCoordinator: {create: () => ({})}, crypto: require('node:crypto').webcrypto};
  vm.createContext(context); vm.runInContext(fs.readFileSync(require.resolve('../local-downloads.js'), 'utf8'), context);
@@ -28,9 +28,9 @@ function setup() {
  }};
  const panel = context.HtmlEditorLocalDownloads.create({codec: {}, cache, provider, locks: {}}).createPanel({container, lesson: {
   title: '実習', files: ['html13-01', 'html13-02'].map(id => ({id, fileName: id + '.html'}))
- }});
+ }, ...panelOptions});
  const walk = n => [n, ...n.children.flatMap(walk)], rows = walk(container).filter(n => n.tag === 'section');
- return {panel, rows, calls, revoked, blobs, document, finish: (...args) => resolve(...args),
+ return {panel, rows, calls, revoked, blobs, document, container, walk, prompts, finish: (...args) => resolve(...args),
   buttons: rows.map(r => walk(r).find(n => n.tag === 'button')),
   links: rows.map(r => walk(r).find(n => n.tag === 'a')),
   statuses: rows.map(r => walk(r).find(n => n.attrs.role === 'status'))};
@@ -90,4 +90,90 @@ test('blocked automatic click leaves the same file available for explicit retry'
  assert.equal(h.links[0].downloads.length, 0); assert.match(h.statuses[0].textContent, /もう一度保存/);
  h.links[0].blockClick = false; h.links[0].click(); assert.equal(h.links[0].downloads.length, 1);
  assert.equal(h.calls.length, 1);
+});
+
+function directFileSystem(state = {}) {
+ const directory = {};
+ const writes = [];
+ return {
+  directory, writes,
+  isSupported: () => state.supported !== false, isConnected: () => state.connected !== false,
+  getDirectoryName: () => 'HTML実習',
+  async requireWritePermission() { if(state.denied)throw Error('permission denied'); return directory; },
+  async hasFile() { return Boolean(state.exists); },
+  async writeNewFile(name, text, target) {
+   writes.push({name, text, target});
+   if(state.failWrite)throw Error('synthetic write failure');
+   if(state.waitWrite)await state.waitWrite;
+  }
+ };
+}
+async function waitForRequest(h) {
+ for(let i=0;i<20&&!h.calls.length;i++)await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(h.calls.length, 1);
+}
+test('接続先へ直接保存し、通常ダウンロードも編集中文書の差替えも行わない', async () => {
+ const fileSystem = directFileSystem(), h = setup({fileSystem});
+ h.buttons[0].focus(); const pending = h.buttons[0].events.click();
+ await waitForRequest(h); h.finish(); await pending;
+ assert.equal(fileSystem.writes.length, 1);
+ assert.equal(fileSystem.writes[0].target, fileSystem.directory);
+ assert.equal(fileSystem.writes[0].name, 'html13-01.html');
+ assert.equal(fileSystem.writes[0].text, 'fresh:html13-01:0');
+ assert.equal(h.blobs.size, 0); assert.equal(h.links[0].downloads.length, 0);
+ assert.equal(h.links[0].hidden, true); assert.equal(h.buttons[0].hidden, true);
+ assert.match(h.statuses[0].textContent, /保存しました：HTML実習\/html13-01.html/);
+ assert.match(h.statuses[0].textContent, /保存後の内容も確認/);
+ await h.buttons[0].events.click(); assert.equal(h.calls.length, 1);
+});
+test('未接続では取得できず、同じモーダルから接続後に取得できる', async () => {
+ const state = {connected:false}, fileSystem = directFileSystem(state);
+ let connections = 0;
+ const h = setup({fileSystem, async connectFolder(){ connections++;state.connected=true; }});
+ assert.equal(h.buttons[0].disabled, true);
+ await h.buttons[0].events.click(); assert.equal(h.calls.length, 0);
+ const connect = h.walk(h.container).find(n=>n.tag==='button' && !h.buttons.includes(n));
+ await connect.events.click(); assert.equal(connections, 1); assert.equal(connect.hidden, true);
+ assert.equal(h.buttons[0].disabled, false);
+ const pending = h.buttons[0].events.click(); await waitForRequest(h);h.finish();await pending;
+ assert.equal(fileSystem.writes.length, 1);
+});
+test('許可拒否・同名ファイルは原本取得前に止め、通常ダウンロードへ切り替えない', async () => {
+ for(const state of [{denied:true}, {exists:true}]) {
+  const fileSystem=directFileSystem(state), h=setup({fileSystem});
+  await h.buttons[0].events.click();
+  assert.equal(h.calls.length, 0); assert.equal(fileSystem.writes.length, 0);
+  assert.equal(h.blobs.size, 0); assert.equal(h.buttons[0].disabled, false);
+  assert.doesNotMatch(h.statuses[0].textContent, /保存しました/);
+ }
+});
+test('保存失敗は取得済みの同じ内容で再試行し、発行・ネットワークを繰り返さない', async () => {
+ const state={failWrite:true}, fileSystem=directFileSystem(state), h=setup({fileSystem});
+ const pending=h.buttons[0].events.click();await waitForRequest(h);h.finish();await pending;
+ assert.match(h.statuses[0].textContent, /保存完了を確認できません/);
+ assert.equal(h.buttons[0].textContent, '保存を再試行');
+ assert.match(h.buttons[0].attrs['aria-label'],/保存を再試行/);
+ assert.equal(h.panel.canClose(),false);assert.match(h.prompts[0],/同じ内容での再試行ができなくなります/);
+ state.failWrite=false;await h.buttons[0].events.click();
+ assert.equal(h.calls.length, 1);assert.equal(fileSystem.writes.length, 2);
+ assert.deepEqual(fileSystem.writes[1], fileSystem.writes[0]);
+ assert.match(h.statuses[0].textContent, /保存しました/);
+});
+test('取得中の画面破棄は遅い応答による直接保存を止める', async () => {
+ const fileSystem=directFileSystem(), h=setup({fileSystem});
+ const pending=h.buttons[0].events.click();await waitForRequest(h);h.panel.dispose();h.finish();await pending;
+ assert.equal(fileSystem.writes.length, 0);assert.equal(h.blobs.size, 0);
+});
+test('保存確認中は閉じられず、完了後には閉じられる', async () => {
+ let finishWrite;
+ const state={waitWrite:new Promise(resolve=>{finishWrite=resolve;})}, fileSystem=directFileSystem(state), h=setup({fileSystem});
+ const pending=h.buttons[0].events.click();await waitForRequest(h);h.finish();
+ for(let i=0;i<20&&!fileSystem.writes.length;i++)await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(h.panel.canClose(), false);assert.match(h.statuses[0].textContent, /保存しています/);
+ finishWrite();await pending;assert.equal(h.panel.canClose(), true);
+});
+test('直接保存非対応の環境だけ通常のダウンロードを維持する', async () => {
+ const fileSystem=directFileSystem({supported:false}), h=setup({fileSystem});
+ const pending=h.buttons[0].events.click();h.finish();await pending;
+ assert.equal(fileSystem.writes.length, 0);assert.equal(h.links[0].downloads.length, 1);
 });

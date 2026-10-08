@@ -262,7 +262,7 @@
       let panel;
       try {
         await modal('課題ファイルのダウンロード', (body, button, finish) => {
-          panel = localDownloads ? localDownloads.createPanel({container:body,lesson:selectedLesson}) : window.HtmlEditorDownload.create({container:body, dialog:$('actionDialog'), lesson:selectedLesson,
+          panel = localDownloads ? localDownloads.createPanel({container:body,lesson:selectedLesson,fileSystem:fs,connectFolder:connectDirectory}) : window.HtmlEditorDownload.create({container:body, dialog:$('actionDialog'), lesson:selectedLesson,
             stateFor:id => Workflow.distribution(window.pages, id, window.htmlPracticeLinks, catalogState()), requestClose:() => finish('close')});
           button('閉じる', 'close');
         }, {canClose:() => !panel || panel.canClose()});
@@ -275,8 +275,8 @@
       const list = document.createElement('ol'); body.append(list);
       function step(id, label, text) { const li = document.createElement('li'); list.append(li); menuHint(li, id, label); li.append(document.createTextNode(text)); }
       if (localDownloads) textNode(list, '学校アカウント：赤い案内が出ている場合は、先に「学校アカウントを確認する」を押します。ログイン画面が表示できない場合は「表示・ログインで困ったとき」から別タブでログインし、本人確認画面だけを開き直します。', 'li');
-      step('taskDownloadBtn', 'ダウンロード', '：新しい課題の実習ファイルを取得します。通常はMacの「ダウンロード」に入るので、Finderで名前を変えずに「書類／HTML実習」へ移動します。');
       step('displayMenuWrap', '設定', '：初回は「フォルダを接続・変更…」で「HTML実習」を選びます。フォルダ選択中にHTMLがグレー表示でも正常です。次回は許可が続いていれば自動接続し、許可の確認が必要な場合は「前回のフォルダへ再接続」を押します。');
+      step('taskDownloadBtn', 'ダウンロード', '：新しい課題の実習ファイルを、接続した「HTML実習」へ直接保存します。「保存しました」と保存先・ファイル名を確認してください。同名ファイルがある場合は上書きしません。非対応環境の通常ダウンロードでは、Finderで保存先を確認して移動します。');
       step('openFilesBtn', '開く', '：OSのファイル選択で、接続した実習フォルダ内の今回のファイルを選びます。初回のフォルダ接続直後は、エディタ内の一覧からも選べます。新しく移動したファイルや画像も、ファイルを開くと取り込みます。');
       step('runBtn', 'プレビューを更新', selectedLesson.id === 'html11' ?
         '：今回は html11-01.html を開くだけで、コードの編集は不要です。そのまま次の保存へ進みます。' :
@@ -416,9 +416,7 @@
     });
     if (selected && selected !== 'cancel') await loadFile(selected);
   }
-  async function openFolder() {
-    if (!fs.isSupported()) { $('directoryInput').click(); return; }
-    await exclusive(async () => {
+  async function connectDirectory() {
       await fs.openDirectory();
       rememberedFolder = fs.dirHandle;
       try {
@@ -430,7 +428,12 @@
       }
       if (doc) { doc.binding = null; doc.openedFrom = null; doc.verifiedSave = null; } // 同名ファイルが別フォルダにあっても自動上書きしない。
       displayState(); runPreview();
-      notify(folderMemoryIssue || 'フォルダを接続・記憶しました。開くファイルを選んでください。', folderMemoryIssue ? 'warning' : 'success');
+      notify(folderMemoryIssue || 'フォルダを接続・記憶しました。', folderMemoryIssue ? 'warning' : 'success');
+  }
+  async function openFolder() {
+    if (!fs.isSupported()) { $('directoryInput').click(); return; }
+    await exclusive(async () => {
+      await connectDirectory();
       await fileList();
     });
   }
