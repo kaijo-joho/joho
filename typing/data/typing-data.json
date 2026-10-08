@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-10-07T02:03:32.051Z",
+  "generatedAt": "2026-10-08T01:10:41.767Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-10-07T02:03:32.051Z",
+    "generatedAt": "2026-10-08T01:10:41.767Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -66672,7 +66672,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "WORDS"
     },
     {
       "worldId": "PROV",
@@ -66698,7 +66699,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "WORDS"
     },
     {
       "worldId": "TWIST",
@@ -66724,7 +66726,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "WORDS"
     },
     {
       "worldId": "JOHO",
@@ -66750,7 +66753,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "INFO"
     },
     {
       "worldId": "GEO_PLACE",
@@ -66776,7 +66780,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SOCIAL"
     },
     {
       "worldId": "GEO_TERM",
@@ -66802,7 +66807,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SOCIAL"
     },
     {
       "worldId": "HIST_PERSON",
@@ -66828,7 +66834,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SOCIAL"
     },
     {
       "worldId": "HIST_JUNIOR",
@@ -66854,7 +66861,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SOCIAL"
     },
     {
       "worldId": "HIST_JAPAN",
@@ -66880,7 +66888,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SOCIAL"
     },
     {
       "worldId": "HIST_WORLD",
@@ -66906,7 +66915,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SOCIAL"
     },
     {
       "worldId": "SCI_J_PHYSICS",
@@ -66932,7 +66942,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SCIENCE"
     },
     {
       "worldId": "SCI_J_CHEMISTRY",
@@ -66958,7 +66969,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SCIENCE"
     },
     {
       "worldId": "SCI_J_BIOLOGY",
@@ -66984,7 +66996,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SCIENCE"
     },
     {
       "worldId": "SCI_J_EARTH",
@@ -67010,7 +67023,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SCIENCE"
     },
     {
       "worldId": "SCI_H_PHYSICS",
@@ -67036,7 +67050,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SCIENCE"
     },
     {
       "worldId": "SCI_H_CHEMISTRY",
@@ -67062,7 +67077,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SCIENCE"
     },
     {
       "worldId": "SCI_H_BIOLOGY",
@@ -67088,7 +67104,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SCIENCE"
     },
     {
       "worldId": "SCI_H_EARTH",
@@ -67114,7 +67131,8 @@
         "skillTagsAny": [],
         "skillTagsAll": [],
         "skillTagsNone": []
-      }
+      },
+      "groupId": "SCIENCE"
     }
   ],
   "achievements": [],
@@ -411191,5 +411209,49 @@
     "warnings": [],
     "dataVisibility": "public",
     "executionAudience": "informatics-only"
-  }
+  },
+  "questGroups": [
+    {
+      "groupId": "WORDS",
+      "title": "ことば",
+      "description": "一般フレーズ・ことわざ・早口言葉・文学",
+      "sortOrder": 10
+    },
+    {
+      "groupId": "INFO",
+      "title": "情報",
+      "description": "情報Ⅰ・ICT",
+      "sortOrder": 20
+    },
+    {
+      "groupId": "SOCIAL",
+      "title": "社会",
+      "description": "地理・歴史・公民",
+      "sortOrder": 30
+    },
+    {
+      "groupId": "SCIENCE",
+      "title": "理科",
+      "description": "物理・化学・生物・地学",
+      "sortOrder": 40
+    },
+    {
+      "groupId": "MATH",
+      "title": "数学",
+      "description": "中学数学・高校数学",
+      "sortOrder": 50
+    },
+    {
+      "groupId": "ART",
+      "title": "芸術",
+      "description": "音楽・美術",
+      "sortOrder": 60
+    },
+    {
+      "groupId": "OTHER",
+      "title": "その他",
+      "description": "所属未設定のワールド",
+      "sortOrder": 999
+    }
+  ]
 }
