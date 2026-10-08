@@ -300,10 +300,11 @@
   async function hintConsent() {
     if (doc.hintConsent || hintUsage?.hasConsent()) return true;
     const result = await modal('ヒントを使う前に', (body, button) => {
-      textNode(body, 'まずは自分でコードを見直してみましょう。ヒントを使うと、その利用記録が提出時に授業担当者へ送られます。');
-      textNode(body, '記録するのは「エラーを探す」と⚠を押した回数・時刻・利用時点の行番号・検査項目だけです。入力履歴は記録せず、自動減点もしません。編集後の行番号とは異なる場合があります。');
-      textNode(body, 'フォルダへ直接保存して、この画面の提出フォームにファイルを渡す場合だけ送信します。ダウンロード保存・手動のファイル選択・別タブでは送信できません。保存領域の障害でも記録が欠けます。記録がないことは、ヒントを使わなかった証明にはなりません。');
-      button('自分で見直す', 'cancel'); button('ヒントを使う', 'use');
+      textNode(body, 'まずは自分でコードを見直してみましょう。');
+      textNode(body, 'ヒントを使うと、その利用履歴が提出時に授業担当者へ送られます。');
+      button('ヒントを使う', 'use').style.marginRight = 'auto';
+      const reviewButton = button('自分で見直す', 'cancel');
+      reviewButton.classList.add('primary'); reviewButton.autofocus = true;
     });
     if (result !== 'use') return false;
     doc.hintConsent = true; hintUsage?.consent(); return true;
