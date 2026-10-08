@@ -824,6 +824,8 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
 .identity-open .download-frame { height:240px; min-height:140px; }
 .identity-integrated .download-frame { border:0; border-radius:0; }
 .local-download-files { display:flex; flex-wrap:wrap; gap:12px; }
+.image-downloads { margin-top:24px; padding-top:16px; border-top:1px solid var(--line); }
+.image-downloads h2 { margin:0; font-size:1.1em; }
 .local-download-file { flex:1 1 240px; min-width:0; border:1px solid var(--line); border-radius:8px; padding:12px; }
 .local-download-file h3 { margin:0 0 10px; font-size:1em; overflow-wrap:anywhere; }
 .local-download-actions { display:flex; flex-wrap:wrap; gap:8px; }

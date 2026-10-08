@@ -4,7 +4,7 @@
   else root.HtmlFileSystem = factory();
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const DRAFT_STORAGE_KEY='joho.htmleditor.draft.v1', MAX_FILES=200, MAX_TOTAL_BYTES=50*1024*1024, MAX_TEXT_BYTES=2*1024*1024, MAX_DEPTH=8, TEXT_RE=/\.(?:html?|css)$/i;
+  const DRAFT_STORAGE_KEY='joho.htmleditor.draft.v1', MAX_FILES=200, MAX_TOTAL_BYTES=50*1024*1024, MAX_TEXT_BYTES=2*1024*1024, MAX_IMAGE_BYTES=8*1024*1024, MAX_DEPTH=8, TEXT_RE=/\.(?:html?|css)$/i;
   const bytes=s=>typeof TextEncoder!=='undefined'?new TextEncoder().encode(s):Uint8Array.from(Buffer.from(s,'utf8'));
   const decodeUtf8 = raw => new TextDecoder('utf-8', {fatal:true, ignoreBOM:true}).decode(raw);
   const excluded = path => path.split('/').some(part => (part.startsWith('.') && part !== '..') || part === 'node_modules');
@@ -15,6 +15,9 @@
     const parts=path.split('/');if(parts.some(p=>!p||p==='.'||p==='..'))throw new Error('ファイルパスが安全ではありません。');return path;
   }
   function textPath(path){const clean=safePath(path);if(!TEXT_RE.test(clean))throw new Error('HTML、HTM、CSSファイルだけを読み込めます。');return clean;}
+  function imageName(name){const clean=safePath(name);if(clean.includes('/')||!/\.(?:jpe?g|png|gif|webp)$/i.test(clean))throw new Error('画像のファイル名を確認してください。');return clean;}
+  const sameBytes=(a,b)=>a.length===b.length&&a.every((value,index)=>value===b[index]);
+  const sameEntry=async(a,b)=>a===b||Boolean(a&&b&&typeof a.isSameEntry==='function'&&await a.isSameEntry(b));
   const media=n=>/\.(?:jpg|jpeg|png|gif|svg|webp|mp3|mp4|woff2?|ttf|ico)$/i.test(n);
   const blob=f=>{try{return typeof URL!=='undefined'&&typeof URL.createObjectURL==='function'?URL.createObjectURL(f):null}catch(_){return null}};
   class HtmlFileSystem{
@@ -165,42 +168,83 @@
     async writeNewFile(path, content, directory = this.dirHandle) {
       const rel = textPath(path);
       if (rel.includes('/') || typeof content !== 'string' || bytes(content).byteLength > MAX_TEXT_BYTES) throw new Error('新しい実習ファイルの名前または容量を確認してください。');
-      const existsError = () => { const error = new Error('同名ファイルがあります。上書きせず、上部の「開く」から保存済みファイルを開いてください。'); error.name = 'FileExistsError'; return error; };
-      const connected = () => { if (!this.isConnected() || this.dirHandle !== directory) throw new Error('接続先が変わりました。保存先を確認してもう一度操作してください。'); };
+      return this._writeNewContent(rel, content, directory, directory, rel, handle=>this._verifyWrittenFile(handle,content));
+    }
+    async getImagesDirectory(directory = this.dirHandle, expected = null) {
+      if (!this.isConnected() || this.dirHandle !== directory) throw new Error('接続先が変わりました。保存先を確認してもう一度操作してください。');
+      let images;
+      try { images = await directory.getDirectoryHandle('images', {create:false}); }
+      catch (error) {
+        if (error.name === 'NotFoundError' || error.name === 'TypeMismatchError') throw new Error('Finderで「HTML実習」の中に「images」フォルダを作成してください。フォルダは自動では作成しません。');
+        throw error;
+      }
+      if (this.dirHandle !== directory || expected && !await sameEntry(images,expected)) throw new Error('imagesの保存先が変わりました。保存先を確認してもう一度操作してください。');
+      return images;
+    }
+    async hasImage(name, images) {
+      const clean=imageName(name);
+      try { await images.getFileHandle(clean,{create:false}); return true; }
+      catch(error) { if(error.name==='NotFoundError')return false;if(error.name==='TypeMismatchError')return true;throw error; }
+    }
+    async writeNewImage(name, raw, directory = this.dirHandle, images = null) {
+      const clean=imageName(name);
+      if (!(raw instanceof Uint8Array) || !raw.length || raw.length>MAX_IMAGE_BYTES) throw new Error('保存する画像の容量を確認してください（8MiB以下）。');
+      const data=new Uint8Array(raw); // 呼出し元での変更から、保存・読戻しの候補を固定する。
+      const destination=await this.getImagesDirectory(directory,images), rel='images/'+clean;
+      const total=Array.from(this.fileEntries.values()).reduce((sum,entry)=>sum+(Number(entry.file.size)||0),0);
+      if(total-(Number(this.fileEntries.get(rel)?.file.size)||0)+data.length>MAX_TOTAL_BYTES)throw new Error('フォルダの容量が上限を超えています。');
+      return this._writeNewContent(rel,data,directory,destination,clean,async handle=>{
+        const file=await handle.getFile();
+        if(file.size>MAX_IMAGE_BYTES)throw new Error('保存後の画像が大きすぎます。');
+        const actual=new Uint8Array(await file.arrayBuffer());
+        if(!sameBytes(actual,data))throw new Error('保存後の画像の内容が一致しません。');
+        return file;
+      });
+    }
+    async _writeNewContent(rel, content, directory, destination, name, verify) {
+      const image=rel.startsWith('images/');
+      const existsError = () => { const error = new Error(image ? '同名の画像があります。上書きせず、保存済みの画像を使ってください。' : '同名ファイルがあります。上書きせず、上部の「開く」から保存済みファイルを開いてください。'); error.name = 'FileExistsError'; return error; };
+      const connected = async () => {
+        if (!this.isConnected() || this.dirHandle !== directory) throw new Error('接続先が変わりました。保存先を確認してもう一度操作してください。');
+        if(image)await this.getImagesDirectory(directory,destination);
+      };
+      const accept = file => {
+        this.fileEntries.set(rel, {handle, file, kind:'file'}); this.newFileAttempts.delete(rel);
+        if(media(rel)||/\.css$/i.test(rel)){const old=this.blobUrlMap.get(rel);if(old)URL.revokeObjectURL(old);const url=blob(file);if(url)this.blobUrlMap.set(rel,url);}
+        this._notify('file-created', {path:rel}); return {path:rel, directory};
+      };
+      let handle = null;
       const write = async () => {
-        connected();
+        await connected();
         if (await directory.queryPermission({mode:'readwrite'}) !== 'granted') throw new Error('保存の許可が必要です。もう一度操作して許可を確認してください。');
-        connected();
-        let handle = null;
-        try { handle = await directory.getFileHandle(rel, {create:false}); }
+        await connected();
+        try { handle = await destination.getFileHandle(name, {create:false}); }
         catch (error) { if (error.name === 'TypeMismatchError') throw existsError(); if (error.name !== 'NotFoundError') throw error; }
         let attempt = this.newFileAttempts.get(rel);
         if (handle) {
-          if (!attempt || attempt.directory !== directory || attempt.content !== content ||
-              !(typeof handle.isSameEntry === 'function' ? await handle.isSameEntry(attempt.handle) : handle === attempt.handle)) throw existsError();
+          if (!attempt || attempt.directory !== directory || !await sameEntry(attempt.destination,destination) ||
+              !(image ? sameBytes(attempt.content,content) : attempt.content===content) || !await sameEntry(handle,attempt.handle)) throw existsError();
           const file = await handle.getFile();
           if (file.size) {
-            const verified = await this._verifyWrittenFile(handle, content).catch(() => { throw existsError(); });
-            connected();
-            this.fileEntries.set(rel, {handle, file:verified, kind:'file'}); this.newFileAttempts.delete(rel);
-            this._notify('file-created', {path:rel}); return {path:rel, directory};
+            const verified = await verify(handle).catch(() => { throw existsError(); });
+            await connected();
+            return accept(verified);
           }
         } else {
           if (this.fileEntries.size >= MAX_FILES) throw new Error('フォルダ内のファイル数が上限に達しています。');
-          handle = await directory.getFileHandle(rel, {create:true});
+          handle = await destination.getFileHandle(name, {create:true});
           // OS側で同名ファイルが追加された場合も、内容のあるファイルは上書きしない。
           if ((await handle.getFile()).size) throw existsError();
-          attempt = {directory, handle, content}; this.newFileAttempts.set(rel, attempt);
+          attempt = {directory, destination, handle, content}; this.newFileAttempts.set(rel, attempt);
         }
-        connected();
+        await connected();
         const writable = await handle.createWritable();
         let closed = false;
-        try { await writable.write(content); connected(); await writable.close(); closed = true; }
+        try { await writable.write(content); await connected(); await writable.close(); closed = true; }
         catch (error) { try { if (!closed && writable.abort) await writable.abort(); } catch (_) {} throw error; }
-        const file = await this._verifyWrittenFile(handle, content);
-        connected();
-        this.fileEntries.set(rel, {handle, file, kind:'file'}); this.newFileAttempts.delete(rel);
-        this._notify('file-created', {path:rel}); return {path:rel, directory};
+        const file = await verify(handle);
+        await connected();
+        return accept(file);
       };
       // 同一サイトの複数タブからの新規保存も、存在確認と書込を直列化する。
       const locks = typeof navigator === 'undefined' ? null : navigator.locks;

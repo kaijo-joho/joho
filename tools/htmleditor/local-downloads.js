@@ -136,8 +136,9 @@ function create(options){
      }
     });
    }
+   const unsubscribe=fileSystem?.onChange?.(refresh);
    refresh();
-   return {canClose:()=>!saving&&(!busy || root.confirm('ひな形の取得中です。閉じますか？'))&&(!direct||!entries.some(e=>e.result)||root.confirm('取得した実習ファイルの保存が確認できていません。この画面を閉じると同じ内容での再試行ができなくなります。閉じますか？')),dispose:()=>{disposed=true;entries.forEach(e=>{e.clear();e.result=null;e.button.disabled=true;});}};
+   return {canClose:()=>!saving&&(!busy || root.confirm('ひな形の取得中です。閉じますか？'))&&(!direct||!entries.some(e=>e.result)||root.confirm('取得した実習ファイルの保存が確認できていません。この画面を閉じると同じ内容での再試行ができなくなります。閉じますか？')),dispose:()=>{disposed=true;unsubscribe?.();entries.forEach(e=>{e.clear();e.result=null;e.button.disabled=true;});}};
   },
   async renewFile(source,response){const before=P.parseLocal(source,codec),tokenHash=await sha256(before.envelope.identity);
     if(response.replacesTokenSha256!==tokenHash)throw Error('renewal_mismatch');

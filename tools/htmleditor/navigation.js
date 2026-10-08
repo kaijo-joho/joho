@@ -1,7 +1,7 @@
 // 教材選択だけの履歴。文書・保存先・Undo・本人用の配付情報には触れない。
 (function () {
   'use strict';
-  function mount({iframe, onSelect, onError, beforeVisit = async () => true, hasUnsaved = () => false, openExternal}) {
+  function mount({iframe, onSelect, onError, beforeVisit = async () => true, hasUnsaved = () => false, openExternal, onImage}) {
     const routes = window.HtmlEditorRouting.create(location.href);
     let current, frameLesson = '', loadingTimer, displayedDocument, displayedHash, displayedScrollY, keepReadingPosition = false;
     let readingDocument, observedScrollY = 0, visiting = false;
@@ -110,7 +110,14 @@
       function followLink(event) {
         if (event.defaultPrevented || event.button > 1 || event.altKey) return;
         const link = event.target.closest?.('a[href]');
-        if (!link || link.hasAttribute('download')) return;
+        if (!link) return;
+        if (link.hasAttribute('download')) {
+          // 現在の同一origin教材で明示配付した画像だけ。一般のDLリンクは変更しない。
+          if (iframe.contentDocument !== frameDocument || event.button || event.metaKey || event.ctrlKey || event.shiftKey) return;
+          const asset = window.HtmlEditorImageDownloads?.fromLink(current.lessonId,link.href);
+          if (asset && onImage) { event.preventDefault(); event.stopImmediatePropagation(); onImage(asset); }
+          return;
+        }
         let url, value;
         try {
           url = new URL(link.dataset.htmlPracticeDestination || link.href, frameDocument.URL);

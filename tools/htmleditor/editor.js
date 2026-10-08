@@ -195,6 +195,7 @@
       build($('actionBody'), button, finish);
       dialog.showModal();
       dialog.scrollTop = 0;
+      options.onShown?.();
     });
   }
   async function allowReplace({navigation = false} = {}) {
@@ -257,16 +258,19 @@
     $('distributionState').dataset.state = state.kind;
     updateSubmission();
   }
-  function distributionDialog() {
+  function distributionDialog(selectedImage = null) {
     return exclusive(async () => {
-      let panel;
+      let panel, images;
       try {
         await modal('課題ファイルのダウンロード', (body, button, finish) => {
-          panel = localDownloads ? localDownloads.createPanel({container:body,lesson:selectedLesson,fileSystem:fs,connectFolder:connectDirectory}) : window.HtmlEditorDownload.create({container:body, dialog:$('actionDialog'), lesson:selectedLesson,
+          if (selectedLesson.files.length) panel = localDownloads ? localDownloads.createPanel({container:body,lesson:selectedLesson,fileSystem:fs,connectFolder:connectDirectory}) : window.HtmlEditorDownload.create({container:body, dialog:$('actionDialog'), lesson:selectedLesson,
             stateFor:id => Workflow.distribution(window.pages, id, window.htmlPracticeLinks, catalogState()), requestClose:() => finish('close')});
+          images = window.HtmlEditorImageDownloads?.createPanel({container:body,lessonId:selectedLesson.id,fileSystem:fs,
+            connectFolder:panel ? null : connectDirectory, selectedName:selectedImage?.name || '', onSaved:() => {runPreview();displayState();}});
+          if (!selectedLesson.files.length && !window.HtmlEditorImageDownloads?.forLesson(selectedLesson.id).length) textNode(body,'この教材には配付する実習ファイル・画像はありません。');
           button('閉じる', 'close');
-        }, {canClose:() => !panel || panel.canClose()});
-      } finally { panel?.dispose(); }
+        }, {canClose:() => (!panel || panel.canClose()) && (!images || images.canClose()), onShown:() => images?.focusSelected?.()});
+      } finally { panel?.dispose(); images?.dispose(); }
     });
   }
   function practiceSteps() {
@@ -277,6 +281,7 @@
       if (localDownloads) textNode(list, '学校アカウント：赤い案内が出ている場合は、先に「学校アカウントを確認する」を押します。ログイン画面が表示できない場合は「表示・ログインで困ったとき」から別タブでログインし、本人確認画面だけを開き直します。', 'li');
       step('displayMenuWrap', '設定', '：初回は「フォルダを接続・変更…」で「HTML実習」を選びます。フォルダ選択中にHTMLがグレー表示でも正常です。次回は許可が続いていれば自動接続し、許可の確認が必要な場合は「前回のフォルダへ再接続」を押します。');
       step('taskDownloadBtn', 'ダウンロード', '：新しい課題の実習ファイルを、接続した「HTML実習」へ直接保存します。「保存しました」と保存先・ファイル名を確認してください。同名ファイルがある場合は上書きしません。非対応環境の通常ダウンロードでは、Finderで保存先を確認して移動します。');
+      if (window.HtmlEditorImageDownloads?.forLesson(selectedLesson.id).length) step('taskDownloadBtn','教材の画像','：Finderで「HTML実習」の中に「images」を作り、ダウンロード画面の「imagesへ保存」を押します。解説内の画像リンクからも同じ画面を開けます。直接保存した画像はプレビューへ反映します。');
       step('openFilesBtn', '開く', '：OSのファイル選択で、接続した実習フォルダ内の今回のファイルを選びます。初回のフォルダ接続直後は、エディタ内の一覧からも選べます。新しく移動したファイルや画像も、ファイルを開くと取り込みます。');
       step('runBtn', 'プレビューを更新', selectedLesson.id === 'html11' ?
         '：今回は html11-01.html を開くだけで、コードの編集は不要です。そのまま次の保存へ進みます。' :
@@ -743,7 +748,7 @@
       const option = document.createElement('option'); option.value = lesson.id; option.textContent = lesson.title; $('lessonSelect').append(option);
     }
     navigation = window.HtmlEditorNavigationMount({iframe:$('lessonIframe'), onSelect:renderLesson, onError:message => notify(message, 'error'),
-      beforeVisit:beforeLessonVisit, hasUnsaved:dirty, openExternal:externalLessonVisit});
+      beforeVisit:beforeLessonVisit, hasUnsaved:dirty, openExternal:externalLessonVisit, onImage:asset => distributionDialog(asset)});
     // 起動時は空のまま。ローカルファイルも復旧候補も自動では開かない。
     displayState();
     cm.on('change', () => {
