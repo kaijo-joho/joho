@@ -636,8 +636,9 @@ body.left-collapsed #splitLeft {
 #toolbar .btn, #saveBtn { min-height: 44px; }
 #toolbar .toolbar-right { flex: none; margin-left: auto; }
 #toolbar .icon-only { min-width: 44px; }
-.breadcrumb { min-width: 0; flex: 1; }
-#currentFileLabel { overflow: hidden; text-overflow: ellipsis; }
+.breadcrumb { min-width: 0; flex: 1; flex-wrap: wrap; gap: 4px 8px; }
+#currentFileLabel { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.save-shortcut { color: var(--muted); font-size: .75rem; line-height: 1.5; white-space: normal; }
 #dirtyMark, #saveBtn { flex: none; }
 #findErrorsBtn { flex: none; min-height: 44px; color: var(--warning); }
 #centerPane > .pane-header { flex-wrap: wrap; }

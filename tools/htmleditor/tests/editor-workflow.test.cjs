@@ -39,7 +39,7 @@ class Node {
   close() { this.open = false; }
 }
 
-function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false, v3=false, localDownloads=null, failWrite=false, failReadAfterWrite=false} = {}) {
+function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false, v3=false, localDownloads=null, failWrite=false, failReadAfterWrite=false, nativePicker=true} = {}) {
   const nodes = Object.fromEntries([...htmlIds].map(id => [id, new Node()]));
   nodes.app = new Node(); nodes.actionDialog = new Node('dialog');
   const documentEvents = new Map();
@@ -55,8 +55,9 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     querySelector:() => null, querySelectorAll:() => []
   };
   const windowEvents = new Map();
-  const handle = {kind:'directory', name:'HTML実習', async entries() {}, async queryPermission() { return permission; }, async requestPermission() { this.requests = (this.requests || 0) + 1; return 'granted'; }};
-  const calls = {reconnect:[], scan:0, openDirectory:0, disconnect:0, forget:0, downloads:0, writes:0};
+  const picker = {mode:'inside', file:{kind:'file', name:'sample.html'}};
+  const handle = {kind:'directory', name:'HTML実習', async entries() {}, async queryPermission() { return permission; }, async requestPermission() { this.requests = (this.requests || 0) + 1; return 'granted'; }, async resolve(file) { return picker.mode === 'outside' || file !== picker.file ? null : ['sample.html']; }};
+  const calls = {reconnect:[], scan:0, openDirectory:0, disconnect:0, forget:0, downloads:0, writes:0, pickers:[]};
   const disk=new Map([['sample.html','old saved content']]);
   class FakeFs {
     constructor() { this.dirHandle = null; this.readOnly = readOnly; this.files = readOnly ? ['sample.html'] : []; this.fileEntries=disk; }
@@ -110,11 +111,16 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     addEventListener:(name, fn) => { (windowEvents.get(name) || windowEvents.set(name, []).get(name)).push(fn); }
   };
   context.window = context;
+  if (nativePicker) context.showOpenFilePicker = async options => {
+    calls.pickers.push(options);
+    if (picker.mode === 'cancel') throw Object.assign(Error('picker canceled'), {name:'AbortError'});
+    return [picker.file];
+  };
   context.HTML_LOCAL_V3_CONFIG={enabled:v3,identityUrl:'https://script.google.com/macros/s/SYNTHETIC/exec'};
   context.HtmlEditorLocalDownloads=localDownloads;
   vm.runInNewContext(source, context, {filename:'editor.js'});
   for (const fn of windowEvents.get('DOMContentLoaded') || []) fn();
-  return {nodes, handle, calls, cm, tick, disk, windowEvents};
+  return {nodes, handle, calls, cm, tick, disk, windowEvents, picker};
 }
 
 test('プレビューのtitleはテキスト表示し、未設定・構造不足・CSS切替で古い題名を残さない', async () => {
@@ -161,18 +167,53 @@ test('prompt の起動時は要求せず、明示的な再接続だけが reques
   assert.equal(app.handle.requests, 1);
 });
 
-test('開くは接続済みフォルダを再走査し、解除は記憶を忘れる', async () => {
+test('開くはOSのファイル選択を使い、接続済みフォルダ内の保存先を保つ', async () => {
   const app = makeHarness();
   await app.tick(); await app.tick();
   app.nodes.openFilesBtn.dispatch('click');
   await app.tick();
+  assert.equal(app.calls.pickers.length, 1);
+  assert.equal(app.calls.pickers[0].startIn, app.handle);
+  assert.equal(app.calls.pickers[0].multiple, false);
   assert.equal(app.calls.scan, 1);
+  assert.equal(app.nodes.currentFileLabel.textContent, 'sample.html');
+  assert.equal(app.nodes.actionDialog.open, false, 'エディタ内のファイル一覧は開かない');
+  app.cm.setValue('saved via native selection');
+  app.nodes.saveBtn.click(); await app.tick();
+  assert.equal(app.disk.get('sample.html'), 'saved via native selection');
+  assert.equal(app.calls.previewUpdates.at(-1)[0], 'saved via native selection');
+});
+
+test('接続解除は記憶を忘れる', async () => {
   const separate = makeHarness();
   await separate.tick(); await separate.tick();
   separate.nodes.disconnectBtn.dispatch('click');
   await separate.tick();
   assert.equal(separate.calls.forget, 1);
   assert.equal(separate.calls.disconnect, 1);
+});
+
+for (const mode of ['cancel', 'outside']) test('OSのファイル選択の '+mode+' では編集中の文書・保存先を変えない', async () => {
+  const app = makeHarness(); await app.tick(); await chooseSample(app);
+  app.cm.setValue('unsaved edits'); app.picker.mode = mode;
+  const scans = app.calls.scan;
+  app.nodes.openFilesBtn.click(); await app.tick();
+  assert.equal(app.cm.getValue(), 'unsaved edits');
+  assert.equal(app.disk.get('sample.html'), 'old saved content');
+  assert.equal(app.calls.scan, scans, '中止・フォルダ外の選択では再走査しない');
+  assert.equal(app.nodes.actionDialog.open, false);
+  if (mode === 'outside') assert.match(app.nodes.toast.textContent, /実習フォルダの外/);
+  else assert.doesNotMatch(app.nodes.toast.textContent, /picker canceled/);
+  app.nodes.saveBtn.click(); await app.tick();
+  assert.equal(app.disk.get('sample.html'), 'unsaved edits', '元の文書は引き続き上書き保存できる');
+});
+
+for (const options of [{remembered:false}, {nativePicker:false}]) test('未接続・OS選択API非対応でも標準のファイル選択を開く '+JSON.stringify(options), async () => {
+  const app = makeHarness(options); await app.tick();
+  app.nodes.openFilesBtn.click(); await app.tick();
+  assert.equal(app.nodes.fileInput.clicked, 1);
+  assert.equal(app.calls.pickers.length, 0);
+  assert.equal(app.nodes.actionDialog.open, false);
 });
 
 test('フォルダ記憶が使えない環境でも、今回だけの接続を解除できる', async () => {
@@ -266,7 +307,7 @@ test('v3モジュール準備失敗でも実エディタと既存ファイルを
  assert.match(h.nodes.toolbar.children.find(n=>n.className==='identity-toolbar').children[0].textContent,/既存の配付/);
  assert.equal(h.nodes.emptyState.hidden,false);assert.equal(h.calls.writes,0);
 });
-async function chooseSample(app){app.nodes.openFilesBtn.dispatch('click');await app.tick();app.nodes.actionBody.children.find(n=>n.textContent==='sample.html').click();await app.tick();}
+async function chooseSample(app){app.nodes.openFilesBtn.dispatch('click');await app.tick();await app.tick();}
 test('同じファイルを保存して開くと、Mac上とエディタの双方が新しい内容になる',async()=>{
  const h=makeHarness();await h.tick();await chooseSample(h);h.cm.setValue('edited content');await chooseSample(h);
  h.nodes.actionButtons.children.find(n=>n.dataset.choice==='save').click();await h.tick();await h.tick();

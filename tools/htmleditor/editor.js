@@ -251,7 +251,7 @@
       if (localDownloads) textNode(list, '学校アカウント：赤い案内が出ている場合は、先に「学校アカウントを確認する」を押します。ログイン画面が表示できない場合は「表示・ログインで困ったとき」から別タブでログインし、本人確認画面だけを開き直します。', 'li');
       step('taskDownloadBtn', 'ダウンロード', '：新しい課題の実習ファイルを取得します。通常はMacの「ダウンロード」に入るので、Finderで名前を変えずに「書類／HTML実習」へ移動します。');
       step('displayMenuWrap', '設定', '：初回は「フォルダを接続・変更…」で「HTML実習」を選びます。フォルダ選択中にHTMLがグレー表示でも正常です。次回は許可が続いていれば自動接続し、許可の確認が必要な場合は「前回のフォルダへ再接続」を押します。');
-      step('openFilesBtn', '開く', '：接続したフォルダの一覧から今回の実習ファイルを選びます。初回の接続直後は、そのまま一覧が開きます。新しく移動したファイルや画像も「開く」で一覧に取り込みます。');
+      step('openFilesBtn', '開く', '：OSのファイル選択で、接続した実習フォルダ内の今回のファイルを選びます。初回のフォルダ接続直後は、エディタ内の一覧からも選べます。新しく移動したファイルや画像も、ファイルを開くと取り込みます。');
       step('runBtn', 'プレビューを更新', selectedLesson.id === 'html11' ?
         '：今回は html11-01.html を開くだけで、コードの編集は不要です。そのまま次の保存へ進みます。' :
         '：コードを編集し、このアイコン（⌘Enter）で表示を確認します。更新と保存は別の操作です。');
@@ -410,10 +410,22 @@
   }
   function openSavedFile() {
     if (busy || $('actionDialog').open) return;
-    if (fs.isConnected()) return exclusive(async () => { await fs.scanDirectory(); displayState(); runPreview(); await fileList(); });
-    if (rememberedFolder) return reconnectFolder(true);
-    if (fs.getFileList().length > 1) return exclusive(fileList);
-    $('fileInput').click();
+    if (!fs.isConnected() || typeof window.showOpenFilePicker !== 'function') {
+      $('fileInput').click(); return;
+    }
+    return exclusive(async () => {
+      const folder = fs.dirHandle;
+      const [handle] = await window.showOpenFilePicker({
+        multiple:false, startIn:folder, excludeAcceptAllOption:true,
+        types:[{description:'HTML・CSSの実習ファイル', accept:{'text/html':['.html','.htm'], 'text/css':['.css']}}]
+      });
+      if (!handle) return;
+      const relative = await folder.resolve(handle);
+      if (!relative?.length) throw Error('接続した実習フォルダの外にあるファイルです。「設定」でフォルダを変更するか、実習フォルダ内のファイルを選んでください。編集中の内容は保持しています。');
+      if (fs.dirHandle !== folder) throw Error('接続先が変わりました。もう一度ファイルを選んでください。');
+      await fs.scanDirectory();
+      await loadFile(relative.join('/'));
+    });
   }
   function reconnectFolder(openList = false) {
     return exclusive(async () => {
