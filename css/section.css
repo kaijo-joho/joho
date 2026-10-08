@@ -244,6 +244,18 @@ section > article > p > b.tag{
 
 /* ========== course index ============================================== */
 
+.site-index__heading{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 #html_index .course-index__grid{
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -314,6 +326,34 @@ section > article > p > b.tag{
   font-size: .95em;
   line-height: 1.65;
   text-align: left;
+}
+
+/* 講座内の目次カードは変えず、サイトトップだけアイコンを添える。 */
+#html_index[data-site-index] .course-index__card{
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  align-content: start;
+  gap: .85rem;
+}
+
+#html_index[data-site-index] .course-index__icon{
+  display: block;
+  width: 3.25rem;
+  height: 3.25rem;
+  padding: .45rem;
+  box-sizing: border-box;
+  border-radius: 12px;
+  color: var(--theme-color);
+  background: color-mix(in oklab, var(--theme-color) 10%, transparent);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#html_index[data-site-index] .course-index__content{
+  min-width: 0;
 }
 
 @media (max-width: 600px){

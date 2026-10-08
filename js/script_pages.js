@@ -202,6 +202,11 @@ function setXScroll(selector) {
 function renderSiteIndex(pagesDict) {
   const container = document.querySelector('#html_index[data-site-index]');
   if (!container) return;
+  const iconNames = {
+    py00: 'python', ss00: 'spreadsheet', il00: 'illustrator', html00: 'html',
+    dr00: 'digital', nw00: 'network', cp00: 'computer'
+  };
+  const svgNamespace = 'http://www.w3.org/2000/svg';
 
   container.querySelectorAll('[data-site-index-group]').forEach(group => {
     const grid = group.querySelector('.course-index__grid');
@@ -221,20 +226,35 @@ function renderSiteIndex(pagesDict) {
       const card = document.createElement('a');
       card.className = 'course-index__card';
       card.href = fileName;
+      // Safariの標準設定でもTabで講座カードへ移動できるよう明示する。
+      card.tabIndex = 0;
 
+      const icon = document.createElementNS(svgNamespace, 'svg');
+      icon.classList.add('course-index__icon');
+      icon.setAttribute('viewBox', '0 0 48 48');
+      icon.setAttribute('aria-hidden', 'true');
+      icon.setAttribute('focusable', 'false');
+      const symbol = document.createElementNS(svgNamespace, 'use');
+      symbol.setAttribute('href', `./img/course-icons.svg#${iconNames[pageId] || 'book'}`);
+      icon.appendChild(symbol);
+      card.appendChild(icon);
+
+      const content = document.createElement('div');
+      content.className = 'course-index__content';
       const title = document.createElement('h3');
       title.className = 'course-index__title';
       title.textContent = page.mainTitle || page.title || pageId;
-      card.appendChild(title);
+      content.appendChild(title);
 
       const detailText = typeof page.detail === 'string' ? page.detail.trim() : '';
       if (detailText) {
         const detail = document.createElement('p');
         detail.className = 'course-index__detail';
         detail.textContent = detailText;
-        card.appendChild(detail);
+        content.appendChild(detail);
       }
 
+      card.appendChild(content);
       grid.appendChild(card);
     });
 

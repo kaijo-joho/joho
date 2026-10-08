@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <!-- Original course icons. Presentation inherits the site's theme color. -->
+  <symbol id="python" viewBox="0 0 48 48">
+    <rect x="5" y="7" width="38" height="34" rx="5"/>
+    <path d="M5 16h38M13 23l6 6-6 6M25 35h9"/>
+    <path d="M11 11.5h.1M16 11.5h.1M21 11.5h.1" stroke-width="3"/>
+  </symbol>
+  <symbol id="spreadsheet" viewBox="0 0 48 48">
+    <rect x="6" y="6" width="36" height="36" rx="4"/>
+    <path d="M7 7h34v9H7zM18 26h10v7H18z" fill="currentColor" fill-opacity=".16" stroke="none"/>
+    <path d="M6 16h36M6 25h36M6 34h36M17 16v26M29 16v26"/>
+  </symbol>
+  <symbol id="illustrator" viewBox="0 0 48 48">
+    <path d="M9 9h30M24 13L12 29l12 13 12-13-12-16zM24 30v12"/>
+    <circle cx="6" cy="9" r="3"/>
+    <circle cx="42" cy="9" r="3"/>
+    <rect x="21" y="6" width="6" height="6" rx="1" fill="currentColor"/>
+    <circle cx="24" cy="27" r="3"/>
+  </symbol>
+  <symbol id="html" viewBox="0 0 48 48">
+    <rect x="4" y="7" width="40" height="34" rx="4"/>
+    <path d="M4 16h40M15 23l-5 6 5 6M33 23l5 6-5 6M27 22l-6 14"/>
+    <path d="M10 11.5h.1M15 11.5h.1M20 11.5h.1" stroke-width="3"/>
+  </symbol>
+  <symbol id="digital" viewBox="0 0 48 48">
+    <path d="M5 18c5-14 9-14 14 0s9 14 14 0 7-12 10-6"/>
+    <rect x="6" y="34" width="7" height="7" rx="1" fill="currentColor" fill-opacity=".16"/>
+    <rect x="20" y="34" width="7" height="7" rx="1"/>
+    <rect x="34" y="34" width="7" height="7" rx="1" fill="currentColor" fill-opacity=".16"/>
+  </symbol>
+  <symbol id="network" viewBox="0 0 48 48">
+    <path d="M11 12l9 8M28 20l9-8M11 36l9-8M28 28l9 8"/>
+    <circle cx="24" cy="24" r="6" fill="currentColor" fill-opacity=".16"/>
+    <circle cx="8" cy="9" r="4"/>
+    <circle cx="40" cy="9" r="4"/>
+    <circle cx="8" cy="39" r="4"/>
+    <circle cx="40" cy="39" r="4"/>
+  </symbol>
+  <symbol id="computer" viewBox="0 0 48 48">
+    <rect x="12" y="12" width="24" height="24" rx="3"/>
+    <rect x="19" y="19" width="10" height="10" rx="1" fill="currentColor" fill-opacity=".16"/>
+    <path d="M18 6v6M24 6v6M30 6v6M18 36v6M24 36v6M30 36v6M6 18h6M6 24h6M6 30h6M36 18h6M36 24h6M36 30h6"/>
+  </symbol>
+  <symbol id="book" viewBox="0 0 48 48">
+    <path d="M24 12c-6-5-13-5-19-3v29c6-2 13-2 19 3 6-5 13-5 19-3V9c-6-2-13-2-19 3zM24 12v29M11 16c3-1 5 0 7 1M11 23c3-1 5 0 7 1M30 17c2-1 4-2 7-1M30 24c2-1 4-2 7-1"/>
+  </symbol>
+</svg>

@@ -674,6 +674,9 @@
       legacyHeader.appendChild(legacyPreferenceControls);
     }
 
+    // サイトトップなど、本文の入口を優先するページはタイトルカードを省く。
+    // 共通ヘッダーと表示設定は上で通常どおり生成する。
+    if (document.body.dataset.pageHeader === 'none') return;
     if (!meta || meta.id === 'link' || text(meta.title) === '') return;
 
     let pageHeader = document.getElementById('page_header');
