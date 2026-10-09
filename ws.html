@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex"><title>ワークシートへ移動</title>
+<style>body{font-family:system-ui,-apple-system,sans-serif;line-height:1.7;color:#18283b;background:#f5f7fa;margin:0}main{max-width:600px;margin:10vh auto;padding:24px}a{display:inline-block;padding:10px 14px;min-height:24px;border-radius:8px;background:#eaf0f9;color:#225bb4}a:focus-visible{outline:3px solid #ff9e27;outline-offset:3px}</style></head>
+<body><main><h1>ワークシート</h1><p id="status" role="status">学校のGoogleアカウントでワークシートを開きます。</p><p><a id="open" href="https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbzypkAyvoQEHOEvtl3wSob3H6pcheKQQTWGygKP539w1NqNO8lsInO9aQ0uypx3QyVS/exec" rel="noreferrer">ダッシュボードを開く</a></p><noscript><p>上のリンクから開いてください。課題別のリンクは教材ページからも開けます。</p></noscript></main>
+<script>
+(function(){'use strict';
+  var dashboard='https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbzypkAyvoQEHOEvtl3wSob3H6pcheKQQTWGygKP539w1NqNO8lsInO9aQ0uypx3QyVS/exec';
+  var worksheet='https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec';
+  var ids=new URLSearchParams(location.search).getAll('id'),known=['dr31','dr32','dr41','dr42','dr43'],target=dashboard;
+  if(ids.length){
+    if(ids.length!==1||known.indexOf(ids[0])<0){document.getElementById('status').textContent='指定されたワークシートを確認できません。ダッシュボードから選び直してください。';return;}
+    // Existing per-worksheet links use ?id=... . Never forward identity, answer, returnUrl or arbitrary destination parameters.
+    target=worksheet+'?id='+encodeURIComponent(ids[0]);
+    document.getElementById('open').textContent='指定のワークシートを開く';
+  }
+  if(location.hash.length<=512)target+=location.hash;
+  document.getElementById('open').href=target;
+  location.replace(target);
+})();
+</script></body></html>
