@@ -7,10 +7,10 @@
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
-  <link rel="stylesheet" href="./css/compression-representation.css?v=20261013-dr52">
+  <link rel="stylesheet" href="./css/compression-representation.css?v=20261013-dr52-r2">
   <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <link rel="stylesheet" href="./css/compression-quiz.css?v=20261013-dr52">
-  <link rel="stylesheet" href="./css/compression-practice.css?v=20261013-dr52">
+  <link rel="stylesheet" href="./css/compression-practice.css?v=20261013-dr52-r2">
   <link rel="stylesheet" href="./css/compression-frequency.css?v=20261013-dr52">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/compression-core.js?v=20261013-dr52"></script>
@@ -19,8 +19,8 @@
   <script defer src="./js/lesson-formula-builder.js"></script>
   <script defer src="./js/compression-practice-core.js?v=20261013-dr52"></script>
   <script defer src="./js/compression-formulas.js?v=20261013-dr52"></script>
-  <script defer src="./js/compression-lessons.js?v=20261013-dr52"></script>
-  <script defer src="./js/compression-practice.js?v=20261013-dr52"></script>
+  <script defer src="./js/compression-lessons.js?v=20261013-dr52-r2"></script>
+  <script defer src="./js/compression-practice.js?v=20261013-dr52-r2"></script>
   <script defer src="./js/compression-frequency.js?v=20261013-dr52"></script>
   <script defer src="./js/compression-quiz.js?v=20261013-dr52"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
@@ -186,7 +186,7 @@
         </section>
         <section class="cp-view-panel" data-lesson-view-panel="decode" data-cp-codec="decode" data-lesson-slide-navigation-lock>
           <h3>復元：ビットから文字へ</h3>
-          <p class="cp-hint">「次へ」で1bitずつ読みます。今読んだbitを枠で囲み、文字が決まるまで読み取った符号に下線を残します。符号が一致したら、その文字を復元します。</p>
+          <p class="cp-hint">「次へ」で1bitずつ読みます。今読んだbitを枠で囲み、1文字分の符号に下線を付けます。文字が決まるbitまで下線を残し、次の文字に進むと切り替えます。</p>
           <form data-cp-codec-form novalidate>
             <label for="cp-codec-decode-input">復元するビット列（0と1、1〜160bit）</label>
             <input id="cp-codec-decode-input" data-cp-codec-input maxlength="160" type="text" inputmode="numeric" value="11101011110110010110000110111010101000" autocomplete="off" spellcheck="false">

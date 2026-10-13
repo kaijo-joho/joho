@@ -261,7 +261,7 @@
         const button = bySelector(tree, '[data-cp-practice-unjoin]');
         if (button) positionUnjoinButton(button, button.dataset.cpPracticeUnjoin);
       });
-      observer.observe(tree);
+      observer.observe(tree, { box: 'border-box' });
     }
     everySelector(host, '.cp-enhancement').forEach(element => { element.hidden = false; });
     reset(currentFixture, currentPresetIndex === null ? undefined : currentPresetIndex);

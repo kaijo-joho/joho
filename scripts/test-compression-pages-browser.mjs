@@ -407,7 +407,8 @@ try {
   for (let i = 0; i < 4; i++) {
     await buildNext.click();
     assert.equal(await build.locator('.cp-edge-label').count(), 2 * (i + 1), '根から各親の0/1を順に示す');
-    assert.equal(await build.locator('.cp-tracing-edge').evaluateAll(edges => edges.length === 2 && edges.every(e => Number(e.getAttribute('y1')) < Number(e.getAttribute('y2')) && getComputedStyle(e).animationName === 'cp-connect')), true, '符号の割当は根から下へワイプする');
+    assert.equal(await build.locator('[data-cp-tree-edges] line').evaluateAll(edges => edges.every(e => getComputedStyle(e).animationName === 'none')), true, '0/1の割当では既存の線をアニメーションさせない');
+    assert.deepEqual(await build.locator('.cp-tracing-label').allTextContents(), ['0', '1'], '0/1の文字だけを枝の近くへ追加');
   }
   await build.locator('[data-cp-tree]').evaluate(e => { window.__cpBuildBase = [...e.querySelectorAll('[data-cp-tree-edges] line, [data-cp-tree-nodes] circle')]; });
   for (const symbol of symbols) {
@@ -476,17 +477,31 @@ try {
   await expect(decoder.locator('[data-cp-codec-input]')).toHaveValue(fullBits);
   for (let i = 0; i < 3; i++) {
     await decoder.locator('[data-cp-codec-next]').click();
-    assert.equal(await decoder.locator('.cp-codec-bit.is-pending').count(), i + 1, '文字が決まるまで読んだビット全部に下線を残す');
+    assert.equal(await decoder.locator('.cp-codec-bit.is-reading').count(), i + 1, '文字が決まるまで読んだビット全部に下線を残す');
     await expect(decoder.locator('.cp-codec-bit.is-current')).toHaveAttribute('data-cp-bit-index', String(i));
     assert.equal(await decoder.locator('.cp-codec-bit.is-current').evaluate(e => getComputedStyle(e).outlineStyle), 'solid', '今のbitを枠で囲む');
   }
   await expect(decoder.locator('[data-cp-codec-pending]')).toContainText('111');
   await decoder.locator('[data-cp-codec-next]').click();
   await expect(decoder.locator('[data-cp-codec-output]')).toHaveText('D');
-  assert.equal(await decoder.locator('.cp-codec-bit.is-pending').count(), 0, '文字が決まったら下線を解除する');
+  assert.equal(await decoder.locator('.cp-codec-bit.is-reading').count(), 4, '文字を確定する最後のbitまで下線を残す');
   await expect(decoder.locator('.cp-codec-bit.is-current')).toHaveAttribute('data-cp-bit-index', '3');
   for (let i = 4; i < 38; i++) await decoder.locator('[data-cp-codec-next]').click();
   await expect(decoder.locator('[data-cp-codec-output]')).toHaveText('DAEBCBACBBBCDAAABB');
+  await decoder.locator('[data-cp-codec-input]').fill('11010');
+  for (let i = 0; i < 3; i++) await decoder.locator('[data-cp-codec-next]').click();
+  await expect(decoder.locator('[data-cp-codec-output]')).toHaveText('C');
+  assert.deepEqual(await decoder.locator('.cp-codec-bit.is-reading').allTextContents(), ['1', '1', '0'], '110の0で確定しても110全体へ下線を残す');
+  await expect(decoder.locator('.cp-codec-bit.is-current')).toHaveAttribute('data-cp-bit-index', '2');
+  await decoder.locator('[data-cp-codec-next]').click();
+  assert.deepEqual(await decoder.locator('.cp-codec-bit.is-reading').allTextContents(), ['1'], '次の文字へ進むと以前の下線を解除する');
+  await expect(decoder.locator('.cp-codec-bit.is-reading')).toHaveAttribute('data-cp-bit-index', '3');
+  await decoder.locator('[data-cp-codec-next]').click();
+  await expect(decoder.locator('[data-cp-codec-output]')).toHaveText('CA');
+  assert.deepEqual(await decoder.locator('.cp-codec-bit.is-reading').allTextContents(), ['1', '0'], '続く10も最後の0まで下線を残す');
+  await decoder.locator('[data-cp-codec-reset]').click();
+  await expect(decoder.locator('.cp-codec-bit.is-reading')).toHaveCount(0);
+
   await decoder.locator('[data-cp-codec-input]').fill('111');
   for (let i = 0; i < 3; i++) await decoder.locator('[data-cp-codec-next]').click();
   await expect(decoder.locator('[data-cp-codec-status]')).toContainText('途中');
@@ -507,6 +522,17 @@ try {
   };
   await goSlide(4);
   const practice = page.locator('[data-cp-huffman-practice]');
+  const checkCompactTree = async host => {
+    const size = await host.locator('[data-cp-tree]').evaluate(tree => ({
+      height: tree.getBoundingClientRect().height,
+      width: tree.querySelector('svg').getBoundingClientRect().width,
+      hitAreas: [...tree.querySelectorAll('[data-cp-hit-area]')].map(hit => ({ width: hit.getBoundingClientRect().width, height: hit.getBoundingClientRect().height }))
+    }));
+    assert(size.width <= 641 && size.height <= 550, '画面幅に合わせて木を過度に拡大しない');
+    assert(size.hitAreas.every(hit => hit.width >= 44 && hit.height >= 44), '縮小後も44px以上の選択領域を保つ');
+  };
+  await checkCompactTree(practice);
+
   assert.equal(await practice.getByRole('combobox').count(), 0);
   await expect(practice.locator('[data-cp-practice-judge]')).toBeDisabled();
   await connect(practice, ['A', 'B']);
@@ -551,6 +577,7 @@ try {
   for (const preset of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
     await practice.locator(`[data-cp-practice-preset="${preset}"]`).click();
     await expect(practice.locator(`[data-cp-practice-preset="${preset}"]`)).toHaveAttribute('aria-pressed', 'true');
+    await checkCompactTree(practice);
     await expect(practice.locator('[data-cp-build-status]')).not.toContainText('正解');
     await completeSmallest(practice);
     await practice.locator('[data-cp-practice-judge]').click();

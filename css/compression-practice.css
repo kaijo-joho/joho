@@ -3,8 +3,9 @@
 .cp-huffman-practice .cp-practice-selection { min-height: 3.2em; overflow-wrap: anywhere; }
 .cp-huffman-practice .cp-practice-presets [aria-pressed="true"] { border: 2px solid var(--dr-focus); background: var(--dr-info-soft); font-weight: 800; }
 .cp-huffman-practice .cp-practice-presets button { min-width: 72px; }
-.cp-huffman-practice .cp-tree--interactive { position: relative; max-width: 100%; min-height: 250px; padding-top: max(70px, 3.5em); overflow-x: auto; overscroll-behavior-inline: contain; }
-.cp-huffman-practice .cp-tree--interactive svg { width: max(100%, var(--cp-tree-width, 600px)); min-width: var(--cp-tree-width, 600px); max-width: none; }
+.cp-huffman-practice .cp-tree--interactive { position: relative; max-width: 100%; min-height: 250px; padding-top: max(50px, 2.5em); overflow-x: auto; overscroll-behavior-inline: contain; }
+.cp-huffman-practice .cp-tree--interactive svg { width: var(--cp-tree-width, 520px); min-width: var(--cp-tree-width, 520px); max-width: var(--cp-tree-width, 520px); }
+.cp-huffman-practice .cp-tree text { font-size: 22px; }
 .cp-huffman-practice .cp-tree [data-cp-practice-node] { cursor: pointer; outline: none; }
 .cp-huffman-practice .cp-tree [data-cp-practice-node]:hover circle { fill: var(--dr-info-soft); }
 .cp-huffman-practice .cp-tree [data-cp-practice-node]:focus-visible circle { stroke: var(--dr-focus); stroke-width: 6px; }

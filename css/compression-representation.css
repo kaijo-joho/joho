@@ -66,11 +66,11 @@
 .cp-tree circle { fill: var(--dr-panel-strong); stroke: var(--dr-axis); stroke-width: 2; }
 .cp-tree text { fill: var(--dr-text); font: 19px system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; }
 .cp-tree .cp-edge-label { font-size: 18px; font-weight: 800; paint-order: stroke; stroke: var(--dr-panel); stroke-width: 7px; stroke-linejoin: round; }
-.cp-tree .cp-tracing-label { animation: cp-tree-label-reveal .4s ease-out both; }
+.cp-tree .cp-tracing-label { animation: cp-tree-label-reveal .2s ease-out both; }
 .cp-tree .cp-leaf { font-weight: 800; }
 .cp-tree .is-current :is(circle, line), .cp-tree line.is-current { stroke: var(--dr-focus); stroke-width: 5; }
 .cp-tree .is-current circle { fill: var(--dr-info-soft); }
-.cp-tree .cp-new-edge, .cp-tree .cp-tracing-edge { animation: cp-connect .4s ease-out both; }
+.cp-tree .cp-new-edge { animation: cp-connect .4s ease-out both; }
 .cp-tree .cp-new-node { animation: cp-node-appear .18s ease-out .4s both; }
 @keyframes cp-connect { from { stroke-dasharray: 1; stroke-dashoffset: 1; } to { stroke-dasharray: 1; stroke-dashoffset: 0; } }
 @keyframes cp-node-appear { from { opacity: 0; } to { opacity: 1; } }
@@ -119,7 +119,7 @@
 .cp-codec-source, .cp-codec-output { box-sizing: border-box; min-height: 4.5em; max-height: 8em; margin: 8px 0; padding: 12px; overflow: auto; border: 1px solid var(--dr-border); border-radius: 7px; background: var(--dr-panel-strong); color: var(--dr-text); font: 1.12em/1.7 ui-monospace, monospace; letter-spacing: .04em; overflow-wrap: anywhere; }
 .cp-codec-source span.is-current { background: var(--dr-info-soft); outline: 2px solid var(--dr-focus); font-weight: 800; }
 .cp-codec-source .cp-codec-bit { display: inline-block; padding: .1em .18em; line-height: 1.4; border-bottom: 3px solid transparent; }
-.cp-codec-source .cp-codec-bit.is-pending { border-bottom-color: var(--dr-focus); font-weight: 800; }
+.cp-codec-source .cp-codec-bit.is-reading { border-bottom-color: var(--dr-focus); font-weight: 800; }
 .cp-codec-source .cp-codec-bit.is-code-end { margin-right: .25em; }
 .cp-codec-output .cp-token { display: inline-block; margin: 2px 3px 2px 0; }
 .cp-codec-output .is-current { background: var(--dr-info-soft); outline: 2px solid var(--dr-focus); font-weight: 800; }
@@ -137,7 +137,7 @@
   .cp-build-workspace { grid-template-columns: minmax(0, 1.8fr) minmax(17em, 1fr); grid-template-areas: "diagram explanation" "diagram codes"; grid-template-rows: auto 1fr; gap: 10px 20px; align-items: start; }
   .cp-build-explanation .cp-controls { margin-top: 0; }
 }
-@keyframes cp-tree-label-reveal { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0); } }
+@keyframes cp-tree-label-reveal { from { opacity: 0; } to { opacity: 1; } }
 .cp-widget ol > li { margin: 12px 0; }
 .cp-enhancement[hidden], .cp-widget [hidden] { display: none !important; }
 
@@ -156,9 +156,9 @@
   .cp-build-tree { min-height: 390px; }
 }
 @media (max-width: 420px) { .cp-equation { padding: 10px; } .cp-widget { padding: 12px; } }
-@media (prefers-reduced-motion: reduce) { .cp-widget * { scroll-behavior: auto !important; transition: none !important; } .cp-tree :is(.cp-tracing-label, .cp-new-edge, .cp-tracing-edge, .cp-new-node, .cp-path-wipe) { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .cp-widget * { scroll-behavior: auto !important; transition: none !important; } .cp-tree :is(.cp-tracing-label, .cp-new-edge, .cp-new-node, .cp-path-wipe) { animation: none; } }
 @media print {
-  .cp-tree :is(.cp-tracing-label, .cp-new-edge, .cp-tracing-edge, .cp-new-node, .cp-path-wipe) { animation: none; }
+  .cp-tree :is(.cp-tracing-label, .cp-new-edge, .cp-new-node, .cp-path-wipe) { animation: none; }
   .cp-controls, .cp-feedback, .cp-enhancement { display: none !important; }
   .cp-widget { background: transparent; box-shadow: none; }
   .cp-widget li[hidden] { display: list-item !important; }

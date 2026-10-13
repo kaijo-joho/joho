@@ -440,7 +440,8 @@
     const interactive = typeof onSelect === 'function';
     container.classList.toggle('cp-tree--interactive', interactive);
     const svg = svgElement('svg', { viewBox: `0 0 ${Math.max(520, leaves * 120)} ${maxHeight * 80 + 106}`, role: interactive ? 'group' : 'img', 'aria-labelledby': `${uid}-title ${uid}-desc` });
-    if (interactive) svg.style.setProperty('--cp-tree-width', `${Math.max(600, leaves * 120)}px`);
+    // Keep the practice diagram compact; 68-unit hit areas remain at least 44px.
+    if (interactive) svg.style.setProperty('--cp-tree-width', `${Math.max(520, leaves * 80)}px`);
     svg.append(svgElement('title', { id: `${uid}-title` }, interactive ? '丸を選んで結合するハフマン木' : hideCounts ? '枝の0と1から符号を読み取るハフマン木' : 'ハフマン木の結合と符号'));
     const descriptions = [];
     const visitDescription = (node, base) => {
@@ -463,9 +464,9 @@
           const c = positions.get(child.id);
           const highlighted = active !== '' && active !== 'root' && active.startsWith(child.prefix);
           const joining = node.id === newParent;
-          const tracingEdge = tracingPrefixes.has(child.prefix);
+          const revealingBit = tracingPrefixes.has(child.prefix);
           const visibleBit = !hideBits || visibleBits.includes(child.prefix);
-          const classes = [highlighted ? 'is-current' : '', joining ? 'cp-new-edge' : '', tracingEdge ? 'cp-tracing-edge' : ''].filter(Boolean).join(' ');
+          const classes = [highlighted ? 'is-current' : '', joining ? 'cp-new-edge' : ''].filter(Boolean).join(' ');
           edges.append(svgElement('line', {
             x1: joining ? c.x : p.x, y1: joining ? c.y : p.y,
             x2: joining ? p.x : c.x, y2: joining ? p.y : c.y,
@@ -473,7 +474,7 @@
           }));
           if (visibleBit) edges.append(svgElement('text', {
             x: (p.x + c.x) / 2 + (c.x === p.x ? (bit ? 12 : -12) : c.x > p.x ? 12 : -12), y: (p.y + c.y) / 2,
-            class: `cp-edge-label${tracingEdge ? ' cp-tracing-label' : ''}`, 'data-cp-edge-label': child.prefix
+            class: `cp-edge-label${revealingBit ? ' cp-tracing-label' : ''}`, 'data-cp-edge-label': child.prefix
           }, bit));
           draw(child);
         });
@@ -626,8 +627,8 @@
       let pathLayer = null;
       let pathLabels = [];
       if (currentSymbol) {
-        all(svg, '.is-current, .cp-tracing-edge, .cp-tracing-label').forEach(element => {
-          element.classList.remove('is-current', 'cp-tracing-edge', 'cp-tracing-label');
+        all(svg, '.is-current, .cp-tracing-label').forEach(element => {
+          element.classList.remove('is-current', 'cp-tracing-label');
         });
         const path = fixture.codes[currentSymbol];
         const pathPrefixes = Array.from(path, (_, index) => path.slice(0, index + 1));
@@ -735,20 +736,26 @@
         let decoded = '';
         let pending = '';
         let pendingStart = 0;
+        let completedStart = 0;
         const consumed = source.slice(0, step);
         for (let index = 0; index < consumed.length; index += 1) {
           pending += consumed[index];
           const symbol = codeToSymbol[pending];
           if (symbol) {
             decoded += symbol;
-            if (index === consumed.length - 1) currentSymbol = symbol;
+            if (index === consumed.length - 1) {
+              currentSymbol = symbol;
+              completedStart = pendingStart;
+            }
             sourceDisplay.children[index].classList.add('is-code-end');
             pendingStart = index + 1;
             pending = '';
           }
         }
-        // Keep the whole unfinished code underlined, while the current bit has a box.
-        for (let index = pendingStart; index < step; index += 1) sourceDisplay.children[index].classList.add('is-pending');
+        // Include the deciding bit in the underline. Switch to a new code only
+        // when the next bit is read, so the completed word remains visible.
+        const readingStart = currentSymbol ? completedStart : pendingStart;
+        for (let index = readingStart; index < step; index += 1) sourceDisplay.children[index].classList.add('is-reading');
         output.textContent = decoded || '（まだ文字は確定していません）';
         pendingDisplay.textContent = pending || '—';
         if (step === source.length && pending) status.textContent = `入力は符号の途中（${pending}）で終わっています。続きのbitを追加してください。`;
