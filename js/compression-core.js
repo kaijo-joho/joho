@@ -50,7 +50,14 @@
   const HUFFMAN_PRACTICE = [
     { frequencies: { A: 9, B: 7, C: 3, D: 2, E: 1 }, codes: { A: '0', B: '10', C: '110', D: '1110', E: '1111' } },
     { frequencies: { A: 9, B: 4, C: 4, D: 3, E: 2 }, codes: { A: '0', B: '100', C: '101', D: '110', E: '111' } },
-    { frequencies: { A: 9, B: 6, C: 5, D: 3, E: 2 }, codes: { A: '00', B: '01', C: '10', D: '110', E: '111' } }
+    { frequencies: { A: 9, B: 6, C: 5, D: 3, E: 2 }, codes: { A: '00', B: '01', C: '10', D: '110', E: '111' } },
+    { frequencies: { A: 5, B: 5, C: 5, D: 5, E: 5, F: 5 }, codes: { A: '100', B: '101', C: '110', D: '111', E: '00', F: '01' } },
+    { frequencies: { A: 1, B: 2, C: 4, D: 8, E: 16, F: 32 }, codes: { A: '00000', B: '00001', C: '0001', D: '001', E: '01', F: '1' } },
+    { frequencies: { A: 8, B: 8, C: 8, D: 8, E: 8, F: 8, G: 8 }, codes: { A: '010', B: '011', C: '100', D: '101', E: '110', F: '111', G: '00' } },
+    { frequencies: { A: 1, B: 1, C: 2, D: 3, E: 5, F: 8, G: 13 }, codes: { A: '111110', B: '111111', C: '11110', D: '1110', E: '110', F: '10', G: '0' } },
+    { frequencies: { A: 1, B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 }, codes: { A: '000', B: '001', C: '010', D: '011', E: '100', F: '101', G: '110', H: '111' } },
+    { frequencies: { A: 1, B: 1, C: 1, D: 1, E: 10, F: 10, G: 10, H: 10 }, codes: { A: '11000', B: '11001', C: '11010', D: '11011', E: '111', F: '00', G: '01', H: '10' } },
+    { frequencies: { A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8 }, codes: { A: '11110', B: '11111', C: '1110', D: '100', E: '101', F: '110', G: '00', H: '01' } }
   ];
   const HUFFMAN_QUESTIONS = [
     {

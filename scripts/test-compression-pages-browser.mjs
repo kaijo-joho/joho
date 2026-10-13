@@ -331,14 +331,14 @@ try {
   const frequency = page.locator('[data-cp-frequency-stepper]');
   const frequencyNext = frequency.locator('[data-cp-frequency-next]');
   assert.equal(await frequency.locator('[data-cp-frequency-play]').count(), 0, '導入は手動で進める');
-  await expect(frequency.locator('[data-cp-frequency-fixed-code="A"]')).toBeEmpty();
+  await expect(frequency.locator('[data-cp-frequency-fixed-code]').nth(1)).toBeEmpty();
   await expect(frequency.locator('[data-cp-frequency-count="A"]')).toBeEmpty();
   await expect(frequency.locator('[data-cp-frequency-fixed-stream-panel]')).toBeHidden();
-  const tableHeight = await frequency.locator('table').evaluate(e => e.getBoundingClientRect().height);
+  const tableHeight = await frequency.locator('.cp-frequency-symbol-table').evaluate(e => e.getBoundingClientRect().height);
   const nextPosition = () => frequency.evaluate(root => root.querySelector('[data-cp-frequency-next]').getBoundingClientRect().top - root.getBoundingClientRect().top);
   const nextTop = await nextPosition();
   await frequencyNext.press('Enter');
-  await expect(frequency.locator('[data-cp-frequency-fixed-code="A"]')).toHaveText('001');
+  await expect(frequency.locator('[data-cp-frequency-fixed-code]').nth(1)).toHaveText('001');
   await expect(frequency.locator('[data-cp-frequency-status]')).toContainText('3bitなら8通り');
   await frequencyNext.click();
   assert.equal((await frequency.locator('[data-cp-frequency-fixed-bits]').textContent()).replace(/\s/g, '').length, 54);
@@ -346,7 +346,8 @@ try {
   const symbols = Object.keys(frequencies);
   for (const [index, symbol] of symbols.entries()) {
     await frequencyNext.click();
-    await expect(frequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveText(String(frequencies[symbol]));
+    await expect(frequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveText(`${frequencies[symbol]}回`);
+    await expect(frequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveClass('is-current');
     if (index < 4) await expect(frequency.locator(`[data-cp-frequency-count="${symbols[index + 1]}"]`)).toBeEmpty();
   }
   const frequencyCodes = { B: '0', A: '10', C: '110', D: '1110', E: '1111' };
@@ -365,7 +366,7 @@ try {
   await frequencyNext.click();
   await expect(frequency.locator('[data-cp-frequency-answer]')).toContainText('70%');
   await expect(frequencyNext).toBeDisabled();
-  assert.equal(await frequency.locator('table').evaluate(e => e.getBoundingClientRect().height), tableHeight, '値を埋めても表の高さを維持');
+  assert.equal(await frequency.locator('.cp-frequency-symbol-table').evaluate(e => e.getBoundingClientRect().height), tableHeight, '値を埋めても表の高さを維持');
   assert(Math.abs(await nextPosition() - nextTop) < 1, '結果を表示しても次へボタンを動かさない');
   await frequency.locator('[data-cp-frequency-restart]').click();
   await frequencyNext.click();
@@ -397,16 +398,33 @@ try {
     assert.equal(up, true, '結合のワイプは子から親へ向かう');
     assert.equal(await build.locator('.cp-new-edge').evaluateAll(edges => edges.length === 2 && edges.every(e => getComputedStyle(e).animationName === 'cp-connect')), true, '結合する2辺をワイプ表示する');
     assert.equal(await build.locator('.cp-edge-label').count(), 0, '結合中は枝のbitを出さない');
+    const delayedParent = build.locator('.cp-new-node');
+    assert.equal(await delayedParent.evaluate(e => Number(getComputedStyle(e).opacity)), 0, 'ワイプ中は新しい親の丸を隠す');
+    assert.equal(await delayedParent.evaluate(e => getComputedStyle(e).animationDelay), '0.4s', '枝のワイプのあとに親の丸を表示');
+    await expect(build).toHaveAttribute('data-cp-build-animating', 'false');
+    assert.equal(await build.locator('[data-cp-tree-nodes] > g').evaluateAll(nodes => nodes.every(e => Number(getComputedStyle(e).opacity) === 1)), true);
   }
   for (let i = 0; i < 4; i++) {
     await buildNext.click();
     assert.equal(await build.locator('.cp-edge-label').count(), 2 * (i + 1), '根から各親の0/1を順に示す');
     assert.equal(await build.locator('.cp-tracing-edge').evaluateAll(edges => edges.length === 2 && edges.every(e => Number(e.getAttribute('y1')) < Number(e.getAttribute('y2')) && getComputedStyle(e).animationName === 'cp-connect')), true, '符号の割当は根から下へワイプする');
   }
+  await build.locator('[data-cp-tree]').evaluate(e => { window.__cpBuildBase = [...e.querySelectorAll('[data-cp-tree-edges] line, [data-cp-tree-nodes] circle')]; });
   for (const symbol of symbols) {
     await buildNext.click();
-    await expect(build.locator(`[data-cp-build-row="${symbol}"] [data-cp-build-code]`)).toHaveText(frequencyCodes[symbol]);
-    assert(await build.locator('line.is-current').count() > 0, '文字の経路を強調');
+    await expect(build).toHaveAttribute('data-cp-build-animating', 'true');
+    const row = build.locator(`[data-cp-build-row="${symbol}"]`);
+    await expect(row.locator('[data-cp-build-code]')).toBeEmpty();
+    assert.equal(await build.locator('.cp-path-wipe').count(), frequencyCodes[symbol].length, '根から文字までの全経路を赤色で順にワイプ');
+    assert.equal(await build.locator('[data-cp-tree]').evaluate(e => window.__cpBuildBase.every(n => n.isConnected && e.contains(n))), true, '既存の線と丸を保持して赤色を重ねる');
+    const overlays = await build.locator('.cp-path-wipe').evaluateAll(edges => edges.map(e => ({ y1: Number(e.getAttribute('y1')), y2: Number(e.getAttribute('y2')), delay: parseFloat(getComputedStyle(e).animationDelay) })));
+    assert(overlays.every((edge, index) => edge.y1 < edge.y2 && Math.abs(edge.delay - index * .28) < .001), '根から下へ、1枝ずつ順に進む');
+    await expect(build).toHaveAttribute('data-cp-build-animating', 'false');
+    await expect(row.locator('[data-cp-build-code]')).toHaveText(frequencyCodes[symbol]);
+    await expect(row).toHaveClass('is-current');
+    await expect(build.locator('.cp-path-nodes')).toHaveClass('cp-path-nodes is-complete');
+    assert.equal(await build.locator(`[data-cp-path-node="${frequencyCodes[symbol]}"]`).count(), 1, '対応する葉と表の行を同時に強調');
+    assert.equal(await row.locator('[data-cp-build-code]').evaluate(e => getComputedStyle(e).color), await build.locator('.cp-path-edge').first().evaluate(e => getComputedStyle(e).stroke), '符号文字も経路と同じ赤色');
   }
   await expect(buildNext).toBeDisabled();
   await expect(build.locator('[data-cp-build-status]')).toContainText('E');
@@ -414,6 +432,22 @@ try {
   await expect(build.locator('[data-cp-build-row="E"] [data-cp-build-code]')).toBeEmpty();
   await build.locator('[data-cp-build-reset]').click();
   await expect(build).toHaveAttribute('data-cp-build-step', '0');
+  // Reset, slide changes and reduced motion settle/cancel only the current animation.
+  for (let i = 0; i < 9; i++) await buildNext.click();
+  await buildNext.click();
+  await build.locator('[data-cp-build-reset]').click();
+  await page.waitForTimeout(800);
+  await expect(build).toHaveAttribute('data-cp-build-step', '0');
+  await expect(build.locator('[data-cp-tree] circle')).toHaveCount(0);
+  for (let i = 0; i < 9; i++) await buildNext.click();
+  await buildNext.click(); await goSlide(3);
+  await expect(build).toHaveAttribute('data-cp-build-animating', 'false');
+  await goSlide(2);
+  await expect(build.locator('[data-cp-build-row="A"] [data-cp-build-code]')).toHaveText('10');
+  await buildNext.click(); await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(build.locator('[data-cp-build-row="B"] [data-cp-build-code]')).toHaveText('0');
+  await expect(build).toHaveAttribute('data-cp-build-animating', 'false');
+  await build.locator('[data-cp-build-reset]').click();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   for (let i = 0; i < 14; i++) await buildNext.click();
   assert.equal(await build.locator('.cp-new-edge').evaluateAll(edges => edges.every(e => getComputedStyle(e).animationName === 'none')), true);
@@ -440,10 +474,17 @@ try {
   await expect(encoder.locator('[data-cp-codec-output]')).toHaveText('1110');
   await page.getByRole('tab', { name: '復元', exact: true }).click();
   await expect(decoder.locator('[data-cp-codec-input]')).toHaveValue(fullBits);
-  for (let i = 0; i < 3; i++) await decoder.locator('[data-cp-codec-next]').click();
+  for (let i = 0; i < 3; i++) {
+    await decoder.locator('[data-cp-codec-next]').click();
+    assert.equal(await decoder.locator('.cp-codec-bit.is-pending').count(), i + 1, '文字が決まるまで読んだビット全部に下線を残す');
+    await expect(decoder.locator('.cp-codec-bit.is-current')).toHaveAttribute('data-cp-bit-index', String(i));
+    assert.equal(await decoder.locator('.cp-codec-bit.is-current').evaluate(e => getComputedStyle(e).outlineStyle), 'solid', '今のbitを枠で囲む');
+  }
   await expect(decoder.locator('[data-cp-codec-pending]')).toContainText('111');
   await decoder.locator('[data-cp-codec-next]').click();
   await expect(decoder.locator('[data-cp-codec-output]')).toHaveText('D');
+  assert.equal(await decoder.locator('.cp-codec-bit.is-pending').count(), 0, '文字が決まったら下線を解除する');
+  await expect(decoder.locator('.cp-codec-bit.is-current')).toHaveAttribute('data-cp-bit-index', '3');
   for (let i = 4; i < 38; i++) await decoder.locator('[data-cp-codec-next]').click();
   await expect(decoder.locator('[data-cp-codec-output]')).toHaveText('DAEBCBACBBBCDAAABB');
   await decoder.locator('[data-cp-codec-input]').fill('111');
@@ -457,7 +498,6 @@ try {
       const node = host.locator(`[data-cp-practice-node="${id}"]`);
       if (keyboard) await node.press(index === 0 ? 'Enter' : 'Space'); else await node.click();
     }
-    await host.locator('[data-cp-practice-join]').click();
   };
   const completeSmallest = async host => {
     while (await host.locator('[data-cp-practice-node]').count() > 1) {
@@ -478,10 +518,27 @@ try {
   await expect(practice.locator('[data-cp-build-status]')).toContainText('1回目');
   await expect(practice.locator('[data-cp-build-status]')).toContainText('1と2');
   await practice.locator('[data-cp-practice-reset]').click();
+  assert.equal(await practice.locator('[data-cp-practice-preset]').count(), 10, '文字数や頻度の異なる10例');
+  assert.equal(await practice.locator('[data-cp-practice-join]').count(), 0, '結合操作の追加ボタンは不要');
+  const leafCoordinates = () => practice.locator('[data-cp-tree]').evaluate(e => [...e.querySelectorAll('[data-cp-node]')].filter(n => n.querySelector('.cp-leaf')).map(n => [n.dataset.cpNode, n.querySelector('circle').getAttribute('cx'), n.querySelector('circle').getAttribute('cy')]));
+  const initialLeaves = await leafCoordinates();
+  await connect(practice, ['D', 'E']);
+  await connect(practice, ['node:DE', 'C']);
+  await practice.locator('[data-cp-practice-node="node:CDE"]').click();
+  const unjoin = practice.getByRole('button', { name: /C・D・E.*それ以降の結合を戻す/ });
+  await expect(unjoin).toBeVisible();
+  assert((await unjoin.boundingBox()).height >= 44);
+  await unjoin.press('Enter');
+  assert.equal(await practice.locator('[data-cp-practice-node]').count(), 4);
+  assert.deepEqual(await leafCoordinates(), initialLeaves, '選択した結合を解除しても初期ノードを移動しない');
+  await practice.locator('[data-cp-practice-node="node:DE"]').click();
+  await practice.getByRole('button', { name: /D・E.*それ以降の結合を戻す/ }).click();
+  assert.equal(await practice.locator('[data-cp-practice-node]').count(), 5);
   const practiceHeight = await practice.locator('[data-cp-tree]').evaluate(e => e.getBoundingClientRect().height);
   for (const pair of [['D', 'E'], ['node:DE', 'C'], ['B', 'node:CDE'], ['A', 'node:BCDE']]) {
     await connect(practice, pair, true);
     assert.equal(await practice.locator('[data-cp-tree]').evaluate(e => e.getBoundingClientRect().height), practiceHeight);
+    assert.deepEqual((await leafCoordinates()).sort(), initialLeaves.slice().sort(), '結合のたびに初期ノードを並べ直さない');
   }
   await practice.locator('[data-cp-practice-judge]').click();
   await expect(practice.locator('[data-cp-build-status]')).toContainText('正解');
@@ -491,7 +548,7 @@ try {
   await connect(practice, ['node:BCDE', 'A']);
   await practice.locator('[data-cp-practice-judge]').click();
   await expect(practice.locator('[data-cp-build-status]')).toContainText('正解');
-  for (const preset of [1, 2]) {
+  for (const preset of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
     await practice.locator(`[data-cp-practice-preset="${preset}"]`).click();
     await expect(practice.locator(`[data-cp-practice-preset="${preset}"]`)).toHaveAttribute('aria-pressed', 'true');
     await expect(practice.locator('[data-cp-build-status]')).not.toContainText('正解');
@@ -499,6 +556,39 @@ try {
     await practice.locator('[data-cp-practice-judge]').click();
     await expect(practice.locator('[data-cp-build-status]')).toContainText('正解');
   }
+
+  // Equal-frequency leaves can be paired across the diagram without moving leaves
+  // or placing several parents at the same point.
+  await practice.locator('[data-cp-practice-preset="7"]').click();
+  const crossedLeaves = (await leafCoordinates()).sort();
+  for (const pair of [['A', 'H'], ['B', 'G'], ['C', 'F'], ['D', 'E']]) {
+    await connect(practice, pair);
+    assert.deepEqual((await leafCoordinates()).sort(), crossedLeaves);
+  }
+  const crossedParents = await practice.locator('[data-cp-practice-node]').evaluateAll(nodes => nodes.map(n => ({ id: n.dataset.cpPracticeNode, x: Number(n.querySelector('circle').getAttribute('cx')) })));
+  assert.equal(new Set(crossedParents.map(n => n.x)).size, 4, '4つの同じ高さの親を重ねない');
+  for (const parent of crossedParents) {
+    await practice.locator(`[data-cp-practice-node="${parent.id}"]`).click();
+    const obstructs = await practice.locator('[data-cp-tree]').evaluate(tree => {
+      const button = tree.querySelector('[data-cp-practice-unjoin]').getBoundingClientRect();
+      return [...tree.querySelectorAll('[data-cp-practice-node]')].filter(n => !n.classList.contains('is-selected')).some(n => {
+        const node = n.getBoundingClientRect();
+        return button.left < node.right && button.right > node.left && button.top < node.bottom && button.bottom > node.top;
+      });
+    });
+    assert.equal(obstructs, false, '解除ボタンが次に選ぶ根を隠さない');
+    await practice.locator(`[data-cp-practice-node="${parent.id}"]`).click();
+  }
+  for (const pair of [['node:AH', 'node:BG'], ['node:CF', 'node:DE'], ['node:ABGH', 'node:CDEF']]) await connect(practice, pair);
+  await practice.locator('[data-cp-practice-judge]').click();
+  await expect(practice.locator('[data-cp-build-status]')).toContainText('正解');
+  await expect(practice.locator('[data-cp-build-status]')).toContainText('24bit');
+  await practice.locator('[data-cp-practice-node="node:ABCDEFGH"]').click();
+  await practice.locator('[data-cp-practice-unjoin]').click();
+  await practice.locator('[data-cp-practice-node="node:ABGH"]').click();
+  await practice.locator('[data-cp-practice-unjoin]').click();
+  await expect(practice.locator('[data-cp-practice-node]')).toHaveCount(4);
+  assert.deepEqual((await leafCoordinates()).sort(), crossedLeaves, '前の結合を解除しても位置を保つ');
 
   for (const index of [0, 1]) {
     await goSlide(index + 6);
@@ -619,6 +709,14 @@ try {
         await goSlide(n);
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), `dr52 completed ${width}/${theme}/${font}/${n}`);
+        if (n === 1) {
+          const spills = await page.locator('[data-cp-frequency-results] table').evaluateAll(tables => tables.flatMap(table => [...table.querySelectorAll('th,td')].filter(cell => cell.textContent.trim()).flatMap(cell => {
+            const range = document.createRange(); range.selectNodeContents(cell);
+            const box = cell.getBoundingClientRect();
+            return [...range.getClientRects()].filter(rect => rect.left < box.left - 1 || rect.right > box.right + 1).map(() => cell.textContent);
+          })));
+          assert.deepEqual(spills, [], `符号の表内で文字が重ならない ${width}/${theme}/${font}`);
+        }
       }
     }
   }
@@ -674,7 +772,6 @@ try {
   const touchTree = touchPage.locator('[data-cp-huffman-practice]');
   for (const pair of [['E', 'D'], ['A', 'B'], ['C', 'node:DE'], ['node:AB', 'node:CDE']]) {
     for (const id of pair) await touchTree.locator(`[data-cp-practice-node="${id}"]`).tap();
-    await touchTree.locator('[data-cp-practice-join]').tap();
   }
   await touchTree.locator('[data-cp-practice-judge]').tap();
   await expect(touchTree.locator('[data-cp-build-status]')).toContainText('2回目');
@@ -697,11 +794,12 @@ try {
       await expect(fallback.locator('[data-cp-frequency-fallback]')).toBeVisible();
       await expect(fallback.locator('[data-cp-frequency-fallback]')).toContainText('54bit');
       await expect(fallback.locator('[data-cp-frequency-fallback]')).toContainText('38bit');
-      await expect(fallback.locator('[data-cp-huffman-practice] noscript p')).toContainText('例3');
+      await expect(fallback.locator('[data-cp-huffman-practice] noscript p').first()).toContainText('例3');
+      await expect(fallback.locator('[data-cp-huffman-practice] noscript p').last()).toContainText('例10');
       assert.equal(await fallback.locator('[data-cp-codec] [data-cp-tree]').count(), 0);
     }
   }
   await noScript.close();
   assert.deepEqual(errors, [], 'ページ例外・コンソールエラーなし');
-  console.log(`compression-pages-browser (${engine}): dr51保持、固定長54bit→可変長38bitと約70%の手動開示、上下ワイプ・木の固定座標、符号表による符号化/復元、誤結合の最終判定・3例・枝反転の別解・後続再判定・式と途中計算、完成状態と初期状態の3幅×3テーマ×3文字サイズ、タッチ・キーボード・JavaScript無効を検証`);
+  console.log(`compression-pages-browser (${engine}): dr51保持、固定長54bit→可変長38bitと約70%の手動開示、上下ワイプ・木の固定座標、符号表による符号化/復元、自動結合・結合解除・葉の固定位置・10例・誤結合の最終判定・枝反転の別解・後続再判定・式と途中計算、完成状態と初期状態の3幅×3テーマ×3文字サイズ、タッチ・キーボード・JavaScript無効を検証`);
 } finally { await browser.close(); }

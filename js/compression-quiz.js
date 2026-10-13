@@ -129,7 +129,7 @@
     selection.dataset.cpPracticeSelection = '';
     const treeControls = make('div', 'cp-controls cp-enhancement');
     treeControls.hidden = true;
-    for (const [key, label] of [['join', '選んだ2つを結合'], ['undo', '1つ戻る'], ['reset', '木を最初から'], ['judge', '木を判定']]) {
+    for (const [key, label] of [['undo', '1つ戻る'], ['reset', '木を最初から'], ['judge', '木を判定']]) {
       const button = make('button', 'dr-button', label);
       button.type = 'button';
       button.dataset[`cpPractice${key[0].toUpperCase()}${key.slice(1)}`] = '';
@@ -195,7 +195,7 @@
       resized();
     }
     function showCounts(show) {
-      treeHint.textContent = show ? '丸を2つ選んで結合します。途中では正誤を表示せず、完成後に「木を判定」で確認します。' : '頻度を入力して段階1を判定すると、木を組み立てられます。';
+      treeHint.textContent = show ? '丸を2つ選ぶと自動で結合します。結合済みの根を選んで「結合解除」で戻せます。途中では正誤を表示せず、完成後に「木を判定」で確認します。' : '頻度を入力して段階1を判定すると、木を組み立てられます。';
       quizTree.hidden = !show;
       practiceFrequency.hidden = !show;
       selection.hidden = !show;

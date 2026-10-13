@@ -402,19 +402,36 @@
 
   function renderTree(container, forest, {
     active = '', hideCounts = false, hideBits = false, visibleBits = [], reservedDepth = 0, layoutRoot = null,
-    selectable = [], selected = [], onSelect = null, newParent = '', tracing = ''
+    selectable = [], selected = [], onSelect = null, newParent = '', tracing = '', leafOrder = [], positionCache = null
   } = {}) {
     if (!container) return;
     const roots = [...forest].sort((a, b) => a.prefix.localeCompare(b.prefix) || a.id.localeCompare(b.id));
     const height = node => node.symbol === undefined ? 1 + Math.max(height(node.zero), height(node.one)) : 0;
     const maxHeight = Math.max(reservedDepth, layoutRoot ? height(layoutRoot) : 0, ...roots.map(height));
     const positions = new Map();
-    let leaves = 0;
+    let leaves = leafOrder.length;
+    const slots = new Map(leafOrder.map((symbol, index) => [symbol, index]));
     const locate = node => {
       const y = 40 + (maxHeight - height(node)) * 80;
       let x;
-      if (node.symbol !== undefined) x = 60 + leaves++ * 120;
-      else { locate(node.zero); locate(node.one); x = (positions.get(node.zero.id).x + positions.get(node.one.id).x) / 2; }
+      if (node.symbol !== undefined) x = 60 + (slots.has(node.symbol) ? slots.get(node.symbol) : leaves++) * 120;
+      else {
+        locate(node.zero); locate(node.one);
+        x = (positions.get(node.zero.id).x + positions.get(node.one.id).x) / 2;
+        // Fixed leaf slots can put different, crossing subtrees at the same centre.
+        // Keep each existing parent still and give a new parent the nearest free place.
+        if (positionCache) {
+          if (positionCache.has(node.id)) x = positionCache.get(node.id).x;
+          else {
+            const occupied = [...positionCache.values()].filter(point => point.y === y);
+            const limit = Math.max(520, leaves * 120) - 34;
+            const candidates = [x];
+            for (let offset = 80; offset < limit; offset += 80) candidates.push(x - offset, x + offset);
+            x = candidates.find(candidate => candidate >= 34 && candidate <= limit && occupied.every(point => Math.abs(point.x - candidate) >= 76)) ?? x;
+            positionCache.set(node.id, { x, y });
+          }
+        }
+      }
       positions.set(node.id, { x, y });
     };
     // A fixed final tree keeps every existing circle still while the next parent and branches appear.
@@ -423,6 +440,7 @@
     const interactive = typeof onSelect === 'function';
     container.classList.toggle('cp-tree--interactive', interactive);
     const svg = svgElement('svg', { viewBox: `0 0 ${Math.max(520, leaves * 120)} ${maxHeight * 80 + 106}`, role: interactive ? 'group' : 'img', 'aria-labelledby': `${uid}-title ${uid}-desc` });
+    if (interactive) svg.style.setProperty('--cp-tree-width', `${Math.max(600, leaves * 120)}px`);
     svg.append(svgElement('title', { id: `${uid}-title` }, interactive ? '丸を選んで結合するハフマン木' : hideCounts ? '枝の0と1から符号を読み取るハフマン木' : 'ハフマン木の結合と符号'));
     const descriptions = [];
     const visitDescription = (node, base) => {
@@ -434,8 +452,8 @@
       ? `表示した枝：${visibleBits.map(prefix => `根から${prefix.split('').join('→')}までの最後の枝は${prefix.slice(-1)}`).join('。')}。`
       : '';
     svg.append(svgElement('desc', { id: `${uid}-desc` }, `${roots.length}個の木。${descriptions.join('。')}。${hideBits && !visibleBits.length ? '枝の符号はまだ表示していません。' : visibleBitDescription}${interactive ? '結合していない根の丸を2つ選びます。Enterキーまたはスペースキーでも選べます。' : ''}`));
-    const edges = svgElement('g');
-    const nodes = svgElement('g');
+    const edges = svgElement('g', { 'data-cp-tree-edges': '' });
+    const nodes = svgElement('g', { 'data-cp-tree-nodes': '' });
     const symbols = node => node.symbol || `${[...node.id.slice('node:'.length)].join('・')}（結合済み）`;
     const tracingPrefixes = new Set(Array.isArray(tracing) ? tracing : tracing ? [tracing] : []);
     const draw = node => {
@@ -454,7 +472,7 @@
             class: classes, pathLength: 1, 'data-cp-edge': child.prefix
           }));
           if (visibleBit) edges.append(svgElement('text', {
-            x: (p.x + c.x) / 2 + (bit ? 12 : -12), y: (p.y + c.y) / 2,
+            x: (p.x + c.x) / 2 + (c.x === p.x ? (bit ? 12 : -12) : c.x > p.x ? 12 : -12), y: (p.y + c.y) / 2,
             class: `cp-edge-label${tracingEdge ? ' cp-tracing-label' : ''}`, 'data-cp-edge-label': child.prefix
           }, bit));
           draw(child);
@@ -504,7 +522,26 @@
     const treeView = one(root, '[data-cp-tree]');
     const status = one(root, '[data-cp-build-status]');
     const rows = all(root, '[data-cp-build-row]');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let step = 0;
+    let finishAnimation = null;
+    let timer = null;
+    let animationTarget = null;
+    let diagramFixture = null;
+    let diagramStep = -1;
+    const cancelAnimation = () => {
+      if (timer !== null) window.clearTimeout(timer);
+      animationTarget?.removeEventListener('animationend', completeAnimation);
+      timer = null;
+      animationTarget = null;
+      finishAnimation = null;
+      root.dataset.cpBuildAnimating = 'false';
+    };
+    const completeAnimation = () => {
+      const finish = finishAnimation;
+      cancelAnimation();
+      finish?.();
+    };
     const leafNames = node => node.symbol !== undefined ? [node.symbol] : [...leafNames(node.zero), ...leafNames(node.one)];
     const describe = node => node.symbol || leafNames(node).join('・');
     const internalNodes = rootNode => {
@@ -517,7 +554,8 @@
       }
       return result;
     };
-    const render = () => {
+    const render = (animate = false) => {
+      cancelAnimation();
       const fixture = preset ? Core.HUFFMAN_PRACTICE[Number(preset.value)] : Core.HUFFMAN_EXAMPLE;
       const tree = Core.huffmanFromCodes(fixture.frequencies, fixture.codes);
       const branchGroups = internalNodes(tree.root);
@@ -531,6 +569,7 @@
       let visibleBits = [];
       let tracing = [];
       let statusText = '';
+      let currentSymbol = '';
 
       if (step === 0) {
         statusText = '「次へ」で文字の葉を置きます。';
@@ -557,38 +596,101 @@
         forest = [tree.root];
         visibleBits = branchGroups.flatMap(node => [node.zero.prefix, node.one.prefix]);
         const symbolIndex = step - codeStart;
-        const symbol = Object.keys(fixture.codes)[symbolIndex];
-        active = fixture.codes[symbol];
-        statusText = `${symbol}まで根から枝をたどります。符号は${fixture.codes[symbol]}です。`;
+        currentSymbol = Object.keys(fixture.codes)[symbolIndex];
+        statusText = `${currentSymbol}まで根から枝をたどります。符号は${fixture.codes[currentSymbol]}です。`;
         if (step === finalStep) statusText += ' 符号表が完成しました。';
       }
 
-      renderTree(treeView, forest, {
-        layoutRoot: tree.root,
-        reservedDepth: 4,
-        hideBits: true,
-        visibleBits,
-        active,
-        newParent,
-        tracing
+      // Code tracing reuses the completed tree. Its circles and grey branches remain
+      // underneath a separate red overlay instead of being replaced or wiped away.
+      const reuseDiagram = currentSymbol && diagramFixture === fixture && diagramStep >= codeStart - 1;
+      if (!reuseDiagram) renderTree(treeView, forest, {
+        layoutRoot: tree.root, reservedDepth: 4, hideBits: true,
+        visibleBits, active, newParent: animate ? newParent : '', tracing
       });
-      rows.forEach((row, index) => {
+      diagramFixture = fixture;
+      diagramStep = step;
+      const svg = one(treeView, 'svg');
+      all(svg, '[data-cp-path-overlay]').forEach(element => element.remove());
+      all(svg, '.is-path-label').forEach(element => element.classList.remove('is-path-label'));
+      const duration = currentSymbol ? fixture.codes[currentSymbol].length * 280 : newParent ? 580 : 0;
+      const waiting = animate && duration > 0 && !reducedMotion.matches;
+      rows.forEach(row => {
         const symbol = row.dataset.cpBuildRow;
         const symbolIndex = Object.keys(fixture.codes).indexOf(symbol);
         const codeCell = one(row, '[data-cp-build-code]');
-        const revealed = step >= codeStart + symbolIndex;
+        const revealed = step >= codeStart + symbolIndex && !(waiting && symbol === currentSymbol);
         codeCell.textContent = revealed ? fixture.codes[symbol] : '';
-        row.classList.toggle('is-current', step > joinEnd && step >= codeStart && symbolIndex === step - codeStart);
+        row.classList.toggle('is-current', !waiting && symbol === currentSymbol);
       });
+      let pathLayer = null;
+      let pathLabels = [];
+      if (currentSymbol) {
+        all(svg, '.is-current, .cp-tracing-edge, .cp-tracing-label').forEach(element => {
+          element.classList.remove('is-current', 'cp-tracing-edge', 'cp-tracing-label');
+        });
+        const path = fixture.codes[currentSymbol];
+        const pathPrefixes = Array.from(path, (_, index) => path.slice(0, index + 1));
+        const lines = svgElement('g', { 'data-cp-path-overlay': '', class: 'cp-path-lines', 'aria-hidden': 'true' });
+        pathLayer = svgElement('g', { 'data-cp-path-overlay': '', class: 'cp-path-nodes', 'aria-hidden': 'true' });
+        pathPrefixes.forEach((prefix, index) => {
+          const base = one(svg, `[data-cp-tree-edges] line[data-cp-edge="${prefix}"]`);
+          lines.append(svgElement('line', {
+            x1: base.getAttribute('x1'), y1: base.getAttribute('y1'),
+            x2: base.getAttribute('x2'), y2: base.getAttribute('y2'),
+            pathLength: 1, 'data-cp-path-edge': prefix,
+            class: `cp-path-edge${waiting ? ' cp-path-wipe' : ''}`, style: `--cp-path-delay:${index * 280}ms`
+          }));
+        });
+        ['root', ...pathPrefixes].forEach(id => {
+          const base = one(svg, `[data-cp-node="${id}"] circle`);
+          pathLayer.append(svgElement('circle', { cx: base.getAttribute('cx'), cy: base.getAttribute('cy'), r: 28, class: 'cp-path-ring', 'data-cp-path-node': id }));
+        });
+        pathLabels = pathPrefixes.map(prefix => one(svg, `[data-cp-edge-label="${prefix}"]`));
+        svg.insertBefore(lines, one(svg, '[data-cp-tree-nodes]'));
+        svg.append(pathLayer);
+      }
+      const settle = () => {
+        // The diagram and the corresponding row are revealed in the same update.
+        all(svg, '.cp-path-wipe, .cp-new-node, .cp-new-edge').forEach(element => element.classList.remove('cp-path-wipe', 'cp-new-node', 'cp-new-edge'));
+        if (currentSymbol) {
+          pathLayer.classList.add('is-complete');
+          pathLabels.forEach(label => label.classList.add('is-path-label'));
+          const row = rows.find(item => item.dataset.cpBuildRow === currentSymbol);
+          one(row, '[data-cp-build-code]').textContent = fixture.codes[currentSymbol];
+          row.classList.add('is-current');
+        }
+        root.dataset.cpBuildAnimating = 'false';
+        status.textContent = statusText;
+        next.disabled = step >= finalStep;
+      };
       root.dataset.cpBuildStep = String(step);
-      status.textContent = statusText;
-      next.disabled = step >= finalStep;
+      root.dataset.cpBuildAnimating = String(waiting);
+      status.textContent = waiting && currentSymbol ? `${currentSymbol}までの経路を根からたどっています。` : statusText;
+      next.disabled = waiting || step >= finalStep;
       previous.disabled = step === 0;
+      if (waiting) {
+        finishAnimation = settle;
+        animationTarget = currentSymbol ? one(svg, '.cp-path-lines').lastElementChild : one(svg, '.cp-new-node');
+        animationTarget.addEventListener('animationend', completeAnimation, { once: true });
+        // A bounded fallback also settles the display if the browser suppresses an event.
+        timer = window.setTimeout(completeAnimation, duration + 120);
+      } else settle();
     };
-    next.addEventListener('click', () => { step += 1; render(); });
+    next.addEventListener('click', () => {
+      if (next.disabled) return;
+      step += 1; render(true);
+    });
     previous.addEventListener('click', () => { step = Math.max(step - 1, 0); render(); });
     one(root, '[data-cp-build-reset]').addEventListener('click', () => { step = 0; render(); });
     if (preset) preset.addEventListener('change', () => { step = 0; render(); });
+    document.addEventListener('joho:lesson-slide-change', () => {
+      if (root.closest('[data-lesson-slide]')?.hidden) completeAnimation();
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) completeAnimation(); });
+    window.addEventListener('pagehide', completeAnimation);
+    window.addEventListener('beforeprint', completeAnimation);
+    reducedMotion.addEventListener('change', () => { if (reducedMotion.matches) completeAnimation(); });
     controls(root); render();
   }
 
@@ -611,9 +713,12 @@
       const source = clean(input.value);
       const valid = decode ? /^[01]{1,160}$/.test(source) : /^[A-E]{1,80}$/.test(source);
       input.setAttribute('aria-invalid', String(!valid));
-      sourceDisplay.replaceChildren(...[...source].map((character, index) =>
-        make('span', character, index === step - 1 ? 'is-current' : '')
-      ));
+      sourceDisplay.replaceChildren(...[...source].map((character, index) => {
+        const span = make('span', character, `${decode ? 'cp-codec-bit' : ''}${index === step - 1 ? ' is-current' : ''}`);
+        if (decode) span.dataset.cpBitIndex = String(index);
+        if (index === step - 1) span.setAttribute('aria-current', 'true');
+        return span;
+      }));
       codeRows.forEach(row => row.classList.remove('is-current'));
       if (!valid) {
         output.replaceChildren();
@@ -629,6 +734,7 @@
       if (decode) {
         let decoded = '';
         let pending = '';
+        let pendingStart = 0;
         const consumed = source.slice(0, step);
         for (let index = 0; index < consumed.length; index += 1) {
           pending += consumed[index];
@@ -636,9 +742,13 @@
           if (symbol) {
             decoded += symbol;
             if (index === consumed.length - 1) currentSymbol = symbol;
+            sourceDisplay.children[index].classList.add('is-code-end');
+            pendingStart = index + 1;
             pending = '';
           }
         }
+        // Keep the whole unfinished code underlined, while the current bit has a box.
+        for (let index = pendingStart; index < step; index += 1) sourceDisplay.children[index].classList.add('is-pending');
         output.textContent = decoded || '（まだ文字は確定していません）';
         pendingDisplay.textContent = pending || '—';
         if (step === source.length && pending) status.textContent = `入力は符号の途中（${pending}）で終わっています。続きのbitを追加してください。`;

@@ -60,7 +60,7 @@ function chooseSmallest(frequencies, orientation = 'forward') {
     if (orientation === 'reverse' && joins.length % 2 === 0) pair.reverse();
     const result = api.joinForest(current, pair);
     ok(result.ok, `選んだ最小2rootを結合: ${pair.join(',')}`);
-    joins.push({ selectedIds: pair });
+    joins.push({ selectedIds: pair, parentId: result.parent.id });
     current = result.forest;
   }
   return { forest: current, joins };
@@ -85,6 +85,26 @@ for (const [index, fixture] of sourceFixtures.entries()) {
   equal(JSON.stringify(history), beforeHistory, `原稿fixture${index + 1}のhistory不変`);
 }
 
+const expectedNewPractice = [
+  { bits: 80, depth: 3 }, { bits: 119, depth: 5 }, { bits: 160, depth: 3 },
+  { bits: 78, depth: 6 }, { bits: 24, depth: 3 }, { bits: 110, depth: 5 }, { bits: 102, depth: 5 }
+];
+equal(Compression.HUFFMAN_PRACTICE.length, 10, '既存3例に新しい7例を追加');
+for (const [index, fixture] of Compression.HUFFMAN_PRACTICE.slice(3).entries()) {
+  const expected = expectedNewPractice[index];
+  let current = api.createForest(fixture.frequencies);
+  while (current.length > 1) {
+    const sorted = current.slice().sort((a, b) => a.count - b.count || a.id.localeCompare(b.id));
+    current = api.joinForest(current, sorted.slice(0, 2).map(node => node.id)).forest;
+  }
+  const lengths = Object.values(fixture.codes).map(code => code.length);
+  const bitCount = Object.entries(fixture.frequencies).reduce((sum, [symbol, count]) => sum + count * fixture.codes[symbol].length, 0);
+  equal([bitCount, Math.max(...lengths)], [expected.bits, expected.depth], `追加例${index + 1}の既知の最適bit数・最長符号長`);
+  equal(api.totalBits(current[0]), expected.bits, `追加例${index + 1}を最小根結合したbit数`);
+  equal(Compression.huffmanFromCodes(fixture.frequencies, fixture.codes).totalBits, expected.bits, `追加例${index + 1}の静的符号表と木の整合`);
+  equal(Object.keys(fixture.frequencies).sort(), Object.keys(fixture.codes).sort(), `追加例${index + 1}は頻度と符号表の文字が一致`);
+}
+
 // 同頻度の別ペア、0/1の枝反転も、各段階で最小2つなら正解。
 const tieFrequencies = { A: 1, B: 1, C: 1, D: 2 };
 const tiePaths = [];
@@ -98,7 +118,7 @@ function enumerateTies(current, path = []) {
     const pair = [current[i].id, current[j].id];
     const result = api.joinForest(current, pair);
     ok(result.ok, 'tieで許されるpairを結合');
-    enumerateTies(result.forest, path.concat([{ selectedIds: pair }]));
+    enumerateTies(result.forest, path.concat([{ selectedIds: pair, parentId: result.parent.id }]));
   }
 }
 enumerateTies(api.createForest(tieFrequencies));
@@ -117,13 +137,15 @@ const wrongSteps = [];
 for (const pair of [['E', 'D'], ['C', 'node:DE'], ['A', 'B'], ['node:AB', 'node:CDE']]) {
   const result = api.joinForest(mistaken, pair);
   ok(result.ok, `誤った手順も構造上結合可能: ${pair.join(',')}`);
-  wrongSteps.push({ selectedIds: pair });
+  wrongSteps.push({ selectedIds: pair, parentId: result.parent.id });
   mistaken = result.forest;
 }
 const wrongGrade = api.gradeForest(mistaken, { frequencies: { A: 9, B: 7, C: 3, D: 2, E: 1 }, joins: wrongSteps });
 equal([wrongGrade.correct, wrongGrade.complete, wrongGrade.firstIncorrectStep], [false, true, 3], '完成した誤答は最初の誤った結合を指摘');
 equal(wrongGrade.expectedCounts, [6, 7], '誤った時点で選ぶべき頻度');
 ok(wrongGrade.message.includes('3回目') && wrongGrade.message.includes('6と7'), '誤答説明に段階と正しい頻度');
+const wrongParent = api.gradeForest(mistaken, { frequencies: { A: 9, B: 7, C: 3, D: 2, E: 1 }, joins: wrongSteps.map((item, index) => ({ ...item, parentId: index === 0 ? 'node:wrong' : item.parentId })) });
+equal([wrongParent.correct, wrongParent.firstIncorrectStep], [false, 1], '親IDが履歴と違う結合を拒否');
 
 // undo後の再判定: 最後の誤結合を取り消して、最小ペアに置き換える。
 let corrected = api.createForest({ A: 9, B: 7, C: 3, D: 2, E: 1 });
@@ -131,7 +153,7 @@ const correctedJoins = [];
 for (const pair of [['E', 'D'], ['C', 'node:DE'], ['node:CDE', 'B'], ['node:BCDE', 'A']]) {
   const result = api.joinForest(corrected, pair);
   ok(result.ok, `再判定の正しい結合: ${pair.join(',')}`);
-  correctedJoins.push({ selectedIds: pair });
+  correctedJoins.push({ selectedIds: pair, parentId: result.parent.id });
   corrected = result.forest;
 }
 const afterRedo = api.gradeForest(corrected, { frequencies: { A: 9, B: 7, C: 3, D: 2, E: 1 }, joins: correctedJoins });
@@ -156,7 +178,7 @@ equal(api.joinForest(sharedForest, ['A', 'A']).ok, false, '共有節点の不正
 
 for (const action of [
   () => api.createForest({}),
-  () => api.createForest({ F: 1 }),
+  () => api.createForest({ I: 1 }),
   () => api.createForest({ AB: 1 }),
   () => api.createForest({ A: 0 }),
   () => api.createForest({ A: -1 }),
@@ -166,6 +188,10 @@ for (const action of [
   () => api.codesFromTree({ id: 'bad', count: 2, zero: { id: 'A', symbol: 'A', count: 1 }, one: { id: 'A2', symbol: 'A', count: 1 } })
 ]) invalid(action, '不正な頻度または木の入力を拒否');
 equal(api.gradeForest(api.createForest({ A: 1 }), { frequencies: {}, joins: [] }).correct, false, '採点APIは不正な履歴を安全な不正解として返す');
+const missingParentTree = api.joinForest(api.createForest({ A: 1, B: 2 }), ['A', 'B']);
+equal(api.gradeForest([missingParentTree.parent], { frequencies: { A: 1, B: 2 }, joins: [{ selectedIds: ['A', 'B'] }] }).correct, true, '従来の選択ペアだけの履歴も同じ規則で採点');
+equal(api.gradeForest([missingParentTree.parent], { frequencies: { A: 1, B: 2 }, joins: [{ selectedIds: ['A', 'B'], parentId: 'node:AC' }] }).firstIncorrectStep, 1, '親IDが指定された履歴では親の一致を確認');
+equal(api.gradeForest([missingParentTree.parent], { frequencies: { A: 1, B: 2 }, joins: [{ selectedIds: ['A', 'B'], parentId: null }] }).firstIncorrectStep, 1, '不正な型の親IDを拒否');
 
 console.log(`compression-practice-core: ${checks}件の検証に合格（誤結合、最終判定、tie、枝反転、n-1結合、原稿fixture、入力不変、安全ガード）`);
 

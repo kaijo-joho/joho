@@ -6,7 +6,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  const SYMBOLS = 'ABCDE';
+  const SYMBOLS = 'ABCDEFGH';
   function fail(message) { throw new RangeError(message); }
 
   function validateFrequencies(frequencies) {
@@ -14,7 +14,7 @@
     const entries = Object.entries(frequencies);
     if (!entries.length) fail('出現回数を1文字以上指定してください');
     if (entries.some(([symbol, count]) => symbol.length !== 1 || !SYMBOLS.includes(symbol)
-      || !Number.isSafeInteger(count) || count < 1)) fail('A〜Eの文字と正の安全な整数の出現回数を指定してください');
+      || !Number.isSafeInteger(count) || count < 1)) fail('A〜Hの文字と正の安全な整数の出現回数を指定してください');
     const sum = entries.reduce((total, [, count]) => total + count, 0);
     if (!Number.isSafeInteger(sum)) fail('出現回数の合計が大きすぎます');
     return entries;
@@ -139,7 +139,8 @@
     catch (error) { return { correct: false, complete: false, message: error.message, firstIncorrectStep: null }; }
     for (let index = 0; index < joins.length; index += 1) {
       const choice = joins[index];
-      if (!choice || !Array.isArray(choice.selectedIds) || choice.selectedIds.length !== 2) {
+      if (!choice || !Array.isArray(choice.selectedIds) || choice.selectedIds.length !== 2
+        || (choice.parentId !== undefined && (typeof choice.parentId !== 'string' || !choice.parentId))) {
         return { correct: false, complete: finalForest.length === 1, message: `${index + 1}回目の結合記録が正しくありません。`, firstIncorrectStep: index + 1 };
       }
       const sorted = sortForest(replay);
@@ -158,6 +159,11 @@
       }
       const result = joinForest(replay, choice.selectedIds);
       if (!result.ok) return { correct: false, complete: finalForest.length === 1, message: `${index + 1}回目の結合を確認できません。`, firstIncorrectStep: index + 1 };
+      // Parent IDs identify reversible checkpoints; legacy pair-only histories
+      // still undergo the same minimum-frequency and final-tree checks.
+      if (choice.parentId !== undefined && result.parent.id !== choice.parentId) {
+        return { correct: false, complete: finalForest.length === 1, message: `${index + 1}回目の結合記録と親のIDが一致しません。`, firstIncorrectStep: index + 1 };
+      }
       replay = result.forest;
     }
 
