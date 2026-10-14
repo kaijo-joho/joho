@@ -1,118 +1,72 @@
 @charset "UTF-8";
 
-[data-cp-frequency-stepper] { margin: 1em 0; padding: clamp(12px, 2vw, 24px); border: 1px solid var(--dr-border); border-radius: 12px; background: var(--dr-panel); color: var(--dr-text); }
-[data-cp-frequency-stepper] > :first-child { margin-top: 0; }
-[data-cp-frequency-stepper] > :last-child { margin-bottom: 0; }
-.cp-frequency-assignment__source { min-height: 2.2em; padding: 10px 12px; border-radius: 6px; background: var(--dr-panel-strong); font: 700 1.25em/1.8 ui-monospace, monospace; letter-spacing: .035em; overflow-wrap: anywhere; }
-.cp-frequency-assignment__table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--dr-border); border-radius: 7px; }
-.cp-frequency-assignment__table { width: 100%; min-width: 560px; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
-.cp-frequency-assignment__table caption { padding: 8px; color: var(--dr-muted); text-align: left; }
-.cp-frequency-assignment__table :is(th, td) { min-height: 2.8em; height: 2.8em; padding: 7px 8px; border: 1px solid var(--dr-border); text-align: center; vertical-align: middle; }
-.cp-frequency-assignment__table thead th:first-child,
-.cp-frequency-assignment__table tbody th { width: 9.5em; text-align: left; }
-.cp-frequency-assignment__table thead th:last-child,
-.cp-frequency-assignment__table tbody td:last-child { width: 6em; }
-.cp-frequency-assignment__table .cp-frequency-assignment__value { display: block; min-width: 4ch; height: 1.4em; line-height: 1.4; white-space: nowrap; font-weight: 800; }
-.cp-frequency-assignment__table [data-cp-frequency-contribution] { min-width: 5ch; }
-.cp-frequency-assignment__table [data-cp-frequency-column].is-current { background: var(--dr-info-soft); box-shadow: inset 0 0 0 2px var(--dr-focus); }
-.cp-frequency-assignment__table tr:last-child td:last-child { font-weight: 800; }
-.cp-frequency-assignment__controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; }
-.cp-frequency-assignment__controls .dr-button { min-height: 44px; }
-.cp-frequency-assignment__status { box-sizing: border-box; height: 6em; margin: 8px 0 0; padding: 8px 10px; overflow: auto; border-left: 3px solid var(--dr-info); background: var(--dr-info-soft); line-height: 1.5; }
+.cp-frequency-comparison { min-width: 0; }
+.cp-frequency-comparison > h3 { margin-top: 0; color: var(--dr-info); }
+.cp-frequency-assignment__source { min-height: 2.2em; margin: .5em 0; padding: 10px 12px; border-radius: 6px; background: var(--dr-panel-strong); color: var(--dr-text); font: 700 1.25em/1.8 ui-monospace, monospace; overflow-wrap: anywhere; }
+.cp-frequency-assignment__source:has(span) { display: flex; flex-wrap: wrap; gap: .15em; }
+.cp-frequency-assignment__source span { padding: 0 .2em; }
+.cp-frequency-assignment__source .is-current { background: var(--dr-info-soft); box-shadow: inset 0 -2px var(--dr-focus); }
+.cp-frequency-selection { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 1em 0; }
+.cp-frequency-selection > span { margin-right: .4em; font-weight: 700; }
+.cp-frequency-selection .dr-button { min-width: 72px; min-height: 44px; }
+.cp-frequency-selection [aria-pressed="true"] { background: var(--dr-info-soft); border-color: var(--dr-focus); box-shadow: inset 0 0 0 1px var(--dr-focus); font-weight: 800; }
+.cp-frequency-comparison :is(button, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+.cp-frequency-comparison [hidden] { display: none !important; }
+
+.cp-frequency-bands { min-width: 0; margin: 1em 0; }
+.cp-frequency-bands__scroll { box-sizing: border-box; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; padding-bottom: 8px; }
+.cp-frequency-bands__canvas { min-width: max(648px, 36em); }
+.cp-frequency-lane + .cp-frequency-lane { margin-top: 1em; }
+.cp-frequency-lane h4 { display: flex; align-items: baseline; flex-wrap: wrap; gap: .4em 1em; margin: 0 0 .35em; color: var(--dr-text); }
+.cp-frequency-lane h4 span { font-weight: 600; }
+.cp-frequency-lane h4 strong { font-variant-numeric: tabular-nums; }
+.cp-frequency-bit-track { display: flex; width: 100%; }
+.cp-frequency-word { box-sizing: border-box; flex: 0 0 auto; min-width: 0; padding-right: 1px; }
+.cp-frequency-word__symbol { display: block; text-align: center; color: var(--dr-muted); font: .82em/1.5 ui-monospace, monospace; }
+.cp-frequency-cells { display: flex; gap: 1px; }
+.cp-frequency-bit { display: flex; flex: 1 1 0; min-width: 0; min-height: 2em; align-items: center; justify-content: center; background: var(--dr-grid); color: var(--dr-text); font: 600 .85em/1.5 ui-monospace, monospace; }
+.cp-frequency-word.is-current .cp-frequency-word__symbol { color: var(--dr-text); font-weight: 800; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .15em; }
+.cp-frequency-word.is-current .cp-frequency-bit { background: var(--dr-info-soft); box-shadow: inset 0 -2px var(--dr-focus); font-weight: 800; }
+.cp-frequency-bits-fallback { margin: .25em 0; font: 700 1em/1.8 ui-monospace, monospace; overflow-wrap: anywhere; }
 .cp-frequency-assignment__hint { color: var(--dr-muted); font-size: .9em; line-height: 1.6; }
-[data-cp-frequency-stepper] :is(button, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+.cp-frequency-bands figcaption { margin-top: .4em; }
 
-@media (max-width: 390px) {
-  [data-cp-frequency-stepper] { padding: 10px; }
-  .cp-frequency-assignment__table { min-width: 520px; }
-}
+.cp-frequency-summary { margin: 1em 0; padding: 10px 14px; border-left: 3px solid var(--dr-info); background: var(--dr-info-soft); }
+.cp-frequency-summary > p { margin: .25em 0; }
+.cp-frequency-summary__values { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; }
+.cp-frequency-summary__values p { margin: .25em 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.cp-frequency-summary__values code { padding: 2px 6px; font-size: 1.05em; font-weight: 800; }
 
-@media (prefers-reduced-motion: reduce) {
-  .cp-frequency-assignment__table [data-cp-frequency-column] { scroll-behavior: auto; }
-}
-
-@media print {
-  [data-cp-frequency-stepper] { padding: 0; border: 0; background: transparent; }
-  .cp-frequency-assignment__controls { display: none !important; }
-  .cp-frequency-assignment__table-wrap { overflow: visible; }
-  .cp-frequency-assignment__table { min-width: 0; }
-  .cp-frequency-assignment__table :is(th, td) { height: auto; }
-  .cp-frequency-assignment__table [data-cp-frequency-column].is-current { background: transparent; box-shadow: none; }
-}
-
-.cp-frequency-assignment > h3 { color: var(--dr-info); }
-.cp-frequency-assignment__table { display: table; margin: 0; padding: 0; font: inherit; background: var(--dr-panel); color: var(--dr-text); }
+.cp-frequency-result-table { min-width: 0; margin: 1em 0; }
+.cp-frequency-result-table h4 { margin: 0 0 .4em; color: var(--dr-info); }
+.cp-frequency-assignment__table-wrap { box-sizing: border-box; min-width: 0; max-width: 100%; overflow-x: auto; border: 1px solid var(--dr-border); border-radius: 7px; overscroll-behavior-inline: contain; }
+.cp-frequency-comparison .cp-frequency-assignment__table { display: table; width: 100%; min-width: max(640px, 40em); margin: 0; padding: 0; border-collapse: collapse; table-layout: fixed; font: inherit; font-variant-numeric: tabular-nums; background: var(--dr-panel); color: var(--dr-text); }
+.cp-frequency-assignment__table caption { padding: 8px; color: var(--dr-muted); text-align: left; }
+.cp-frequency-assignment__table :is(th, td) { height: 2.8em; padding: 7px 8px; border: 1px solid var(--dr-border); text-align: center; vertical-align: middle; }
 .cp-frequency-assignment__table th { background: var(--dr-info-soft); color: var(--dr-text); }
 .cp-frequency-assignment__table td { background: var(--dr-panel-strong); color: var(--dr-text); }
-
-/* dr52 1枚目: 操作欄の位置を固定し、表と符号列を段階表示 */
-[data-cp-frequency-stepper] .cp-frequency-toolbar { position: sticky; z-index: 3; top: 0; margin: .4rem 0 1rem; padding: .55rem; border: 1px solid var(--dr-border); border-radius: 12px; background: var(--dr-panel-strong); box-shadow: 0 3px 14px rgba(0, 0, 0, .12); }
-[data-cp-frequency-stepper] .cp-frequency-assignment__controls { position: static; justify-content: center; margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
-[data-cp-frequency-stepper] .cp-frequency-assignment__controls .dr-button { min-height: 48px; min-width: min(9rem, 42vw); font-size: 1.05em; transform: none; }
-[data-cp-frequency-stepper] .cp-frequency-assignment__status { height: auto; min-height: 2.8em; max-height: 6em; margin: .5rem 0 0; padding: .55rem .7rem; overflow: auto; }
-[data-cp-frequency-stepper] .cp-frequency-results { margin-top: .75rem; }
-[data-cp-frequency-stepper] .cp-frequency-assignment__table [data-cp-frequency-column].is-current { background: var(--dr-info-soft); box-shadow: inset 0 0 0 2px var(--dr-focus); }
-[data-cp-frequency-stepper] .cp-frequency-result-table { min-width: 0; margin: 1rem 0; }
-[data-cp-frequency-stepper] .cp-frequency-result-table h4 { margin: 0 0 .4rem; color: var(--dr-info); }
-[data-cp-frequency-stepper] .cp-frequency-assignment__table-wrap { box-sizing: border-box; min-width: 0; overscroll-behavior-inline: contain; }
-[data-cp-frequency-stepper] .cp-frequency-assignment__table { min-width: 600px; }
-[data-cp-frequency-stepper] .cp-frequency-string-table { min-width: max(760px, 49em); }
-[data-cp-frequency-stepper] .cp-frequency-string-table thead th:first-child,
-[data-cp-frequency-stepper] .cp-frequency-string-table tbody th { width: 9em; }
-[data-cp-frequency-stepper] .cp-frequency-string-table thead th:last-child,
-[data-cp-frequency-stepper] .cp-frequency-string-table tbody td:last-child { width: 12em; }
-[data-cp-frequency-stepper] .cp-frequency-string-table td:not(:first-child) { white-space: nowrap; }
-[data-cp-frequency-stepper] .cp-frequency-string-table [data-cp-frequency-fixed-total],
-[data-cp-frequency-stepper] .cp-frequency-string-table [data-cp-frequency-variable-total] { white-space: nowrap; }
-[data-cp-frequency-stepper] .cp-frequency-symbol-table { min-width: max(640px, 40em); }
-[data-cp-frequency-stepper] .cp-frequency-symbol-table thead th:first-child,
-[data-cp-frequency-stepper] .cp-frequency-symbol-table tbody th { width: 12em; }
-[data-cp-frequency-stepper] .cp-frequency-symbol-table thead th:last-child,
-[data-cp-frequency-stepper] .cp-frequency-symbol-table tbody td:last-child { width: 6em; }
-[data-cp-frequency-stepper] .cp-frequency-symbol-table tbody tr:last-child { font-weight: 800; }
-[data-cp-frequency-stepper] .cp-frequency-streams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(8px, 1.5vw, 16px); align-items: start; }
-[data-cp-frequency-stepper] .cp-frequency-stream { min-width: 0; margin: .75rem 0; padding: clamp(9px, 1.2vw, 14px); }
-[data-cp-frequency-stepper] .cp-frequency-stream .cp-frequency-assignment__bits { margin-bottom: .5em; }
-[data-cp-frequency-stepper] .cp-frequency-stage[hidden] { display: none !important; }
-[data-cp-frequency-stepper] .cp-frequency-ratio { display: flex; flex-wrap: wrap; align-items: center; gap: .65em 1.2em; }
-[data-cp-frequency-stepper] .cp-frequency-ratio h4 { flex-basis: 100%; }
-[data-cp-frequency-stepper] .cp-frequency-fraction { display: inline-flex; min-width: 3.5em; flex-direction: column; align-items: stretch; text-align: center; font-size: 1.5em; font-variant-numeric: tabular-nums; line-height: 1.2; }
-[data-cp-frequency-stepper] .cp-frequency-fraction span:first-child { padding: 0 .4em .15em; border-bottom: 2px solid currentColor; }
-[data-cp-frequency-stepper] .cp-frequency-fraction span:last-child { padding: .15em .4em 0; }
-[data-cp-frequency-stepper] .cp-frequency-answer { border-color: var(--dr-info); background: var(--dr-info-soft); font-size: clamp(1.05rem, 2vw, 1.3rem); line-height: 1.7; }
-[data-cp-frequency-stepper] :is(button, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+.cp-frequency-assignment__table thead th:first-child,
+.cp-frequency-assignment__table tbody th { width: 12em; text-align: left; }
+.cp-frequency-assignment__table thead th:last-child,
+.cp-frequency-assignment__table tbody td:last-child { width: 6em; }
+.cp-frequency-assignment__table [data-cp-frequency-column].is-current { background: var(--dr-info-soft); box-shadow: inset 0 0 0 2px var(--dr-focus); font-weight: 800; }
+.cp-frequency-assignment__table tbody tr:last-child { font-weight: 800; }
+.cp-frequency-calculation { font-variant-numeric: tabular-nums; }
 
 @media (max-width: 600px) {
-  [data-cp-frequency-stepper] .cp-frequency-streams { grid-template-columns: minmax(0, 1fr); }
-}
-
-@media (max-width: 390px) {
-  [data-cp-frequency-stepper] .cp-frequency-toolbar { padding: .4rem; }
-  [data-cp-frequency-stepper] .cp-frequency-assignment__controls { gap: 6px; }
-  [data-cp-frequency-stepper] .cp-frequency-assignment__controls .dr-button { min-width: 0; flex: 1 1 44%; }
-  [data-cp-frequency-stepper] .cp-frequency-assignment__bits { padding: 10px 8px; font-size: 1rem; letter-spacing: .015em; }
-  [data-cp-frequency-stepper] .cp-frequency-string-table { min-width: max(760px, 49em); }
-  [data-cp-frequency-stepper] .cp-frequency-symbol-table { min-width: max(640px, 40em); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-cp-frequency-stepper] .cp-frequency-assignment__table [data-cp-frequency-column] { scroll-behavior: auto; }
+  .cp-frequency-summary__values { grid-template-columns: minmax(0, 1fr); }
+  .cp-frequency-selection > span { flex-basis: 100%; }
 }
 
 @media print {
-  [data-cp-frequency-stepper] .cp-frequency-toolbar { display: none !important; }
-  [data-cp-frequency-stepper] .cp-frequency-assignment__table { min-width: 0; }
-  [data-cp-frequency-stepper] .cp-frequency-string-table,
-  [data-cp-frequency-stepper] .cp-frequency-symbol-table { min-width: 0; }
-  [data-cp-frequency-stepper] .cp-frequency-string-table thead th:first-child,
-  [data-cp-frequency-stepper] .cp-frequency-string-table tbody th,
-  [data-cp-frequency-stepper] .cp-frequency-symbol-table thead th:first-child,
-  [data-cp-frequency-stepper] .cp-frequency-symbol-table tbody th { width: auto; }
-  [data-cp-frequency-stepper] .cp-frequency-string-table thead th:last-child,
-  [data-cp-frequency-stepper] .cp-frequency-string-table tbody td:last-child,
-  [data-cp-frequency-stepper] .cp-frequency-symbol-table thead th:last-child,
-  [data-cp-frequency-stepper] .cp-frequency-symbol-table tbody td:last-child { width: auto; }
-  [data-cp-frequency-stepper] .cp-frequency-string-table td:not(:first-child) { white-space: normal; }
+  .cp-frequency-selection { display: none !important; }
+  .cp-frequency-bands__scroll, .cp-frequency-assignment__table-wrap { overflow: visible; }
+  .cp-frequency-bands__canvas { min-width: 0; }
+  .cp-frequency-bit { font-size: .7em; }
+  .cp-frequency-comparison .cp-frequency-assignment__table { min-width: 0; }
+  .cp-frequency-assignment__table :is(th, td) { height: auto; }
+  .cp-frequency-assignment__table thead th:first-child,
+  .cp-frequency-assignment__table tbody th,
+  .cp-frequency-assignment__table thead th:last-child,
+  .cp-frequency-assignment__table tbody td:last-child { width: auto; }
 }
-
-[data-cp-frequency-stepper] .cp-frequency-assignment__bits { font: 700 1.1em/1.8 ui-monospace, monospace; overflow-wrap: anywhere; letter-spacing: .035em; }

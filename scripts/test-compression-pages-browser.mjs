@@ -328,55 +328,76 @@ try {
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   await load('dr52'); await goSlide(1);
-  const frequency = page.locator('[data-cp-frequency-stepper]');
-  const frequencyNext = frequency.locator('[data-cp-frequency-next]');
-  assert.equal(await frequency.locator('[data-cp-frequency-play]').count(), 0, '導入は手動で進める');
-  await expect(frequency.locator('[data-cp-frequency-fixed-code]').nth(1)).toBeEmpty();
-  await expect(frequency.locator('[data-cp-frequency-count="A"]')).toBeEmpty();
-  await expect(frequency.locator('[data-cp-frequency-fixed-stream-panel]')).toBeHidden();
-  const tableHeight = await frequency.locator('.cp-frequency-symbol-table').evaluate(e => e.getBoundingClientRect().height);
-  const nextPosition = () => frequency.evaluate(root => root.querySelector('[data-cp-frequency-next]').getBoundingClientRect().top - root.getBoundingClientRect().top);
-  const nextTop = await nextPosition();
-  await frequencyNext.press('Enter');
-  await expect(frequency.locator('[data-cp-frequency-fixed-code]').nth(1)).toHaveText('001');
-  await expect(frequency.locator('[data-cp-frequency-status]')).toContainText('3bitなら8通り');
-  await frequencyNext.click();
-  assert.equal((await frequency.locator('[data-cp-frequency-fixed-bits]').textContent()).replace(/\s/g, '').length, 54);
+  const frequency = page.locator('[data-cp-frequency-comparison]');
   const frequencies = { A: 5, B: 7, C: 3, D: 2, E: 1 };
   const symbols = Object.keys(frequencies);
-  for (const [index, symbol] of symbols.entries()) {
-    await frequencyNext.click();
-    await expect(frequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveText(`${frequencies[symbol]}回`);
-    await expect(frequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveClass('is-current');
-    if (index < 4) await expect(frequency.locator(`[data-cp-frequency-count="${symbols[index + 1]}"]`)).toBeEmpty();
-  }
   const frequencyCodes = { B: '0', A: '10', C: '110', D: '1110', E: '1111' };
-  for (const [symbol, code] of Object.entries(frequencyCodes)) {
-    await frequencyNext.click();
-    await expect(frequency.locator(`[data-cp-frequency-code="${symbol}"]`)).toHaveText(code);
+  const fixedCodes = { A: '001', B: '010', C: '011', D: '100', E: '101' };
+  const sample = 'DAEBCBACBBBCDAAABB';
+  await expect(frequency).toHaveAttribute('data-cp-frequency-selected', 'B');
+  await expect(frequency.locator('[data-cp-frequency-source]')).toHaveText(sample);
+  await expect(frequency.locator('[data-cp-frequency-fixed-total]')).toHaveText('54bit');
+  await expect(frequency.locator('[data-cp-frequency-variable-total]')).toHaveText('38bit');
+  await expect(frequency.locator('[data-cp-frequency-selected-fixed-total]')).toHaveText('7回×3bit＝21bit');
+  await expect(frequency.locator('[data-cp-frequency-selected-variable-total]')).toHaveText('7回×1bit＝7bit');
+  await expect(frequency.locator('[data-cp-frequency-select][aria-pressed="true"]')).toHaveAttribute('data-cp-frequency-select', 'B');
+  for (const symbol of symbols) {
+    await expect(frequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveText(`${frequencies[symbol]}回`);
+    await expect(frequency.locator(`[data-cp-frequency-code="${symbol}"]`)).toHaveText(frequencyCodes[symbol]);
+    await expect(frequency.locator(`[data-cp-frequency-length="${symbol}"]`)).toHaveText(`${frequencyCodes[symbol].length}bit`);
+    await expect(frequency.locator(`[data-cp-frequency-contribution="${symbol}"]`)).toHaveText(`${frequencies[symbol] * frequencyCodes[symbol].length}bit`);
   }
-  await expect(frequency.locator('[data-cp-frequency-variable-stream-panel]')).toBeHidden();
-  await frequencyNext.click();
-  assert.equal((await frequency.locator('[data-cp-frequency-variable-bits]').textContent()).replace(/\s/g, '').length, 38);
-  await frequencyNext.click();
-  await expect(frequency.locator('[data-cp-frequency-ratio]')).toBeVisible();
-  await expect(frequency.locator('[data-cp-frequency-answer]')).toBeHidden();
-  await expect(frequency.locator('.cp-frequency-fraction span').first()).toHaveText('38');
-  await expect(frequency.locator('.cp-frequency-fraction span').last()).toHaveText('54');
-  await frequencyNext.click();
-  await expect(frequency.locator('[data-cp-frequency-answer]')).toContainText('70%');
-  await expect(frequencyNext).toBeDisabled();
-  assert.equal(await frequency.locator('.cp-frequency-symbol-table').evaluate(e => e.getBoundingClientRect().height), tableHeight, '値を埋めても表の高さを維持');
-  assert(Math.abs(await nextPosition() - nextTop) < 1, '結果を表示しても次へボタンを動かさない');
-  await frequency.locator('[data-cp-frequency-restart]').click();
-  await frequencyNext.click();
-  await page.waitForTimeout(800);
-  await expect(frequency).toHaveAttribute('data-cp-frequency-step', '1');
+  await expect(frequency.locator('[data-cp-frequency-frequency-total]')).toHaveText('18回');
+  await expect(frequency.locator('[data-cp-frequency-contribution-total]')).toHaveText('38bit');
+  const bandData = await frequency.evaluate(root => {
+    const collect = selector => {
+      const track = root.querySelector(selector);
+      const words = [...track.querySelectorAll('.cp-frequency-word')];
+      return { bits: words.flatMap(word => [...word.querySelectorAll('.cp-frequency-bit')].map(bit => bit.textContent)).join(''), words: words.map(word => ({ symbol: word.dataset.cpFrequencyWord, code: [...word.querySelectorAll('.cp-frequency-bit')].map(bit => bit.textContent).join(''), flex: parseFloat(word.style.flexBasis), widths: [...word.querySelectorAll('.cp-frequency-bit')].map(bit => bit.getBoundingClientRect().width) })) };
+    };
+    return { source: [...root.querySelectorAll('[data-cp-frequency-source] span')].map(span => span.textContent).join(''), fixed: collect('[data-cp-frequency-fixed-bits]'), variable: collect('[data-cp-frequency-variable-bits]'), sameScroll: root.querySelector('[data-cp-frequency-fixed-bits]').closest('.cp-frequency-bands__scroll') === root.querySelector('[data-cp-frequency-variable-bits]').closest('.cp-frequency-bands__scroll') };
+  });
+  assert.equal(bandData.source, sample);
+  assert.equal(bandData.fixed.bits.length, 54);
+  assert.equal(bandData.variable.bits.length, 38);
+  assert.equal(bandData.sameScroll, true, '2段の符号帯を同じスクロール枠に配置');
+  assert.equal(bandData.fixed.words.length, 18);
+  assert.equal(bandData.variable.words.length, 18);
+  for (const [index, symbol] of Array.from(sample).entries()) {
+    assert.equal(bandData.fixed.words[index].symbol, symbol);
+    assert.equal(bandData.variable.words[index].symbol, symbol);
+    assert.equal(bandData.fixed.words[index].code, fixedCodes[symbol]);
+    assert.equal(bandData.variable.words[index].code, frequencyCodes[symbol]);
+  }
+  assert(Math.abs(bandData.variable.words.reduce((sum, word) => sum + word.flex, 0) / bandData.fixed.words.reduce((sum, word) => sum + word.flex, 0) - 38 / 54) < 0.001, '帯の全長比は38/54');
+  const bitWidths = [...bandData.fixed.words, ...bandData.variable.words].flatMap(word => word.widths);
+  assert(Math.max(...bitWidths) - Math.min(...bitWidths) < 0.1, '両段の各1bitセルは同じ幅');
+  const selectedSummaries = { A: ['A・5回', '5回×3bit＝15bit', '5回×2bit＝10bit'], B: ['B・7回', '7回×3bit＝21bit', '7回×1bit＝7bit'], C: ['C・3回', '3回×3bit＝9bit', '3回×3bit＝9bit'], D: ['D・2回', '2回×3bit＝6bit', '2回×4bit＝8bit'], E: ['E・1回', '1回×3bit＝3bit', '1回×4bit＝4bit'] };
+  for (const symbol of symbols) {
+    const button = frequency.locator(`[data-cp-frequency-select="${symbol}"]`);
+    await button.click();
+    await expect(frequency).toHaveAttribute('data-cp-frequency-selected', symbol);
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
+    await expect(frequency.locator('[data-cp-frequency-select][aria-pressed="true"]')).toHaveCount(1);
+    await expect(frequency.locator('[data-cp-frequency-source] .is-current')).toHaveCount(frequencies[symbol]);
+    await expect(frequency.locator('[data-cp-frequency-selected-fixed]')).toHaveText(fixedCodes[symbol]);
+    await expect(frequency.locator('[data-cp-frequency-selected-variable]')).toHaveText(frequencyCodes[symbol]);
+    await expect(frequency.locator('[data-cp-frequency-selected]')).toHaveText(selectedSummaries[symbol][0]);
+    await expect(frequency.locator('[data-cp-frequency-selected-fixed-total]')).toHaveText(selectedSummaries[symbol][1]);
+    await expect(frequency.locator('[data-cp-frequency-selected-variable-total]')).toHaveText(selectedSummaries[symbol][2]);
+    await expect(frequency.locator(`[data-cp-frequency-source] [data-cp-frequency-column="${symbol}"]`).first()).toHaveClass('is-current');
+    await expect(frequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveClass(/is-current/);
+    await expect(frequency.locator(`[data-cp-frequency-word="${symbol}"].is-current`)).toHaveCount(frequencies[symbol] * 2);
+  }
+  const keyboardA = frequency.locator('[data-cp-frequency-select="A"]');
+  await keyboardA.focus(); await keyboardA.press('Enter');
+  await expect(frequency).toHaveAttribute('data-cp-frequency-selected', 'A');
+  await expect(keyboardA).toBeFocused();
   await goSlide(2); await goSlide(1);
-  await expect(frequency).toHaveAttribute('data-cp-frequency-step', '1');
+  await expect(frequency).toHaveAttribute('data-cp-frequency-selected', 'A');
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await frequencyNext.click();
-  await expect(frequency).toHaveAttribute('data-cp-frequency-step', '2');
+  await frequency.locator('[data-cp-frequency-select="B"]').click();
+  await expect(frequency).toHaveAttribute('data-cp-frequency-selected', 'B');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
 
   await goSlide(2);
@@ -720,7 +741,7 @@ try {
   // Verify completed widgets as well as the initial-state matrix below.
   await load('dr52');
   await goSlide(1);
-  for (let i = 0; i < 15; i++) await page.locator('[data-cp-frequency-next]').click();
+  await page.locator('[data-cp-frequency-select="E"]').click();
   await goSlide(2);
   for (let i = 0; i < 14; i++) await page.locator('[data-cp-build-next]').click();
   await goSlide(3);
@@ -743,6 +764,29 @@ try {
             return [...range.getClientRects()].filter(rect => rect.left < box.left - 1 || rect.right > box.right + 1).map(() => cell.textContent);
           })));
           assert.deepEqual(spills, [], `符号の表内で文字が重ならない ${width}/${theme}/${font}`);
+          const bands = page.locator('.cp-frequency-bands__scroll');
+          const bandMetrics = await bands.evaluate(scroll => {
+            const canvas = scroll.querySelector('.cp-frequency-bands__canvas');
+            const track = canvas.querySelector('[data-cp-frequency-fixed-bits]');
+            const bit = track.querySelector('.cp-frequency-bit');
+            const rect = scroll.getBoundingClientRect();
+            const parentRect = scroll.parentElement.getBoundingClientRect();
+            const range = document.createRange(); range.selectNodeContents(bit);
+            const digitRect = range.getBoundingClientRect();
+            const bitRect = bit.getBoundingClientRect();
+            const laneWidth = selector => [...canvas.querySelectorAll(`${selector} .cp-frequency-word`)].reduce((sum, word) => sum + word.getBoundingClientRect().width, 0);
+            return { client: scroll.clientWidth, scroll: scroll.scrollWidth, canvas: canvas.getBoundingClientRect().width, bit: bitRect.width, font: parseFloat(getComputedStyle(bit).fontSize), contained: rect.left >= parentRect.left - 1 && rect.right <= parentRect.right + 1, digitFits: digitRect.left >= bitRect.left - 1 && digitRect.right <= bitRect.right + 1, ratio: laneWidth('[data-cp-frequency-variable-bits]') / laneWidth('[data-cp-frequency-fixed-bits]') };
+          });
+          assert(bandMetrics.contained, `帯スクロール枠が親幅内 ${width}/${theme}/${font}`);
+          assert(bandMetrics.bit > 0 && bandMetrics.font > 0 && bandMetrics.digitFits, `bit文字をセル内に表示 ${width}/${theme}/${font}`);
+          assert(Math.abs(bandMetrics.ratio - 38 / 54) < 0.01, `可変長/固定長の表示幅比38/54 ${width}/${theme}/${font}`);
+          if (width === 390) assert(bandMetrics.scroll > bandMetrics.client, '狭幅では2段の帯を横スクロール可能');
+          assert(bandMetrics.bit / bandMetrics.canvas > 0.004, `1bitの横幅を確保 ${width}/${theme}/${font}`);
+          const equalWidths = await bands.evaluate(scroll => {
+            const all = ['[data-cp-frequency-fixed-bits]', '[data-cp-frequency-variable-bits]'].flatMap(selector => [...scroll.querySelectorAll(`${selector} .cp-frequency-bit`)].map(bit => bit.getBoundingClientRect().width));
+            return Math.max(...all) - Math.min(...all);
+          });
+          assert(equalWidths < 0.1, `全bitセルの幅が一致 ${width}/${theme}/${font}`);
         }
       }
     }
@@ -804,6 +848,9 @@ try {
   await expect(touchTree.locator('[data-cp-build-status]')).toContainText('2回目');
   await touchTree.locator('[data-cp-practice-preset="2"]').tap();
   await expect(touchTree.locator('[data-cp-practice-preset="2"]')).toHaveAttribute('aria-pressed', 'true');
+  await touchPage.goto(new URL('dr52.html#headline_1', base).href);
+  await touchPage.locator('[data-cp-frequency-select="D"]').tap();
+  await expect(touchPage.locator('[data-cp-frequency-comparison]')).toHaveAttribute('data-cp-frequency-selected', 'D');
   await touch.close();
   const noScript = await browser.newContext({ javaScriptEnabled: false });
   const fallback = await noScript.newPage();
@@ -818,9 +865,15 @@ try {
       await expect(fallback.locator('[data-cp-rle-practice="image"] noscript p')).toContainText('解答：黒5白4黒1白2');
       await expect(fallback.locator('[data-cp-image-quiz] noscript p').nth(1)).toContainText('②と④');
     } else {
-      await expect(fallback.locator('[data-cp-frequency-fallback]')).toBeVisible();
-      await expect(fallback.locator('[data-cp-frequency-fallback]')).toContainText('54bit');
-      await expect(fallback.locator('[data-cp-frequency-fallback]')).toContainText('38bit');
+      const staticFrequency = fallback.locator('[data-cp-frequency-comparison]');
+      await expect(staticFrequency.locator('[data-cp-frequency-source]')).toContainText('DAEBCBACBBBCDAAABB');
+      await expect(staticFrequency.locator('[data-cp-frequency-fixed-bits] .cp-frequency-bits-fallback')).toHaveText(Array.from(sample, symbol => fixedCodes[symbol]).join(' '));
+      await expect(staticFrequency.locator('[data-cp-frequency-variable-bits] .cp-frequency-bits-fallback')).toHaveText(Array.from(sample, symbol => frequencyCodes[symbol]).join(' '));
+      await expect(staticFrequency.locator('[data-cp-frequency-fixed-total]')).toHaveText('54bit');
+      await expect(staticFrequency.locator('[data-cp-frequency-variable-total]')).toHaveText('38bit');
+      await expect(staticFrequency.locator('[data-cp-frequency-answer]')).toContainText('70%');
+      for (const [symbol, count] of Object.entries({ A: 5, B: 7, C: 3, D: 2, E: 1 })) await expect(staticFrequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveText(`${count}回`);
+      await expect(staticFrequency.locator('[data-cp-frequency-controls]')).toBeHidden();
       await expect(fallback.locator('[data-cp-huffman-practice] noscript p').first()).toContainText('例3');
       await expect(fallback.locator('[data-cp-huffman-practice] noscript p').last()).toContainText('例10');
       assert.equal(await fallback.locator('[data-cp-codec] [data-cp-tree]').count(), 0);
@@ -828,5 +881,5 @@ try {
   }
   await noScript.close();
   assert.deepEqual(errors, [], 'ページ例外・コンソールエラーなし');
-  console.log(`compression-pages-browser (${engine}): dr51保持、固定長54bit→可変長38bitと約70%の手動開示、上下ワイプ・木の固定座標、符号表による符号化/復元、自動結合・結合解除・葉の固定位置・10例・誤結合の最終判定・枝反転の別解・後続再判定・式と途中計算、完成状態と初期状態の3幅×3テーマ×3文字サイズ、タッチ・キーボード・JavaScript無効を検証`);
+  console.log(`compression-pages-browser (${engine}): dr51保持、等幅54/38bitの帯と5文字の連動比較・小計・約70%、枝と親の順次表示・木の固定座標、符号表による符号化/復元、自動結合・結合解除・葉の固定位置・10例・誤結合の最終判定・枝反転の別解・後続再判定・式と途中計算、完成状態と初期状態の3幅×3テーマ×3文字サイズ、タッチ・キーボード・JavaScript無効を検証`);
 } finally { await browser.close(); }

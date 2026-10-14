@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <link rel="stylesheet" href="./css/compression-quiz.css?v=20261013-dr52">
   <link rel="stylesheet" href="./css/compression-practice.css?v=20261013-dr52-r2">
-  <link rel="stylesheet" href="./css/compression-frequency.css?v=20261013-dr52">
+  <link rel="stylesheet" href="./css/compression-frequency.css?v=20261014-dr52">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/compression-core.js?v=20261013-dr52"></script>
   <script defer src="./js/lesson-formula-core.js"></script>
@@ -21,7 +21,7 @@
   <script defer src="./js/compression-formulas.js?v=20261013-dr52"></script>
   <script defer src="./js/compression-lessons.js?v=20261013-dr52-r2"></script>
   <script defer src="./js/compression-practice.js?v=20261013-dr52-r2"></script>
-  <script defer src="./js/compression-frequency.js?v=20261013-dr52"></script>
+  <script defer src="./js/compression-frequency.js?v=20261014-dr52"></script>
   <script defer src="./js/compression-quiz.js?v=20261013-dr52"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -29,63 +29,63 @@
   <section data-lesson-slide data-lesson-slide-title="固定長と可変長の符号">
     <article>
       <h2 id="headline_1">(1) 固定長と可変長の符号</h2>
-      <div class="cp-widget cp-frequency-assignment" data-cp-frequency-stepper data-cp-frequency-step="0">
+      <div class="cp-widget cp-frequency-comparison" data-cp-frequency-comparison>
         <h3>元の文字列</h3>
         <p class="cp-frequency-assignment__source" data-cp-frequency-source aria-label="元の文字列。AからEまで5種類、18文字">DAEBCBACBBBCDAAABB</p>
-        <p>文字ごとの出現回数を<strong>頻度</strong>といいます。<strong>固定長符号</strong>は、どの文字も同じbit数で表す符号です。<strong>可変長符号</strong>は、文字によって符号の長さが異なります。ハフマン符号化では、頻度が高い文字に短い符号を割り当てます。</p>
-        <p class="cp-frequency-assignment__hint">A〜Eの5種類、18文字です。表1では先頭6文字を抜粋して符号を比べ、表2では文字ごとの頻度と符号の長さを確かめます。</p>
+        <p>文字ごとの出現回数を<strong>頻度</strong>といいます。<strong>固定長符号</strong>は、どの文字も同じbit数で表します。A〜Eの5種類には2bitの4通りでは足りないため、この例では<strong>3bit</strong>を割り当てます。<strong>可変長符号</strong>は文字によって長さが異なり、ハフマン符号化では頻度が高い文字に短い符号を割り当てます。</p>
 
-        <div class="cp-frequency-toolbar" data-cp-frequency-toolbar hidden>
-          <div class="cp-frequency-assignment__controls" data-cp-frequency-controls data-lesson-slide-navigation-lock>
-            <button class="dr-button dr-button--primary" type="button" data-cp-frequency-next>次へ</button>
-            <button class="dr-button" type="button" data-cp-frequency-restart>最初から</button>
-          </div>
-          <p class="cp-frequency-assignment__status" data-cp-frequency-status role="status" aria-live="polite">全内容は下の説明に示しています。JavaScriptを有効にすると「次へ」で順に表示できます。</p>
+        <div class="cp-frequency-selection" data-cp-frequency-controls data-lesson-slide-navigation-lock hidden role="group" aria-label="符号を比較する文字">
+          <span>注目する文字</span>
+          <button class="dr-button" type="button" data-cp-frequency-select="A" aria-pressed="false" aria-label="A、5回。Aの符号を比較">A・5回</button>
+          <button class="dr-button" type="button" data-cp-frequency-select="B" aria-pressed="true" aria-label="B、7回。Bの符号を比較">B・7回</button>
+          <button class="dr-button" type="button" data-cp-frequency-select="C" aria-pressed="false" aria-label="C、3回。Cの符号を比較">C・3回</button>
+          <button class="dr-button" type="button" data-cp-frequency-select="D" aria-pressed="false" aria-label="D、2回。Dの符号を比較">D・2回</button>
+          <button class="dr-button" type="button" data-cp-frequency-select="E" aria-pressed="false" aria-label="E、1回。Eの符号を比較">E・1回</button>
         </div>
 
-        <div data-cp-frequency-fallback>
-          <section class="cp-frequency-stage"><h4>表1　文字列と符号</h4><p>先頭6文字の抜粋：元の文字 D・A・E・B・C・B。5種類を2bitで表すと4通りまでなので足りず、3bitを使います。固定長符号は100・001・101・010・011・010、18文字×3bit＝54bitです。</p><p>頻度が多い文字ほど短いbitを割り当てます。可変長符号は1110・10・1111・0・110・0、合計38bitです。</p></section>
-          <section class="cp-frequency-stage"><h4>表2　頻度と可変長符号</h4><p>A・B・C・D・Eの頻度は5回・7回・3回・2回・1回（合計18回）。可変長符号は10・0・110・1110・1111。符号のbit数は2bit・1bit・3bit・4bit・4bit、頻度を掛けたbit数は10bit・7bit・9bit・8bit・4bit（合計38bit）です。</p></section>
-          <section class="cp-frequency-stage"><h4>圧縮率</h4><p>圧縮後のbit数を圧縮前のbit数で割ります。38÷54×100＝70.37…%。小数第1位を四捨五入し約70%です。符号表などの付加情報は含めません。</p></section>
-        </div>
-
-        <div class="cp-frequency-results" data-cp-frequency-results hidden>
-          <section class="cp-frequency-result-table">
-            <h4>表1　元の文字列と符号（先頭6文字の抜粋）</h4>
-            <div class="cp-table-scroll cp-frequency-assignment__table-wrap" tabindex="0" role="region" aria-label="先頭6文字と固定長符号・可変長符号の表。表内を横にスクロールできます">
-              <table class="cp-frequency-assignment__table cp-frequency-string-table">
-                <caption>固定長は各3bit。可変長は頻度が多い文字ほど短い符号を割り当てます。</caption>
-                <thead><tr><th scope="col">元の文字</th><th scope="col" data-cp-frequency-character data-cp-frequency-column="D">D</th><th scope="col" data-cp-frequency-character data-cp-frequency-column="A">A</th><th scope="col" data-cp-frequency-character data-cp-frequency-column="E">E</th><th scope="col" data-cp-frequency-character data-cp-frequency-column="B">B</th><th scope="col" data-cp-frequency-character data-cp-frequency-column="C">C</th><th scope="col" data-cp-frequency-character data-cp-frequency-column="B">B</th><th scope="col">…</th><th scope="col">合計</th></tr></thead>
-                <tbody>
-                  <tr><th scope="row">固定長符号</th><td data-cp-frequency-fixed-code> </td><td data-cp-frequency-fixed-code> </td><td data-cp-frequency-fixed-code> </td><td data-cp-frequency-fixed-code> </td><td data-cp-frequency-fixed-code> </td><td data-cp-frequency-fixed-code> </td><td>…</td><td data-cp-frequency-fixed-total></td></tr>
-                  <tr><th scope="row">可変長符号</th><td data-cp-frequency-variable-code> </td><td data-cp-frequency-variable-code> </td><td data-cp-frequency-variable-code> </td><td data-cp-frequency-variable-code> </td><td data-cp-frequency-variable-code> </td><td data-cp-frequency-variable-code> </td><td>…</td><td data-cp-frequency-variable-total></td></tr>
-                </tbody>
-              </table>
+        <figure class="cp-frequency-bands">
+          <div class="cp-frequency-bands__scroll" tabindex="0" data-lesson-slide-navigation-lock role="region" aria-label="同じ文字列の固定長と可変長の符号。2段を一緒に横スクロールできます">
+            <div class="cp-frequency-bands__canvas">
+              <section class="cp-frequency-lane">
+                <h4><span>固定長符号：1文字3bit</span><strong data-cp-frequency-fixed-total>54bit</strong></h4>
+                <div class="cp-frequency-bit-track" data-cp-frequency-fixed-bits><p class="cp-frequency-bits-fallback">100 001 101 010 011 010 001 011 010 010 010 011 100 001 001 001 010 010</p></div>
+              </section>
+              <section class="cp-frequency-lane">
+                <h4><span>可変長符号：1文字1〜4bit</span><strong data-cp-frequency-variable-total>38bit</strong></h4>
+                <div class="cp-frequency-bit-track" data-cp-frequency-variable-bits><p class="cp-frequency-bits-fallback">1110 10 1111 0 110 0 10 110 0 0 0 110 1110 10 10 10 0 0</p></div>
+              </section>
             </div>
-          </section>
+          </div>
+          <figcaption class="cp-frequency-assignment__hint" data-cp-frequency-band-legend hidden>1マス＝1bit。両方の帯は1bitの幅を同じにしています。文字を選んで、対応する符号の長さを比べましょう。</figcaption>
+        </figure>
 
+        <div class="cp-frequency-summary" data-cp-frequency-summary role="status" aria-live="polite" hidden>
+          <p><strong data-cp-frequency-selected>B・7回</strong>の符号を比較</p>
+          <div class="cp-frequency-summary__values">
+            <p>固定長：<code data-cp-frequency-selected-fixed>010</code><br><span data-cp-frequency-selected-fixed-total>7回×3bit＝21bit</span></p>
+            <p>可変長：<code data-cp-frequency-selected-variable>0</code><br><span data-cp-frequency-selected-variable-total>7回×1bit＝7bit</span></p>
+          </div>
+          <p class="cp-frequency-assignment__hint" data-cp-frequency-change>Bが使うbit数は14bit少なくなります。</p>
+        </div>
+
+        <div class="cp-frequency-results" data-cp-frequency-results>
           <section class="cp-frequency-result-table">
-            <h4>表2　文字ごとの頻度と可変長符号</h4>
-            <div class="cp-table-scroll cp-frequency-assignment__table-wrap" tabindex="0" role="region" aria-label="文字ごとの頻度、可変長符号、bit数と合計の表。表内を横にスクロールできます">
+            <h4>文字ごとの頻度と可変長符号</h4>
+            <div class="cp-table-scroll cp-frequency-assignment__table-wrap" tabindex="0" data-lesson-slide-navigation-lock role="region" aria-label="文字ごとの頻度、可変長符号、bit数と合計の表。表内を横にスクロールできます">
               <table class="cp-frequency-assignment__table cp-frequency-symbol-table">
                 <caption>可変長符号のbit数×頻度で、圧縮後の合計bit数を求めます。</caption>
                 <thead><tr><th scope="col">文字</th><th scope="col" data-cp-frequency-column="A">A</th><th scope="col" data-cp-frequency-column="B">B</th><th scope="col" data-cp-frequency-column="C">C</th><th scope="col" data-cp-frequency-column="D">D</th><th scope="col" data-cp-frequency-column="E">E</th><th scope="col">合計</th></tr></thead>
                 <tbody>
-                  <tr><th scope="row">頻度</th><td data-cp-frequency-count="A"></td><td data-cp-frequency-count="B"></td><td data-cp-frequency-count="C"></td><td data-cp-frequency-count="D"></td><td data-cp-frequency-count="E"></td><td data-cp-frequency-frequency-total></td></tr>
-                  <tr><th scope="row">可変長符号</th><td data-cp-frequency-code="A"></td><td data-cp-frequency-code="B"></td><td data-cp-frequency-code="C"></td><td data-cp-frequency-code="D"></td><td data-cp-frequency-code="E"></td><td>－</td></tr>
-                  <tr><th scope="row">可変長符号のbit数</th><td data-cp-frequency-length="A"></td><td data-cp-frequency-length="B"></td><td data-cp-frequency-length="C"></td><td data-cp-frequency-length="D"></td><td data-cp-frequency-length="E"></td><td>－</td></tr>
-                  <tr><th scope="row">計</th><td data-cp-frequency-contribution="A"></td><td data-cp-frequency-contribution="B"></td><td data-cp-frequency-contribution="C"></td><td data-cp-frequency-contribution="D"></td><td data-cp-frequency-contribution="E"></td><td data-cp-frequency-contribution-total></td></tr>
+                  <tr><th scope="row">頻度</th><td data-cp-frequency-count="A" data-cp-frequency-column="A">5回</td><td data-cp-frequency-count="B" data-cp-frequency-column="B">7回</td><td data-cp-frequency-count="C" data-cp-frequency-column="C">3回</td><td data-cp-frequency-count="D" data-cp-frequency-column="D">2回</td><td data-cp-frequency-count="E" data-cp-frequency-column="E">1回</td><td data-cp-frequency-frequency-total>18回</td></tr>
+                  <tr><th scope="row">可変長符号</th><td data-cp-frequency-code="A" data-cp-frequency-column="A">10</td><td data-cp-frequency-code="B" data-cp-frequency-column="B">0</td><td data-cp-frequency-code="C" data-cp-frequency-column="C">110</td><td data-cp-frequency-code="D" data-cp-frequency-column="D">1110</td><td data-cp-frequency-code="E" data-cp-frequency-column="E">1111</td><td>－</td></tr>
+                  <tr><th scope="row">可変長符号のbit数</th><td data-cp-frequency-length="A" data-cp-frequency-column="A">2bit</td><td data-cp-frequency-length="B" data-cp-frequency-column="B">1bit</td><td data-cp-frequency-length="C" data-cp-frequency-column="C">3bit</td><td data-cp-frequency-length="D" data-cp-frequency-column="D">4bit</td><td data-cp-frequency-length="E" data-cp-frequency-column="E">4bit</td><td>－</td></tr>
+                  <tr><th scope="row">計</th><td data-cp-frequency-contribution="A" data-cp-frequency-column="A">10bit</td><td data-cp-frequency-contribution="B" data-cp-frequency-column="B">7bit</td><td data-cp-frequency-contribution="C" data-cp-frequency-column="C">9bit</td><td data-cp-frequency-contribution="D" data-cp-frequency-column="D">8bit</td><td data-cp-frequency-contribution="E" data-cp-frequency-column="E">4bit</td><td data-cp-frequency-contribution-total>38bit</td></tr>
                 </tbody>
               </table>
             </div>
           </section>
-
-          <div class="cp-frequency-streams" aria-label="元の文字列を固定長と可変長で符号化した結果">
-            <section class="cp-frequency-stage cp-frequency-stream" data-cp-frequency-fixed-stream-panel hidden><h4>固定長：18文字を符号化</h4><p class="cp-frequency-assignment__bits" data-cp-frequency-fixed-bits aria-label="固定長符号へ置き換えた54bit"></p><p>18文字を各3bitで表すため54bitです。</p></section>
-            <section class="cp-frequency-stage cp-frequency-stream" data-cp-frequency-variable-stream-panel hidden><h4>可変長：18文字を符号化</h4><p class="cp-frequency-assignment__bits" data-cp-frequency-variable-bits aria-label="可変長符号で置き換えた38bit"></p><p>空白は文字ごとの境目を見やすくする表示で、bit列に含みません。</p></section>
-          </div>
-          <section class="cp-frequency-stage cp-frequency-ratio" data-cp-frequency-ratio hidden><h4>圧縮率</h4><div class="cp-frequency-fraction" aria-label="38割る54"><span>38</span><span>54</span></div><p>× 100</p></section>
-          <p class="cp-frequency-stage cp-frequency-answer" data-cp-frequency-answer hidden><strong>38 ÷ 54 × 100 ＝ 70.37…%</strong><br>小数第1位を四捨五入して、約<strong>70%</strong>です。</p>
+          <p class="cp-frequency-calculation">固定長は<strong>18文字×3bit＝54bit</strong>。可変長は、文字ごとの「頻度×符号のbit数」の合計で<strong>38bit</strong>です。</p>
+          <p class="cp-frequency-calculation" data-cp-frequency-answer>圧縮率：<strong>38 ÷ 54 × 100 ＝ 70.37…% ≒ 70%</strong>（小数第1位を四捨五入）</p>
           <p class="cp-frequency-assignment__hint">符号表などの付加情報は、ここで比べるデータ量に含めません。</p>
         </div>
       </div>
