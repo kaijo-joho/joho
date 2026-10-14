@@ -62,7 +62,7 @@ export class CloudPanel {
     $('formal-query').disabled=this.working||!enabled;
     $('formal-resume').disabled=this.working||!enabled;
     if(!this.connected)$('cloud-account').textContent ||= cloudConfig.enabled?'未接続':'接続前・本番設定待ち';
-    $('cloud-save-status').textContent=q&&this.cloud?.bases.has(questionKey(q))?'GSS下書きの更新番号を保持':'GSS下書きは別途保存';
+    $('cloud-save-status').textContent=this.connected?'GSSへの保存・復元は「ファイル」メニューから行います。':'GSS下書きは別途保存';
     const state=q&&this.states.get(questionKey(q)), receipt=state?.receipt;
     let pending;
     try{pending=q&&this.cloud?.journal.pending({...q,assignmentId:policy?.assignmentId},'submit');}catch(e){$('formal-status').textContent=e.message;return;}
