@@ -402,7 +402,8 @@
 
   function renderTree(container, forest, {
     active = '', hideCounts = false, hideBits = false, visibleBits = [], reservedDepth = 0, layoutRoot = null,
-    selectable = [], selected = [], onSelect = null, newParent = '', tracing = '', leafOrder = [], positionCache = null
+    selectable = [], selected = [], onSelect = null, newParent = '', tracing = '', leafOrder = [], positionCache = null,
+    symbolsOnly = false, description = ''
   } = {}) {
     if (!container) return;
     const roots = [...forest].sort((a, b) => a.prefix.localeCompare(b.prefix) || a.id.localeCompare(b.id));
@@ -452,7 +453,7 @@
     const visibleBitDescription = hideBits && visibleBits.length
       ? `表示した枝：${visibleBits.map(prefix => `根から${prefix.split('').join('→')}までの最後の枝は${prefix.slice(-1)}`).join('。')}。`
       : '';
-    svg.append(svgElement('desc', { id: `${uid}-desc` }, `${roots.length}個の木。${descriptions.join('。')}。${hideBits && !visibleBits.length ? '枝の符号はまだ表示していません。' : visibleBitDescription}${interactive ? '結合していない根の丸を2つ選びます。Enterキーまたはスペースキーでも選べます。' : ''}`));
+    svg.append(svgElement('desc', { id: `${uid}-desc` }, description || `${roots.length}個の木。${descriptions.join('。')}。${hideBits && !visibleBits.length ? '枝の符号はまだ表示していません。' : visibleBitDescription}${interactive ? '結合していない根の丸を2つ選びます。Enterキーまたはスペースキーでも選べます。' : ''}`));
     const edges = svgElement('g', { 'data-cp-tree-edges': '' });
     const nodes = svgElement('g', { 'data-cp-tree-nodes': '' });
     const symbols = node => node.symbol || `${[...node.id.slice('node:'.length)].join('・')}（結合済み）`;
@@ -486,8 +487,10 @@
         x: p.x - 34, y: p.y - 34, width: 68, height: 68,
         fill: 'transparent', 'aria-hidden': 'true', 'data-cp-hit-area': node.id
       }));
-      group.append(svgElement('circle', { cx: p.x, cy: p.y, r: 24 }));
-      group.append(svgElement('text', { x: p.x, y: p.y }, hideCounts ? '?' : node.count));
+      if (!symbolsOnly) {
+        group.append(svgElement('circle', { cx: p.x, cy: p.y, r: 24 }));
+        group.append(svgElement('text', { x: p.x, y: p.y }, hideCounts ? '?' : node.count));
+      }
       if (node.symbol !== undefined) group.append(svgElement('text', { x: p.x, y: p.y + 42, class: 'cp-leaf' }, node.symbol));
       if (canSelect) {
         group.setAttribute('role', 'button'); group.setAttribute('tabindex', '0');
@@ -559,8 +562,9 @@
       cancelAnimation();
       const fixture = preset ? Core.HUFFMAN_PRACTICE[Number(preset.value)] : Core.HUFFMAN_EXAMPLE;
       const tree = Core.huffmanFromCodes(fixture.frequencies, fixture.codes);
+      const letterOrder = Object.keys(fixture.frequencies).sort((a, b) => fixture.frequencies[b] - fixture.frequencies[a] || a.localeCompare(b));
       const branchGroups = internalNodes(tree.root);
-      const joinEnd = 1 + tree.steps.length;
+      const joinEnd = 2 + tree.steps.length;
       const bitStart = joinEnd + 1;
       const codeStart = bitStart + branchGroups.length;
       const finalStep = codeStart + Object.keys(fixture.codes).length - 1;
@@ -573,41 +577,49 @@
       let currentSymbol = '';
 
       if (step === 0) {
-        statusText = '「次へ」で文字の葉を置きます。';
+        statusText = '前ページの例で、頻度の大きい順に文字を並べます。';
       } else if (step === 1) {
         forest = tree.leaves;
-        statusText = '頻度の小さい2つを選び、順に結合します。';
+        statusText = '各文字の上に頻度を〇で囲んで示します。';
+      } else if (step === 2) {
+        forest = tree.leaves;
+        statusText = '頻度の小さい２つを選び結合します。';
       } else if (step <= joinEnd) {
-        const joinIndex = step - 2;
+        const joinIndex = step - 3;
         const joined = tree.steps[joinIndex];
         forest = joined.forest;
         active = joined.parent.id;
         newParent = joined.parent.id;
         statusText = `${describe(joined.zero)}（${joined.zero.count}）と${describe(joined.one)}（${joined.one.count}）を結合し、${joined.parent.count}にします。`;
-        if (step === joinEnd) statusText += ' 木ができたら、枝に0と1を付けます。';
+        if (step === joinEnd) statusText += ' すべてがつながり、ハフマン木が完成しました。次に、左へつながる線に0、右へつながる線に1を付けます。';
+        else statusText += '次に、頻度の小さい２つを選び結合します。';
       } else if (step < codeStart) {
         forest = [tree.root];
         const groupIndex = step - bitStart;
         visibleBits = branchGroups.slice(0, groupIndex + 1).flatMap(node => [node.zero.prefix, node.one.prefix]);
         tracing = [branchGroups[groupIndex].zero.prefix, branchGroups[groupIndex].one.prefix];
         active = branchGroups[groupIndex].prefix || 'root';
-        statusText = `${branchGroups[groupIndex].prefix ? `節点${branchGroups[groupIndex].prefix.split('').join(' → ')}から` : '根から'}、左の枝を0、右の枝を1として表示します。`;
-        if (step === codeStart - 1) statusText += ' 枝の符号がそろいました。次に文字ごとの経路を読みます。';
+        statusText = `${branchGroups[groupIndex].count}の丸から、左へつながる線を0、右へつながる線を1として表示します。`;
+        if (step === codeStart - 1) statusText += ' すべての線に0と1が付きました。次に、いちばん上から各文字までの線をたどって読み取ります。';
       } else {
         forest = [tree.root];
         visibleBits = branchGroups.flatMap(node => [node.zero.prefix, node.one.prefix]);
         const symbolIndex = step - codeStart;
         currentSymbol = Object.keys(fixture.codes)[symbolIndex];
-        statusText = `${currentSymbol}まで根から枝をたどります。符号は${fixture.codes[currentSymbol]}です。`;
+        statusText = `いちばん上から${currentSymbol}まで線をたどると、${fixture.codes[currentSymbol].split('').join('→')}となります。符号は${fixture.codes[currentSymbol]}です。`;
         if (step === finalStep) statusText += ' 符号表が完成しました。';
       }
 
       // Code tracing reuses the completed tree. Its circles and grey branches remain
       // underneath a separate red overlay instead of being replaced or wiped away.
       const reuseDiagram = currentSymbol && diagramFixture === fixture && diagramStep >= codeStart - 1;
+      const diagramDescription = step === 0 ? '文字と頻度はまだ表示していません。'
+        : step === 1 ? `文字は左から${letterOrder.join('・')}の順です。頻度はまだ表示していません。`
+        : `${letterOrder.map(symbol => `${symbol}：${fixture.frequencies[symbol]}回`).join('。')}。文字の上に頻度を丸で囲んで示し、結合した合計を上の丸に書きます。${visibleBits.length ? '線に付けた0と1を、いちばん上から各文字まで順に読み取ります。' : '線の0と1はまだ表示していません。'}`;
       if (!reuseDiagram) renderTree(treeView, forest, {
         layoutRoot: tree.root, reservedDepth: 4, hideBits: true,
-        visibleBits, active, newParent: animate ? newParent : '', tracing
+        visibleBits, active, newParent: animate ? newParent : '', tracing,
+        leafOrder: letterOrder, symbolsOnly: step === 1, description: diagramDescription
       });
       diagramFixture = fixture;
       diagramStep = step;
@@ -620,6 +632,10 @@
         const symbol = row.dataset.cpBuildRow;
         const symbolIndex = Object.keys(fixture.codes).indexOf(symbol);
         const codeCell = one(row, '[data-cp-build-code]');
+        const symbolCell = one(row, '[data-cp-build-symbol]');
+        const countCell = one(row, '[data-cp-build-count]');
+        if (symbolCell) symbolCell.textContent = step >= 1 ? symbol : '';
+        if (countCell) countCell.textContent = step >= 2 ? fixture.frequencies[symbol] : '';
         const revealed = step >= codeStart + symbolIndex && !(waiting && symbol === currentSymbol);
         codeCell.textContent = revealed ? fixture.codes[symbol] : '';
         row.classList.toggle('is-current', !waiting && symbol === currentSymbol);
@@ -667,7 +683,7 @@
       };
       root.dataset.cpBuildStep = String(step);
       root.dataset.cpBuildAnimating = String(waiting);
-      status.textContent = waiting && currentSymbol ? `${currentSymbol}までの経路を根からたどっています。` : statusText;
+      status.textContent = waiting && currentSymbol ? `いちばん上から${currentSymbol}までの線をたどっています。` : statusText;
       next.disabled = waiting || step >= finalStep;
       previous.disabled = step === 0;
       if (waiting) {

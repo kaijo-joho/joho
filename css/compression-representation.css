@@ -79,13 +79,16 @@
 .cp-frequency-bar { height: 28px; width: var(--cp-bar); background: var(--dr-info); border-radius: 3px; }
 .cp-build-tree { min-height: 426px; }
 .cp-build-tree svg { min-height: 0; }
-.cp-build-workspace { display: grid; grid-template-areas: "explanation" "diagram" "codes"; gap: 10px; }
+.cp-build-workspace { display: grid; grid-template-areas: "explanation" "diagram" "codes" "reset"; gap: 14px; }
 .cp-build-workspace > * { min-width: 0; }
-.cp-build-explanation { grid-area: explanation; }
+.cp-build-explanation { grid-area: explanation; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px; }
+.cp-build-explanation .cp-controls { flex-wrap: nowrap; align-items: start; gap: 8px; margin: 0; }
 .cp-build-diagram { grid-area: diagram; }
 .cp-build-code-panel { grid-area: codes; }
+.cp-build-reset { grid-area: reset; margin: 0; }
 .cp-build-workspace h3 { margin-top: 0; }
-.cp-build-codes { width: min(100%, 32em); min-width: 0 !important; margin: 0; border-collapse: collapse; font: inherit; font-variant-numeric: tabular-nums; }
+.cp-build-codes { width: min(100%, 32em); min-width: 0 !important; margin: 0; border-collapse: collapse; table-layout: fixed; font: inherit; font-variant-numeric: tabular-nums; }
+.cp-build-codes :is([data-cp-build-symbol], [data-cp-build-count], [data-cp-build-code]):empty::before { content: "\00a0"; }
 .cp-build-codes th, .cp-build-codes td { padding: 7px 10px; border: 1px solid var(--dr-border); }
 .cp-build-codes th { background: var(--dr-info-soft); text-align: left; }
 .cp-build-codes td { background: var(--dr-panel-strong); }
@@ -102,7 +105,7 @@
 .cp-tree .cp-path-nodes { opacity: 0; pointer-events: none; }
 .cp-tree .cp-path-nodes.is-complete { opacity: 1; }
 .cp-tree .is-path-label { fill: var(--cp-path-color); }
-.cp-build-status { box-sizing: border-box; height: 5em; margin: 10px 0; padding: 8px 10px; overflow: auto; border-left: 3px solid var(--dr-info); background: var(--dr-info-soft); overflow-wrap: anywhere; }
+.cp-build-status { box-sizing: border-box; height: 5em; margin: 0; padding: 8px 10px; overflow: auto; border-left: 3px solid var(--dr-info); background: var(--dr-info-soft); overflow-wrap: anywhere; }
 .cp-codec-widget [data-cp-codec-form] { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px 12px; }
 .cp-codec-widget [data-cp-codec-form] label { grid-column: 1 / -1; }
 .cp-codec-widget [data-cp-codec-input] { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; }
@@ -134,8 +137,11 @@
 }
 
 @media (min-width: 1000px) {
-  .cp-build-workspace { grid-template-columns: minmax(0, 1.8fr) minmax(17em, 1fr); grid-template-areas: "diagram explanation" "diagram codes"; grid-template-rows: auto 1fr; gap: 10px 20px; align-items: start; }
-  .cp-build-explanation .cp-controls { margin-top: 0; }
+  .cp-build-workspace { grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); grid-template-areas: "explanation explanation" "diagram codes" "reset reset"; gap: 14px 20px; align-items: start; }
+}
+@media (max-width: 600px) {
+  .cp-build-explanation { grid-template-columns: minmax(0, 1fr); }
+  .cp-build-explanation .cp-controls { justify-content: end; }
 }
 @keyframes cp-tree-label-reveal { from { opacity: 0; } to { opacity: 1; } }
 .cp-widget ol > li { margin: 12px 0; }

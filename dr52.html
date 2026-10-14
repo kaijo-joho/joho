@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
-  <link rel="stylesheet" href="./css/compression-representation.css?v=20261013-dr52-r2">
+  <link rel="stylesheet" href="./css/compression-representation.css?v=20261014-dr52-build">
   <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <link rel="stylesheet" href="./css/compression-quiz.css?v=20261013-dr52">
   <link rel="stylesheet" href="./css/compression-practice.css?v=20261013-dr52-r2">
@@ -19,7 +19,7 @@
   <script defer src="./js/lesson-formula-builder.js"></script>
   <script defer src="./js/compression-practice-core.js?v=20261013-dr52"></script>
   <script defer src="./js/compression-formulas.js?v=20261013-dr52"></script>
-  <script defer src="./js/compression-lessons.js?v=20261013-dr52-r2"></script>
+  <script defer src="./js/compression-lessons.js?v=20261014-dr52-build"></script>
   <script defer src="./js/compression-practice.js?v=20261013-dr52-r2"></script>
   <script defer src="./js/compression-frequency.js?v=20261014-dr52-hover"></script>
   <script defer src="./js/compression-quiz.js?v=20261013-dr52"></script>
@@ -80,45 +80,46 @@
   <section data-lesson-slide data-lesson-slide-title="ハフマン木を作る">
     <article>
       <h2 id="headline_2">(2) ハフマン木を作る</h2>
-      <p>頻度の小さい2つの節点を結合し、その合計を新しい節点の頻度にします。1つの根になるまで繰り返し、最後に根から葉までの枝をたどって符号を読み取ります。</p>
+      <p>頻度の小さい2つを結合し、合計を新しい丸の中に書きます。すべてがつながるまで繰り返し、いちばん上から各文字へつながる線をたどって符号を読み取ります。</p>
       <div class="cp-widget" data-cp-huffman-build="example" data-cp-build-step="0" data-lesson-slide-navigation-lock>
-        <p class="cp-hint">例の文字列の頻度（B=7、A=5、C=3、D=2、E=1）を使います。「次へ」を1回押すごとに、葉の表示・1回の結合・枝への0/1の追加・符号の確認が進みます。</p>
         <div class="cp-build-workspace">
           <div class="cp-build-explanation">
+            <p class="cp-build-status" data-cp-build-status role="status" aria-live="polite">前ページの例で、頻度の大きい順に文字を並べます。</p>
             <div class="cp-controls cp-enhancement" data-cp-build-controls hidden>
               <button class="dr-button" type="button" data-cp-build-prev disabled>前へ</button>
-              <button class="dr-button" type="button" data-cp-build-reset>最初から</button>
               <button class="dr-button dr-button--primary" type="button" data-cp-build-next>次へ</button>
             </div>
-            <p class="cp-build-status" data-cp-build-status role="status" aria-live="polite">最初の葉を置きます。</p>
           </div>
           <div class="cp-build-diagram">
             <h3>ハフマン木</h3>
-            <div class="cp-tree cp-build-tree" data-cp-tree tabindex="0" role="region" aria-label="結合した節点と枝の符号を確認するハフマン木">
-              <p>「次へ」で文字の葉を置きます。</p>
+            <div class="cp-tree cp-build-tree" data-cp-tree tabindex="0" role="region" aria-label="文字・頻度の丸・線の符号を確認するハフマン木">
+              <p>文字をB・A・C・D・Eの順に並べ、上に頻度の丸を書いて結合します。</p>
             </div>
           </div>
           <div class="cp-build-code-panel">
-            <h3>文字ごとの符号</h3>
+            <h3>文字・頻度・符号</h3>
             <div class="cp-table-scroll" tabindex="0" role="region" aria-label="文字ごとの頻度と符号">
               <table class="cp-build-codes" data-cp-build-code-table>
-                <caption>根から各文字まで枝をたどった符号</caption>
+                <caption>いちばん上から各文字まで線をたどった符号</caption>
                 <thead><tr><th scope="col">文字</th><th scope="col">頻度</th><th scope="col">符号</th></tr></thead>
                 <tbody>
-                  <tr data-cp-build-row="A"><th scope="row">A</th><td>5</td><td data-cp-build-code>10</td></tr>
-                  <tr data-cp-build-row="B"><th scope="row">B</th><td>7</td><td data-cp-build-code>0</td></tr>
-                  <tr data-cp-build-row="C"><th scope="row">C</th><td>3</td><td data-cp-build-code>110</td></tr>
-                  <tr data-cp-build-row="D"><th scope="row">D</th><td>2</td><td data-cp-build-code>1110</td></tr>
-                  <tr data-cp-build-row="E"><th scope="row">E</th><td>1</td><td data-cp-build-code>1111</td></tr>
+                  <tr data-cp-build-row="A"><th scope="row" data-cp-build-symbol>A</th><td data-cp-build-count>5</td><td data-cp-build-code>10</td></tr>
+                  <tr data-cp-build-row="B"><th scope="row" data-cp-build-symbol>B</th><td data-cp-build-count>7</td><td data-cp-build-code>0</td></tr>
+                  <tr data-cp-build-row="C"><th scope="row" data-cp-build-symbol>C</th><td data-cp-build-count>3</td><td data-cp-build-code>110</td></tr>
+                  <tr data-cp-build-row="D"><th scope="row" data-cp-build-symbol>D</th><td data-cp-build-count>2</td><td data-cp-build-code>1110</td></tr>
+                  <tr data-cp-build-row="E"><th scope="row" data-cp-build-symbol>E</th><td data-cp-build-count>1</td><td data-cp-build-code>1111</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
+          <div class="cp-controls cp-build-reset cp-enhancement" hidden>
+            <button class="dr-button" type="button" data-cp-build-reset>最初から</button>
+          </div>
         </div>
-        <p class="cp-hint">同じ頻度の節点があると結合順が変わり、左右の枝の向きを入れ替えると符号も変わります。この例では上の木から符号を読み取ります。</p>
+        <p class="cp-hint">同じ頻度の丸があると結合順が変わり、線に付ける0と1を入れ替えると符号も変わります。この例では上の図から符号を読み取ります。</p>
         <noscript>
           <p>結合順：D(2)+E(1)=3、C(3)+DE(3)=6、A(5)+CDE(6)=11、B(7)+ACDE(11)=18。</p>
-          <p>完成した木では、根の左枝を0、右枝を1として、A=10、B=0、C=110、D=1110、E=1111と読みます。</p>
+          <p>完成した木では、左へつながる線を0、右へつながる線を1として、いちばん上からたどるとA=10、B=0、C=110、D=1110、E=1111と読みます。</p>
         </noscript>
       </div>
     </article>

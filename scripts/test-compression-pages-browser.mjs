@@ -435,10 +435,29 @@ try {
   await goSlide(2);
   const build = page.locator('[data-cp-huffman-build]');
   const buildNext = build.locator('[data-cp-build-next]');
-  const treeDimensions = () => build.locator('[data-cp-tree]').evaluate(e => ({ height: e.getBoundingClientRect().height, points: Array.from(e.querySelectorAll('[data-cp-node]'), n => [n.dataset.cpNode, n.querySelector('circle').getAttribute('cx'), n.querySelector('circle').getAttribute('cy')]) }));
+  const treeDimensions = () => build.locator('[data-cp-tree]').evaluate(e => ({ height: e.getBoundingClientRect().height, points: Array.from(e.querySelectorAll('[data-cp-node]')).filter(n => n.querySelector('circle')).map(n => [n.dataset.cpNode, n.querySelector('circle').getAttribute('cx'), n.querySelector('circle').getAttribute('cy')]) }));
   const emptyTree = await treeDimensions();
   assert.equal(emptyTree.points.length, 0, '最初は木の場所だけ確保');
+  await expect(build.locator('[data-cp-build-status]')).toHaveText('前ページの例で、頻度の大きい順に文字を並べます。');
+  assert((await build.locator('[data-cp-build-symbol], [data-cp-build-count], [data-cp-build-code]').allTextContents()).every(text => text === ''), '最初の表は文字・頻度・符号を未表示');
+  const layout = await build.evaluate(root => {
+    const rect = selector => { const r = root.querySelector(selector).getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom }; };
+    return { status: rect('[data-cp-build-status]'), controls: rect('[data-cp-build-controls]'), tree: rect('.cp-build-diagram'), table: rect('.cp-build-code-panel'), reset: rect('.cp-build-reset') };
+  });
+  assert(layout.status.right <= layout.controls.x && layout.status.y < layout.tree.y, '上段は説明の右に前へ・次へ');
+  assert(layout.tree.right <= layout.table.x && Math.abs(layout.tree.y - layout.table.y) < 1, '中段は木と表を左右へ並べる');
+  assert(layout.reset.y >= Math.max(layout.tree.bottom, layout.table.bottom), '最初からは木と表の下');
   await buildNext.click();
+  await expect(build.locator('[data-cp-build-status]')).toHaveText('各文字の上に頻度を〇で囲んで示します。');
+  assert.deepEqual(await build.locator('[data-cp-tree] .cp-leaf').allTextContents(), ['B', 'A', 'C', 'D', 'E'], '最初のクリックは頻度順の文字だけ');
+  await expect(build.locator('[data-cp-tree] circle')).toHaveCount(0);
+  assert((await build.locator('[data-cp-build-count]').allTextContents()).every(text => text === ''), '文字だけの段階では表にも頻度を出さない');
+  const letterPositions = await build.locator('[data-cp-tree] .cp-leaf').evaluateAll(items => items.map(e => [e.textContent, e.getAttribute('x'), e.getAttribute('y')]));
+  await buildNext.press('Enter');
+  await expect(build.locator('[data-cp-build-status]')).toHaveText('頻度の小さい２つを選び結合します。');
+  assert.deepEqual(await build.locator('[data-cp-tree] circle + text').allTextContents(), ['7', '5', '3', '2', '1'], '2回目に各文字の上へ頻度を丸で表示');
+  assert.deepEqual(await build.locator('[data-cp-tree] .cp-leaf').evaluateAll(items => items.map(e => [e.textContent, e.getAttribute('x'), e.getAttribute('y')])), letterPositions, '頻度を追加しても文字の位置は同じ');
+  assert.deepEqual(await build.locator('[data-cp-build-count]').allTextContents(), ['5', '7', '3', '2', '1'], '表の頻度も同じ段階で表示');
   const fixed = await treeDimensions();
   assert.equal(fixed.points.length, 5);
   assert.equal(fixed.height, emptyTree.height);
@@ -456,6 +475,9 @@ try {
     assert.equal(await delayedParent.evaluate(e => getComputedStyle(e).animationDelay), '0.4s', '枝のワイプのあとに親の丸を表示');
     await expect(build).toHaveAttribute('data-cp-build-animating', 'false');
     assert.equal(await build.locator('[data-cp-tree-nodes] > g').evaluateAll(nodes => nodes.every(e => Number(getComputedStyle(e).opacity) === 1)), true);
+    const explanation = await build.locator('[data-cp-build-status]').textContent();
+    assert(!/[根枝葉節点]/.test(explanation), '結合の説明は丸・線・文字で伝える');
+    assert(explanation.includes(i === 3 ? 'ハフマン木が完成しました' : '次に、頻度の小さい２つを選び結合します。'), '結合後は次に行う操作も説明');
   }
   for (let i = 0; i < 4; i++) {
     await buildNext.click();
@@ -487,13 +509,13 @@ try {
   await build.locator('[data-cp-build-reset]').click();
   await expect(build).toHaveAttribute('data-cp-build-step', '0');
   // Reset, slide changes and reduced motion settle/cancel only the current animation.
-  for (let i = 0; i < 9; i++) await buildNext.click();
+  for (let i = 0; i < 10; i++) await buildNext.click();
   await buildNext.click();
   await build.locator('[data-cp-build-reset]').click();
   await page.waitForTimeout(800);
   await expect(build).toHaveAttribute('data-cp-build-step', '0');
   await expect(build.locator('[data-cp-tree] circle')).toHaveCount(0);
-  for (let i = 0; i < 9; i++) await buildNext.click();
+  for (let i = 0; i < 10; i++) await buildNext.click();
   await buildNext.click(); await goSlide(3);
   await expect(build).toHaveAttribute('data-cp-build-animating', 'false');
   await goSlide(2);
@@ -503,7 +525,7 @@ try {
   await expect(build).toHaveAttribute('data-cp-build-animating', 'false');
   await build.locator('[data-cp-build-reset]').click();
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  for (let i = 0; i < 14; i++) await buildNext.click();
+  for (let i = 0; i < 15; i++) await buildNext.click();
   assert.equal(await build.locator('.cp-new-edge').evaluateAll(edges => edges.every(e => getComputedStyle(e).animationName === 'none')), true);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
 
@@ -923,5 +945,5 @@ try {
   }
   await noScript.close();
   assert.deepEqual(errors, [], 'ページ例外・コンソールエラーなし');
-  console.log(`compression-pages-browser (${engine}): dr51保持、dr52の54/38bit帯・文字色とホバー連動・表見出し操作・A〜E色分け・キーボード/タッチ解除・3幅×3テーマ×3文字サイズ・JavaScript無効時の静的表示、枝と親の順次表示・木の固定座標、符号化/復元、結合判定と式の途中計算を検証`);
+  console.log(`compression-pages-browser (${engine}): dr51保持、dr52の54/38bit帯・文字色とホバー連動・表見出し操作・A〜E色分け・キーボード/タッチ解除・3幅×3テーマ×3文字サイズ・JavaScript無効時の静的表示、説明と前後ボタン→木と表→最初からの配置・文字→頻度→結合・木の固定座標、符号化/復元、結合判定と式の途中計算を検証`);
 } finally { await browser.close(); }
