@@ -39,6 +39,9 @@
 .cp-quiz-table-area table { min-width: 30em; margin-top: 0; }
 .cp-quiz-table-area :is(th, td) { padding: 7px 8px; }
 .cp-quiz-table-area input[type="text"] { width: min(5em, 100%); min-width: 44px; }
+.cp-quiz-table-area .cp-staged-nav { margin: 12px 0 8px; }
+.cp-quiz-table-area .cp-feedback { min-height: 0; }
+.cp-quiz-table-hint { margin: 10px 0 0; font-size: .85em; }
 .cp-quiz-practice.cp-huffman-practice .cp-tree--interactive svg { min-width: 420px; }
 .cp-quiz-practice .cp-practice-selection { min-height: 0; }
 .cp-quiz-practice .cp-code-card { flex-basis: 66px; padding: 7px; }

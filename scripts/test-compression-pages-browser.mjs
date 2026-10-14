@@ -46,6 +46,62 @@ const goSlide = async n => {
 const load = async id => { await page.goto(new URL(`${id}.html`, base).href); await expect(page.locator('nav[aria-label="スライド間の移動"]')).toBeVisible(); };
 const field = (root, key) => root.locator(`[data-cp-huffman-field="${key}"]`);
 const clone = x => JSON.parse(JSON.stringify(x));
+const assertCodecLegend = async root => {
+  const layout = await root.evaluate(panel => {
+    const legend = panel.querySelector('.cp-codec-legend');
+    const box = legend.getBoundingClientRect();
+    const explanation = panel.querySelector('.cp-codec-explanation').getBoundingClientRect();
+    const band = panel.querySelector('.cp-codec-band').getBoundingClientRect();
+    return { width: box.width, limit: parseFloat(getComputedStyle(legend).fontSize) * 11, bottom: box.bottom, bandTop: band.top,
+      beside: getComputedStyle(panel.querySelector('.cp-codec-intro')).gridTemplateColumns.split(' ').length === 2,
+      legendLeft: box.left, explanationRight: explanation.right, scroll: legend.scrollWidth, client: legend.clientWidth };
+  });
+  assert(layout.width <= layout.limit + 1 && layout.scroll <= layout.client + 1, '対応表は小さい幅で文字を欠かさない');
+  assert(layout.bottom <= layout.bandTop + 1, '対応表をビット列より上へ置く');
+  if (layout.beside) assert(layout.explanationRight <= layout.legendLeft + 1, '対応表を説明の右へ置く');
+};
+const assertQuizNavigation = async (quiz, fixture) => {
+  const layout = await quiz.evaluate(root => {
+    const table = root.querySelector('.cp-quiz-table-area table');
+    const nav = root.querySelector('.cp-staged-nav');
+    const prompt = root.querySelector('[data-cp-quiz-codec-prompt]');
+    return { below: nav.getBoundingClientRect().top >= table.getBoundingClientRect().bottom,
+      controlsOutside: !nav.closest('table') && nav.parentElement.classList.contains('cp-quiz-table-area'),
+      submitBeside: root.querySelector('button[type="submit"]').closest('.cp-quiz-table-area') === nav.parentElement,
+      promptBeforeAnswers: prompt.nextElementSibling === root.querySelector('.cp-answer-fields') };
+  });
+  assert(layout.below && layout.controlsOutside && layout.submitBeside, '各判定と全体判定を合計行の下、表の外へ置く');
+  assert(layout.promptBeforeAnswers, '符号化・復元の問題文を回答欄の直前へ置く');
+  const hash = new URL(page.url()).hash;
+  await field(quiz, 'frequency:A').fill(String(fixture.frequencies.A));
+  for (const [key, target] of [
+    ['ArrowRight', 'code:A'], ['ArrowRight', 'length:A'], ['ArrowDown', 'length:B'],
+    ['ArrowLeft', 'code:B'], ['ArrowUp', 'code:A'], ['ArrowLeft', 'frequency:A'],
+    ['ArrowLeft', 'frequency:A'], ['ArrowUp', 'frequency:A']
+  ]) {
+    await page.keyboard.press(key);
+    await expect(field(quiz, target)).toBeFocused();
+  }
+  await expect(field(quiz, 'frequency:A')).toHaveValue(String(fixture.frequencies.A));
+  const selection = await field(quiz, 'frequency:A').evaluate(input => [input.selectionStart, input.selectionEnd]);
+  assert.deepEqual(selection, [0, String(fixture.frequencies.A).length], '移動したセルは値を保持して選択し、書き換えられる');
+  await page.keyboard.press('Shift+ArrowLeft');
+  await expect(field(quiz, 'frequency:A')).toBeFocused();
+  const last = Object.keys(fixture.frequencies).at(-1);
+  await field(quiz, `frequency:${last}`).focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(field(quiz, 'frequencyTotal')).toBeFocused();
+  await field(quiz, `bits:${last}`).focus();
+  for (const [key, target] of [['ArrowDown', 'bitsTotal'], ['ArrowLeft', 'frequencyTotal'], ['ArrowRight', 'bitsTotal'], ['ArrowRight', 'bitsTotal'], ['ArrowDown', 'bitsTotal']]) {
+    await page.keyboard.press(key);
+    await expect(field(quiz, target)).toBeFocused();
+  }
+  await field(quiz, `code:${last}`).focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(field(quiz, `code:${last}`)).toBeFocused();
+  assert.equal(new URL(page.url()).hash, hash, 'セル移動でスライドを変えない');
+  await field(quiz, 'frequency:A').fill('');
+};
 try {
   await load('dr51');
   await goSlide(1);
@@ -537,6 +593,7 @@ try {
   const decodedLetters = async () => (await decoder.locator('.cp-codec-restored').allTextContents()).join('');
   assert.equal(await page.locator('[data-cp-codec] [data-cp-tree]').count(), 0, '符号化/復元スライドは木を置かない');
   assert.equal(await encoder.locator('table [data-cp-codec-row]').count(), 5, '符号を表で提示');
+  await assertCodecLegend(encoder);
   const editCodec = async (host, text) => {
     if (await host.locator('[data-cp-codec-editor]').isHidden()) await host.locator('[data-cp-codec-edit]').click();
     await host.locator('[data-cp-codec-input]').fill(text);
@@ -750,6 +807,7 @@ try {
     const quiz = page.locator(`[data-cp-staged-huffman-quiz="${index}"]`);
     const fixture = await page.evaluate(index => window.CompressionCore.HUFFMAN_QUESTIONS[index], index);
     const treePractice = quiz.locator('[data-cp-quiz-practice]');
+    await assertQuizNavigation(quiz, fixture);
     await expect(quiz.locator('[role="tablist"]')).toHaveCount(0);
     await expect(quiz.locator('thead th:visible')).toHaveCount(5);
     for (const symbol of Object.keys(fixture.frequencies)) for (const kind of ['frequency', 'code', 'length', 'bits']) await expect(field(quiz, `${kind}:${symbol}`)).toBeVisible();
@@ -799,6 +857,7 @@ try {
     let total = 0;
     for (const [symbol, count] of Object.entries(fixture.frequencies)) { const bits = count * fixture.codes[symbol].length; total += bits; await field(quiz, `bits:${symbol}`).fill(String(bits)); }
     await field(quiz, 'bitsTotal').fill(String(total));
+    assert(await quiz.locator('[data-cp-quiz-codec-prompt]').evaluate(prompt => prompt.nextElementSibling.classList.contains('cp-answer-fields')), '式を表示しても問題文と回答欄を離さない');
     await expect(host).toHaveAttribute('data-formula-builder', 'true');
     await expect(host).toBeVisible();
     await expect(host.locator('[data-formula-task]')).toHaveCount(2);
@@ -948,6 +1007,7 @@ try {
         if (n === 3) {
           for (const mode of ['encode', 'decode']) {
             await page.getByRole('tab', { name: mode === 'encode' ? '符号化' : '復元', exact: true }).click();
+            await assertCodecLegend(page.locator(`[data-cp-codec="${mode}"]`));
             const metrics = await page.locator(`[data-cp-codec="${mode}"] .cp-codec-strip-scroll`).evaluate((scroll, mode) => {
               const cells = [...scroll.querySelectorAll(mode === 'encode' ? '[data-cp-codec-grid] td' : '.cp-codec-bit, .cp-codec-restored')];
               const widths = cells.map(cell => cell.getBoundingClientRect().width);

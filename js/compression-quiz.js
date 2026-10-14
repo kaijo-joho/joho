@@ -76,7 +76,6 @@
     panel.setAttribute('aria-labelledby', heading.id);
     const description = make('p', 'cp-staged-description');
     panel.append(heading, description);
-    root.insertBefore(nav, tableScroll);
     root.insertBefore(panel, tableScroll);
 
     stages.forEach((stage, stageIndex) => {
@@ -128,12 +127,41 @@
     const tableArea = make('div', 'cp-quiz-table-area');
     const source = make('p', 'cp-quiz-source');
     source.append(make('span', '', '元の文字列'), make('strong', '', one(root, '[data-cp-quiz-source]')?.textContent || fixture.text));
-    tableArea.append(source, tableScroll);
+    const tableHint = make('p', 'cp-hint cp-quiz-table-hint', '表の入力欄は ↑ ↓ ← → キーで移動できます。');
+    tableHint.id = `${panelId}-table-hint`;
+    all(table, 'input[data-cp-huffman-field]').forEach(input => {
+      input.setAttribute('aria-describedby', [input.getAttribute('aria-describedby'), tableHint.id].filter(Boolean).join(' '));
+    });
+    table.addEventListener('keydown', event => {
+      const steps = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+      const step = steps[event.key];
+      const input = event.target.closest?.('input[data-cp-huffman-field]');
+      if (!step || !input || event.isComposing || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return;
+      const cell = input.closest('td');
+      const row = cell?.parentElement;
+      if (!row || row.parentElement.tagName !== 'TBODY') return;
+      const rows = [...row.parentElement.rows];
+      let rowIndex = rows.indexOf(row);
+      let column = cell.cellIndex;
+      event.preventDefault();
+      event.stopPropagation();
+      while (true) {
+        rowIndex += step[0];
+        column += step[1];
+        if (rowIndex < 0 || rowIndex >= rows.length || column < 0 || column >= rows[rowIndex].cells.length) break;
+        const target = one(rows[rowIndex].cells[column], 'input[data-cp-huffman-field]:not([disabled])');
+        if (!target || target.hidden) continue;
+        target.focus();
+        target.select();
+        break;
+      }
+    });
+    tableArea.append(source, tableScroll, nav, submit.closest('.cp-controls'), feedback, tableHint);
     workspace.append(practiceRoot, tableArea);
     const codecPrompt = one(root, '[data-cp-quiz-codec-prompt]');
-    panel.append(workspace, answerCards);
+    panel.append(workspace);
     if (codecPrompt) panel.append(codecPrompt);
-    panel.append(submit.closest('.cp-controls'), feedback);
+    panel.append(answerCards);
     let practice = null;
     let syncingTree = false;
     let formulaHost = null;
@@ -308,7 +336,7 @@
       formulaHost.dataset.cpHuffmanFormula = String(index);
       const label = make('h5', '', '圧縮前のbit数と圧縮率を式で確かめる');
       formulaHost.append(label);
-      panel.insertBefore(formulaHost, answerCards);
+      panel.insertBefore(formulaHost, codecPrompt || answerCards);
     }
 
     function mountFormula() {

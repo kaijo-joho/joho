@@ -111,6 +111,14 @@
 .cp-codec-widget [data-cp-codec-input] { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; }
 .cp-codec-widget [data-cp-codec-controls] { display: flex; flex-wrap: wrap; gap: 8px; }
 .cp-codec-widget [data-cp-codec-controls] .dr-button { min-height: 44px; }
+.cp-codec-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 11em); align-items: start; gap: 12px 20px; }
+.cp-codec-intro > * { min-width: 0; }
+.cp-codec-explanation > h3 { margin-top: 0; }
+.cp-codec-legend { width: 100%; margin: 0; justify-self: end; }
+.cp-codec-legend .cp-codec-table { width: 100%; margin: 0; table-layout: fixed; font-size: .9em; }
+.cp-codec-legend .cp-codec-table caption { padding: 0 0 6px; font-size: .9em; }
+.cp-codec-legend .cp-codec-table :is(th, td) { padding: .25em .5em; }
+.cp-codec-legend .cp-codec-table th { width: 40%; }
 .cp-codec-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 12px; }
 .cp-codec-workspace > * { min-width: 0; }
 .cp-codec-result > h4:first-child { margin-top: 10px; }
@@ -147,6 +155,8 @@
   .cp-build-workspace { grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); grid-template-areas: "explanation explanation" "diagram codes" "reset reset"; gap: 14px 20px; align-items: start; }
 }
 @media (max-width: 600px) {
+  .cp-codec-intro { grid-template-columns: minmax(0, 1fr); }
+  .cp-codec-legend { width: min(100%, 11em); }
   .cp-codec-widget .cp-codec-correspondence th { position: static; }
   .cp-codec-bitstream__label { position: static; }
   .cp-build-explanation { grid-template-columns: minmax(0, 1fr); }
