@@ -2,7 +2,7 @@
 
 独立したエディタの試作。問題 → コード → 出力の縦並び、問題一覧・進捗、Python実行、停止・再実行、入力、エラー案内、グラフ、ブラウザ自動保存と復元を実装した。
 
-今年度のColab、旧grade、原本、教材サイトのリンクを継続する。正式採点・提出・GSS下書き保存・学校認証の本番接続は次の段階。教材への埋込み、リンクの追加・切替、公開は行っていない。
+今年度のColab、旧grade、原本、教材サイトのリンクを継続する。GSS下書き保存・正式採点/提出・学校認証ブリッジのソースと合成検証を追加した。本番GAS/GSSへの反映は未実施で、接続設定は無効。教材への埋込み、リンクの追加・切替、公開は行っていない。
 
 ## 起動
 
@@ -29,6 +29,8 @@ URLは`?set=<setId>&question=<questionId>&version=<version>`。将来の写経�
 - `editor.mjs` / `editor.css` / `index.html`: 縦並びの問題・コード・出力、選択、進捗、復元、表示。
 - `runner.mjs` / `worker.mjs` / `runtime.mjs`: PyodideのWorker実行、世代照合、停止、入力、ライブラリ準備、Colab互換処理。
 - `storage.mjs` / `core.mjs`: 問題・版ごとの保存、競合検知、形式・上限の検査。
+- `cloud.mjs` / `cloud-ui.mjs`: 学校アカウント接続、GSS保存/復元/競合、送信控え、正式提出と結果照会。
+- `scripts/pythoneditor-gas/`: gradeへ追加する専用8ファイル。版固定、GSSの追記保存、現行Python判定コードの独立コピー。配置・保存契約は[CLOUD.md](CLOUD.md)。
 - `prompt.mjs`: Markdown、ヒント、表、数式の表示。DOMPurifyでタグ・属性を限定し、外部画像・iframe・スクリプトを通さない。
 - `scripts/pythoneditor-master.mjs`: GSS読取データから生徒向け項目だけを取り出す。
 - `scripts/serve-pythoneditor.mjs`: ローカル確認用の配信。固定パス、同一origin、GET/HEADのみ。
@@ -56,15 +58,16 @@ NumPyとmatplotlibは必要時に取得する。グラフはAggでPNG化し、�
 
 復元前のローカルコードを控えへ保存する。別タブの保存内容が異なる場合も控えを残す。競合が発生したタブは自動保存を止め、現在のコードを保持する。容量不足・破損・保存拒否では成功表示しない。ファイル取込みは検証・確認後に反映し、別版のデータは破棄・変換せず元ファイルに残す。
 
-GSSのクラウド下書き・貸出機との同期は未接続。この段階で端末を移す場合は、任意のJSONファイル保存・取込みで確認できる。次段階の契約は[CONTRACT.md](CONTRACT.md)に整理した。
+GSSの下書きと貸出機からの復元、競合時の両内容保護、正式採点・提出・照会を実装した。本番未接続の間は任意のJSONファイル保存・取込みを使える。クラウド側の実装と反映前の確認は[CLOUD.md](CLOUD.md)、全体契約は[CONTRACT.md](CONTRACT.md)を参照する。
 
 ## 検証
 
 [全授業対応表](CURRICULUM.md)、[実装・検証の区分](VERIFICATION.md)を参照する。
 
 ```sh
-node tools/pythoneditor/tests/core.test.mjs
+node --test tools/pythoneditor/tests/*.test.mjs
 node scripts/test-pythoneditor-browser.mjs
+node scripts/test-pythoneditor-cloud-browser.mjs
 ```
 
 ブラウザ検証にはPlaywrightとChromeが必要。`NODE_PATH`で既存の依存パッケージを指定できる。`PYTHONEDITOR_ENGINE=webkit`でPlaywright WebKitを使用する。
@@ -91,4 +94,4 @@ Pyodideは試作で検証した固定版v314.0.7をjsDelivrから読み込む。
 
 同梱のライセンス・旧READMEだけは、本文を変えずにUTF-8・LFと末尾空白へ正規化した。取得原文のハッシュと文字コードもmanifestに併記する。Pythonライブラリ本体とフォントのバイトは原版のまま。
 
-変更は新規の`tools/pythoneditor/`と専用の4スクリプトだけ。隔離worktreeでコミットし、元の未コミット作業は保持する。復元は試作コミットのrevert、または新規ファイルだけの撤去で可能。ブラウザ保存は個別に保護し、既存教材・原本・GAS・GSS・リンクを巻き戻す操作を行わない。公開は別途確認する。
+変更は新規の`tools/pythoneditor/`と専用スクリプト/GAS追加パッケージだけ。隔離worktreeでコミットし、元の未コミット作業は保持する。復元は試作コミットのrevert、または新規ファイルだけの撤去で可能。ブラウザ保存・送信控えは個別に保護し、既存教材・原本・GAS・GSS・リンクを巻き戻す操作を行わない。本番反映・公開は別途確認する。

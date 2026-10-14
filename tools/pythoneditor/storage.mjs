@@ -33,6 +33,15 @@ export class DraftStore {
     this.storage.setItem(key, JSON.stringify({ entry, reason, at: new Date().toISOString() }));
   }
   resolveConflict(entry) { const saved=this.read(entry);this.blocked.delete(this.key(entry));return saved; }
+  prepareImport(entry,reason) {
+    const key=this.key(entry),raw=this.storage.getItem(key);
+    // 控えの保存に失敗した後も、次の自動保存で別タブの内容を消さない。
+    this.blocked.add(key);this.archive(entry,reason);
+    const latest=this.read(entry);
+    if(latest&&(latest.code!==entry.code||latest.stdin!==entry.stdin))this.archive(latest,'別タブからの保存内容');
+    if(this.storage.getItem(key)!==raw)throw new Error('控えの保存中に別タブが更新しました。両方の内容を確認して取り込み直してください。');
+    this.resolveConflict(entry);
+  }
   candidates(entry) {
     const items = [];
     for (const kind of ['auto', 'manual']) {

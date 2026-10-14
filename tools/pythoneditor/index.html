@@ -29,8 +29,10 @@
       <div class="menu-body">
         <button id="save-browser" type="button">ブラウザに保存</button>
         <button id="save-file" type="button">ファイルに保存…</button>
+        <button id="save-cloud" type="button" disabled>GSSに下書き保存</button>
         <hr><button id="restore-browser" type="button">ブラウザから開く…</button>
         <button id="open-file" type="button">ファイルから開く…</button>
+        <button id="open-cloud" type="button" disabled>GSSから開く…</button>
       </div>
     </details>
     <button id="list-toggle" type="button" aria-controls="question-nav" aria-expanded="true" aria-label="問題一覧の表示切替">☷</button>
@@ -74,18 +76,26 @@
         <details id="stderr-section" hidden><summary>標準エラー・ライブラリの警告</summary><pre id="stderr" tabindex="0"></pre></details>
         <pre id="error" class="error" tabindex="0" hidden></pre><p id="advice" class="advice" hidden></p><div id="figures"></div>
       </section>
-      <section class="formal-state" aria-label="正式採点と提出"><strong>正式採点・提出</strong><span>この試作では接続前です</span><p>上の実行結果や進捗は正式得点・提出済みの状態にはなりません。今年度の提出は従来のColabを使用します。</p></section>
+      <section class="cloud-state" aria-label="学校アカウントとGSS保存"><div class="cloud-controls"><button id="cloud-connect" type="button">学校アカウントに接続</button><span id="cloud-account" role="status"></span><a id="cloud-login" hidden target="_blank" rel="noopener noreferrer">ログインを確認</a></div><p id="cloud-save-status" class="muted">GSS下書きは別途保存</p><p class="muted">GSSへの下書き保存と正式提出は別の操作です。下書きを保存しても提出済みにはなりません。</p></section>
+      <section class="formal-state" aria-label="正式採点と提出"><div class="cell-heading"><h3>正式採点・提出</h3><span id="formal-status" role="status">接続前</span></div><p id="formal-note">今年度は従来のColabで提出してください。</p>
+        <div class="cloud-controls"><button id="formal-submit" class="primary" type="button" disabled>正式提出…</button><button id="formal-query" type="button" disabled>結果を照会</button><button id="formal-resume" type="button" disabled>採点・保存を再試行</button></div>
+        <p id="formal-score"></p><p id="formal-best"></p><p id="formal-time"></p><p id="formal-edited"></p><ul id="formal-checks"></ul><p id="formal-diagnostics"></p>
+        <details id="formal-history-details" hidden><summary>再提出の履歴（最近20件）</summary><ol id="formal-history"></ol></details>
+      </section>
       <div class="question-step"><button id="previous" type="button">← 前の問題</button><button id="next" type="button">次の問題 →</button></div>
     </main>
   </div>
   <input id="file-input" type="file" accept=".json,.py,text/plain,application/json" hidden>
   <dialog id="restore-dialog"><h2>保存内容を選ぶ</h2><p>取り込み前のコードはブラウザの控えに残します。</p><div id="restore-options"></div><button type="button" data-close>キャンセル</button></dialog>
   <dialog id="import-dialog"><h2>コードを取り込む</h2><p id="import-description"></p><pre id="import-preview"></pre><button id="confirm-import" type="button" class="primary">控えを残して取り込む</button><button type="button" data-close>キャンセル</button></dialog>
+  <dialog id="cloud-dialog"><h2>GSSの下書きを取り込む</h2><p>内容を選んで確認してください。取り込み前のローカル内容を控えに残します。</p><div id="cloud-options"></div><label for="cloud-revisions">保存履歴（最近20件）</label><select id="cloud-revisions" disabled></select><pre id="cloud-preview"></pre><button id="cloud-import" type="button" class="primary" disabled>控えを残して取り込む</button><button type="button" data-close>キャンセル</button></dialog>
+  <dialog id="cloud-conflict"><h2 id="conflict-title">GSS保存の競合</h2><p>別の端末などで保存された内容と異なります。下はGSSの最新の内容です。GSSの履歴とローカルの控えで両方を保護してから選択を反映します。</p><pre id="conflict-preview"></pre><button id="conflict-cloud" type="button">GSSの続きを取り込む</button><button id="conflict-local" type="button">ローカルの続きをGSSに保存</button><button type="button" data-close>保留</button></dialog>
+  <dialog id="submit-dialog"><h2>正式提出の確認</h2><p id="submit-description"></p><p id="submit-run-note" class="advice"></p><pre id="submit-preview"></pre><button id="submit-confirm" type="button" class="primary">この全文を正式提出</button><button type="button" data-close>キャンセル</button></dialog>
   <aside id="operation-help" hidden>
     <section data-help-topic="run" data-help-title="実行する"><h3>実行する</h3><ol><li>問題を選び、コードを入力します。</li><li>必要なら実行前の入力を1行ずつ指定します。</li><li>「実行」で出力を確認します。Shift + Enterでも実行できます。</li></ol><details><summary>停止と再実行</summary><p>「停止」は計算を終了します。コードは残ります。再実行は共通の準備コードと現在の問題を新しい変数で実行します。</p></details><details><summary>入力を待っているとき</summary><p>対応環境では出力欄から入力を続けられます。「入力を終了」はEOFを渡します。逐次入力が使えない環境では、必要な値を実行前の入力に指定します。</p></details></section>
-    <section data-help-topic="save" data-help-title="保存と復元"><h3>保存と復元</h3><p>入力したコードを問題・版ごとにブラウザへ自動保存します。問題を切り替えても保持します。</p><p>ファイルメニューから明示保存と復元ができます。自動保存と明示保存を別に保持します。ファイルにはコードと入力値を保存します。</p><details><summary>別の端末で続ける</summary><p>この段階ではファイル保存と取込みを使えます。学校アカウントでのクラウド下書き保存は次の実装段階です。</p></details></section>
+    <section data-help-topic="save" data-help-title="保存と復元"><h3>保存と復元</h3><p>入力したコードを問題・版ごとにブラウザへ自動保存します。問題を切り替えても保持します。</p><p>ファイルメニューから明示保存と復元ができます。自動保存と明示保存を別に保持します。ファイルにはコードと入力値を保存します。</p><details><summary>別の端末で続ける</summary><p>学校アカウントに接続後、ファイルメニューの「GSSに下書き保存」「GSSから開く」を使用します。貸出機へ移る前・作業終了時にGSSへ保存し、自端末へ戻ったら続きを選んで取り込みます。競合時は両方を保護してから選択します。本番接続の設定が済むまではファイル保存を使えます。</p></details><details><summary>正式提出と結果照会</summary><p>コード全文・入力値・実行の表示テキスト・標準エラーを送ります。採点と結果・履歴の保存が完了してから提出済みになります。応答を確認できない場合は「結果を照会」し、必要なら同じ送信を再試行します。締切はサーバー受付時刻で判定し、問題ごとの締切内最高点を採用します。</p></details></section>
     <section data-help-topic="errors" data-help-title="エラーを調べる"><h3>エラーを調べる</h3><p>エラー末尾の種類と行番号を読み、表示された基本案内を確認してください。</p><p>この段階の案内は端末内で表示します。AI相談へのコード・エラー送信は接続前です。</p></section>
-    <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>Pythonエディタ 0.1 BETA・独立試作。海城中学高等学校 情報科 © 2026。</p><p>推奨環境：学校MacのGoogle Chrome。PythonはPyodideによりブラウザ内で実行します。教材・コード・実行出力はこの試作から外部へ送信しません。Pythonと数値計算のライブラリはjsDelivrから取得し、日本語化パッケージとフォントは同梱しています。</p><p>ブラウザ保存は同じ端末・同じブラウザ内の控えです。正式提出・クラウド保存とは別です。</p></section>
+    <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>Pythonエディタ 0.1 BETA・独立試作。海城中学高等学校 情報科 © 2026。</p><p>推奨環境：学校MacのGoogle Chrome。PythonはPyodideによりブラウザ内で実行します。GSS下書き保存・正式提出で明示したテキストを学校のGASへ送ります。Pythonと数値計算のライブラリはjsDelivrから取得し、日本語化パッケージとフォントは同梱しています。</p><p>ブラウザ保存は同じ端末・同じブラウザ内の控えです。正式提出・GSS保存とは別です。今年度のColab・従来の提出方法は引き続き使用できます。</p></section>
   </aside>
   <noscript><p>PythonエディタにはJavaScriptが必要です。現在のColab教材は引き続き利用できます。</p></noscript>
 </body>
