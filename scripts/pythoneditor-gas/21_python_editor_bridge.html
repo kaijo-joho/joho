@@ -1,0 +1,26 @@
+<!doctype html><html lang="ja"><head><base target="_top"><meta charset="utf-8"></head><body>
+<p id="status">Pythonエディタの学校アカウント接続を準備しています。</p>
+<script>
+(() => {
+  'use strict';
+  const boot = <?!= bootJson ?>;
+  const peer = window.top; // HtmlServiceの外側のGoogle iframeを越えて、独立エディタへ送る。
+  const actions = new Set(['session','getDraft','listDrafts','saveDraft','submit','getSubmission','resumeSubmission','questionStatus']);
+  const pending = new Set();
+  const send = message => peer.postMessage({protocol:'python-editor-rpc-v1',channel:boot.channel,...message},boot.origin);
+  addEventListener('message', event => {
+    const data = event.data;
+    if(event.source !== peer || event.origin !== boot.origin || data?.protocol !== 'python-editor-rpc-v1' || data.channel !== boot.channel ||
+       data.type !== 'request' || !/^[a-f0-9]{32}$/.test(data.id) || !actions.has(data.action) || pending.has(data.id) || pending.size >= 8 ||
+       data.action !== 'session' && !/^[a-f0-9]{64}$/.test(data.actorKey)) return;
+    pending.add(data.id);
+    google.script.run.withSuccessHandler(result => {
+      pending.delete(data.id); send({type:'response',id:data.id,result});
+    }).withFailureHandler(() => {
+      pending.delete(data.id); send({type:'response',id:data.id,result:{ok:false,error:{code:'transport',message:'学校アカウントの接続を確認してください。コードは保持しています。'}}});
+    }).pythonEditorRpc(data.action,data.input || {},data.actorKey);
+  });
+  send({type:'ready'});
+  document.getElementById('status').textContent = '学校アカウント接続を開始しました。元のエディタで作業してください。';
+})();
+</script></body></html>

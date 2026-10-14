@@ -1,0 +1,42 @@
+  var ENGINE = 'legacy-python-text-20261014-v1';
+  function grade(snapshot, input) {
+    PythonEditor.assert(snapshot.engineVersion === ENGINE && snapshot.rules && Array.isArray(snapshot.ranges), 'snapshot_invalid');
+    var regions;
+    try { regions = PythonEditor.extract(input.code, snapshot.ranges); }
+    catch (e) {
+      if (e.pythonEditorCode !== 'markers_invalid') throw e;
+      return { score: 0, engineVersion: ENGINE, checks: [{ label: '採点区間のマーカー', passed: false, points: 1, earned: 0 }], diagnostics: ['採点区間のマーカーを雛形どおりに残してください。'] };
+    }
+    var usableOutput = ['success', 'error'].indexOf(input.run.outcome) >= 0 && !input.run.truncated;
+    var items = snapshot.ranges.map(function (r) {
+      PythonEditor.assert(Object.prototype.hasOwnProperty.call(snapshot.rules, r.scoringId), 'snapshot_invalid');
+      return evaluatePyQuestionRule_(r.scoringId, snapshot.rules[r.scoringId], { title: '', cell: {
+        source: [regions[r.scoringId]], whole: [input.code], execution_count: usableOutput ? 1 : null,
+        outputs: [{ output_type: 'stream', text: usableOutput ? input.run.outputText : '' }]
+      } });
+    });
+    var score = calcScoreFromItems(items), checks = [];
+    PythonEditor.assert(typeof score === 'number' && Number.isFinite(score), 'snapshot_invalid');
+    items.forEach(function (item, index) {
+      var prefix = items.length > 1 ? '区間' + (index + 1) + '・' : '';
+      checks.push({ label: prefix + 'コードの行数', passed: item.codeOk, points: 1, earned: item.codeOk ? 1 : 0 });
+      if (item.scoreModel === 'rulesV2') {
+        var counts = { code: 0, output: 0 };
+        (item.ruleChecks || []).forEach(function (check) {
+          if (!check.eligible || !(check.points > 0)) return;
+          counts[check.target]++;
+          // keyword、模範コード、教員メモ、実際の基準名は公開しない。
+          checks.push({ label: prefix + (check.target === 'output' ? '出力条件' : 'コード条件') + counts[check.target],
+            passed: check.passed, points: check.points, earned: check.earnedPoints });
+        });
+      } else {
+        if (typeof item.outOk === 'boolean') checks.push({ label: prefix + '出力条件', passed: item.outOk, points: 1, earned: item.outOk ? 1 : 0 });
+        Object.keys(item.kwHits || {}).forEach(function (kw, i) {
+          checks.push({ label: prefix + 'コード条件' + (i + 1), passed: item.kwHits[kw], points: 1, earned: item.kwHits[kw] ? 1 : 0 });
+        });
+      }
+    });
+    return { score: score, engineVersion: ENGINE, checks: checks,
+      diagnostics: usableOutput ? [] : ['実行結果が未確定、または上限を超えたため、出力テキストを採点へ使用していません。'] };
+  }
+  return { engineVersion: ENGINE, parseRules: loadScoringRulesFromValues_, grade: grade };
