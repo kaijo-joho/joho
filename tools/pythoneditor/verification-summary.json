@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-14",
+  "baseline": "0d06fd3",
+  "chrome": {
+    "checks": 25,
+    "curriculumCases": 205,
+    "unexpectedFailures": 0,
+    "expectedExceptions": 2,
+    "sets": {
+      "py21a": 7,
+      "py21b": 4,
+      "py22a": 8,
+      "py22b": 6,
+      "py23a": 5,
+      "py23b": 3,
+      "py24a": 8,
+      "py24b": 4,
+      "py25a": 7,
+      "py25b": 5,
+      "py31a": 7,
+      "py31b": 7,
+      "py32a": 7,
+      "py33a": 9,
+      "py41a": 3,
+      "py42a": 8,
+      "py43a": 5,
+      "py44a": 3,
+      "py45a": 3,
+      "py51a": 4,
+      "py52a": 5,
+      "py53a": 7,
+      "py11": 15,
+      "py12": 26,
+      "py13": 21,
+      "py34": 15,
+      "py46": 3
+    },
+    "finalInteractionChecks": 25,
+    "finalInteractionFailure": null
+  },
+  "webkit": {
+    "checks": 22,
+    "curriculumCases": 0
+  },
+  "schoolDeviceVerified": false,
+  "fortySchoolDevicesVerified": false,
+  "productionGasChanged": false
+}

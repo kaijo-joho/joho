@@ -1,0 +1,38 @@
+{
+  "version": "1.1.3",
+  "source": "https://files.pythonhosted.org/packages/aa/85/08a4b7fe8987582d99d9bb7ad0ff1ec75439359a7f9690a0dbf2dbf98b15/japanize-matplotlib-1.1.3.tar.gz",
+  "sourceSha256": "e89e7d9e109820962650e59a130403b59b33915fde3871a265a5891d9bf5e079",
+  "files": {
+    "__init__.py": {
+      "sha256": "d3fe651a46a276ac93eaca82117e69653aa90251f384d84e070057e457b3a55f",
+      "bytes": 95
+    },
+    "japanize_matplotlib.py": {
+      "sha256": "6e3efe7eb233d021758d5c6f27686c0a3b2e9340c3ebca3cc721db9ce5d9417e",
+      "bytes": 894
+    },
+    "fonts/Readme_ipaexg00301.txt": {
+      "sha256": "4c6c7a13e2f25a4933c3318445abcbb7b483cb470e307171b51b434c3f95146a",
+      "bytes": 1673,
+      "originalSha256": "287fa17acf8a82dd62a435aa6dee58adb5711004b8b1b043db8226928d49735c",
+      "normalization": "UTF-8, LF, trailing whitespace removed; wording preserved",
+      "originalEncoding": "cp932"
+    },
+    "fonts/ipaexg.ttf": {
+      "sha256": "6726fb3c804e3fbc3ff5f45eddfd2fb1a858c2b1e03d3f1d8619bbca8d0a0ccd",
+      "bytes": 6041284
+    },
+    "fonts/IPA_Font_License_Agreement_v1.0.txt": {
+      "sha256": "123594a484f0fee68a6d6f7d4402fe0fc5bcd2fdf800339772193d6c05489212",
+      "bytes": 20440,
+      "originalSha256": "4c84dd528ec3044638ec346fc1ee27cd1eb95dfc04cbc6a881b3ca7a7f517e54",
+      "normalization": "UTF-8, LF, trailing whitespace removed; wording preserved",
+      "originalEncoding": "utf-8"
+    },
+    "LICENSE": {
+      "sha256": "51e9762b722a3acdcdebe036008a0c12e14613f9feb0c904fde16a28bcc65517",
+      "bytes": 1063
+    }
+  },
+  "licenseSource": "https://raw.githubusercontent.com/uehara1414/japanize-matplotlib/master/LICENSE"
+}
