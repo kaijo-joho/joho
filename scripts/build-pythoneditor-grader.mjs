@@ -19,7 +19,9 @@ for (const [file, names] of Object.entries(selected)) {
   hashes[file] = createHash('sha256').update(code).digest('hex');
   const functions = [...code.matchAll(/^function ([A-Za-z0-9_]+)\([^]*?^}/gm)];
   if (!functions.length || names?.some(name => !functions.some(f => f[1] === name))) throw new Error(`${file}の関数構造が変わっています。自動取込みを中止します。`);
-  chunks.push(`// ${file}: 確認済み純粋関数\n` + functions.filter(f => !names || names.includes(f[1])).map(f => f[0]).join('\n\n'));
+  // 原本のプロパティ列にある既知の末尾空白1か所だけを整える。文字列内の空白は変更しない。
+  const body=functions.filter(f=>!names||names.includes(f[1])).map(f=>f[0]).join('\n\n').replace('\n      outKeywordsArr, \n','\n      outKeywordsArr,\n');
+  chunks.push(`// ${file}: 確認済み純粋関数\n`+body);
 }
 const adapter = await readFile(new URL('./pythoneditor-gas/grader-adapter.txt', import.meta.url), 'utf8');
 const result = '// 固定された判定エンジン。旧版に影響するため、この版を上書き更新しない。\n' +

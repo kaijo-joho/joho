@@ -198,7 +198,7 @@ function loadScoringRulesFromValues_(rows){
     map[qid] = {
       schemaVersion: 1,
       keywordsArr,
-      outKeywordsArr, 
+      outKeywordsArr,
       minLines   : Number(r[col['minlines']]   || 0),
       expectOut  : (r[col['output']]           || '').toString().trim(),
       title      : (r[col['questiontitle']]    || '').toString().trim()
