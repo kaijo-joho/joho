@@ -63,15 +63,28 @@ const assertCodecLegend = async root => {
 const assertQuizNavigation = async (quiz, fixture) => {
   const layout = await quiz.evaluate(root => {
     const table = root.querySelector('.cp-quiz-table-area table');
-    const nav = root.querySelector('.cp-staged-nav');
-    const prompt = root.querySelector('[data-cp-quiz-codec-prompt]');
+    const nav = root.querySelector('.cp-quiz-column-controls');
+    const buttons = [...nav.querySelectorAll('button')];
+    const columns = [...table.tHead.rows[0].cells].slice(1);
+    const centers = columns.map((cell, i) => {
+      const col = cell.getBoundingClientRect(), button = buttons[i].getBoundingClientRect();
+      return Math.abs((col.left + col.right) / 2 - (button.left + button.right) / 2);
+    });
+    const codecs = [...root.querySelectorAll('[data-cp-quiz-codec]')];
+    const codecLayout = codecs.map(section => {
+      const input = section.querySelector('input').getBoundingClientRect();
+      const button = section.querySelector('button').getBoundingClientRect();
+      const prompt = section.querySelector('.cp-hint').getBoundingClientRect();
+      return prompt.bottom <= input.top && input.right <= button.left && Math.abs(input.top - button.top) < 3;
+    });
     return { below: nav.getBoundingClientRect().top >= table.getBoundingClientRect().bottom,
-      controlsOutside: !nav.closest('table') && nav.parentElement.classList.contains('cp-quiz-table-area'),
-      submitBeside: root.querySelector('button[type="submit"]').closest('.cp-quiz-table-area') === nav.parentElement,
-      promptBeforeAnswers: prompt.nextElementSibling === root.querySelector('.cp-answer-fields') };
+      outside: !nav.closest('table'), centers, labels: buttons.map(button => button.textContent),
+      codecLayout, noSubmit: !root.querySelector('button[type="submit"]'),
+      resetBelow: root.querySelector('button[type="reset"]').getBoundingClientRect().top >= codecs.at(-1).getBoundingClientRect().bottom };
   });
-  assert(layout.below && layout.controlsOutside && layout.submitBeside, '各判定と全体判定を合計行の下、表の外へ置く');
-  assert(layout.promptBeforeAnswers, '符号化・復元の問題文を回答欄の直前へ置く');
+  assert(layout.below && layout.outside && layout.centers.every(diff => diff < 3), '各列の判定を、表の外の同じ列の下へ合わせる');
+  assert.deepEqual(layout.labels, ['判定', '判定', '判定', '判定']);
+  assert(layout.codecLayout.every(Boolean) && layout.resetBelow && layout.noSubmit, '符号化・復元は問題文の下に入力と右側の判定、最後に入力を消す');
   const hash = new URL(page.url()).hash;
   await field(quiz, 'frequency:A').fill(String(fixture.frequencies.A));
   for (const [key, target] of [
@@ -813,7 +826,7 @@ try {
     for (const symbol of Object.keys(fixture.frequencies)) for (const kind of ['frequency', 'code', 'length', 'bits']) await expect(field(quiz, `${kind}:${symbol}`)).toBeVisible();
     await expect(quiz.locator('[data-cp-quiz-tree]')).toBeVisible();
     await expect(quiz.locator('[data-cp-quiz-tree] circle + text').first()).toHaveText('?');
-    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: 'bit数を判定', exact: true }).click();
     await expect(quiz.locator('[data-cp-huffman-formula]')).toBeHidden();
     await quiz.getByRole('button', { name: '頻度を判定', exact: true }).click();
     const tableSource = quiz.locator('.cp-quiz-source strong');
@@ -834,8 +847,10 @@ try {
       return { treeRight: tree.right, tableLeft: table.left, topDiff: Math.abs(tree.top - table.top) };
     });
     assert(columns.treeRight <= columns.tableLeft && columns.topDiff < 1, '十分な幅では木と元文字列付き表を並べる');
-    await quiz.getByRole('button', { name: '符号・符号長を判定', exact: true }).click();
-    await quiz.getByRole('button', { name: '符号・符号長を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号長を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号長を判定', exact: true }).click();
     await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('木を判定');
     const canonical = index === 0 ? [['C', 'D'], ['A', 'node:CD'], ['B', 'node:ACD']] : [['D', 'E'], ['B', 'C'], ['node:BC', 'node:DE'], ['A', 'node:BCDE']];
     await treePractice.locator(`[data-cp-practice-node="${canonical[0][0]}"]`).press('Enter');
@@ -849,15 +864,33 @@ try {
     await treePractice.locator('[data-cp-practice-judge]').click();
     await expect(treePractice.locator('[data-cp-build-status]')).toContainText('正解');
     for (const [symbol, code] of Object.entries(fixture.codes)) { await field(quiz, `code:${symbol}`).fill(code); await field(quiz, `length:${symbol}`).fill(String(code.length)); }
-    await quiz.getByRole('button', { name: '符号・符号長を判定', exact: true }).click();
+    await field(quiz, 'length:A').fill('77');
+    await quiz.getByRole('button', { name: '符号を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toHaveAttribute('data-result', 'correct');
+    await expect(field(quiz, 'length:A')).not.toHaveAttribute('aria-invalid');
+    await quiz.getByRole('button', { name: '符号長を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toHaveAttribute('data-result', 'incorrect');
+    await field(quiz, 'length:A').fill(String(fixture.codes.A.length));
+    await field(quiz, 'code:A').fill('111111');
+    await quiz.getByRole('button', { name: '符号長を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toHaveAttribute('data-result', 'correct');
+    await quiz.getByRole('button', { name: '符号を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toHaveAttribute('data-result', 'incorrect');
+    await field(quiz, 'code:A').fill(fixture.codes.A);
+    await field(quiz, 'code:A').press('Enter');
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toHaveAttribute('data-result', 'correct');
+    await quiz.getByRole('button', { name: '符号を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号長を判定', exact: true }).click();
     await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('正解');
-    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: 'bit数を判定', exact: true }).click();
     const host = quiz.locator('[data-cp-huffman-formula]');
     await expect(host).toBeHidden();
     let total = 0;
     for (const [symbol, count] of Object.entries(fixture.frequencies)) { const bits = count * fixture.codes[symbol].length; total += bits; await field(quiz, `bits:${symbol}`).fill(String(bits)); }
     await field(quiz, 'bitsTotal').fill(String(total));
-    assert(await quiz.locator('[data-cp-quiz-codec-prompt]').evaluate(prompt => prompt.nextElementSibling.classList.contains('cp-answer-fields')), '式を表示しても問題文と回答欄を離さない');
+    await quiz.getByRole('button', { name: 'bit数を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toHaveAttribute('data-result', 'correct');
+    assert(await quiz.locator('.cp-answer-fields').evaluate(cards => cards.previousElementSibling.matches('[data-cp-huffman-formula]')), '計算欄の後に符号化・復元をまとめる');
     await expect(host).toHaveAttribute('data-formula-builder', 'true');
     await expect(host).toBeVisible();
     await expect(host.locator('[data-formula-task]')).toHaveCount(2);
@@ -882,15 +915,19 @@ try {
     await host.locator('[data-formula-quantity="percent"]').click();
     await host.locator('[data-formula-operator="="]').click();
     await rateTask.locator('[data-formula-answer]').fill(String(total / (fixture.fixedBits * fixture.text.length) * 100));
-    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
-    await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('bit数と圧縮率は正解');
+    await originalTask.getByRole('button', { name: '圧縮前のbit数 を判定', exact: true }).click();
+    await expect(originalTask).toContainText('立式：○');
+    await rateTask.getByRole('button', { name: '圧縮率 を判定', exact: true }).click();
+    await expect(rateTask).toContainText('立式：○');
+    await quiz.getByRole('button', { name: 'bit数を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toHaveAttribute('data-result', 'correct');
     const seed = await host.evaluate(element => element.__compressionTest.editor.getDraft());
     // A mistyped table total must appear as entered, not be replaced with the answer.
     await field(quiz, 'bitsTotal').fill(String(total + 1));
     await expect(host.locator('[data-formula-quantity="compressedBits"] .formula-card-value')).toHaveText(String(total + 1));
     assert.deepEqual(await host.evaluate(element => element.__compressionTest.editor.getDraft()), seed, '表の合計を修正しても入力済みの式を残す');
-    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
-    await expect(quiz.locator('[data-cp-huffman-feedback]')).not.toContainText('bit数と圧縮率は正解');
+    await quiz.getByRole('button', { name: 'bit数を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toHaveAttribute('data-result', 'incorrect');
     await field(quiz, 'bitsTotal').fill('');
     await expect(host).toBeHidden();
     await field(quiz, 'bitsTotal').fill(String(total));
@@ -899,11 +936,15 @@ try {
     wrong.rows.unshift({ ...clone(seed.rows[0]), id: 'wrong-working', result: '999' });
     wrong.rows[1].tokens = [{ kind: 'reference', rowId: 'wrong-working' }];
     await host.evaluate((element, draft) => element.__compressionTest.editor.setDraft(draft), wrong);
-    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
-    await expect(quiz.locator('[data-cp-huffman-feedback]')).not.toContainText('bit数と圧縮率は正解');
+    await originalTask.getByRole('button', { name: '圧縮前のbit数 を判定', exact: true }).click();
+    await expect(originalTask.locator('.formula-feedback.is-error').first()).toBeVisible();
+    await expect(originalTask).toContainText('途中式の手入力結果を見直してください');
+    await quiz.getByRole('button', { name: 'bit数を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toHaveAttribute('data-result', 'correct');
     await host.evaluate((element, draft) => element.__compressionTest.editor.setDraft(draft), seed);
-    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
-    await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('bit数と圧縮率は正解');
+    await originalTask.getByRole('button', { name: '圧縮前のbit数 を判定', exact: true }).click();
+    await expect(originalTask).toContainText('立式：○');
+    await expect(originalTask.locator('.formula-feedback.is-error')).toHaveCount(0);
     await page.setViewportSize({ width: 390, height: 1000 });
     await page.evaluate(() => { document.documentElement.dataset.textSize = 'xlarge'; });
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -913,15 +954,26 @@ try {
     assert.equal(new URL(page.url()).hash, hash, '式の矢印操作でスライドを移動しない');
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.evaluate(() => { document.documentElement.dataset.textSize = 'standard'; });
-    await quiz.getByRole('button', { name: '符号化・復元を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号化を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '復元を判定', exact: true }).click();
     await expect(quiz.locator('[data-cp-quiz-decode-bits]')).toHaveText(fixture.decodeBits);
     const codec = await page.evaluate(fixture => ({ encoded: window.CompressionCore.encodeHuffman(fixture.encodeText, fixture.codes), decoded: window.CompressionCore.decodeHuffman(fixture.decodeBits, fixture.codes) }), fixture);
     await field(quiz, 'encoded').fill(codec.encoded); await field(quiz, 'decoded').fill(codec.decoded);
-    await quiz.getByRole('button', { name: '符号化・復元を判定', exact: true }).click();
-    await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('全2項目正解');
-    await quiz.getByRole('button', { name: 'すべて判定', exact: true }).click();
-    await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('すべて正解');
-    await quiz.getByRole('button', { name: '符号・符号長を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号化を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '復元を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-codec-feedback=encoded]')).toContainText('全1項目正解');
+    await expect(quiz.locator('[data-cp-huffman-codec-feedback=decoded]')).toContainText('全1項目正解');
+    await field(quiz, 'encoded').fill('0');
+    await field(quiz, 'encoded').press('Enter');
+    await expect(quiz.locator('[data-cp-huffman-codec-feedback=encoded]')).toHaveAttribute('data-result', 'incorrect');
+    await expect(quiz.locator('[data-cp-huffman-codec-feedback=decoded]')).toHaveAttribute('data-result', 'correct');
+    await field(quiz, 'encoded').fill(codec.encoded);
+    await field(quiz, 'encoded').press('Enter');
+    await expect(quiz.locator('[data-cp-huffman-codec-feedback=encoded]')).toHaveAttribute('data-result', 'correct');
+    await expect(quiz.getByRole('button', { name: 'すべて判定', exact: true })).toHaveCount(0);
+    await expect(treePractice.getByRole('button', { name: '木を作り直す', exact: true })).toBeVisible();
+    await quiz.getByRole('button', { name: '符号を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号長を判定', exact: true }).click();
     await treePractice.locator('[data-cp-practice-undo]').click();
     await expect(field(quiz, 'code:A')).toHaveValue('');
     await expect(host).toBeHidden();
@@ -932,20 +984,24 @@ try {
       await treePractice.locator('[data-cp-practice-judge]').click();
       const mirrored = Object.fromEntries(Object.entries(fixture.codes).map(([symbol, code]) => [symbol, [...code].map(bit => bit === '0' ? '1' : '0').join('')]));
       for (const [symbol, code] of Object.entries(mirrored)) { await field(quiz, `code:${symbol}`).fill(code); await field(quiz, `length:${symbol}`).fill(String(code.length)); }
-      await quiz.getByRole('button', { name: '符号・符号長を判定', exact: true }).click();
+      await quiz.getByRole('button', { name: '符号を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号長を判定', exact: true }).click();
       await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('正解');
       await treePractice.locator('[data-cp-practice-judge]').click();
       await expect(field(quiz, 'code:A')).toHaveValue(mirrored.A);
-      await quiz.getByRole('button', { name: '符号化・復元を判定', exact: true }).click();
+      await quiz.getByRole('button', { name: '符号化を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '復元を判定', exact: true }).click();
       await expect(quiz.locator('[data-cp-quiz-decode-bits]')).toHaveText('01001011');
       const encoded = await page.evaluate(({ text, codes }) => window.CompressionCore.encodeHuffman(text, codes), { text: fixture.encodeText, codes: mirrored });
       await field(quiz, 'encoded').fill(encoded); await field(quiz, 'decoded').fill('ACAB');
-      await quiz.getByRole('button', { name: '符号化・復元を判定', exact: true }).click();
-      await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('全2項目正解');
+      await quiz.getByRole('button', { name: '符号化を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '復元を判定', exact: true }).click();
+      await expect(quiz.locator('[data-cp-huffman-codec-feedback=encoded]')).toContainText('全1項目正解');
+    await expect(quiz.locator('[data-cp-huffman-codec-feedback=decoded]')).toContainText('全1項目正解');
     }
     await quiz.getByRole('button', { name: '頻度を判定', exact: true }).click();
     await field(quiz, 'frequency:A').fill('0');
-    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: 'bit数を判定', exact: true }).click();
     await expect(host).toBeHidden();
     await expect(quiz.locator('[data-cp-huffman-feedback]')).not.toContainText('正解');
     await quiz.getByRole('button', { name: '入力を消す', exact: true }).click();
