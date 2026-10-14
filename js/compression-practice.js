@@ -9,7 +9,7 @@
     ? { id: node.id, prefix: node.prefix, symbol: node.symbol, count: node.count }
     : { id: node.id, prefix: node.prefix, count: node.count, zero: cloneTree(node.zero), one: cloneTree(node.one) };
 
-  function mount(host, { fixture, onChange, onJudge } = {}) {
+  function mount(host, { fixture, sortLeavesByFrequency = false, onChange, onJudge } = {}) {
     if (!host || typeof host.querySelector !== 'function') throw new TypeError('widgetのroot要素を指定してください');
     if (mounted.has(host)) return mounted.get(host);
     const Core = root.CompressionPracticeCore;
@@ -204,6 +204,9 @@
       const initialForest = Core.createForest(validatedFixture.frequencies);
       currentFixture = validatedFixture;
       leafOrder = Object.keys(validatedFixture.frequencies);
+      if (sortLeavesByFrequency) {
+        leafOrder.sort((a, b) => validatedFixture.frequencies[b] - validatedFixture.frequencies[a] || a.localeCompare(b));
+      }
       positionCache = new Map();
       if (nextPresetIndex !== undefined) currentPresetIndex = nextPresetIndex;
       else if (nextFixture && currentPresetIndex !== null) {

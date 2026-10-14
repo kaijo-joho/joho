@@ -7,7 +7,7 @@
   const stages = [
     { title: '頻度', description: '文字ごとの頻度と合計を表に入力します。' },
     { title: '木・符号と符号長', description: '丸を2つずつ結合して木を完成させ、木を判定します。その木から符号と符号長を表に入力します。' },
-    { title: 'bit数と圧縮率', description: '文字ごとのbit数を求め、式ビルダーで圧縮前後のデータ量を確かめます。' },
+    { title: 'bit数と圧縮率', description: '文字ごとのbit数を表に入力し、表の合計を使って圧縮率を求めます。' },
     { title: '符号化と復元', description: '指定された文字列を符号化し、ビット列を文字へ復元します。' }
   ];
   const gradeLabels = ['頻度を判定', '符号・符号長を判定', 'bit数・圧縮率を判定', '符号化・復元を判定'];
@@ -140,8 +140,11 @@
     let formulaMounted = false;
     let formulaBuilder = null;
     let formulaDefinition = null;
+    let pendingFormulaDraft = null;
 
-    function discardFormula() {
+    function discardFormula(preserveDraft = false) {
+      if (preserveDraft && formulaBuilder) pendingFormulaDraft = formulaBuilder.getDraft();
+      else if (!preserveDraft) pendingFormulaDraft = null;
       if (formulaBuilder) formulaBuilder.destroy();
       formulaBuilder = null;
       formulaDefinition = null;
@@ -200,13 +203,19 @@
         try {
           practice = window.CompressionPractice.mount(practiceRoot, {
             fixture,
+            sortLeavesByFrequency: true,
             onChange() { if (!syncingTree) clearAcceptedTree(); },
             onJudge: adoptTree
           });
         } finally { syncingTree = false; }
       }
     }
-    const formulaReady = () => valid[0] && valid[1];
+    const codeReady = () => valid[0] && valid[1];
+    const tableTotal = () => {
+      const raw = normalize(fields.find(field => field.key === 'bitsTotal').input.value);
+      return /^\d+$/.test(raw) && Number.isSafeInteger(Number(raw)) ? Number(raw) : null;
+    };
+    const formulaReady = () => codeReady() && tableTotal() !== null;
     const updateFormulaHost = () => {
       if (!formulaHost) return;
       formulaHost.hidden = !formulaReady();
@@ -262,7 +271,7 @@
         Views.gradeFields(current, feedback);
         valid[number] = current.every(({ input }) => input.getAttribute('aria-invalid') === 'false');
       }
-      if (number === 3 && !formulaReady()) {
+      if (number === 3 && !codeReady()) {
         valid[3] = false;
         feedback.textContent = '先に頻度・木・符号表を判定してください。復元するビット列はその木に合わせて表示します。';
       }
@@ -279,8 +288,8 @@
       if (number === 2) {
         const formulaCorrect = judgeFormula();
         valid[2] = valid[2] && formulaCorrect;
-        if (valid[2]) feedback.textContent = 'bit数と圧縮率は正解です。bit数の表と、圧縮前後のbit数・圧縮率の式が合っています。';
-        else if (!formulaCorrect) feedback.textContent += ' 圧縮前後のbit数・圧縮率の式と、途中の計算結果を確認してください。';
+        if (valid[2]) feedback.textContent = 'bit数と圧縮率は正解です。bit数の表と、圧縮前のbit数・圧縮率の式が合っています。';
+        else if (!formulaCorrect) feedback.textContent += ' 表の合計bit数を入力し、圧縮前のbit数・圧縮率の式と、途中の計算結果を確認してください。';
       }
       if (!valid[number]) {
         for (let later = number + 1; later < valid.length; later += 1) { valid[later] = false; stageFeedback[later] = ''; }
@@ -297,7 +306,7 @@
       formulaHost = make('div', 'cp-staged-formula');
       formulaHost.hidden = true;
       formulaHost.dataset.cpHuffmanFormula = String(index);
-      const label = make('h5', '', '圧縮前後のbit数と圧縮率を式で確かめる');
+      const label = make('h5', '', '圧縮前のbit数と圧縮率を式で確かめる');
       formulaHost.append(label);
       panel.insertBefore(formulaHost, answerCards);
     }
@@ -311,6 +320,8 @@
       formulaMounted = true;
       try {
         formulaDefinition = formulas.defineHuffman(index, { codes: acceptedCodes });
+        // Show the student's table total, without supplying the correct answer.
+        formulaDefinition.quantities.find(item => item.id === 'compressedBits').value = String(tableTotal());
         formulaBuilder = Builder.mount(formulaHost, formulaDefinition, {
           onJudge({ rowId, taskId, intermediate, draft }) {
             const judgment = intermediate
@@ -327,6 +338,10 @@
             feedback.removeAttribute('data-result');
           }
         });
+        if (pendingFormulaDraft) {
+          formulaBuilder.setDraft(pendingFormulaDraft);
+          pendingFormulaDraft = null;
+        }
       } catch (error) {
         formulaMounted = false;
         console.error('ハフマン式ビルダーを初期化できませんでした。', error);
@@ -383,6 +398,9 @@
       }
       if (changedStage < 2) {
         discardFormula();
+        updateFormulaHost();
+      } else if (input.dataset.cpHuffmanField === 'bitsTotal') {
+        discardFormula(true);
         updateFormulaHost();
       }
       resized();

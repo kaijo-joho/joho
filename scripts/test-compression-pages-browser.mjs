@@ -764,6 +764,12 @@ try {
     await field(quiz, 'frequencyTotal').fill(String(fixture.text.length));
     await quiz.getByRole('button', { name: '頻度を判定', exact: true }).click();
     await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('正解');
+    const exerciseLeaves = () => treePractice.locator('[data-cp-tree]').evaluate(tree => [...tree.querySelectorAll('[data-cp-node]')]
+      .filter(node => node.querySelector('.cp-leaf'))
+      .map(node => [node.querySelector('.cp-leaf').textContent, Number(node.querySelector('circle').getAttribute('cx')), Number(node.querySelector('circle').getAttribute('cy'))])
+      .sort((a, b) => a[1] - b[1]));
+    const initialExerciseLeaves = await exerciseLeaves();
+    assert.deepEqual(initialExerciseLeaves.map(([symbol]) => symbol), Object.keys(fixture.frequencies).sort((a, b) => fixture.frequencies[b] - fixture.frequencies[a] || a.localeCompare(b)), '演習の初期ノードを頻度の大きい順に並べる');
     const columns = await quiz.locator('.cp-quiz-workspace').evaluate(e => {
       const tree = e.querySelector('.cp-quiz-practice').getBoundingClientRect();
       const table = e.querySelector('.cp-quiz-table-area').getBoundingClientRect();
@@ -778,7 +784,10 @@ try {
     assert.ok(await treePractice.locator('.is-selected circle').evaluate(e => parseFloat(getComputedStyle(e).strokeWidth) >= 5), '選択とキーボードフォーカスを太線で表示');
     assert.equal(await treePractice.locator('.is-selected rect').evaluate(e => Number(e.getAttribute('width'))), 68, '丸のタップ領域を確保');
     await treePractice.locator(`[data-cp-practice-node="${canonical[0][0]}"]`).press('Enter');
-    for (const pair of canonical) await connect(treePractice, pair);
+    for (const pair of canonical) {
+      await connect(treePractice, pair);
+      assert.deepEqual(await exerciseLeaves(), initialExerciseLeaves, '結合中に頻度順の初期ノードを動かさない');
+    }
     await treePractice.locator('[data-cp-practice-judge]').click();
     await expect(treePractice.locator('[data-cp-build-status]')).toContainText('正解');
     for (const [symbol, code] of Object.entries(fixture.codes)) { await field(quiz, `code:${symbol}`).fill(code); await field(quiz, `length:${symbol}`).fill(String(code.length)); }
@@ -786,15 +795,47 @@ try {
     await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('正解');
     await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
     const host = quiz.locator('[data-cp-huffman-formula]');
-    await expect(host).toHaveAttribute('data-formula-builder', 'true');
-    await expect(host).toBeVisible();
+    await expect(host).toBeHidden();
     let total = 0;
     for (const [symbol, count] of Object.entries(fixture.frequencies)) { const bits = count * fixture.codes[symbol].length; total += bits; await field(quiz, `bits:${symbol}`).fill(String(bits)); }
     await field(quiz, 'bitsTotal').fill(String(total));
-    const seed = await host.evaluate(element => {
-      const definition = element.__compressionTest.definition;
-      return { rows: definition.tasks.map(task => ({ id: task.id, taskId: task.id, tokens: task.expectedTokens, result: String(task.expected), resultUnit: task.answerUnit, answerOpen: true })), targets: Object.fromEntries(definition.tasks.map(task => [task.id, task.id])), answers: Object.fromEntries(definition.tasks.map(task => [task.id, String(task.expected)])) };
-    });
+    await expect(host).toHaveAttribute('data-formula-builder', 'true');
+    await expect(host).toBeVisible();
+    await expect(host.locator('[data-formula-task]')).toHaveCount(2);
+    await expect(quiz.locator('[data-cp-huffman-field="compressedBits"]')).toHaveCount(0);
+    assert.deepEqual(await host.locator('[data-formula-quantity] .formula-card-value').allTextContents(), [String(fixture.fixedBits), String(fixture.text.length), String(total), '100'], '単位なしの必要な数値と100を主パレットへ直接表示');
+    await expect(host.locator('[data-formula-quantity] .formula-unit')).toHaveCount(0);
+    // Build both answers using visible controls, including ×100 and the previous result.
+    const originalTask = host.locator('[data-formula-task="originalBits"]');
+    const rateTask = host.locator('[data-formula-task="rate"]');
+    await originalTask.locator('[data-formula-slot]').first().click();
+    await host.locator('[data-formula-quantity="fixedBits"]').click();
+    await host.locator('[data-formula-operator="×"]').click();
+    await host.locator('[data-formula-quantity="characters"]').click();
+    await host.locator('[data-formula-operator="="]').click();
+    await originalTask.locator('[data-formula-answer]').fill(String(fixture.fixedBits * fixture.text.length));
+    await rateTask.locator('[data-formula-slot]').first().click();
+    await host.locator('[data-formula-quantity="compressedBits"]').click();
+    await host.locator('[data-formula-operator="÷"]').click();
+    await originalTask.locator('[data-formula-result-grip]').click();
+    await rateTask.locator('[data-formula-slot]').last().click();
+    await host.locator('[data-formula-operator="×"]').click();
+    await host.locator('[data-formula-quantity="percent"]').click();
+    await host.locator('[data-formula-operator="="]').click();
+    await rateTask.locator('[data-formula-answer]').fill(String(total / (fixture.fixedBits * fixture.text.length) * 100));
+    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('bit数と圧縮率は正解');
+    const seed = await host.evaluate(element => element.__compressionTest.editor.getDraft());
+    // A mistyped table total must appear as entered, not be replaced with the answer.
+    await field(quiz, 'bitsTotal').fill(String(total + 1));
+    await expect(host.locator('[data-formula-quantity="compressedBits"] .formula-card-value')).toHaveText(String(total + 1));
+    assert.deepEqual(await host.evaluate(element => element.__compressionTest.editor.getDraft()), seed, '表の合計を修正しても入力済みの式を残す');
+    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).not.toContainText('bit数と圧縮率は正解');
+    await field(quiz, 'bitsTotal').fill('');
+    await expect(host).toBeHidden();
+    await field(quiz, 'bitsTotal').fill(String(total));
+    assert.deepEqual(await host.evaluate(element => element.__compressionTest.editor.getDraft()), seed, '合計を消して再入力しても式を復元する');
     const wrong = clone(seed);
     wrong.rows.unshift({ ...clone(seed.rows[0]), id: 'wrong-working', result: '999' });
     wrong.rows[1].tokens = [{ kind: 'reference', rowId: 'wrong-working' }];

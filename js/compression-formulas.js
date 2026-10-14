@@ -41,13 +41,6 @@
     return result;
   }
 
-  function groupedSource(result, { id, label, value: amount, unit, group, sortKey }) {
-    const source = { id, label, value: String(amount), unit, symbol: group };
-    result.quantities.push({ id, label, value: String(amount), unit });
-    result.sources.push(source);
-    return { ...source, sortKey };
-  }
-
   function defineHuffman(index, { codes: selectedCodes } = {}) {
     if (!Number.isInteger(index) || index < 0 || index >= Compression.HUFFMAN_QUESTIONS.length) {
       throw new RangeError('Huffman問題の番号を指定してください');
@@ -60,49 +53,19 @@
     const frequencies = fixture.frequencies;
     // The exercise uses the student's completed tree, including valid tie/branch alternatives.
     Compression.huffmanFromCodes(frequencies, codes);
-    const frequencySources = [];
-    const codeLengthSources = [];
-    const frequencySymbols = new Map();
-    const codeLengthSymbols = new Map();
-
-    for (const symbol of Object.keys(frequencies).sort()) {
-      const count = frequencies[symbol];
-      const sourceSymbol = frequencySymbols.get(count) || `frequency:${count}`;
-      frequencySymbols.set(count, sourceSymbol);
-      frequencySources.push(groupedSource(result, {
-        id: `frequency-${symbol}`, label: `${symbol}の出現回数`, value: count,
-        unit: 'occurrence', group: sourceSymbol, sortKey: symbol
-      }));
-    }
-    for (const symbol of Object.keys(codes).sort()) {
-      const length = codes[symbol].length;
-      const sourceSymbol = codeLengthSymbols.get(length) || `codeLength:${length}`;
-      codeLengthSymbols.set(length, sourceSymbol);
-      codeLengthSources.push(groupedSource(result, {
-        id: `codeLength-${symbol}`, label: `${symbol}の符号長`, value: length,
-        unit: 'bit/occurrence', group: sourceSymbol, sortKey: symbol
-      }));
-    }
+    const compressedBits = Object.keys(frequencies).reduce((sum, symbol) => sum + frequencies[symbol] * codes[symbol].length, 0);
     const fixed = { id: 'fixedBits', label: '固定長符号の1文字あたりのbit数', value: String(fixture.fixedBits), unit: 'bit/character', symbol: 'fixedBits' };
     const characters = { id: 'characters', label: '文字数', value: String(characterCount), unit: 'character', symbol: 'characters' };
-    result.quantities.push(fixed, characters);
-    result.sources.push(fixed, characters);
-    result.constants.push({ id: 'percent', label: '百分率に直す数', value: '100', unit: '' });
+    const compressed = { id: 'compressedBits', label: '表の合計bit数', value: String(compressedBits), unit: 'bit', symbol: 'compressedBits' };
+    const percent = { id: 'percent', label: '百分率に直す数', value: '100', unit: '' };
+    // Keep units for grading while presenting a small, unambiguous number palette.
+    result.quantities.push(...[fixed, characters, compressed, percent].map(item => ({ ...item, hideUnit: true })));
+    result.sources.push(fixed, characters, compressed);
 
     const originalTokens = [sourceValue(fixed), operator('×'), sourceValue(characters)];
-    const compressedTokens = [];
-    const sortedSymbols = Object.keys(frequencies).sort();
-    sortedSymbols.forEach((symbol, position) => {
-      if (position) compressedTokens.push(operator('+'));
-      const frequency = frequencySources.find(item => item.sortKey === symbol);
-      const codeLength = codeLengthSources.find(item => item.sortKey === symbol);
-      compressedTokens.push(sourceValue(frequency), operator('×'), sourceValue(codeLength));
-    });
-    const rateTokens = [group(compressedTokens), operator('÷'), group(originalTokens), operator('×'), value(100)];
-    const compressedBits = sortedSymbols.reduce((sum, symbol) => sum + frequencies[symbol] * codes[symbol].length, 0);
+    const rateTokens = [sourceValue(compressed), operator('÷'), group(originalTokens), operator('×'), value(100)];
     result.tasks.push(
       task('originalBits', '圧縮前のbit数', 'bit', originalBits, originalTokens),
-      task('compressedBits', '圧縮後のbit数', 'bit', compressedBits, compressedTokens),
       task('rate', '圧縮率', '%', compressedBits / originalBits * 100, rateTokens)
     );
     return result;
