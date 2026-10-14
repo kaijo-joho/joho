@@ -532,6 +532,8 @@ try {
   await goSlide(3);
   const encoder = page.locator('[data-cp-codec="encode"]');
   const decoder = page.locator('[data-cp-codec="decode"]');
+  const encodedBits = async () => (await encoder.locator('.cp-frequency-bit').allTextContents()).join('');
+  const sourceLetters = async () => (await encoder.locator('.cp-frequency-word__symbol').allTextContents()).join('');
   assert.equal(await page.locator('[data-cp-codec] [data-cp-tree]').count(), 0, '符号化/復元スライドは木を置かない');
   assert.equal(await encoder.locator('table [data-cp-codec-row]').count(), 5, '符号を表で提示');
   const editCodec = async (host, text) => {
@@ -540,30 +542,52 @@ try {
     await host.locator('[data-cp-codec-apply]').click();
   };
   await expect(encoder.locator('[data-cp-codec-input]')).toBeHidden();
-  const codecBoxes = await encoder.locator('.cp-codec-band').evaluateAll(items => items.map(e => { const r=e.getBoundingClientRect(); return {x:r.x,y:r.y,bottom:r.bottom,width:r.width}; }));
-  assert.equal(codecBoxes.length, 2);
-  assert(codecBoxes[0].bottom <= codecBoxes[1].y && codecBoxes[0].x === codecBoxes[1].x && codecBoxes[0].width === codecBoxes[1].width, '元の文字列の真下に同じ幅で変換結果');
+  await expect(encoder.locator('.cp-codec-band')).toHaveCount(1);
+  await expect(encoder.locator('.cp-frequency-word')).toHaveCount(18);
+  await expect(encoder.locator('.cp-frequency-bit')).toHaveCount(38);
+  assert.equal(await encodedBits(), '', '開始前は文字を表示し、対応するbitのマスを空欄にする');
+  assert.equal(await sourceLetters(), 'DAEBCBACBBBCDAAABB');
+  const stripLayout = await encoder.locator('.cp-frequency-word').evaluateAll(words => words.map(word => {
+    const label = word.querySelector('.cp-frequency-word__symbol');
+    const cells = [...word.querySelectorAll('.cp-frequency-bit')];
+    const r = label.getBoundingClientRect();
+    const first = cells[0].getBoundingClientRect(), last = cells.at(-1).getBoundingClientRect();
+    return { labelCenter: (r.left + r.right) / 2, bitCenter: (first.left + last.right) / 2, labelBottom: r.bottom, bitTop: first.top, widths: cells.map(cell => cell.getBoundingClientRect().width), color: getComputedStyle(label).color, bitColors: cells.map(cell => getComputedStyle(cell).color) };
+  }));
+  assert(stripLayout.every(word => Math.abs(word.labelCenter - word.bitCenter) < .6 && word.labelBottom <= word.bitTop), '各文字を対応するbitのマスの真上へ配置');
+  const codecBitWidths = stripLayout.flatMap(word => word.widths);
+  assert(Math.max(...codecBitWidths) - Math.min(...codecBitWidths) < .6, '符号長にかかわらず1bitのマスを同じ幅にする');
+  assert(stripLayout.every(word => word.bitColors.every(color => color === word.color)), '文字と対応するbitを同じ色にする');
   await encoder.locator('[data-cp-codec-next]').press('Enter');
-  await expect(encoder.locator('[data-cp-codec-output]')).toHaveText('1110');
+  assert.equal(await encodedBits(), '1110');
+  await expect(encoder.locator('.cp-frequency-word.is-current .cp-frequency-bit')).toHaveCount(4);
+  await expect(encoder.locator('[data-cp-codec-row="D"]')).toHaveClass(/is-current/);
   await encoder.locator('[data-cp-codec-edit]').click();
   await encoder.locator('[data-cp-codec-input]').fill('ABC');
   await expect(encoder.locator('[data-cp-codec-next]')).toBeDisabled();
   await encoder.locator('[data-cp-codec-cancel]').click();
-  await expect(encoder.locator('[data-cp-codec-output]')).toHaveText('1110');
-  await expect(encoder.locator('[data-cp-codec-source]')).toHaveText('DAEBCBACBBBCDAAABB');
+  assert.equal(await encodedBits(), '1110');
+  assert.equal(await sourceLetters(), 'DAEBCBACBBBCDAAABB');
   await expect(encoder.locator('[data-cp-codec-edit]')).toBeFocused();
   await page.waitForTimeout(500);
-  await expect(encoder.locator('[data-cp-codec-output]')).toHaveText('1110');
+  assert.equal(await encodedBits(), '1110');
   for (let i = 1; i < 18; i++) await encoder.locator('[data-cp-codec-next]').click();
   const fullBits = '11101011110110010110000110111010101000';
-  assert.equal((await encoder.locator('[data-cp-codec-output]').textContent()).replace(/\s/g, ''), fullBits);
+  assert.equal(await encodedBits(), fullBits);
+  await expect(encoder.locator('[data-cp-codec-output-count]')).toHaveText('38bit');
+  await expect(encoder.locator('[data-cp-codec-source]')).toHaveAttribute('aria-label', new RegExp(fullBits));
   await expect(encoder.locator('[data-cp-codec-next]')).toBeDisabled();
   await editCodec(encoder, 'F');
   await expect(encoder.locator('[data-cp-codec-input]')).toHaveAttribute('aria-invalid', 'true');
   await expect(encoder.locator('[data-cp-codec-next]')).toBeDisabled();
   await editCodec(encoder, 'DAE');
   await encoder.locator('[data-cp-codec-next]').click();
-  await expect(encoder.locator('[data-cp-codec-output]')).toHaveText('1110');
+  assert.equal(await encodedBits(), '1110');
+  await encoder.locator('[data-cp-codec-reset]').click();
+  assert.equal(await encodedBits(), '');
+  assert.equal(await sourceLetters(), 'DAE');
+  await expect(encoder.locator('.cp-frequency-word.is-current')).toHaveCount(0);
+  await expect(encoder.locator('[data-cp-codec-output-count]')).toHaveText('0bit');
   await page.getByRole('tab', { name: '復元', exact: true }).click();
   await expect(decoder.locator('[data-cp-codec-input]')).toHaveValue(fullBits);
   for (let i = 0; i < 3; i++) {
@@ -867,6 +891,20 @@ try {
             return Math.max(...all) - Math.min(...all);
           });
           assert(equalWidths < 0.1, `全bitセルの幅が一致 ${width}/${theme}/${font}`);
+        }
+        if (n === 3) {
+          const metrics = await page.locator('[data-cp-codec="encode"] .cp-codec-strip-scroll').evaluate(scroll => {
+            const cells = [...scroll.querySelectorAll('.cp-frequency-bit')];
+            const widths = cells.map(cell => cell.getBoundingClientRect().width);
+            const digitFits = cells.every(cell => {
+              const range = document.createRange(); range.selectNodeContents(cell);
+              const digit = range.getBoundingClientRect(), box = cell.getBoundingClientRect();
+              return digit.left >= box.left - 1 && digit.right <= box.right + 1;
+            });
+            return { digitFits, equalWidths: Math.max(...widths) - Math.min(...widths), client: scroll.clientWidth, scroll: scroll.scrollWidth };
+          });
+          assert(metrics.digitFits && metrics.equalWidths < .1, `符号化のbitの幅と数字の収まり ${width}/${theme}/${font}`);
+          if (width === 390) assert(metrics.scroll > metrics.client, '狭幅では符号の帯の中だけを横スクロール');
         }
       }
     }

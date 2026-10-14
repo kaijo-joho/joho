@@ -119,6 +119,8 @@
 .cp-codec-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .cp-codec-band :is([data-cp-codec-source-count], [data-cp-codec-output-count]) { margin-left: 1em; color: var(--dr-muted); font-size: .85em; font-variant-numeric: tabular-nums; }
 .cp-codec-band :is(.cp-codec-source, .cp-codec-output) { min-height: 2.2em; margin: 8px 0 0; padding: 4px 0; border: 0; background: transparent; }
+.cp-codec-strip-scroll { max-width: 100%; margin-top: 12px; padding: 4px 0 8px; overflow-x: auto; overscroll-behavior-inline: contain; }
+.cp-codec-widget .cp-codec-strip { display: grid; grid-template-columns: repeat(var(--cp-bit-count), minmax(0, 1fr)); min-width: calc(var(--cp-bit-count) * 1.55em); }
 .cp-codec-table { width: min(100%, 24em); min-width: 0 !important; margin: 10px 0; border-collapse: collapse; font: inherit; }
 .cp-codec-table :is(th, td) { padding: 7px 10px; border: 1px solid var(--dr-border); }
 .cp-codec-table th { background: var(--dr-info-soft); text-align: left; }

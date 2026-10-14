@@ -7,11 +7,11 @@
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
-  <link rel="stylesheet" href="./css/compression-representation.css?v=20261014-dr52-workspace">
+  <link rel="stylesheet" href="./css/compression-representation.css?v=20261014-dr52-codec-strip">
   <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <link rel="stylesheet" href="./css/compression-quiz.css?v=20261014-dr52-workspace">
   <link rel="stylesheet" href="./css/compression-practice.css?v=20261013-dr52-r2">
-  <link rel="stylesheet" href="./css/compression-frequency.css?v=20261014-dr52-panels">
+  <link rel="stylesheet" href="./css/compression-frequency.css?v=20261014-dr52-codec-strip">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/compression-core.js?v=20261013-dr52"></script>
   <script defer src="./js/lesson-formula-core.js"></script>
@@ -19,7 +19,7 @@
   <script defer src="./js/lesson-formula-builder.js"></script>
   <script defer src="./js/compression-practice-core.js?v=20261013-dr52"></script>
   <script defer src="./js/compression-formulas.js?v=20261013-dr52"></script>
-  <script defer src="./js/compression-lessons.js?v=20261014-dr52-workspace"></script>
+  <script defer src="./js/compression-lessons.js?v=20261014-dr52-codec-strip"></script>
   <script defer src="./js/compression-practice.js?v=20261013-dr52-r2"></script>
   <script defer src="./js/compression-frequency.js?v=20261014-dr52-hover"></script>
   <script defer src="./js/compression-quiz.js?v=20261014-dr52-workspace"></script>
@@ -145,10 +145,31 @@
             <div class="cp-codec-result">
               <section class="cp-codec-band">
                 <div class="cp-codec-heading">
-                  <h4>元の文字列 <span data-cp-codec-source-count>18文字</span></h4>
+                  <h4>元の文字列 <span data-cp-codec-source-count>18文字</span> → 符号化したビット列 <span data-cp-codec-output-count>38bit</span></h4>
                   <button class="dr-button cp-enhancement" type="button" data-cp-codec-edit aria-label="符号化する文字列を編集" aria-expanded="false" aria-controls="cp-codec-encode-editor" hidden>編集</button>
                 </div>
-                <p class="cp-codec-source" data-cp-codec-source aria-label="符号化する文字列">DAEBCBACBBBCDAAABB</p>
+                <div class="cp-codec-strip-scroll" data-cp-codec-strip-scroll tabindex="0" role="region" aria-label="元の文字と対応する符号。左右にスクロールできます">
+                  <div class="cp-frequency-bit-track cp-codec-strip" data-cp-codec-source style="--cp-bit-count: 38;" role="img" aria-label="元の文字列DAEBCBACBBBCDAAABB。符号化したビット列11101011110110010110000110111010101000、38bit">
+                    <div class="cp-frequency-word" data-cp-frequency-column="D" style="grid-column: span 4;" aria-hidden="true"><span class="cp-frequency-word__symbol">D</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="A" style="grid-column: span 2;" aria-hidden="true"><span class="cp-frequency-word__symbol">A</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="E" style="grid-column: span 4;" aria-hidden="true"><span class="cp-frequency-word__symbol">E</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">1</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="B" style="grid-column: span 1;" aria-hidden="true"><span class="cp-frequency-word__symbol">B</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="C" style="grid-column: span 3;" aria-hidden="true"><span class="cp-frequency-word__symbol">C</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="B" style="grid-column: span 1;" aria-hidden="true"><span class="cp-frequency-word__symbol">B</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="A" style="grid-column: span 2;" aria-hidden="true"><span class="cp-frequency-word__symbol">A</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="C" style="grid-column: span 3;" aria-hidden="true"><span class="cp-frequency-word__symbol">C</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="B" style="grid-column: span 1;" aria-hidden="true"><span class="cp-frequency-word__symbol">B</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="B" style="grid-column: span 1;" aria-hidden="true"><span class="cp-frequency-word__symbol">B</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="B" style="grid-column: span 1;" aria-hidden="true"><span class="cp-frequency-word__symbol">B</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="C" style="grid-column: span 3;" aria-hidden="true"><span class="cp-frequency-word__symbol">C</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="D" style="grid-column: span 4;" aria-hidden="true"><span class="cp-frequency-word__symbol">D</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="A" style="grid-column: span 2;" aria-hidden="true"><span class="cp-frequency-word__symbol">A</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="A" style="grid-column: span 2;" aria-hidden="true"><span class="cp-frequency-word__symbol">A</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="A" style="grid-column: span 2;" aria-hidden="true"><span class="cp-frequency-word__symbol">A</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">1</span><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="B" style="grid-column: span 1;" aria-hidden="true"><span class="cp-frequency-word__symbol">B</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">0</span></div></div>
+                    <div class="cp-frequency-word" data-cp-frequency-column="B" style="grid-column: span 1;" aria-hidden="true"><span class="cp-frequency-word__symbol">B</span><div class="cp-frequency-cells"><span class="cp-frequency-bit">0</span></div></div>
+                  </div>
+                </div>
                 <form id="cp-codec-encode-editor" data-cp-codec-form data-cp-codec-editor hidden novalidate>
                   <label for="cp-codec-encode-input">符号化する文字列（A〜E、1〜80文字）</label>
                   <input id="cp-codec-encode-input" data-cp-codec-input maxlength="80" type="text" value="DAEBCBACBBBCDAAABB" autocomplete="off" spellcheck="false" aria-describedby="cp-codec-encode-edit-status">
@@ -158,10 +179,6 @@
                   </div>
                   <p class="cp-hint" id="cp-codec-encode-edit-status" data-cp-codec-edit-status role="status"></p>
                 </form>
-              </section>
-              <section class="cp-codec-band">
-                <h4>符号化したビット列 <span data-cp-codec-output-count>38bit</span></h4>
-                <p class="cp-codec-output" data-cp-codec-output aria-label="符号化したビット列">11101011110110010110000110111010101000</p>
               </section>
               <p class="cp-hint">直前に追加した符号：<code class="cp-codec-pending" data-cp-codec-pending>—</code></p>
             </div>

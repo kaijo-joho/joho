@@ -729,6 +729,7 @@
     const editStatus = one(root, '[data-cp-codec-edit-status]');
     const sourceCount = one(root, '[data-cp-codec-source-count]');
     const outputCount = one(root, '[data-cp-codec-output-count]');
+    const stripScroll = one(root, '[data-cp-codec-strip-scroll]');
     const codes = fixture.codes;
     const codeToSymbol = Object.fromEntries(Object.entries(codes).map(([symbol, bits]) => [bits, symbol]));
     let step = 0;
@@ -738,15 +739,15 @@
     const render = () => {
       const valid = validSource(source);
       if (sourceCount) sourceCount.textContent = `${source.length}${decode ? 'bit' : '文字'}`;
-      sourceDisplay.replaceChildren(...[...source].map((character, index) => {
-        const span = make('span', character, `${decode ? 'cp-codec-bit' : ''}${index === step - 1 ? ' is-current' : ''}`);
-        if (decode) span.dataset.cpBitIndex = String(index);
+      if (decode) sourceDisplay.replaceChildren(...[...source].map((character, index) => {
+        const span = make('span', character, `cp-codec-bit${index === step - 1 ? ' is-current' : ''}`);
+        span.dataset.cpBitIndex = String(index);
         if (index === step - 1) span.setAttribute('aria-current', 'true');
         return span;
       }));
       codeRows.forEach(row => row.classList.remove('is-current'));
       if (!valid) {
-        output.replaceChildren();
+        (decode ? output : sourceDisplay).replaceChildren();
         pendingDisplay.textContent = '—';
         status.textContent = source
           ? (decode ? '0と1を1〜160bitで入力してください。' : 'A〜Eの文字を1〜80文字で入力してください。')
@@ -790,19 +791,40 @@
         else status.textContent = pending ? `表と照合中の符号は${pending}です。次のbitを確認します。` : '次のbitを符号表と照合します。';
       } else {
         const completed = source.slice(0, step);
-        output.replaceChildren(...[...completed].map((character, index) => {
-          const span = make('span', codes[character], `cp-token${index === step - 1 ? ' is-current' : ''}`);
-          span.setAttribute('aria-label', `${character}の符号${codes[character]}`);
-          return span;
+        const encoded = Core.encodeHuffman(completed, codes);
+        const totalBits = Core.encodeHuffman(source, codes).length;
+        sourceDisplay.style.setProperty('--cp-bit-count', totalBits);
+        sourceDisplay.replaceChildren(...[...source].map((character, index) => {
+          const code = codes[character];
+          const word = make('div', '', `cp-frequency-word${index === step - 1 ? ' is-current' : ''}`);
+          word.style.gridColumn = `span ${code.length}`;
+          word.dataset.cpFrequencyColumn = character;
+          word.setAttribute('aria-hidden', 'true');
+          const cells = make('div', '', 'cp-frequency-cells');
+          cells.append(...[...code].map(bit => make('span', index < step ? bit : '', 'cp-frequency-bit')));
+          word.append(make('span', character, 'cp-frequency-word__symbol'), cells);
+          return word;
         }));
+        sourceDisplay.setAttribute('aria-label', `元の文字列${source}。符号化済み${completed.length}文字、${encoded.length}bit${encoded ? `：${encoded}` : ''}。`);
+        // Keep the current word visible without moving the page or keyboard focus.
+        if (stripScroll && stripScroll.clientWidth > 0 && !editing) {
+          const current = sourceDisplay.children[step - 1];
+          if (!current) stripScroll.scrollLeft = 0;
+          else {
+            const bounds = stripScroll.getBoundingClientRect();
+            const wordBounds = current.getBoundingClientRect();
+            if (wordBounds.right > bounds.right) stripScroll.scrollLeft += wordBounds.right - bounds.right;
+            else if (wordBounds.left < bounds.left) stripScroll.scrollLeft -= bounds.left - wordBounds.left;
+          }
+        }
         pendingDisplay.textContent = step ? codes[source[step - 1]] : '—';
-        if (outputCount) outputCount.textContent = `${Core.encodeHuffman(completed, codes).length}bit`;
+        if (outputCount) outputCount.textContent = `${encoded.length}bit`;
         if (step < source.length) {
           status.textContent = step === 0
             ? `「次へ」で${source[step]}に対応する符号を表から追加します。`
             : `${source[step - 1]}の符号${codes[source[step - 1]]}を追加しました。次は${source[step]}です。`;
         } else {
-          status.textContent = `符号化完了。${source.length}文字を${Core.encodeHuffman(source, codes).length}bitで表しました。`;
+          status.textContent = `符号化完了。${source.length}文字を${totalBits}bitで表しました。`;
         }
       }
       next.disabled = editing || step >= source.length;
