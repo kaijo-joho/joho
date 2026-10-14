@@ -736,18 +736,30 @@
     let source = clean(input.value);
     let editing = false;
     const validSource = value => decode ? /^[01]{1,160}$/.test(value) : /^[A-E]{1,80}$/.test(value);
+    const groupsForSource = () => {
+      if (!decode) return [...source].map((symbol, index) => ({ symbol, bits: codes[symbol], start: index, end: index + 1 }));
+      const groups = [];
+      let pending = '';
+      let start = 0;
+      for (let index = 0; index < source.length; index += 1) {
+        pending += source[index];
+        const symbol = codeToSymbol[pending];
+        if (symbol) {
+          groups.push({ symbol, bits: pending, start, end: index + 1 });
+          start = index + 1;
+          pending = '';
+        }
+      }
+      if (pending) groups.push({ symbol: '', bits: pending, start, end: source.length });
+      return groups;
+    };
     const render = () => {
       const valid = validSource(source);
       if (sourceCount) sourceCount.textContent = `${source.length}${decode ? 'bit' : '文字'}`;
-      if (decode) sourceDisplay.replaceChildren(...[...source].map((character, index) => {
-        const span = make('span', character, `cp-codec-bit${index === step - 1 ? ' is-current' : ''}`);
-        span.dataset.cpBitIndex = String(index);
-        if (index === step - 1) span.setAttribute('aria-current', 'true');
-        return span;
-      }));
       codeRows.forEach(row => row.classList.remove('is-current'));
       if (!valid) {
-        (decode ? output : sourceDisplay).replaceChildren();
+        sourceDisplay.replaceChildren();
+        output.replaceChildren();
         pendingDisplay.textContent = '—';
         status.textContent = source
           ? (decode ? '0と1を1〜160bitで入力してください。' : 'A〜Eの文字を1〜80文字で入力してください。')
@@ -757,86 +769,81 @@
         return;
       }
 
-      let currentSymbol = '';
-      if (decode) {
-        let decoded = '';
-        let pending = '';
-        let pendingStart = 0;
-        let completedStart = 0;
-        const consumed = source.slice(0, step);
-        for (let index = 0; index < consumed.length; index += 1) {
-          pending += consumed[index];
-          const symbol = codeToSymbol[pending];
-          if (symbol) {
-            decoded += symbol;
-            if (index === consumed.length - 1) {
-              currentSymbol = symbol;
-              completedStart = pendingStart;
-            }
-            sourceDisplay.children[index].classList.add('is-code-end');
-            pendingStart = index + 1;
-            pending = '';
-          }
+      const groups = groupsForSource();
+      const activeIndex = groups.findIndex(group => step > group.start && step <= group.end);
+      const active = groups[activeIndex];
+      const completed = groups.filter(group => group.symbol && group.end <= step);
+      const encoded = completed.map(group => group.bits).join('');
+      const decoded = completed.map(group => group.symbol).join('');
+      const currentSymbol = active && (!decode || active.end === step) ? active.symbol : '';
+      const pending = decode && active && !currentSymbol ? active.bits.slice(0, step - active.start) : '';
+      const table = one(root, '[data-cp-codec-grid]');
+      table.style.setProperty('--cp-word-count', groups.length);
+      sourceDisplay.replaceChildren(make('th', decode ? '元の符号' : '元の文字'));
+      output.replaceChildren(make('th', decode ? '復元' : '符号化'));
+      sourceDisplay.firstElementChild.scope = output.firstElementChild.scope = 'row';
+      groups.forEach((group, column) => {
+        const confirmed = Boolean(group.symbol) && group.end <= step;
+        const isCurrent = column === activeIndex;
+        const sourceCell = make('td', decode ? '' : group.symbol, isCurrent ? 'is-current' : '');
+        const outputCell = make('td', confirmed ? (decode ? group.symbol : group.bits) : '', isCurrent ? 'is-current' : '');
+        for (const cell of [sourceCell, outputCell]) {
+          cell.dataset.cpCodecColumn = String(column);
+          // Do not hint at an unread letter through its color while decoding.
+          if (!decode || confirmed) cell.dataset.cpFrequencyColumn = group.symbol;
         }
-        // Include the deciding bit in the underline. Switch to a new code only
-        // when the next bit is read, so the completed word remains visible.
-        const readingStart = currentSymbol ? completedStart : pendingStart;
-        for (let index = readingStart; index < step; index += 1) sourceDisplay.children[index].classList.add('is-reading');
-        output.textContent = decoded || '（まだ文字は確定していません）';
-        if (outputCount) outputCount.textContent = `${decoded.length}文字`;
-        pendingDisplay.textContent = pending || '—';
+        sourceCell.setAttribute('aria-label', decode ? `${column + 1}つ目の符号：${group.bits}` : `${column + 1}文字目：${group.symbol}`);
+        outputCell.setAttribute('aria-label', `${column + 1}列目の${decode ? '復元' : '符号化'}：${confirmed ? outputCell.textContent : '未確定'}`);
+        if (decode) {
+          sourceCell.append(...[...group.bits].map((bit, offset) => {
+            const index = group.start + offset;
+            const span = make('span', bit, 'cp-codec-bit');
+            span.dataset.cpBitIndex = String(index);
+            if (isCurrent && index < step) span.classList.add('is-reading');
+            if (index === step - 1) {
+              span.classList.add('is-current');
+              span.setAttribute('aria-current', 'true');
+            }
+            return span;
+          }));
+        }
+        sourceDisplay.append(sourceCell);
+        output.append(outputCell);
+      });
+      if (outputCount) outputCount.textContent = decode ? `${decoded.length}文字` : `${encoded.length}bit`;
+      pendingDisplay.textContent = decode ? pending || '—' : active?.bits || '—';
+      if (decode) {
         if (step === source.length && pending) status.textContent = `入力は符号の途中（${pending}）で終わっています。続きのbitを追加してください。`;
         else if (step === source.length) status.textContent = `復元完了。${decoded.length}文字を確認しました。`;
         else if (currentSymbol) status.textContent = `符号${codes[currentSymbol]}が表の${currentSymbol}と一致しました。${currentSymbol}を復元しました。`;
         else status.textContent = pending ? `表と照合中の符号は${pending}です。次のbitを確認します。` : '次のbitを符号表と照合します。';
-      } else {
-        const completed = source.slice(0, step);
-        const encoded = Core.encodeHuffman(completed, codes);
-        const totalBits = Core.encodeHuffman(source, codes).length;
-        sourceDisplay.style.setProperty('--cp-bit-count', totalBits);
-        sourceDisplay.replaceChildren(...[...source].map((character, index) => {
-          const code = codes[character];
-          const word = make('div', '', `cp-frequency-word${index === step - 1 ? ' is-current' : ''}`);
-          word.style.gridColumn = `span ${code.length}`;
-          word.dataset.cpFrequencyColumn = character;
-          word.setAttribute('aria-hidden', 'true');
-          const cells = make('div', '', 'cp-frequency-cells');
-          cells.append(...[...code].map(bit => make('span', index < step ? bit : '', 'cp-frequency-bit')));
-          word.append(make('span', character, 'cp-frequency-word__symbol'), cells);
-          return word;
-        }));
-        sourceDisplay.setAttribute('aria-label', `元の文字列${source}。符号化済み${completed.length}文字、${encoded.length}bit${encoded ? `：${encoded}` : ''}。`);
-        // Keep the current word visible without moving the page or keyboard focus.
-        if (stripScroll && stripScroll.clientWidth > 0 && !editing) {
-          const current = sourceDisplay.children[step - 1];
-          if (!current) stripScroll.scrollLeft = 0;
-          else {
-            const bounds = stripScroll.getBoundingClientRect();
-            const wordBounds = current.getBoundingClientRect();
-            if (wordBounds.right > bounds.right) stripScroll.scrollLeft += wordBounds.right - bounds.right;
-            else if (wordBounds.left < bounds.left) stripScroll.scrollLeft -= bounds.left - wordBounds.left;
-          }
-        }
-        pendingDisplay.textContent = step ? codes[source[step - 1]] : '—';
-        if (outputCount) outputCount.textContent = `${encoded.length}bit`;
-        if (step < source.length) {
-          status.textContent = step === 0
-            ? `「次へ」で${source[step]}に対応する符号を表から追加します。`
-            : `${source[step - 1]}の符号${codes[source[step - 1]]}を追加しました。次は${source[step]}です。`;
-        } else {
-          status.textContent = `符号化完了。${source.length}文字を${totalBits}bitで表しました。`;
+      } else if (step < source.length) {
+        status.textContent = step === 0
+          ? `「次へ」で${source[step]}に対応する符号を表から追加します。`
+          : `${source[step - 1]}の符号${codes[source[step - 1]]}を追加しました。次は${source[step]}です。`;
+      } else status.textContent = `符号化完了。${source.length}文字を${encoded.length}bitで表しました。`;
+      // Keep the current column visible inside the table without moving focus.
+      if (stripScroll && stripScroll.clientWidth > 0 && !editing) {
+        const current = sourceDisplay.querySelector('td.is-current');
+        if (!current) stripScroll.scrollLeft = 0;
+        else {
+          const bounds = stripScroll.getBoundingClientRect();
+          const cellBounds = current.getBoundingClientRect();
+          const heading = sourceDisplay.firstElementChild;
+          const left = bounds.left + (getComputedStyle(heading).position === 'sticky' ? heading.getBoundingClientRect().width : 0);
+          if (cellBounds.right > bounds.right) stripScroll.scrollLeft += cellBounds.right - bounds.right;
+          else if (cellBounds.left < left) stripScroll.scrollLeft -= left - cellBounds.left;
         }
       }
       next.disabled = editing || step >= source.length;
       reset.disabled = editing;
       next.setAttribute('aria-label', decode ? '次のbitを復元' : '次の文字を符号化');
-      const activeSymbol = decode ? currentSymbol : source[step - 1] || '';
-      codeRows.find(row => row.dataset.cpCodecRow === activeSymbol)?.classList.add('is-current');
+      codeRows.find(row => row.dataset.cpCodecRow === currentSymbol)?.classList.add('is-current');
     };
     const closeEditor = () => {
       editing = false;
       if (editor) editor.hidden = true;
-      sourceDisplay.hidden = false;
+      stripScroll.hidden = false;
       editButton?.setAttribute('aria-expanded', 'false');
       input.value = source;
       input.removeAttribute('aria-invalid');
@@ -850,7 +857,7 @@
       input.value = source;
       input.removeAttribute('aria-invalid');
       editor.hidden = false;
-      sourceDisplay.hidden = true;
+      stripScroll.hidden = true;
       editButton.setAttribute('aria-expanded', 'true');
       next.disabled = true;
       reset.disabled = true;
