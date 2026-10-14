@@ -266,6 +266,19 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
 :root[data-theme="dark"] .prinfo .prwarn,:root[data-resolved-theme="dark"] .prinfo .prwarn{color:#fbbf24}
 .prinfo .prok{color:#15803d}
 :root[data-theme="dark"] .prinfo .prok,:root[data-resolved-theme="dark"] .prinfo .prok{color:#4ade80}
+/* 3MF のプレビュー */
+.prevdlg{width:min(980px,96vw);max-width:none;padding:0;max-height:94vh}
+.prevdlg header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line)}
+.prevdlg header button{border:0;background:none;font-size:20px;cursor:pointer;color:var(--muted)}
+.prevbody{display:flex;gap:10px;padding:10px 14px;align-items:stretch}
+#prevCv{flex:1;min-width:0;height:min(64vh,560px);border:1px solid var(--line);border-radius:8px;cursor:grab;touch-action:none;display:block}
+#prevCv:active{cursor:grabbing}
+.prevside{width:230px;display:flex;flex-direction:column;gap:8px;font-size:13px}
+.prevside .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.prevdlg .muted{margin:0 14px 10px}
+.pvleg{display:flex;align-items:center;gap:6px;margin:2px 0}
+.pvleg i{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid rgba(0,0,0,.35)}
+@media (max-width:760px){.prevbody{flex-direction:column}.prevside{width:auto}}
 #busyBar{height:100%;width:0;background:var(--accent);transition:width .15s}
 #busyBox .sbtn{align-self:flex-end}
 </style>
@@ -535,6 +548,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
             <button class="sbtn primary" id="prMake">データを作って確かめる</button>
             <div id="prInfo" class="prinfo" hidden></div>
             <div id="prBtns" class="side-sec" hidden>
+              <button class="sbtn primary" id="prPreview" title="書き出す 3MF ファイルを読み直して、形・色・台に置く向きを確かめる">プレビュー（3MF の中身を見る）</button>
               <button class="sbtn" id="pr3mf" title="元素ごとに別の部品（色つき）にした 3MF。スライサーで部品ごとに CFS の色を割り当てます">3MF（色分け）で保存</button>
               <button class="sbtn" id="prStl" title="全部を 1 つにした STL（単色）">STL（1 つ・単色）で保存</button>
               <button class="sbtn" id="prZip" title="元素ごとの STL を ZIP にまとめたもの。スライサーに全部をいっしょに入れると、1 つのモデルの部品として読み込めます">STL（色ごと）を ZIP で保存</button>
@@ -600,7 +614,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>分子を表示する</td><td>画面右端の「化合物ライブラリ」のタブを開いて、化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
         <tr><td>結晶の 3D プリンタ出力</td><td>「結晶」で、断面・「単位格子の面で原子を切る」で切った立体を、「書き出し」パネルの「3D プリンタ用」から <b>3MF・STL</b> にできます（金属結晶・イオン結晶）。球は<b>5% 大きくして重ね</b>、つなげます。色は<b>単色</b>か<b>層ごと</b>（断面に平行な層を、同じ並び方ごとに A・B・C…と色分け。面心立方格子の (111) 面は ABCABC…、六方最密構造は ABAB…）を選べます。「<b>切り取られた反対側もいっしょに出す</b>」で、断面の両側を台の上に並べます。切り口を下にして置き、そのままでは支えが要る形のときは、単位格子の面を下にして置きます。「立方最密構造 ＝ 面心立方格子」を見せるには、面心立方格子を (1 1 1) で切って、層ごとの色で出力します。</td></tr>
         <tr><td>量の上限</td><td>一度に 3D で扱えるのは、<b>分子 30 個・原子 1500 個</b>までです（多すぎると重くなって止まるため）。上限を超えて追加しようとすると、知らせて止めます。構造式エディタの図を取り込むときは、<b>進み具合の枠の「やめる」</b>（または Esc キー）で途中でやめられ、そのときは何も変わりません。構造式エディタで分子を選んでから「3D で見る」を押すと、選んだ分子だけを渡せます。</td></tr>
-        <tr><td>3D プリンタ</td><td>「書き出し」パネルの「3D プリンタ用」で、いま表示している分子を <b>3MF・STL</b> にできます（Creality K2 Pro など）。大きさは、いちばん長い分子の長さ（mm）か、1 Å あたりの長さで選びます。<b>3MF は元素ごとに別の部品</b>になっているので、スライサーで部品ごとに CFS の色を割り当てられます。台に置く向きは、支えが要らない向きを自動で探します。支えが必要な分子は、「支えが必要です」と知らせます。「支えあり」にすると、細い柱の支えを別の部品として付けます。実際に印刷して、形や強さを確かめてください。</td></tr>
+        <tr><td>3D プリンタ</td><td>「書き出し」パネルの「3D プリンタ用」で、いま表示している分子を <b>3MF・STL</b> にできます（Creality K2 Pro など）。大きさは、いちばん長い分子の長さ（mm）か、1 Å あたりの長さで選びます。<b>3MF は元素ごとに別の部品</b>になっているので、スライサーで部品ごとに CFS の色を割り当てられます。台に置く向きは、支えが要らない向きを自動で探します。支えが必要な分子は、「支えが必要です」と知らせます。「支えあり」にすると、細い柱の支えを別の部品として付けます。「データを作って確かめる」のあとの<b>「プレビュー」</b>で、書き出す 3MF ファイルを読み直して、形・色・台に置いた状態を画面で確かめられます。実際に印刷して、形や強さを確かめてください。</td></tr>
         <tr><td>構造式の枠</td><td>キャンバスの左上に、表示している分子の<b>構造式</b>（骨格構造式）を小さな枠で出します。枠の <b>✕</b> か、上の「構造式」ボタンで隠せます（もう一度押すと出ます）。図か <b>⤢</b> を押すと、枠の大きさが変わります。分子を選んでいるときは、その分子だけを出します。<b>太いくさび</b>は手前に、<b>破線</b>は奥に向いた結合で、不斉炭素の立体（R/S）を表します（3D の向きに合わせて自動で付けます）。二重結合のシス・トランスも 3D と同じ側に描きます。炭素は頂点で、酸素・窒素などは文字で表し、H の数も添えます（原子 3 個までの小さな分子は、CH<sub>3</sub>–CH<sub>2</sub>–OH のように炭素も書きます）。ベンゼン環は二重結合を交互に描きます。<b>限界</b>：C<sub>60</sub> のような籠の形は平面に描けないので描きません。大きな分子（デンプンの 10 個分など）は、図の一部が重なることがあります。結晶格子のモードでは出ません。構造式の向きや形は 3D の向きとは関係なく、分子のつながり方から決めています。</td></tr>
         <tr><td>水素結合</td><td>「表示 ▼」の<b>「水素結合を表示」</b>で、O–H···O や N–H···O などの水素結合を<b>細い水色の線</b>で表します（結晶モードの氷と同じ色）。水分子どうし、酢酸の二量体、デンプンのらせんを保つ 2 位・3 位の OH のはしご、DNA の相補塩基対のような場面で使えます。判定は <b>H から相手までが 2.6 Å 以内で、O–H···O の角度が 130° 以上</b>。さらに、受け手が水酸基やエーテル・水の O のときは、<b>H がその O の非共有電子対のある向きから近づいていること</b>（O の 2 本の結合がつくる面から 20° 以上外れていること）も条件にしています。面の中から近づく配置は、実際の水素結合としては不自然だからです。<b>H の向きで判断している</b>ので、同じ組に 2 本引かれることはありません（水素結合には向きがあり、結びついているのは片方だけです）。OH の H は、水素結合ができる向きがあればそちらへ向けてあります（重い原子の位置は変えません）。<b>注意</b>：分子そのものの形（C–C のまわりのねじれなど）は変えないので、形によっては本当は水素結合があるのに出ないことがあります。組み立てた形では、C=O と環のあいだの結合の向きも、水素結合ができるほうを選んでいます（たとえば<b>サリチル酸</b>では C=O がフェノールの OH の側を向き、分子内水素結合が出ます。実測の結晶構造と同じ向きです）。ファイルから読み込んだ分子は H の向きもそのままです。</td></tr>
         <tr><td>座標の出どころ</td><td>「表示 ▼」の<b>「座標」</b>で、化合物ライブラリから作るときの原子の位置を切り替えられます。<b>データベース</b>は外部の公開データ（PubChem・RCSB PDB）から取った位置、<b>組み立てた形</b>はこのアプリが標準の結合長・結合角から組み立てた位置です。切り替わるのはデータベースの座標がある分子だけで、いまは 4 つ（エチレングリコール、D-グリセルアルデヒド、β-リボース、α-シクロデキストリン）。たとえば<b>エチレングリコール</b>は、組み立てた形では真っすぐ伸びていますが、データベースの形では<b>ねじれて</b>おり、こちらが実際に近い姿です。<b>注意</b>：どちらの座標も<b>計算で求めたもので、実験で測った値ではありません</b>（PubChem は MMFF94 系、PDB の ideal は生成値）。とくに PubChem の座標は、分子の中の電気的な引き合いを切って作られているため、<b>共役して平面になるはずの分子（フマル酸・サリチル酸など）がねじれていたり、最も安定な形でなかったりします</b>（1,2-ジクロロエタンがゴーシュ形になっていた）。そうした分子は、組み立てた形のほうを使っています。ライブラリにない分子や、自分で編集した分子は、いつも「組み立てた形」になります。</td></tr>
@@ -635,7 +649,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.32 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.33 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -645,6 +659,12 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
   <p class="muted" id="openDlgNote"></p>
   <div id="openList"></div>
   <div class="row"><button class="sbtn" id="miOpenFile2">ファイルを開く…</button><button class="sbtn" id="openDlgClose">閉じる</button></div>
+</dialog>
+<dialog id="prevDlg" class="prevdlg" aria-labelledby="prevTitle">
+  <header><b id="prevTitle">3D プリンタ用データのプレビュー</b><button id="prevClose" aria-label="閉じる">✕</button></header>
+  <div class="prevbody"><canvas id="prevCv" tabindex="0" aria-label="プレビュー（ドラッグで回転・ホイールで拡大）"></canvas><div class="prevside"><div id="prevInfo" class="prinfo"></div><div id="prevLegend"></div>
+    <div class="row"><button class="sbtn" id="prevReset">向きを戻す</button><label class="chk"><input type="checkbox" id="prevBed" checked>台を表示</label></div></div></div>
+  <p class="muted">書き出す 3MF ファイルを読み直して描いています。ドラッグで回転・ホイール（ピンチ）で拡大。台（z = 0）の上に置いた状態です。</p>
 </dialog>
 <dialog id="askDlg" aria-labelledby="askDlgTitle">
   <h2 id="askDlgTitle">保存していない変更があります</h2>
@@ -3413,6 +3433,45 @@ function pp3mf(parts, title = 'bunshi'){
     {name:'3D/3dmodel.model', data:enc.encode(model)}]);
 }
 
+
+// ---- 3MF を読み直す（プレビュー用。自分で書き出した 3MF と同じ形：圧縮なしの ZIP・元素ごとの部品）----
+function ppUnzip(u8){
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  let e = u8.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('ZIP ではありません');
+  const n = dv.getUint16(e + 10, true), files = {}; let p = dv.getUint32(e + 16, true);
+  for (let i = 0; i < n; i++){
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('ZIP の中身が壊れています');
+    const method = dv.getUint16(p + 10, true), crc = dv.getUint32(p + 16, true), size = dv.getUint32(p + 24, true), nl = dv.getUint16(p + 28, true), ex = dv.getUint16(p + 30, true), cm = dv.getUint16(p + 32, true), lo = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl)), ln = dv.getUint16(lo + 26, true), le = dv.getUint16(lo + 28, true);
+    if (method !== 0) throw new Error('圧縮された 3MF は、まだ読めません（このアプリで書き出した 3MF を読みます）');
+    const data = u8.subarray(lo + 30 + ln + le, lo + 30 + ln + le + size);
+    if (ppCrc(data) !== crc) throw new Error(`${name} の CRC が合いません（ファイルが壊れています）`);
+    files[name] = data; p += 46 + nl + ex + cm;
+  }
+  return files;
+}
+const ppUnesc = t => String(t).replace(/&quot;/g, '"').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+// 戻り値：{parts:[{name, color, pos, idx}], size:[x, y, z], lo, hi, tris}
+function pp3mfRead(u8){
+  const files = ppUnzip(u8), mf = files['3D/3dmodel.model'];
+  if (!mf) throw new Error('3D/3dmodel.model がありません');
+  const xml = new TextDecoder().decode(mf);
+  const mats = [...xml.matchAll(/<base name="([^"]*)" displaycolor="#([0-9A-Fa-f]{6})/g)].map(m => ({name:ppUnesc(m[1]), color:[0, 2, 4].map(i => parseInt(m[2].slice(i, i + 2), 16)/255)}));
+  const parts = [], lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity]; let tris = 0;
+  for (const om of xml.matchAll(/<object ([^>]*)>([\s\S]*?)<\/object>/g)){
+    if (!om[2].includes('<mesh>')) continue;   // 部品をまとめるだけの物体は、描かない
+    const pi = /pindex="(\d+)"/.exec(om[1]), nm = /name="([^"]*)"/.exec(om[1]);
+    const v = [...om[2].matchAll(/<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"\/>/g)], t = [...om[2].matchAll(/<triangle v1="(\d+)" v2="(\d+)" v3="(\d+)"\/>/g)];
+    const pos = new Float32Array(v.length*3), idx = new Uint32Array(t.length*3);
+    v.forEach((m, i) => { for (let a = 0; a < 3; a++){ const x = +m[a + 1]; pos[i*3 + a] = x; if (x < lo[a]) lo[a] = x; if (x > hi[a]) hi[a] = x; } });
+    t.forEach((m, i) => { for (let a = 0; a < 3; a++){ const j = +m[a + 1]; if (j >= v.length) throw new Error('三角形が、ない頂点を指しています'); idx[i*3 + a] = j; } });
+    const mat = pi ? mats[+pi[1]] : null;
+    parts.push({name:nm ? ppUnesc(nm[1]) : '部品', color:mat ? mat.color : [0.7, 0.7, 0.7], pos, idx}); tris += t.length;
+  }
+  if (!parts.length) throw new Error('形が見つかりません');
+  return {parts, size:hi.map((h, a) => h - lo[a]), lo, hi, tris};
+}
 // ===== 化学 ここまで =====
 
 const $ = id => document.getElementById(id);
@@ -5588,6 +5647,105 @@ $('prMake').onclick = () => {
     $('prMake').disabled = false;
   }, 30);
 };
+// ---- プレビュー：書き出す 3MF を作って、読み直し、WebGL で描く ----
+let pv = null;   // {gl, prog, ..., data, vis, yaw, elev, dist}
+const m4 = {
+  mul:(a, b) => { const o = new Float32Array(16); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++){ let t = 0; for (let k = 0; k < 4; k++) t += a[k*4 + r]*b[c*4 + k]; o[c*4 + r] = t; } return o; },
+  persp:(f, a, n, z) => { const t = 1/Math.tan(f/2); return Float32Array.from([t/a, 0, 0, 0, 0, t, 0, 0, 0, 0, (z + n)/(n - z), -1, 0, 0, 2*z*n/(n - z), 0]); },
+  tr:(x, y, z) => Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1]),
+  rx:a => { const c = Math.cos(a), s = Math.sin(a); return Float32Array.from([1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1]); },
+  rz:a => { const c = Math.cos(a), s = Math.sin(a); return Float32Array.from([c, s, 0, 0, -s, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); }
+};
+function pvInit(){
+  if (pv && pv.gl) return true;
+  const cv = $('prevCv'), gl = cv.getContext('webgl2', {antialias:true});
+  if (!gl){ toast('このブラウザでは、プレビューを描けません（WebGL2 が使えません）'); return false; }
+  const sh = (t, src) => { const o = gl.createShader(t); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, `#version 300 es
+in vec3 p; in vec3 n; uniform mat4 uP, uV; uniform mat3 uR; out vec3 vn;
+void main(){ vn = uR*n; gl_Position = uP*uV*vec4(p, 1.0); }`));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, `#version 300 es
+precision mediump float; in vec3 vn; uniform vec3 uC; uniform float uA; out vec4 o;
+void main(){ vec3 N = normalize(vn); if (!gl_FrontFacing) N = -N; float d = max(dot(N, normalize(vec3(0.35, 0.55, 0.75))), 0.0), h = 0.5 + 0.5*N.y;
+  o = vec4(uC*(0.30 + 0.55*d + 0.15*h), uA); }`));
+  gl.linkProgram(prog); if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+  pv = {gl, prog, loc:{p:gl.getAttribLocation(prog, 'p'), n:gl.getAttribLocation(prog, 'n'), uP:gl.getUniformLocation(prog, 'uP'), uV:gl.getUniformLocation(prog, 'uV'), uR:gl.getUniformLocation(prog, 'uR'), uC:gl.getUniformLocation(prog, 'uC'), uA:gl.getUniformLocation(prog, 'uA')}, bufs:[], vis:[], yaw:0.6, elev:0.55, dist:1, drag:null};
+  cv.addEventListener('pointerdown', e => { pv.ptr = pv.ptr || new Map(); pv.ptr.set(e.pointerId, [e.clientX, e.clientY]); try { cv.setPointerCapture(e.pointerId); } catch {} });
+  cv.addEventListener('pointermove', e => {
+    if (!pv.ptr || !pv.ptr.has(e.pointerId)) return;
+    const old = pv.ptr.get(e.pointerId), nw = [e.clientX, e.clientY];
+    if (pv.ptr.size === 1){ pv.yaw -= (nw[0] - old[0])*0.01; pv.elev = Math.max(-0.1, Math.min(Math.PI/2, pv.elev + (nw[1] - old[1])*0.01)); }
+    else if (pv.ptr.size === 2){   // ピンチ：2 本の指の間隔の変化で拡大
+      const o2 = [...pv.ptr.entries()].find(([id]) => id !== e.pointerId)[1], d0 = Math.hypot(old[0] - o2[0], old[1] - o2[1]), d1 = Math.hypot(nw[0] - o2[0], nw[1] - o2[1]);
+      if (d0 > 0 && d1 > 0) pv.dist = Math.max(pv.r*0.4, Math.min(pv.r*12, pv.dist*d0/d1));
+    }
+    pv.ptr.set(e.pointerId, nw); pvDraw();
+  });
+  const up = e => { if (pv.ptr) pv.ptr.delete(e.pointerId); };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('wheel', e => { e.preventDefault(); pv.dist = Math.max(pv.r*0.4, Math.min(pv.r*12, pv.dist*Math.exp(e.deltaY*0.0012))); pvDraw(); }, {passive:false});
+  cv.addEventListener('dblclick', () => pvReset());
+  return true;
+}
+function pvReset(){ const cv = $('prevCv'), asp = Math.max(0.3, cv.clientWidth/Math.max(1, cv.clientHeight)); pv.yaw = 0.6; pv.elev = 0.55; pv.dist = pv.r/Math.tan(0.3)/Math.min(1, asp)*0.8; pvDraw(); }
+function pvDraw(){
+  if (!pv || !pv.data) return;
+  const {gl, loc} = pv, cv = $('prevCv'), dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.max(1, Math.round(cv.clientWidth*dpr)), H = Math.max(1, Math.round(cv.clientHeight*dpr));
+  if (cv.width !== W || cv.height !== H){ cv.width = W; cv.height = H; }
+  gl.viewport(0, 0, W, H);
+  const bg = bgDark() ? [0.11, 0.14, 0.19] : [0.93, 0.945, 0.96];
+  gl.clearColor(bg[0], bg[1], bg[2], 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST);
+  const rot = m4.mul(m4.rx(pv.elev - Math.PI/2), m4.rz(pv.yaw)), c = pv.c;
+  const V = m4.mul(m4.tr(0, 0, -pv.dist), m4.mul(rot, m4.tr(-c[0], -c[1], -c[2])));
+  const R = Float32Array.from([rot[0], rot[1], rot[2], rot[4], rot[5], rot[6], rot[8], rot[9], rot[10]]);
+  gl.useProgram(pv.prog);
+  gl.uniformMatrix4fv(loc.uP, false, m4.persp(0.6, W/H, pv.dist*0.05, pv.dist*6)); gl.uniformMatrix4fv(loc.uV, false, V); gl.uniformMatrix3fv(loc.uR, false, R);
+  const drawBuf = (b, col, a) => {
+    gl.bindBuffer(gl.ARRAY_BUFFER, b.buf);
+    gl.enableVertexAttribArray(loc.p); gl.vertexAttribPointer(loc.p, 3, gl.FLOAT, false, 24, 0);
+    gl.enableVertexAttribArray(loc.n); gl.vertexAttribPointer(loc.n, 3, gl.FLOAT, false, 24, 12);
+    gl.uniform3fv(loc.uC, col); gl.uniform1f(loc.uA, a); gl.drawArrays(gl.TRIANGLES, 0, b.n);
+  };
+  pv.bufs.forEach((b, i) => { if (pv.vis[i]) drawBuf(b, pv.data.parts[i].color, 1); });
+  if ($('prevBed').checked && pv.bed){   // 台（z = 0）：半透明の板
+    gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+    drawBuf(pv.bed, bgDark() ? [0.55, 0.62, 0.75] : [0.45, 0.52, 0.62], 0.35);
+    gl.depthMask(true); gl.disable(gl.BLEND);
+  }
+}
+function openPreview(){
+  if (!printJob) return;
+  let data;
+  try { data = pp3mfRead(pp3mf(printJob.res.parts, 'preview')); }   // 書き出すのと同じ 3MF を作って、読み直す
+  catch (e){ console.error(e); toast('プレビューを作れませんでした：' + e.message); return; }
+  $('prevDlg').showModal();
+  try { if (!pvInit()) { $('prevDlg').close(); return; } } catch (e){ console.error(e); $('prevDlg').close(); toast('プレビューを描けませんでした：' + e.message); return; }
+  const {gl} = pv;
+  pv.bufs.forEach(b => gl.deleteBuffer(b.buf)); pv.bufs = [];
+  const upload = (pos, idx, flat) => {   // 三角形ごとの法線で、面を平らに（球の分割の見え方がそのまま分かる）
+    const n = idx.length, a = new Float32Array(n*6);
+    for (let t = 0; t < n; t += 3){
+      const P = [0, 1, 2].map(k => [pos[idx[t + k]*3], pos[idx[t + k]*3 + 1], pos[idx[t + k]*3 + 2]]), nr = V.norm(V.cross(V.sub(P[1], P[0]), V.sub(P[2], P[0])));
+      for (let k = 0; k < 3; k++) a.set([...P[k], ...nr], (t + k)*6);
+    }
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, a, gl.STATIC_DRAW); return {buf, n};
+  };
+  data.parts.forEach(p => pv.bufs.push(upload(p.pos, p.idx)));
+  const m = 18, bx0 = data.lo[0] - m, bx1 = data.hi[0] + m, by0 = data.lo[1] - m, by1 = data.hi[1] + m;
+  pv.bed = upload(Float32Array.from([bx0, by0, 0, bx1, by0, 0, bx1, by1, 0, bx0, by0, 0, bx1, by1, 0, bx0, by1, 0]), Uint32Array.from([0, 1, 2, 3, 4, 5]));
+  pv.data = data; pv.vis = data.parts.map(() => true);
+  pv.c = [0, 1, 2].map(a => (data.lo[a] + data.hi[a])/2); pv.r = Math.max(...data.size, 10)*0.75;
+  $('prevInfo').innerHTML = `<b>大きさ</b>：${data.size.map(v => Math.round(v)).join(' × ')} mm<br><b>三角形</b>：${data.tris.toLocaleString()} 個<br><b>部品</b>：${data.parts.length} つ`;
+  $('prevLegend').innerHTML = data.parts.map((p, i) => `<label class="pvleg"><input type="checkbox" data-pv="${i}" checked><i style="background:rgb(${p.color.map(v => Math.round(v*255)).join(',')})"></i>${esc(p.name)}</label>`).join('');
+  pvReset();
+}
+$('prPreview').onclick = openPreview;
+$('prevClose').onclick = () => $('prevDlg').close();
+$('prevReset').onclick = () => pv && pvReset();
+$('prevBed').onchange = () => pvDraw();
+$('prevLegend').addEventListener('change', e => { const i = e.target.closest('[data-pv]'); if (i && pv){ pv.vis[+i.dataset.pv] = i.checked; pvDraw(); } });
+window.addEventListener('resize', () => { if ($('prevDlg').open) pvDraw(); });
 $('pr3mf').onclick = () => prSave('3mf');
 $('prStl').onclick = () => prSave('stl');
 $('prZip').onclick = () => prSave('zip');
