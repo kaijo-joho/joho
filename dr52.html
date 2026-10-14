@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <link rel="stylesheet" href="./css/compression-quiz.css?v=20261013-dr52">
   <link rel="stylesheet" href="./css/compression-practice.css?v=20261013-dr52-r2">
-  <link rel="stylesheet" href="./css/compression-frequency.css?v=20261014-dr52">
+  <link rel="stylesheet" href="./css/compression-frequency.css?v=20261014-dr52-hover">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/compression-core.js?v=20261013-dr52"></script>
   <script defer src="./js/lesson-formula-core.js"></script>
@@ -21,7 +21,7 @@
   <script defer src="./js/compression-formulas.js?v=20261013-dr52"></script>
   <script defer src="./js/compression-lessons.js?v=20261013-dr52-r2"></script>
   <script defer src="./js/compression-practice.js?v=20261013-dr52-r2"></script>
-  <script defer src="./js/compression-frequency.js?v=20261014-dr52"></script>
+  <script defer src="./js/compression-frequency.js?v=20261014-dr52-hover"></script>
   <script defer src="./js/compression-quiz.js?v=20261013-dr52"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -31,17 +31,8 @@
       <h2 id="headline_1">(1) 固定長と可変長の符号</h2>
       <div class="cp-widget cp-frequency-comparison" data-cp-frequency-comparison>
         <h3>元の文字列</h3>
-        <p class="cp-frequency-assignment__source" data-cp-frequency-source aria-label="元の文字列。AからEまで5種類、18文字">DAEBCBACBBBCDAAABB</p>
+        <p class="cp-frequency-assignment__source" data-cp-frequency-source aria-label="元の文字列。AからEまで5種類、18文字"><span data-cp-frequency-column="D">D</span><span data-cp-frequency-column="A">A</span><span data-cp-frequency-column="E">E</span><span data-cp-frequency-column="B">B</span><span data-cp-frequency-column="C">C</span><span data-cp-frequency-column="B">B</span><span data-cp-frequency-column="A">A</span><span data-cp-frequency-column="C">C</span><span data-cp-frequency-column="B">B</span><span data-cp-frequency-column="B">B</span><span data-cp-frequency-column="B">B</span><span data-cp-frequency-column="C">C</span><span data-cp-frequency-column="D">D</span><span data-cp-frequency-column="A">A</span><span data-cp-frequency-column="A">A</span><span data-cp-frequency-column="A">A</span><span data-cp-frequency-column="B">B</span><span data-cp-frequency-column="B">B</span></p>
         <p>文字ごとの出現回数を<strong>頻度</strong>といいます。<strong>固定長符号</strong>は、どの文字も同じbit数で表します。A〜Eの5種類には2bitの4通りでは足りないため、この例では<strong>3bit</strong>を割り当てます。<strong>可変長符号</strong>は文字によって長さが異なり、ハフマン符号化では頻度が高い文字に短い符号を割り当てます。</p>
-
-        <div class="cp-frequency-selection" data-cp-frequency-controls data-lesson-slide-navigation-lock hidden role="group" aria-label="符号を比較する文字">
-          <span>注目する文字</span>
-          <button class="dr-button" type="button" data-cp-frequency-select="A" aria-pressed="false" aria-label="A、5回。Aの符号を比較">A・5回</button>
-          <button class="dr-button" type="button" data-cp-frequency-select="B" aria-pressed="true" aria-label="B、7回。Bの符号を比較">B・7回</button>
-          <button class="dr-button" type="button" data-cp-frequency-select="C" aria-pressed="false" aria-label="C、3回。Cの符号を比較">C・3回</button>
-          <button class="dr-button" type="button" data-cp-frequency-select="D" aria-pressed="false" aria-label="D、2回。Dの符号を比較">D・2回</button>
-          <button class="dr-button" type="button" data-cp-frequency-select="E" aria-pressed="false" aria-label="E、1回。Eの符号を比較">E・1回</button>
-        </div>
 
         <figure class="cp-frequency-bands">
           <div class="cp-frequency-bands__scroll" tabindex="0" data-lesson-slide-navigation-lock role="region" aria-label="同じ文字列の固定長と可変長の符号。2段を一緒に横スクロールできます">
@@ -56,17 +47,8 @@
               </section>
             </div>
           </div>
-          <figcaption class="cp-frequency-assignment__hint" data-cp-frequency-band-legend hidden>1マス＝1bit。両方の帯は1bitの幅を同じにしています。文字を選んで、対応する符号の長さを比べましょう。</figcaption>
+          <figcaption class="cp-frequency-assignment__hint" data-cp-frequency-band-legend hidden>1マス＝1bit。両方の帯は1bitの幅を同じにしています。文字にマウスを重ねると、同じ文字の場所が強調されます。下の表の見出しは、タップやキーボードでも確認できます。</figcaption>
         </figure>
-
-        <div class="cp-frequency-summary" data-cp-frequency-summary role="status" aria-live="polite" hidden>
-          <p><strong data-cp-frequency-selected>B・7回</strong>の符号を比較</p>
-          <div class="cp-frequency-summary__values">
-            <p>固定長：<code data-cp-frequency-selected-fixed>010</code><br><span data-cp-frequency-selected-fixed-total>7回×3bit＝21bit</span></p>
-            <p>可変長：<code data-cp-frequency-selected-variable>0</code><br><span data-cp-frequency-selected-variable-total>7回×1bit＝7bit</span></p>
-          </div>
-          <p class="cp-frequency-assignment__hint" data-cp-frequency-change>Bが使うbit数は14bit少なくなります。</p>
-        </div>
 
         <div class="cp-frequency-results" data-cp-frequency-results>
           <section class="cp-frequency-result-table">

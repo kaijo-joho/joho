@@ -19,17 +19,9 @@
   const source = find('[data-cp-frequency-source]');
   const fixedTrack = find('[data-cp-frequency-fixed-bits]');
   const variableTrack = find('[data-cp-frequency-variable-bits]');
-  const controls = find('[data-cp-frequency-controls]');
-  const summary = find('[data-cp-frequency-summary]');
   const legend = find('[data-cp-frequency-band-legend]');
-  const selectedLabel = find('[data-cp-frequency-selected]');
-  const selectedFixed = find('[data-cp-frequency-selected-fixed]');
-  const selectedVariable = find('[data-cp-frequency-selected-variable]');
-  const selectedFixedTotal = find('[data-cp-frequency-selected-fixed-total]');
-  const selectedVariableTotal = find('[data-cp-frequency-selected-variable-total]');
-  const change = find('[data-cp-frequency-change]');
-  const buttons = Array.from(root.querySelectorAll('[data-cp-frequency-select]'));
-  if ([source, fixedTrack, variableTrack, controls, summary, legend, selectedLabel, selectedFixed, selectedVariable, selectedFixedTotal, selectedVariableTotal, change].some(element => !element) || buttons.length !== symbols.length) return;
+  const headers = Array.from(root.querySelectorAll('thead [data-cp-frequency-column]'));
+  if ([source, fixedTrack, variableTrack, legend].some(element => !element) || headers.length !== symbols.length) return;
 
   function make(tag, className, value) {
     const element = document.createElement(tag);
@@ -74,28 +66,91 @@
     });
   });
 
-  function select(symbol) {
-    if (!symbols.includes(symbol)) return;
-    root.dataset.cpFrequencySelected = symbol;
-    buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.cpFrequencySelect === symbol)));
-    root.querySelectorAll('[data-cp-frequency-column]').forEach(element => element.classList.toggle('is-current', element.dataset.cpFrequencyColumn === symbol));
-    const count = fixture.frequencies[symbol];
-    const fixedTotal = count * fixedCodes[symbol].length;
-    const variableTotal = count * codes[symbol].length;
-    selectedLabel.textContent = `${symbol}・${count}回`;
-    selectedFixed.textContent = fixedCodes[symbol];
-    selectedVariable.textContent = codes[symbol];
-    selectedFixedTotal.textContent = `${count}回×3bit＝${fixedTotal}bit`;
-    selectedVariableTotal.textContent = `${count}回×${codes[symbol].length}bit＝${variableTotal}bit`;
-    const difference = fixedTotal - variableTotal;
-    change.textContent = difference > 0 ? `${symbol}が使うbit数は${difference}bit少なくなります。`
-      : difference < 0 ? `${symbol}が使うbit数は${-difference}bit多くなりますが、全体では54bitから38bitへ減ります。`
-      : `${symbol}が使うbit数は同じです。`;
+  // The table letters provide full-size keyboard/touch targets without a separate
+  // letter picker. Hovering source letters or either code track uses the same state.
+  const buttons = headers.map(header => {
+    const symbol = header.dataset.cpFrequencyColumn;
+    const button = make('button', 'cp-frequency-letter', symbol);
+    button.type = 'button';
+    button.dataset.cpFrequencyLetter = symbol;
+    button.setAttribute('aria-label', `${symbol}、${fixture.frequencies[symbol]}回。同じ文字の場所を強調`);
+    button.setAttribute('aria-pressed', 'false');
+    header.replaceChildren(button);
+    return button;
+  });
+  const columns = Array.from(root.querySelectorAll('[data-cp-frequency-column]'));
+  let hovered = '';
+  let focused = '';
+  let tapped = '';
+  let keyboardInput = false;
+  const letterAt = target => {
+    const column = target instanceof Element ? target.closest('[data-cp-frequency-column]') : null;
+    return column && root.contains(column) ? column.dataset.cpFrequencyColumn : '';
+  };
+  function renderHighlight() {
+    const symbol = hovered || focused || tapped;
+    root.dataset.cpFrequencyActive = symbol;
+    columns.forEach(element => element.classList.toggle('is-current', element.dataset.cpFrequencyColumn === symbol));
+    buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.cpFrequencyLetter === symbol)));
   }
-
-  buttons.forEach(button => button.addEventListener('click', () => select(button.dataset.cpFrequencySelect)));
-  select('B');
-  controls.hidden = false;
-  summary.hidden = false;
+  function clearHighlight() {
+    hovered = focused = tapped = '';
+    renderHighlight();
+  }
+  root.addEventListener('pointerover', event => {
+    if (event.pointerType === 'touch') return;
+    keyboardInput = false;
+    focused = tapped = '';
+    hovered = letterAt(event.target);
+    renderHighlight();
+  });
+  root.addEventListener('pointerout', event => {
+    if (event.pointerType === 'touch') return;
+    hovered = letterAt(event.relatedTarget);
+    renderHighlight();
+  });
+  root.addEventListener('pointerdown', event => {
+    keyboardInput = false;
+    focused = '';
+    if (event.pointerType === 'touch') {
+      hovered = '';
+      const symbol = letterAt(event.target);
+      tapped = tapped === symbol ? '' : symbol;
+    } else tapped = '';
+    renderHighlight();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Tab') keyboardInput = true;
+  }, true);
+  root.addEventListener('focusin', event => {
+    if (!keyboardInput || !event.target.matches('[data-cp-frequency-letter]')) return;
+    hovered = tapped = '';
+    focused = letterAt(event.target);
+    renderHighlight();
+  });
+  root.addEventListener('focusout', () => { focused = ''; renderHighlight(); });
+  root.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { clearHighlight(); return; }
+    if (!event.target.matches('[data-cp-frequency-letter]')) return;
+    keyboardInput = true;
+    hovered = tapped = '';
+    focused = letterAt(event.target);
+    renderHighlight();
+  });
+  buttons.forEach(button => button.addEventListener('click', event => {
+    // Screen reader activation may produce a click without a key or pointer event.
+    if (event.detail !== 0) return;
+    keyboardInput = true;
+    hovered = tapped = '';
+    focused = button.dataset.cpFrequencyLetter;
+    renderHighlight();
+  }));
+  document.addEventListener('pointerdown', event => {
+    if (!root.contains(event.target)) clearHighlight();
+  });
+  document.addEventListener('joho:lesson-slide-change', event => {
+    if (!event.detail?.slide?.contains(root)) clearHighlight();
+  });
+  renderHighlight();
   legend.hidden = false;
 })();

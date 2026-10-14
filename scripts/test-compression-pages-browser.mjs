@@ -334,13 +334,11 @@ try {
   const frequencyCodes = { B: '0', A: '10', C: '110', D: '1110', E: '1111' };
   const fixedCodes = { A: '001', B: '010', C: '011', D: '100', E: '101' };
   const sample = 'DAEBCBACBBBCDAAABB';
-  await expect(frequency).toHaveAttribute('data-cp-frequency-selected', 'B');
+  await expect(frequency).toHaveAttribute('data-cp-frequency-active', '');
+  await expect(frequency.locator('[data-cp-frequency-select], [data-cp-frequency-controls]')).toHaveCount(0);
   await expect(frequency.locator('[data-cp-frequency-source]')).toHaveText(sample);
   await expect(frequency.locator('[data-cp-frequency-fixed-total]')).toHaveText('54bit');
   await expect(frequency.locator('[data-cp-frequency-variable-total]')).toHaveText('38bit');
-  await expect(frequency.locator('[data-cp-frequency-selected-fixed-total]')).toHaveText('7回×3bit＝21bit');
-  await expect(frequency.locator('[data-cp-frequency-selected-variable-total]')).toHaveText('7回×1bit＝7bit');
-  await expect(frequency.locator('[data-cp-frequency-select][aria-pressed="true"]')).toHaveAttribute('data-cp-frequency-select', 'B');
   for (const symbol of symbols) {
     await expect(frequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveText(`${frequencies[symbol]}回`);
     await expect(frequency.locator(`[data-cp-frequency-code="${symbol}"]`)).toHaveText(frequencyCodes[symbol]);
@@ -372,33 +370,62 @@ try {
   assert(Math.abs(bandData.variable.words.reduce((sum, word) => sum + word.flex, 0) / bandData.fixed.words.reduce((sum, word) => sum + word.flex, 0) - 38 / 54) < 0.001, '帯の全長比は38/54');
   const bitWidths = [...bandData.fixed.words, ...bandData.variable.words].flatMap(word => word.widths);
   assert(Math.max(...bitWidths) - Math.min(...bitWidths) < 0.1, '両段の各1bitセルは同じ幅');
-  const selectedSummaries = { A: ['A・5回', '5回×3bit＝15bit', '5回×2bit＝10bit'], B: ['B・7回', '7回×3bit＝21bit', '7回×1bit＝7bit'], C: ['C・3回', '3回×3bit＝9bit', '3回×3bit＝9bit'], D: ['D・2回', '2回×3bit＝6bit', '2回×4bit＝8bit'], E: ['E・1回', '1回×3bit＝3bit', '1回×4bit＝4bit'] };
-  for (const symbol of symbols) {
-    const button = frequency.locator(`[data-cp-frequency-select="${symbol}"]`);
-    await button.click();
-    await expect(frequency).toHaveAttribute('data-cp-frequency-selected', symbol);
-    await expect(button).toHaveAttribute('aria-pressed', 'true');
-    await expect(frequency.locator('[data-cp-frequency-select][aria-pressed="true"]')).toHaveCount(1);
+  const activateAndCheck = async symbol => {
+    await expect(frequency).toHaveAttribute('data-cp-frequency-active', symbol);
     await expect(frequency.locator('[data-cp-frequency-source] .is-current')).toHaveCount(frequencies[symbol]);
-    await expect(frequency.locator('[data-cp-frequency-selected-fixed]')).toHaveText(fixedCodes[symbol]);
-    await expect(frequency.locator('[data-cp-frequency-selected-variable]')).toHaveText(frequencyCodes[symbol]);
-    await expect(frequency.locator('[data-cp-frequency-selected]')).toHaveText(selectedSummaries[symbol][0]);
-    await expect(frequency.locator('[data-cp-frequency-selected-fixed-total]')).toHaveText(selectedSummaries[symbol][1]);
-    await expect(frequency.locator('[data-cp-frequency-selected-variable-total]')).toHaveText(selectedSummaries[symbol][2]);
-    await expect(frequency.locator(`[data-cp-frequency-source] [data-cp-frequency-column="${symbol}"]`).first()).toHaveClass('is-current');
-    await expect(frequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveClass(/is-current/);
+    assert.equal(await frequency.locator(`[data-cp-frequency-column="${symbol}"].is-current`).count(), await frequency.locator(`[data-cp-frequency-column="${symbol}"]`).count(), `${symbol}の全列を連動強調`);
     await expect(frequency.locator(`[data-cp-frequency-word="${symbol}"].is-current`)).toHaveCount(frequencies[symbol] * 2);
+  };
+  for (const symbol of symbols) {
+    const sourceLetter = frequency.locator(`[data-cp-frequency-source] [data-cp-frequency-column="${symbol}"]`).first();
+    await sourceLetter.hover(); await activateAndCheck(symbol);
+    await page.mouse.move(5, 5); await expect(frequency).toHaveAttribute('data-cp-frequency-active', '');
+    const word = frequency.locator(`[data-cp-frequency-word="${symbol}"]`).first();
+    await word.hover(); await activateAndCheck(symbol);
+    await page.mouse.move(5, 5); await expect(frequency).toHaveAttribute('data-cp-frequency-active', '');
+    const cell = frequency.locator(`[data-cp-frequency-count="${symbol}"]`);
+    await cell.hover(); await activateAndCheck(symbol);
+    await page.mouse.move(5, 5); await expect(frequency).toHaveAttribute('data-cp-frequency-active', '');
   }
-  const keyboardA = frequency.locator('[data-cp-frequency-select="A"]');
-  await keyboardA.focus(); await keyboardA.press('Enter');
-  await expect(frequency).toHaveAttribute('data-cp-frequency-selected', 'A');
-  await expect(keyboardA).toBeFocused();
-  await goSlide(2); await goSlide(1);
-  await expect(frequency).toHaveAttribute('data-cp-frequency-selected', 'A');
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await frequency.locator('[data-cp-frequency-select="B"]').click();
-  await expect(frequency).toHaveAttribute('data-cp-frequency-selected', 'B');
-  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const matrixStyle = await frequency.evaluate(root => {
+    const colors = {};
+    for (const symbol of ['A', 'B', 'C', 'D', 'E']) {
+      const nodes = [...root.querySelectorAll(`[data-cp-frequency-column="${symbol}"]`), ...root.querySelectorAll(`[data-cp-frequency-word="${symbol}"] .cp-frequency-bit`)];
+      colors[symbol] = [...new Set(nodes.map(node => getComputedStyle(node).color))];
+    }
+    const cell = root.querySelector('[data-cp-frequency-count="A"]');
+    return { colors, shadow: getComputedStyle(cell).boxShadow, weight: getComputedStyle(cell).fontWeight };
+  });
+  assert(Object.values(matrixStyle.colors).every(values => values.length === 1), `同じ文字の全要素で文字色が統一 ${JSON.stringify(matrixStyle.colors)}`);
+  assert.equal(new Set(Object.values(matrixStyle.colors).map(values => values[0])).size, 5, 'A〜Eはそれぞれ異なる文字色');
+  assert.equal(matrixStyle.shadow, 'none', '下表の強調に影や太枠を使わない');
+  const baselineWeight = matrixStyle.weight;
+  await frequency.locator('[data-cp-frequency-letter="A"]').hover();
+  const activeTableStyle = await frequency.locator('[data-cp-frequency-count="A"]').evaluate(el => ({ shadow: getComputedStyle(el).boxShadow, weight: getComputedStyle(el).fontWeight }));
+  assert.equal(activeTableStyle.shadow, 'none', '下表の強調に影を追加しない');
+  assert.equal(activeTableStyle.weight, baselineWeight, '下表の強調で太字を追加しない');
+  await page.mouse.move(5, 5);
+  const keyboardA = frequency.locator('[data-cp-frequency-letter="A"]');
+  await keyboardA.focus(); await keyboardA.press('Enter'); await activateAndCheck('A');
+  await keyboardA.press('Space'); await activateAndCheck('A');
+  await page.keyboard.press('Escape'); await expect(frequency).toHaveAttribute('data-cp-frequency-active', '');
+  await keyboardA.focus(); await keyboardA.press('Enter'); await frequency.locator('.cp-frequency-bands__scroll').focus();
+  await expect(frequency).toHaveAttribute('data-cp-frequency-active', '');
+  await keyboardA.focus(); await keyboardA.press('Enter'); await goSlide(2);
+  await expect(frequency).toHaveAttribute('data-cp-frequency-active', ''); await goSlide(1);
+  for (const theme of ['light', 'dark', 'system']) {
+    await page.evaluate(theme => { if (theme === 'system') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme; }, theme);
+    const themed = await frequency.evaluate(root => ['A', 'B', 'C', 'D', 'E'].map(s => {
+      const color = node => getComputedStyle(node).color;
+      return [color(root.querySelector(`[data-cp-frequency-source] [data-cp-frequency-column="${s}"]`)), color(root.querySelector(`[data-cp-frequency-word="${s}"] .cp-frequency-word__symbol`)), color(root.querySelector(`[data-cp-frequency-word="${s}"] .cp-frequency-bit`)), color(root.querySelector(`thead [data-cp-frequency-column="${s}"]`)), color(root.querySelector(`[data-cp-frequency-count="${s}"]`))];
+    }));
+    assert.equal(new Set(themed.map(row => row[0])).size, 5, `5色がテーマ${theme}で区別できる`);
+    for (const row of themed) assert.equal(new Set(row).size, 1, `同一文字の文字色がテーマ${theme}で統一`);
+  }
+  assert.match(await page.locator('html').evaluate(() => [...document.styleSheets].flatMap(sheet => { try { return [...sheet.cssRules].map(rule => rule.cssText); } catch { return []; } }).join('\n')), /color-mix\([^;]*5%/i, '下表の強調色は5%');
+  const mouseHeader = frequency.locator('[data-cp-frequency-letter="C"]');
+  await mouseHeader.click(); await expect(frequency).toHaveAttribute('data-cp-frequency-active', 'C');
+  await page.mouse.move(5, 5); await expect(frequency).toHaveAttribute('data-cp-frequency-active', '');
 
   await goSlide(2);
   const build = page.locator('[data-cp-huffman-build]');
@@ -741,7 +768,7 @@ try {
   // Verify completed widgets as well as the initial-state matrix below.
   await load('dr52');
   await goSlide(1);
-  await page.locator('[data-cp-frequency-select="E"]').click();
+  await page.locator('[data-cp-frequency-source] [data-cp-frequency-column="E"]').first().hover();
   await goSlide(2);
   for (let i = 0; i < 14; i++) await page.locator('[data-cp-build-next]').click();
   await goSlide(3);
@@ -849,8 +876,18 @@ try {
   await touchTree.locator('[data-cp-practice-preset="2"]').tap();
   await expect(touchTree.locator('[data-cp-practice-preset="2"]')).toHaveAttribute('aria-pressed', 'true');
   await touchPage.goto(new URL('dr52.html#headline_1', base).href);
-  await touchPage.locator('[data-cp-frequency-select="D"]').tap();
-  await expect(touchPage.locator('[data-cp-frequency-comparison]')).toHaveAttribute('data-cp-frequency-selected', 'D');
+  const touchFrequency = touchPage.locator('[data-cp-frequency-comparison]');
+  const touchD = touchPage.locator('[data-cp-frequency-letter="D"]');
+  await touchD.tap(); await expect(touchFrequency).toHaveAttribute('data-cp-frequency-active', 'D');
+  await touchD.tap(); await expect(touchFrequency).toHaveAttribute('data-cp-frequency-active', '');
+  await touchD.tap(); await touchPage.locator('[data-cp-frequency-letter="A"]').tap();
+  await expect(touchFrequency).toHaveAttribute('data-cp-frequency-active', 'A');
+  await touchPage.locator('#headline_1').tap();
+  await expect(touchFrequency).toHaveAttribute('data-cp-frequency-active', '');
+  await touchPage.locator('[data-cp-frequency-letter="B"]').tap();
+  await expect(touchFrequency).toHaveAttribute('data-cp-frequency-active', 'B');
+  await touchPage.getByRole('button', { name: /^次のスライド「ハフマン木を作る」/ }).tap();
+  await expect(touchFrequency).toHaveAttribute('data-cp-frequency-active', '');
   await touch.close();
   const noScript = await browser.newContext({ javaScriptEnabled: false });
   const fallback = await noScript.newPage();
@@ -873,7 +910,7 @@ try {
       await expect(staticFrequency.locator('[data-cp-frequency-variable-total]')).toHaveText('38bit');
       await expect(staticFrequency.locator('[data-cp-frequency-answer]')).toContainText('70%');
       for (const [symbol, count] of Object.entries({ A: 5, B: 7, C: 3, D: 2, E: 1 })) await expect(staticFrequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveText(`${count}回`);
-      await expect(staticFrequency.locator('[data-cp-frequency-controls]')).toBeHidden();
+      assert.equal(await staticFrequency.locator('[data-cp-frequency-letter], [data-cp-frequency-select], [data-cp-frequency-controls]').count(), 0, 'JS無効時は表見出しを静的な文字として表示');
       await expect(fallback.locator('[data-cp-huffman-practice] noscript p').first()).toContainText('例3');
       await expect(fallback.locator('[data-cp-huffman-practice] noscript p').last()).toContainText('例10');
       assert.equal(await fallback.locator('[data-cp-codec] [data-cp-tree]').count(), 0);
@@ -881,5 +918,5 @@ try {
   }
   await noScript.close();
   assert.deepEqual(errors, [], 'ページ例外・コンソールエラーなし');
-  console.log(`compression-pages-browser (${engine}): dr51保持、等幅54/38bitの帯と5文字の連動比較・小計・約70%、枝と親の順次表示・木の固定座標、符号表による符号化/復元、自動結合・結合解除・葉の固定位置・10例・誤結合の最終判定・枝反転の別解・後続再判定・式と途中計算、完成状態と初期状態の3幅×3テーマ×3文字サイズ、タッチ・キーボード・JavaScript無効を検証`);
+  console.log(`compression-pages-browser (${engine}): dr51保持、dr52の54/38bit帯・文字色とホバー連動・表見出し操作・A〜E色分け・キーボード/タッチ解除・3幅×3テーマ×3文字サイズ・JavaScript無効時の静的表示、枝と親の順次表示・木の固定座標、符号化/復元、結合判定と式の途中計算を検証`);
 } finally { await browser.close(); }
