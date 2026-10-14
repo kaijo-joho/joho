@@ -503,9 +503,9 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
             <button class="sbtn" id="expMol">MOL 形式で保存</button>
             <button class="sbtn" id="expXyz">XYZ 形式で保存</button>
           </div>
-          <div class="side-sec molOnly" id="prSec">
+          <div class="side-sec" id="prSec">
             <div class="gl">3D プリンタ用（STL・3MF）</div>
-            <label class="frow">大きさ
+            <label class="frow molOnly">大きさ
               <select id="prSize">
                 <optgroup label="いちばん長い分子の長さ（目安）">
                   <option value="fit:50">50 mm</option><option value="fit:80" selected>80 mm</option><option value="fit:120">120 mm</option><option value="fit:180">180 mm</option><option value="fit:250">250 mm</option>
@@ -515,6 +515,20 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
                 </optgroup>
               </select>
             </label>
+            <label class="frow xtalOnly">大きさ
+              <select id="prSizeX">
+                <optgroup label="原子 1 個の直径（いちばん大きい原子）">
+                  <option value="d:10">10 mm</option><option value="d:15">15 mm</option><option value="d:20" selected>20 mm</option><option value="d:25">25 mm</option><option value="d:30">30 mm</option><option value="d:40">40 mm</option>
+                </optgroup>
+                <optgroup label="全体のいちばん長い辺">
+                  <option value="f:60">60 mm</option><option value="f:100">100 mm</option><option value="f:150">150 mm</option><option value="f:200">200 mm</option>
+                </optgroup>
+              </select>
+            </label>
+            <label class="frow xtalOnly">色
+              <select id="prColor"><option value="single">単色（元素の色）</option><option value="layer">層ごとに色を変える（A・B・C…）</option></select>
+            </label>
+            <label class="chk xtalOnly"><input type="checkbox" id="prBoth">切り取られた反対側もいっしょに出す</label>
             <label class="frow">支え
               <select id="prSup"><option value="0">支えなし</option><option value="1">支えあり（細い柱）</option></select>
             </label>
@@ -525,7 +539,8 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
               <button class="sbtn" id="prStl" title="全部を 1 つにした STL（単色）">STL（1 つ・単色）で保存</button>
               <button class="sbtn" id="prZip" title="元素ごとの STL を ZIP にまとめたもの。スライサーに全部をいっしょに入れると、1 つのモデルの部品として読み込めます">STL（色ごと）を ZIP で保存</button>
             </div>
-            <p class="muted">いま表示している形（球棒・棒・空間充填）をそのまま出力します。選んでいる分子があれば、その分子だけです。</p>
+            <p class="muted molOnly">いま表示している形（球棒・棒・空間充填）をそのまま出力します。選んでいる分子があれば、その分子だけです。</p>
+            <p class="muted xtalOnly">いま表示している切り方（断面・単位格子の面）で、本当に切った立体にして出力します。球は 5% 大きくして重ね、つなげます。切り口を下にして置きます。</p>
           </div>
         </div>
       </section>
@@ -583,6 +598,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
     <div class="body help" id="helpBody">
       <table>
         <tr><td>分子を表示する</td><td>画面右端の「化合物ライブラリ」のタブを開いて、化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
+        <tr><td>結晶の 3D プリンタ出力</td><td>「結晶」で、断面・「単位格子の面で原子を切る」で切った立体を、「書き出し」パネルの「3D プリンタ用」から <b>3MF・STL</b> にできます（金属結晶・イオン結晶）。球は<b>5% 大きくして重ね</b>、つなげます。色は<b>単色</b>か<b>層ごと</b>（断面に平行な層を、同じ並び方ごとに A・B・C…と色分け。面心立方格子の (111) 面は ABCABC…、六方最密構造は ABAB…）を選べます。「<b>切り取られた反対側もいっしょに出す</b>」で、断面の両側を台の上に並べます。切り口を下にして置き、そのままでは支えが要る形のときは、単位格子の面を下にして置きます。「立方最密構造 ＝ 面心立方格子」を見せるには、面心立方格子を (1 1 1) で切って、層ごとの色で出力します。</td></tr>
         <tr><td>量の上限</td><td>一度に 3D で扱えるのは、<b>分子 30 個・原子 1500 個</b>までです（多すぎると重くなって止まるため）。上限を超えて追加しようとすると、知らせて止めます。構造式エディタの図を取り込むときは、<b>進み具合の枠の「やめる」</b>（または Esc キー）で途中でやめられ、そのときは何も変わりません。構造式エディタで分子を選んでから「3D で見る」を押すと、選んだ分子だけを渡せます。</td></tr>
         <tr><td>3D プリンタ</td><td>「書き出し」パネルの「3D プリンタ用」で、いま表示している分子を <b>3MF・STL</b> にできます（Creality K2 Pro など）。大きさは、いちばん長い分子の長さ（mm）か、1 Å あたりの長さで選びます。<b>3MF は元素ごとに別の部品</b>になっているので、スライサーで部品ごとに CFS の色を割り当てられます。台に置く向きは、支えが要らない向きを自動で探します。支えが必要な分子は、「支えが必要です」と知らせます。「支えあり」にすると、細い柱の支えを別の部品として付けます。実際に印刷して、形や強さを確かめてください。</td></tr>
         <tr><td>構造式の枠</td><td>キャンバスの左上に、表示している分子の<b>構造式</b>（骨格構造式）を小さな枠で出します。枠の <b>✕</b> か、上の「構造式」ボタンで隠せます（もう一度押すと出ます）。図か <b>⤢</b> を押すと、枠の大きさが変わります。分子を選んでいるときは、その分子だけを出します。<b>太いくさび</b>は手前に、<b>破線</b>は奥に向いた結合で、不斉炭素の立体（R/S）を表します（3D の向きに合わせて自動で付けます）。二重結合のシス・トランスも 3D と同じ側に描きます。炭素は頂点で、酸素・窒素などは文字で表し、H の数も添えます（原子 3 個までの小さな分子は、CH<sub>3</sub>–CH<sub>2</sub>–OH のように炭素も書きます）。ベンゼン環は二重結合を交互に描きます。<b>限界</b>：C<sub>60</sub> のような籠の形は平面に描けないので描きません。大きな分子（デンプンの 10 個分など）は、図の一部が重なることがあります。結晶格子のモードでは出ません。構造式の向きや形は 3D の向きとは関係なく、分子のつながり方から決めています。</td></tr>
@@ -619,7 +635,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.31 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.32 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -2865,7 +2881,7 @@ const PP = {
   SUP_R:0.9, SUP_GAP:0.3, SUP_PITCH:4,   // 支えの柱：半径・形との隙間（mm）・間隔（mm）
   BUILD:[300, 300, 300]               // K2 Pro の造形サイズ（mm）
 };
-const PP_NAME = {H:'水素', C:'炭素', N:'窒素', O:'酸素', F:'フッ素', Na:'ナトリウム', P:'リン', S:'硫黄', Cl:'塩素', Br:'臭素', I:'ヨウ素'};
+const PP_NAME = {H:'水素', C:'炭素', N:'窒素', O:'酸素', F:'フッ素', Na:'ナトリウム', P:'リン', S:'硫黄', Cl:'塩素', Br:'臭素', I:'ヨウ素', Fe:'鉄', Cu:'銅', Mg:'マグネシウム', Cs:'セシウム', Ca:'カルシウム'};
 
 // 球と棒（mm）。atoms：[{el,x,y,z}]（Å）、bonds：[{a,b,order}]。o：{mode, ball, k（1 Å を何 mm にするか）}
 function ppShapes(atoms, bonds, o){
@@ -2910,7 +2926,7 @@ const ppApply = (M, p) => [V.dot(M[0], p), V.dot(M[1], p), V.dot(M[2], p)];
 const ppRotShapes = (sh, M) => ({sph:sh.sph.map(q => ({...q, c:ppApply(M, q.c)})), rods:sh.rods.map(q => ({...q, a:ppApply(M, q.a), b:ppApply(M, q.b)}))});
 
 // 形を箱（一辺 s mm）に分ける。z0 より下は切り落とす（台）
-function ppVoxels(sph, rods, z0, s){
+function ppVoxels(sph, rods, z0, s, clips = null){   // clips：切る面 [{n, d}]（n·p ≤ d の側を残す）。結晶の切り取りに使う
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
   for (const q of sph){ x0 = Math.min(x0, q.c[0] - q.r); x1 = Math.max(x1, q.c[0] + q.r); y0 = Math.min(y0, q.c[1] - q.r); y1 = Math.max(y1, q.c[1] + q.r); z1 = Math.max(z1, q.c[2] + q.r); }
   for (const q of rods) for (const e of [q.a, q.b]){ x0 = Math.min(x0, e[0] - q.r); x1 = Math.max(x1, e[0] + q.r); y0 = Math.min(y0, e[1] - q.r); y1 = Math.max(y1, e[1] + q.r); z1 = Math.max(z1, e[2] + q.r); }
@@ -2921,7 +2937,12 @@ function ppVoxels(sph, rods, z0, s){
     const i0 = cl(Math.floor((cx - q.r - x0)/s), nx), i1 = cl(Math.floor((cx + q.r - x0)/s), nx), j0 = cl(Math.floor((cy - q.r - y0)/s), ny), j1 = cl(Math.floor((cy + q.r - y0)/s), ny), k0 = cl(Math.floor((cz - q.r - z0)/s), nz), k1 = cl(Math.floor((cz + q.r - z0)/s), nz);
     for (let k = k0; k <= k1; k++){ const dz = z0 + (k + 0.5)*s - cz;
       for (let j = j0; j <= j1; j++){ const dy = y0 + (j + 0.5)*s - cy;
-        for (let i = i0; i <= i1; i++){ const dx = x0 + (i + 0.5)*s - cx; if (dx*dx + dy*dy + dz*dz <= r2) occ[(k*ny + j)*nx + i] = 1; } } }
+        for (let i = i0; i <= i1; i++){
+          const dx = x0 + (i + 0.5)*s - cx;
+          if (dx*dx + dy*dy + dz*dz > r2) continue;
+          if (clips){ const X = cx + dx, Y = cy + dy, Z = cz + dz; if (clips.some(p => p.n[0]*X + p.n[1]*Y + p.n[2]*Z > p.d)) continue; }   // 切り取られる側
+          occ[(k*ny + j)*nx + i] = 1;
+        } } }
   }
   for (const q of rods){
     const L = V.dist(q.a, q.b), u = V.mul(V.sub(q.b, q.a), 1/(L || 1)), r2 = q.r*q.r;
@@ -3074,7 +3095,7 @@ function ppAddCyl(part, a, b, r, z0, n, off, capA = true){
   }
 }
 // 台からの支えの柱。flagged（張り出した箱）の下に、間隔 SUP_PITCH ごとに細い柱を立てる。柱の通り道に別の材料があるところは置かない
-function ppSupports(vx, flagged, fcomp, sph, rods){
+function ppSupports(vx, flagged, fcomp, sph, rods, clips = null){
   const {nx, ny, nz, s, x0, y0, z0, occ} = vx, layer = nx*ny, G = Math.max(1, Math.round(PP.SUP_PITCH/s)), cells = new Map();
   flagged.forEach((p, n) => {
     const k = Math.floor(p/layer), r = p - k*layer, j = Math.floor(r/nx), i = r - j*nx, key = fcomp[n] + '|' + Math.floor(i/G) + ',' + Math.floor(j/G), c = cells.get(key);   // 張り出しごと・升目ごとに、いちばん低い箱の下へ柱
@@ -3096,6 +3117,7 @@ function ppSupports(vx, flagged, fcomp, sph, rods){
     for (const q of sph){ const h = lowAt(q.c, q.r); if (h != null && q.c[2] - h >= zfl) zlow = Math.min(zlow, q.c[2] - h); }
     const along = f => { for (const q of rods){ const L = V.dist(q.a, q.b), m = Math.max(2, Math.ceil(L/0.5)); for (let t = 0; t <= m; t++){ const c = V.add(q.a, V.mul(V.sub(q.b, q.a), t/m)), h = lowAt(c, q.r); if (h != null) f(c, h); } } };
     along((c, h) => { if (c[2] - h >= zfl) zlow = Math.min(zlow, c[2] - h); });
+    if (clips) for (const p of clips) if (p.n[2] < -1e-6){ const zb = (p.d - p.n[0]*x - p.n[1]*y)/p.n[2]; if (isFinite(zlow) && zb > zlow) zlow = zb; }   // 切る面で切られて、形の下側が上がっているとき
     if (!isFinite(zlow)) zlow = z0 + k*s;
     const top = zlow - PP.SUP_GAP;
     let base = z0;
@@ -3194,6 +3216,140 @@ function printModel(atoms, bonds, o){
   if (out.colors > 4) out.notes.push(`色（部品）が ${out.colors} つあります。CFS 1 台は 4 色までなので、近い色を同じフィラメントにするか、CFS を増設してください`);
   const need = out.comps.filter(c => c.needSupport);
   if (need.length && !o.support) out.notes.push('支えが必要な分子があります。「支えあり」にするか、スライサーのサポート機能をお使いください');
+  return out;
+}
+
+// ---- 結晶（切断した立体） ----
+// 結晶の原子（球）を、切る面で本当に切った立体にして、台に切り口を下にして置く（切り口は平らなので、支えが要らない見込み）。
+// 球どうしは、半径を expand 倍（既定 1.05）にして重ね、つなげる（金属の球は点で接しているだけなので、そのままではバラバラになる）。
+// cr：buildCrystal の結果、x：結晶の定義。o：{k（1 Å が何 mm）| diam（いちばん大きい原子の直径 mm）| fit（全体のいちばん長い辺 mm）,
+//   cell:[{n, d}]（単位格子の面で切る面。n·p ≤ d の側を残す。Å）, sec:{n, d}|null（断面。台に置く面）, both（断面の反対側もいっしょに）,
+//   color:'single'|'layer', layerAxis（層の向き。断面がないとき）, support, expand}
+const PP_LAYER_COL = [[0.86, 0.25, 0.25], [0.2, 0.5, 0.9], [0.95, 0.75, 0.15], [0.25, 0.7, 0.4], [0.6, 0.35, 0.8]];
+// 向き n に垂直な層に分け、同じ並び方の層に同じ番号（A=0・B=1・C=2…）を付ける。面心立方の (111) は A・B・C、六方最密の (001) は A・B
+// 層の中の格子（いちばん原子が多い層の、最も近い原子どうしの 2 つのずらし方）を基準に、各原子の層の中の位置を「格子の何割か」にして、同じ位置の並びの層を同じ文字にする
+function ppLayers(P, n){
+  const pr = P.map(p => V.dot(p, n)), order = P.map((_, i) => i).sort((a, b) => pr[a] - pr[b]), layers = [];
+  for (const i of order){ const L = layers[layers.length - 1]; if (L && pr[i] - L.v < 0.05) L.idx.push(i); else layers.push({v:pr[i], idx:[i]}); }
+  const u = V.perp(n), w = V.cross(n, u), xy = P.map(p => [V.dot(p, u), V.dot(p, w)]);
+  const big = layers.reduce((a, b) => b.idx.length > a.idx.length ? b : a), diffs = [];
+  for (let a = 0; a < big.idx.length; a++) for (let b = a + 1; b < big.idx.length; b++) diffs.push([xy[big.idx[b]][0] - xy[big.idx[a]][0], xy[big.idx[b]][1] - xy[big.idx[a]][1]]);
+  diffs.sort((p, q) => Math.hypot(...p) - Math.hypot(...q));
+  const t1 = diffs[0], t2 = t1 && diffs.find(q => Math.abs(t1[0]*q[1] - t1[1]*q[0]) > 0.3*Math.hypot(...t1)*Math.hypot(...q) && Math.hypot(...q) < 1.9*Math.hypot(...t1));
+  if (!t1 || !t2) return {cls:layers.flatMap((L, k) => L.idx.map(i => [i, k])).sort((p, q) => p[0] - q[0]).map(p => p[1]), n:layers.length, layers:layers.length};   // 格子が見つからないときは、層ごとに別の文字
+  const det = t1[0]*t2[1] - t1[1]*t2[0];
+  const key = i => {
+    const f1 = (xy[i][0]*t2[1] - xy[i][1]*t2[0])/det, f2 = (t1[0]*xy[i][1] - t1[1]*xy[i][0])/det;
+    return [f1, f2].map(f => (((Math.round(f*20)%20) + 20)%20)).join(',');
+  };
+  const cls = [], cl = new Array(P.length).fill(0), sub = (A, B) => [...A].every(k => B.has(k));
+  for (const L of layers){
+    const sig = new Set(L.idx.map(key));
+    let hit = cls.findIndex(c => sub(sig, c) || sub(c, sig));
+    if (hit < 0){ cls.push(sig); hit = cls.length - 1; } else sig.forEach(k => cls[hit].add(k));
+    L.idx.forEach(i => { cl[i] = hit; });
+  }
+  return {cls:cl, n:cls.length, layers:layers.length};
+}
+function printCrystal(cr, x, o){
+  const out = {parts:[], notes:[], comps:[], size:[0, 0, 0], k:0, colors:0, needSupport:false, supportsPlaced:0, layers:0};
+  const at = cr.atoms.filter(a => a.sp !== '*');
+  if (!at.length) return out;
+  const exp = o.expand ?? 1.05, Rsp = sp => x.sp[sp].r, Rmax = Math.max(...Object.keys(x.sp).map(Rsp));
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const a of at) for (let q = 0; q < 3; q++){ lo[q] = Math.min(lo[q], a.p[q] - Rsp(a.sp)); hi[q] = Math.max(hi[q], a.p[q] + Rsp(a.sp)); }
+  const extA = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]), k = o.k || (o.diam ? o.diam/(2*Rmax*exp) : o.fit/(extA*exp));
+  out.k = k;
+  const layer = o.color === 'layer', axis = V.norm(o.sec ? o.sec.n : (o.layerAxis || [0, 0, 1]));
+  const lay = layer ? ppLayers(at.map(a => a.p), axis) : null;
+  if (lay) out.layers = lay.n;
+  const keyOf = i => layer ? String.fromCharCode(65 + lay.cls[i]) : at[i].sp;
+  const cell = o.cell || [];
+  const halves = [{label:o.sec ? '切り取った残り' : '結晶', clips:o.sec ? [...cell, o.sec] : cell, sec:o.sec || null}];
+  if (o.both && o.sec){ const f = {n:V.mul(o.sec.n, -1), d:-o.sec.d}; halves.push({label:'切り取られた反対側', clips:[...cell, f], sec:f}); }
+  const parts = new Map(), W = PP.BUILD[0], gap = 12;
+  let cx = 0, cy = 0, rowH = 0;
+  for (const h of halves){
+    const kept = [];
+    at.forEach((a, i) => {
+      const c = V.mul(a.p, k), r = Rsp(a.sp)*k*exp;
+      let cut = -Infinity; for (const p of h.clips) cut = Math.max(cut, V.dot(p.n, c) - p.d*k);   // 切る面から、球の中心までの距離（正：切り取られる側）
+      if (r - cut < 0.25*r) return;   // ほとんど切り取られる球は作らない（薄い切れ端は印刷できない）
+      kept.push({c, r, el:keyOf(i)});
+    });
+    if (!kept.length) continue;
+    // 台に置く面：断面があればその面（切り口を下にする）を第一候補にする。支えが必要になるときは、切る面（単位格子の面）も試して、張り出しがいちばん少ない面を選ぶ。
+    // 切る面がなければ、いちばん多くの球に当たる面。それもなければ、張り出しが少ない向きを探す
+    const evalPlane = p => {
+      const M = ppBasis(p.n), z0 = -p.d*k, sph = kept.map(q => ({...q, c:ppApply(M, q.c)})), cl = h.clips.map(c => ({n:ppApply(M, c.n), d:c.d*k}));
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
+      for (const q of sph){ x0 = Math.min(x0, q.c[0] - q.r); x1 = Math.max(x1, q.c[0] + q.r); y0 = Math.min(y0, q.c[1] - q.r); y1 = Math.max(y1, q.c[1] + q.r); z1 = Math.max(z1, q.c[2] + q.r); }
+      const vs = Math.max(0.8, Math.max(x1 - x0, y1 - y0, z1 - z0)/110), vx = ppVoxels(sph, [], z0, vs, cl);
+      return {M, z0, sph, cl, x0, y0, x1, y1, vx, an:ppOverhang(vx)};
+    };
+    let cand = [];
+    if (h.sec) cand.push({p:h.sec, base:'切り口'});
+    const touch = p => kept.filter(q => Math.abs(V.dot(p.n, q.c) - p.d*k) < q.r).length;
+    for (const p of [...h.clips].filter(p => p !== h.sec).sort((a, b) => touch(b) - touch(a))) if (!cand.some(c => V.dot(c.p.n, p.n) > 0.999 && Math.abs(c.p.d - p.d) < 1e-6)) cand.push({p, base:'単位格子の面'});
+    let ev = null, base = '自動';
+    if (cand.length){
+      for (const c of cand.slice(0, 8)){
+        const e = evalPlane(c.p);
+        if (!ev || e.an.vol < ev.an.vol - 1e-9){ ev = e; base = c.base; }
+        if (ev.an.vol === 0) break;   // 支えが要らない面が見つかった（先に試した面を優先）
+      }
+    } else {
+      const ori = ppOrient({sph:kept.map(q => ({...q})), rods:[]}), M = ori.M, z0 = ori.z0, sph = kept.map(q => ({...q, c:ppApply(M, q.c)}));
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const q of sph){ x0 = Math.min(x0, q.c[0] - q.r); x1 = Math.max(x1, q.c[0] + q.r); y0 = Math.min(y0, q.c[1] - q.r); y1 = Math.max(y1, q.c[1] + q.r); }
+      ev = {M, z0, sph, cl:[], x0, y0, x1, y1, vx:ori.vx, an:ori.an};
+    }
+    const {z0, sph, cl, vx, an} = ev; let {x0, y0, x1, y1} = ev;
+    const info = {label:h.label, atoms:sph.length, base, needSupport:an.vol > 0, overhangVol:Math.round(an.vol), pillars:0};
+    if (h.sec && base !== '切り口') out.notes.push(`${h.label}：切り口を下にすると支えが必要になるので、${base}を下にして置きます`);
+    if (info.needSupport) out.needSupport = true;
+    let sup = null;
+    if (o.support && an.flagged.length){
+      sup = ppSupports(vx, an.flagged, an.fcomp, sph, [], cl);
+      for (const p of sup.pillars){ x0 = Math.min(x0, p.x - 2.5); x1 = Math.max(x1, p.x + 2.5); y0 = Math.min(y0, p.y - 2.5); y1 = Math.max(y1, p.y + 2.5); }
+    }
+    const w = x1 - x0, d = y1 - y0;
+    if (cx > 0 && cx + w > W - 5){ cx = 0; cy += rowH + gap; rowH = 0; }
+    const off = [cx - x0, cy - y0, -z0];
+    cx += w + gap; rowH = Math.max(rowH, d);
+    const ico = ppIco(sph.length <= 150 ? 3 : 2);
+    sph.forEach((q, i) => {
+      const planes = [];
+      sph.forEach((p, j) => { if (i === j || q.el === p.el) return; const dd = V.dist(q.c, p.c); if (dd < q.r + p.r - 1e-6 && dd > 1e-6) planes.push({n:V.mul(V.sub(p.c, q.c), 1/dd), t:(dd*dd + q.r*q.r - p.r*p.r)/(2*dd)}); });   // 色の違う部品どうしは、重ならないよう間の面で切る
+      for (let pass = 0; pass < 2; pass++) for (const p of cl) planes.push({n:p.n, t:p.d - V.dot(p.n, q.c)});   // 切る面で切る（球の頂点を面に寄せる。切り口は平らな円になる）
+      ppAddSphere(ppPart(parts, q.el), q, z0, planes, ico, off);
+    });
+    if (sup){
+      info.pillars = sup.pillars.length; out.supportsPlaced += sup.pillars.length;
+      const sp = ppPart(parts, 'support');
+      for (const p of sup.pillars){
+        ppAddCyl(sp, [p.x, p.y, p.base], [p.x, p.y, p.top], PP.SUP_R, z0, 12, off);
+        if (p.onBed) ppAddCyl(sp, [p.x, p.y, z0], [p.x, p.y, z0 + 0.6], 2.5, z0, 16, off);
+      }
+    }
+    out.comps.push(info);
+  }
+  const rank = key => key === 'support' ? 1e9 : layer ? key.charCodeAt(0) : Object.keys(x.sp).indexOf(key);
+  const order = [...parts.keys()].sort((p, q) => rank(p) - rank(q));
+  const lo2 = [Infinity, Infinity, Infinity], hi2 = [-Infinity, -Infinity, -Infinity];
+  for (const key of order){
+    const p = parts.get(key), pos = Float32Array.from(p.pos);
+    for (let i = 0; i < pos.length; i += 3) for (let a = 0; a < 3; a++){ lo2[a] = Math.min(lo2[a], pos[i + a]); hi2[a] = Math.max(hi2[a], pos[i + a]); }
+    const name = key === 'support' ? '支え（サポート）' : layer ? `${key} 層` : `${PP_NAME[key] || key}（${key}）`;
+    const color = key === 'support' ? [0.62, 0.62, 0.62] : layer ? PP_LAYER_COL[(key.charCodeAt(0) - 65) % PP_LAYER_COL.length] : x.sp[key].color;
+    out.parts.push({key, name, color, pos, idx:Uint32Array.from(p.idx)});
+  }
+  out.size = hi2.map((v, a) => v - lo2[a]);
+  out.colors = out.parts.length;
+  if (out.size.some((v, a) => v > PP.BUILD[a] + 1e-6)) out.notes.push(`大きさが K2 Pro の造形サイズ（${PP.BUILD.join('×')} mm）を超えています。原子の大きさ（または全体の大きさ）を小さくしてください`);
+  if (out.colors > 4) out.notes.push(`色（部品）が ${out.colors} つあります。CFS 1 台は 4 色までなので、近い色を同じフィラメントにするか、CFS を増設してください`);
+  if (out.comps.some(c => c.needSupport) && !o.support) out.notes.push('支えが必要な部分があります。「支えあり」にするか、スライサーのサポート機能をお使いください');
+  if (!out.parts.length) out.notes.push('切り取った結果、残る原子がありません');
   return out;
 }
 
@@ -4421,7 +4577,7 @@ function syncXtal(){
 $('xtSel').innerHTML = [...new Set(XTALS.map(x => x.cat))].map(c => `<optgroup label="${c}">` + XTALS.filter(x => x.cat === c).map(x => `<option value="${x.key}">${x.name}</option>`).join('') + '</optgroup>').join('');
 document.querySelectorAll('#worldSeg button').forEach(b => b.addEventListener('click', () => { if (state.world !== b.dataset.world) setWorld(b.dataset.world); }));
 // 結晶の種類・並べる数・六角柱を変えると原子の番号が変わるので、選んでいた原子は取り消す
-const xtChanged = (refit = false) => { if (refit) { xtPick = null; xtPlaneMode = false; xtPlanePick = []; } syncXtal(); renderInfo(); requestDraw(true); if (refit) fitView(); autosave(); };
+const xtChanged = (refit = false) => { printStale(); if (refit) { xtPick = null; xtPlaneMode = false; xtPlanePick = []; } syncXtal(); renderInfo(); requestDraw(true); if (refit) fitView(); autosave(); };
 $('xtSel').onchange = e => { state.xt.key = e.target.value; state.xt.pn = null; xtPlaneMode = false; xtChanged(true); };
 $('xtPick3').onclick = () => { xtPlaneMode = !xtPlaneMode; xtPlanePick = []; syncXtal(); updateHint(); requestDraw(true); };
 $('xtN').onchange = e => { state.xt.n = +e.target.value; xtChanged(true); };
@@ -5366,7 +5522,7 @@ function printIds(){
   const keep = new Set(); for (const id of sel) for (const j of compOf(id)) keep.add(j);   // 選んだ原子を含む分子ぜんぶ
   return all.filter(id => keep.has(id));
 }
-function prName(){ return fileBase().replace(/[\\/:*?"<>|]/g, '_') + '_' + Math.round(Math.max(...printJob.res.size)) + 'mm'; }
+function prName(){ return (printJob.name || fileBase()).replace(/[\\/:*?"<>|]/g, '_') + '_' + Math.round(Math.max(...printJob.res.size)) + 'mm'; }
 function prSave(kind){
   if (!printJob) return;
   const parts = printJob.res.parts, name = prName();
@@ -5378,6 +5534,7 @@ function prRender(res, support, nSel){
   const f = v => Math.round(v);
   const L = [`<b>大きさ</b>：${res.size.map(f).join(' × ')} mm（1 Å = ${res.k.toFixed(1)} mm）${nSel ? '　選んだ分子だけ' : ''}`,
     `<b>色（部品）</b>：${res.parts.map(p => p.name.replace(/（.*）/, '')).join('、')}（${res.parts.length} 色）`];
+  if (res.layers) L.push(`<b>層</b>：${res.layers} 種類の並び方（${Array.from({length:res.layers}, (_, i) => String.fromCharCode(65 + i)).join('・')}）。${res.layers === 3 ? '面心立方格子の (111) 面は、ABCABC… の 3 種類の層が重なっています。' : ''}`);
   for (const c of res.comps.slice(0, 8)){
     if (!c.needSupport) L.push(`<span class="prok">${c.label}：支えは要りません</span>`);
     else if (support) L.push(`<span class="prok">${c.label}：支えの柱を ${c.pillars} 本付けました</span>`);
@@ -5388,8 +5545,33 @@ function prRender(res, support, nSel){
   if (support && res.supportsPlaced) L.push('支えの柱は、別の部品「支え（サポート）」です。スライサーで、ほかと違う（安い）フィラメントを割り当てると、はがしやすくなります。');
   $('prInfo').innerHTML = L.join('<br>'); $('prInfo').hidden = false;
 }
-$('prSize').onchange = $('prSup').onchange = printStale;
+// 結晶：いま表示している切り方（単位格子の面・断面）のまま、切った立体にする
+function xtPrintOpts(){
+  const {x, cr} = xtCache();
+  const cell = state.xt.cellCut ? cr.faces.map(f => ({n:f.slice(0, 3), d:f[3]})) : [];
+  let sec = null;
+  if (state.xt.cut){ const q = xtSection(x, cr); if (q){ const fl = state.xt.flip; sec = {n:fl ? V.mul(q.n, -1) : q.n, d:fl ? -q.d : q.d}; } }
+  const [kind, val] = $('prSizeX').value.split(':');
+  const o = {cell, sec, both:$('prBoth').checked && !!sec, color:$('prColor').value, support:$('prSup').value === '1', layerAxis:x.key === 'fcc' ? [1, 1, 1] : [0, 0, 1]};
+  if (kind === 'd') o.diam = +val; else o.fit = +val;
+  return {x, cr, o};
+}
+$('prSize').onchange = $('prSizeX').onchange = $('prColor').onchange = $('prBoth').onchange = $('prSup').onchange = printStale;
 $('prMake').onclick = () => {
+  if (state.world === 'xtal'){
+    const {x, cr, o} = xtPrintOpts();
+    if (x.bonds || x.mols || x.finite || x.molBonds){ toast('この結晶は、球だけでできていない（結合や分子がある）ので、3D プリンタ用にはまだできません。金属結晶・イオン結晶で使えます', 5000); return; }
+    $('prMake').disabled = true; $('prInfo').hidden = false; $('prInfo').textContent = 'つくっています…（数秒かかります）'; $('prBtns').hidden = true;
+    setTimeout(() => {
+      try {
+        const res = printCrystal(cr, x, o);
+        if (!res.parts.length){ $('prInfo').textContent = res.notes.join(' '); }
+        else { printJob = {res, name:x.name + (o.sec ? '_断面' : '')}; prRender(res, o.support, false); $('prBtns').hidden = false; }
+      } catch (e) { console.error(e); $('prInfo').hidden = true; toast('3D プリンタ用のデータを作れませんでした：' + e.message); }
+      $('prMake').disabled = false;
+    }, 30);
+    return;
+  }
   const ids = printIds();
   if (!ids.length){ toast('3D プリンタ用にできる分子がありません'); return; }
   const {atoms, bonds} = docArrays(ids), [kind, val] = $('prSize').value.split(':'), support = $('prSup').value === '1';
