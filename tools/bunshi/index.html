@@ -649,7 +649,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.33 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.33.1 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -3035,7 +3035,7 @@ function ppOverhang(v){
 }
 // 向きの候補：座標軸と、遠い原子 3 つがつくる面の向き（台に面で置ける向き）
 function ppDirs(C){
-  const dirs = [], add = d => { d = V.norm(d); if (!isFinite(d[0] + d[1] + d[2])) return; for (const e of dirs) if (V.dot(e, d) > 0.9995) return; dirs.push(d); };
+  const dirs = [], add = d => { if (!(V.len(d) > 1e-6)) return; d = V.norm(d); for (const e of dirs) if (V.dot(e, d) > 0.9995) return; dirs.push(d); };   // 長さ 0 の向き（一直線に並ぶ 3 つの原子から出る）は入れない：入れると、形がつぶれる
   for (const e of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) add(e);
   const n = C.length; if (n < 3) return dirs;
   const cen = C.reduce(V.add, [0, 0, 0]).map(v => v/n), pick = [];
@@ -5688,7 +5688,7 @@ void main(){ vec3 N = normalize(vn); if (!gl_FrontFacing) N = -N; float d = max(
   cv.addEventListener('dblclick', () => pvReset());
   return true;
 }
-function pvReset(){ const cv = $('prevCv'), asp = Math.max(0.3, cv.clientWidth/Math.max(1, cv.clientHeight)); pv.yaw = 0.6; pv.elev = 0.55; pv.dist = pv.r/Math.tan(0.3)/Math.min(1, asp)*0.8; pvDraw(); }
+function pvReset(){ const cv = $('prevCv'), asp = Math.max(0.3, cv.clientWidth/Math.max(1, cv.clientHeight)); pv.yaw = 0.6; pv.elev = 0.55; pv.dist = pv.r/Math.tan(0.3)/Math.min(1, asp)*1.0; pvDraw(); }
 function pvDraw(){
   if (!pv || !pv.data) return;
   const {gl, loc} = pv, cv = $('prevCv'), dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.max(1, Math.round(cv.clientWidth*dpr)), H = Math.max(1, Math.round(cv.clientHeight*dpr));
