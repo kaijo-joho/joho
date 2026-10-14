@@ -534,18 +534,34 @@ try {
   const decoder = page.locator('[data-cp-codec="decode"]');
   assert.equal(await page.locator('[data-cp-codec] [data-cp-tree]').count(), 0, '符号化/復元スライドは木を置かない');
   assert.equal(await encoder.locator('table [data-cp-codec-row]').count(), 5, '符号を表で提示');
+  const editCodec = async (host, text) => {
+    if (await host.locator('[data-cp-codec-editor]').isHidden()) await host.locator('[data-cp-codec-edit]').click();
+    await host.locator('[data-cp-codec-input]').fill(text);
+    await host.locator('[data-cp-codec-apply]').click();
+  };
+  await expect(encoder.locator('[data-cp-codec-input]')).toBeHidden();
+  const codecBoxes = await encoder.locator('.cp-codec-band').evaluateAll(items => items.map(e => { const r=e.getBoundingClientRect(); return {x:r.x,y:r.y,bottom:r.bottom,width:r.width}; }));
+  assert.equal(codecBoxes.length, 2);
+  assert(codecBoxes[0].bottom <= codecBoxes[1].y && codecBoxes[0].x === codecBoxes[1].x && codecBoxes[0].width === codecBoxes[1].width, '元の文字列の真下に同じ幅で変換結果');
   await encoder.locator('[data-cp-codec-next]').press('Enter');
   await expect(encoder.locator('[data-cp-codec-output]')).toHaveText('1110');
+  await encoder.locator('[data-cp-codec-edit]').click();
+  await encoder.locator('[data-cp-codec-input]').fill('ABC');
+  await expect(encoder.locator('[data-cp-codec-next]')).toBeDisabled();
+  await encoder.locator('[data-cp-codec-cancel]').click();
+  await expect(encoder.locator('[data-cp-codec-output]')).toHaveText('1110');
+  await expect(encoder.locator('[data-cp-codec-source]')).toHaveText('DAEBCBACBBBCDAAABB');
+  await expect(encoder.locator('[data-cp-codec-edit]')).toBeFocused();
   await page.waitForTimeout(500);
   await expect(encoder.locator('[data-cp-codec-output]')).toHaveText('1110');
   for (let i = 1; i < 18; i++) await encoder.locator('[data-cp-codec-next]').click();
   const fullBits = '11101011110110010110000110111010101000';
   assert.equal((await encoder.locator('[data-cp-codec-output]').textContent()).replace(/\s/g, ''), fullBits);
   await expect(encoder.locator('[data-cp-codec-next]')).toBeDisabled();
-  await encoder.locator('[data-cp-codec-input]').fill('F');
+  await editCodec(encoder, 'F');
   await expect(encoder.locator('[data-cp-codec-input]')).toHaveAttribute('aria-invalid', 'true');
   await expect(encoder.locator('[data-cp-codec-next]')).toBeDisabled();
-  await encoder.locator('[data-cp-codec-input]').fill('DAE');
+  await editCodec(encoder, 'DAE');
   await encoder.locator('[data-cp-codec-next]').click();
   await expect(encoder.locator('[data-cp-codec-output]')).toHaveText('1110');
   await page.getByRole('tab', { name: '復元', exact: true }).click();
@@ -563,7 +579,7 @@ try {
   await expect(decoder.locator('.cp-codec-bit.is-current')).toHaveAttribute('data-cp-bit-index', '3');
   for (let i = 4; i < 38; i++) await decoder.locator('[data-cp-codec-next]').click();
   await expect(decoder.locator('[data-cp-codec-output]')).toHaveText('DAEBCBACBBBCDAAABB');
-  await decoder.locator('[data-cp-codec-input]').fill('11010');
+  await editCodec(decoder, '11010');
   for (let i = 0; i < 3; i++) await decoder.locator('[data-cp-codec-next]').click();
   await expect(decoder.locator('[data-cp-codec-output]')).toHaveText('C');
   assert.deepEqual(await decoder.locator('.cp-codec-bit.is-reading').allTextContents(), ['1', '1', '0'], '110の0で確定しても110全体へ下線を残す');
@@ -577,10 +593,10 @@ try {
   await decoder.locator('[data-cp-codec-reset]').click();
   await expect(decoder.locator('.cp-codec-bit.is-reading')).toHaveCount(0);
 
-  await decoder.locator('[data-cp-codec-input]').fill('111');
+  await editCodec(decoder, '111');
   for (let i = 0; i < 3; i++) await decoder.locator('[data-cp-codec-next]').click();
   await expect(decoder.locator('[data-cp-codec-status]')).toContainText('途中');
-  await decoder.locator('[data-cp-codec-input]').fill('12');
+  await editCodec(decoder, '12');
   await expect(decoder.locator('[data-cp-codec-input]')).toHaveAttribute('aria-invalid', 'true');
 
   const connect = async (host, pair, keyboard = false) => {
@@ -597,6 +613,7 @@ try {
   };
   await goSlide(4);
   const practice = page.locator('[data-cp-huffman-practice]');
+  assert.deepEqual(await practice.locator('[data-cp-practice-preset]').allTextContents(), Array.from({length: 10}, (_,i) => `例${i+1}`), '例名は番号だけ');
   const checkCompactTree = async host => {
     const size = await host.locator('[data-cp-tree]').evaluate(tree => ({
       height: tree.getBoundingClientRect().height,
@@ -697,14 +714,19 @@ try {
     const quiz = page.locator(`[data-cp-staged-huffman-quiz="${index}"]`);
     const fixture = await page.evaluate(index => window.CompressionCore.HUFFMAN_QUESTIONS[index], index);
     const treePractice = quiz.locator('[data-cp-quiz-practice]');
-    await quiz.getByRole('tab', { name: '3. bit数と圧縮率', exact: true }).click();
+    await expect(quiz.locator('[role="tablist"]')).toHaveCount(0);
+    await expect(quiz.locator('thead th:visible')).toHaveCount(5);
+    for (const symbol of Object.keys(fixture.frequencies)) for (const kind of ['frequency', 'code', 'length', 'bits']) await expect(field(quiz, `${kind}:${symbol}`)).toBeVisible();
+    await expect(quiz.locator('[data-cp-quiz-tree]')).toBeVisible();
+    await expect(quiz.locator('[data-cp-quiz-tree] circle + text').first()).toHaveText('?');
+    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
     await expect(quiz.locator('[data-cp-huffman-formula]')).toBeHidden();
-    await quiz.getByRole('tab', { name: '1. 頻度', exact: true }).click();
+    await quiz.getByRole('button', { name: '頻度を判定', exact: true }).click();
     const tableSource = quiz.locator('.cp-quiz-source strong');
     await expect(tableSource).toHaveText(await quiz.locator('[data-cp-quiz-source]').textContent());
     for (const [symbol, count] of Object.entries(fixture.frequencies)) await field(quiz, `frequency:${symbol}`).fill(String(count));
     await field(quiz, 'frequencyTotal').fill(String(fixture.text.length));
-    await quiz.getByRole('button', { name: '段階1を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '頻度を判定', exact: true }).click();
     await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('正解');
     const columns = await quiz.locator('.cp-quiz-workspace').evaluate(e => {
       const tree = e.querySelector('.cp-quiz-practice').getBoundingClientRect();
@@ -712,8 +734,8 @@ try {
       return { treeRight: tree.right, tableLeft: table.left, topDiff: Math.abs(tree.top - table.top) };
     });
     assert(columns.treeRight <= columns.tableLeft && columns.topDiff < 1, '十分な幅では木と元文字列付き表を並べる');
-    await quiz.getByRole('tab', { name: '2. 木・符号と符号長', exact: true }).click();
-    await quiz.getByRole('button', { name: '段階2を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号・符号長を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号・符号長を判定', exact: true }).click();
     await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('木を判定');
     const canonical = index === 0 ? [['C', 'D'], ['A', 'node:CD'], ['B', 'node:ACD']] : [['D', 'E'], ['B', 'C'], ['node:BC', 'node:DE'], ['A', 'node:BCDE']];
     await treePractice.locator(`[data-cp-practice-node="${canonical[0][0]}"]`).press('Enter');
@@ -724,9 +746,9 @@ try {
     await treePractice.locator('[data-cp-practice-judge]').click();
     await expect(treePractice.locator('[data-cp-build-status]')).toContainText('正解');
     for (const [symbol, code] of Object.entries(fixture.codes)) { await field(quiz, `code:${symbol}`).fill(code); await field(quiz, `length:${symbol}`).fill(String(code.length)); }
-    await quiz.getByRole('button', { name: '段階2を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号・符号長を判定', exact: true }).click();
     await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('正解');
-    await quiz.getByRole('tab', { name: '3. bit数と圧縮率', exact: true }).click();
+    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
     const host = quiz.locator('[data-cp-huffman-formula]');
     await expect(host).toHaveAttribute('data-formula-builder', 'true');
     await expect(host).toBeVisible();
@@ -741,11 +763,11 @@ try {
     wrong.rows.unshift({ ...clone(seed.rows[0]), id: 'wrong-working', result: '999' });
     wrong.rows[1].tokens = [{ kind: 'reference', rowId: 'wrong-working' }];
     await host.evaluate((element, draft) => element.__compressionTest.editor.setDraft(draft), wrong);
-    await quiz.getByRole('button', { name: '段階3を判定', exact: true }).click();
-    await expect(quiz.locator('[data-cp-huffman-feedback]')).not.toContainText('段階3は正解');
+    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).not.toContainText('bit数と圧縮率は正解');
     await host.evaluate((element, draft) => element.__compressionTest.editor.setDraft(draft), seed);
-    await quiz.getByRole('button', { name: '段階3を判定', exact: true }).click();
-    await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('段階3は正解');
+    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('bit数と圧縮率は正解');
     await page.setViewportSize({ width: 390, height: 1000 });
     await page.evaluate(() => { document.documentElement.dataset.textSize = 'xlarge'; });
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -755,13 +777,15 @@ try {
     assert.equal(new URL(page.url()).hash, hash, '式の矢印操作でスライドを移動しない');
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.evaluate(() => { document.documentElement.dataset.textSize = 'standard'; });
-    await quiz.getByRole('tab', { name: '4. 符号化と復元', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号化・復元を判定', exact: true }).click();
     await expect(quiz.locator('[data-cp-quiz-decode-bits]')).toHaveText(fixture.decodeBits);
     const codec = await page.evaluate(fixture => ({ encoded: window.CompressionCore.encodeHuffman(fixture.encodeText, fixture.codes), decoded: window.CompressionCore.decodeHuffman(fixture.decodeBits, fixture.codes) }), fixture);
     await field(quiz, 'encoded').fill(codec.encoded); await field(quiz, 'decoded').fill(codec.decoded);
-    await quiz.getByRole('button', { name: '段階4を判定', exact: true }).click();
+    await quiz.getByRole('button', { name: '符号化・復元を判定', exact: true }).click();
     await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('全2項目正解');
-    await quiz.getByRole('tab', { name: '2. 木・符号と符号長', exact: true }).click();
+    await quiz.getByRole('button', { name: 'すべて判定', exact: true }).click();
+    await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('すべて正解');
+    await quiz.getByRole('button', { name: '符号・符号長を判定', exact: true }).click();
     await treePractice.locator('[data-cp-practice-undo]').click();
     await expect(field(quiz, 'code:A')).toHaveValue('');
     await expect(host).toBeHidden();
@@ -772,24 +796,26 @@ try {
       await treePractice.locator('[data-cp-practice-judge]').click();
       const mirrored = Object.fromEntries(Object.entries(fixture.codes).map(([symbol, code]) => [symbol, [...code].map(bit => bit === '0' ? '1' : '0').join('')]));
       for (const [symbol, code] of Object.entries(mirrored)) { await field(quiz, `code:${symbol}`).fill(code); await field(quiz, `length:${symbol}`).fill(String(code.length)); }
-      await quiz.getByRole('button', { name: '段階2を判定', exact: true }).click();
+      await quiz.getByRole('button', { name: '符号・符号長を判定', exact: true }).click();
       await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('正解');
       await treePractice.locator('[data-cp-practice-judge]').click();
       await expect(field(quiz, 'code:A')).toHaveValue(mirrored.A);
-      await quiz.getByRole('tab', { name: '4. 符号化と復元', exact: true }).click();
+      await quiz.getByRole('button', { name: '符号化・復元を判定', exact: true }).click();
       await expect(quiz.locator('[data-cp-quiz-decode-bits]')).toHaveText('01001011');
       const encoded = await page.evaluate(({ text, codes }) => window.CompressionCore.encodeHuffman(text, codes), { text: fixture.encodeText, codes: mirrored });
       await field(quiz, 'encoded').fill(encoded); await field(quiz, 'decoded').fill('ACAB');
-      await quiz.getByRole('button', { name: '段階4を判定', exact: true }).click();
+      await quiz.getByRole('button', { name: '符号化・復元を判定', exact: true }).click();
       await expect(quiz.locator('[data-cp-huffman-feedback]')).toContainText('全2項目正解');
     }
-    await quiz.getByRole('tab', { name: '1. 頻度', exact: true }).click();
+    await quiz.getByRole('button', { name: '頻度を判定', exact: true }).click();
     await field(quiz, 'frequency:A').fill('0');
-    await quiz.getByRole('tab', { name: '3. bit数と圧縮率', exact: true }).click();
+    await quiz.getByRole('button', { name: 'bit数・圧縮率を判定', exact: true }).click();
     await expect(host).toBeHidden();
     await expect(quiz.locator('[data-cp-huffman-feedback]')).not.toContainText('正解');
     await quiz.getByRole('button', { name: '入力を消す', exact: true }).click();
-    await expect(quiz.getByRole('tab', { name: '1. 頻度', exact: true })).toHaveAttribute('aria-selected', 'true');
+    await expect(quiz.locator('[role="tablist"]')).toHaveCount(0);
+    await expect(quiz.locator('thead th:visible')).toHaveCount(5);
+    await expect(quiz.locator('[data-cp-quiz-tree]')).toBeVisible();
     await expect(field(quiz, 'frequency:A')).toHaveValue('');
   }
   // Verify completed widgets as well as the initial-state matrix below.
@@ -797,7 +823,7 @@ try {
   await goSlide(1);
   await page.locator('[data-cp-frequency-source] [data-cp-frequency-column="E"]').first().hover();
   await goSlide(2);
-  for (let i = 0; i < 14; i++) await page.locator('[data-cp-build-next]').click();
+  for (let i = 0; i < 15; i++) await page.locator('[data-cp-build-next]').click();
   await goSlide(3);
   for (let i = 0; i < 18; i++) await page.locator('[data-cp-codec="encode"] [data-cp-codec-next]').click();
   await goSlide(4);

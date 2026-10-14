@@ -7,9 +7,9 @@
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
-  <link rel="stylesheet" href="./css/compression-representation.css?v=20261014-dr52-build">
+  <link rel="stylesheet" href="./css/compression-representation.css?v=20261014-dr52-workspace">
   <link rel="stylesheet" href="./css/lesson-formula-builder.css">
-  <link rel="stylesheet" href="./css/compression-quiz.css?v=20261013-dr52">
+  <link rel="stylesheet" href="./css/compression-quiz.css?v=20261014-dr52-workspace">
   <link rel="stylesheet" href="./css/compression-practice.css?v=20261013-dr52-r2">
   <link rel="stylesheet" href="./css/compression-frequency.css?v=20261014-dr52-panels">
   <script defer src="./js/main.js"></script>
@@ -19,10 +19,10 @@
   <script defer src="./js/lesson-formula-builder.js"></script>
   <script defer src="./js/compression-practice-core.js?v=20261013-dr52"></script>
   <script defer src="./js/compression-formulas.js?v=20261013-dr52"></script>
-  <script defer src="./js/compression-lessons.js?v=20261014-dr52-build"></script>
+  <script defer src="./js/compression-lessons.js?v=20261014-dr52-workspace"></script>
   <script defer src="./js/compression-practice.js?v=20261013-dr52-r2"></script>
   <script defer src="./js/compression-frequency.js?v=20261014-dr52-hover"></script>
-  <script defer src="./js/compression-quiz.js?v=20261013-dr52"></script>
+  <script defer src="./js/compression-quiz.js?v=20261014-dr52-workspace"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
 <body data-lesson-slide-deck>
@@ -137,15 +137,34 @@
         <section class="cp-view-panel" data-lesson-view-panel="encode" data-cp-codec="encode" data-lesson-slide-navigation-lock>
           <h3>符号化：文字を符号表で置き換える</h3>
           <p class="cp-hint">「次へ」を押すと、次の1文字に対応する符号を表から取り出し、ビット列へ追加します。</p>
-          <form data-cp-codec-form novalidate>
-            <label for="cp-codec-encode-input">符号化する文字列（A〜E、1〜80文字）</label>
-            <input id="cp-codec-encode-input" data-cp-codec-input maxlength="80" type="text" value="DAEBCBACBBBCDAAABB" autocomplete="off" spellcheck="false">
-            <div class="cp-controls cp-enhancement" data-cp-codec-controls hidden>
-              <button class="dr-button dr-button--primary" type="submit" data-cp-codec-next>次へ</button>
-              <button class="dr-button" type="button" data-cp-codec-reset>最初から</button>
-            </div>
-          </form>
+          <div class="cp-controls cp-enhancement" data-cp-codec-controls hidden>
+            <button class="dr-button dr-button--primary" type="button" data-cp-codec-next>次へ</button>
+            <button class="dr-button" type="button" data-cp-codec-reset>最初から</button>
+          </div>
           <div class="cp-codec-workspace">
+            <div class="cp-codec-result">
+              <section class="cp-codec-band">
+                <div class="cp-codec-heading">
+                  <h4>元の文字列 <span data-cp-codec-source-count>18文字</span></h4>
+                  <button class="dr-button cp-enhancement" type="button" data-cp-codec-edit aria-label="符号化する文字列を編集" aria-expanded="false" aria-controls="cp-codec-encode-editor" hidden>編集</button>
+                </div>
+                <p class="cp-codec-source" data-cp-codec-source aria-label="符号化する文字列">DAEBCBACBBBCDAAABB</p>
+                <form id="cp-codec-encode-editor" data-cp-codec-form data-cp-codec-editor hidden novalidate>
+                  <label for="cp-codec-encode-input">符号化する文字列（A〜E、1〜80文字）</label>
+                  <input id="cp-codec-encode-input" data-cp-codec-input maxlength="80" type="text" value="DAEBCBACBBBCDAAABB" autocomplete="off" spellcheck="false" aria-describedby="cp-codec-encode-edit-status">
+                  <div class="cp-controls">
+                    <button class="dr-button dr-button--primary" type="submit" data-cp-codec-apply>適用</button>
+                    <button class="dr-button" type="button" data-cp-codec-cancel>取消し</button>
+                  </div>
+                  <p class="cp-hint" id="cp-codec-encode-edit-status" data-cp-codec-edit-status role="status"></p>
+                </form>
+              </section>
+              <section class="cp-codec-band">
+                <h4>符号化したビット列 <span data-cp-codec-output-count>38bit</span></h4>
+                <p class="cp-codec-output" data-cp-codec-output aria-label="符号化したビット列">11101011110110010110000110111010101000</p>
+              </section>
+              <p class="cp-hint">直前に追加した符号：<code class="cp-codec-pending" data-cp-codec-pending>—</code></p>
+            </div>
             <div class="cp-table-scroll" tabindex="0" role="region" aria-label="符号化に使う文字と符号の表">
               <table class="cp-codec-table">
                 <caption>前のスライドで作った符号表</caption>
@@ -159,13 +178,6 @@
                 </tbody>
               </table>
             </div>
-            <div class="cp-codec-result">
-              <h4>元の文字列</h4>
-              <p class="cp-codec-source" data-cp-codec-source aria-label="元の文字列">DAEBCBACBBBCDAAABB</p>
-              <h4>符号化したビット列</h4>
-              <p class="cp-codec-output" data-cp-codec-output aria-label="符号化したビット列">11101011110110010110000110111010101000</p>
-              <p>直前に追加した符号：<code class="cp-codec-pending" data-cp-codec-pending>—</code></p>
-            </div>
           </div>
           <p class="cp-codec-status" data-cp-codec-status role="status" aria-live="polite">JavaScriptを有効にすると、1文字ずつ符号化できます。</p>
           <noscript><p>符号化結果：DAEBCBACBBBCDAAABB → 11101011110110010110000110111010101000（38bit）</p></noscript>
@@ -173,15 +185,34 @@
         <section class="cp-view-panel" data-lesson-view-panel="decode" data-cp-codec="decode" data-lesson-slide-navigation-lock>
           <h3>復元：ビットから文字へ</h3>
           <p class="cp-hint">「次へ」で1bitずつ読みます。今読んだbitを枠で囲み、1文字分の符号に下線を付けます。文字が決まるbitまで下線を残し、次の文字に進むと切り替えます。</p>
-          <form data-cp-codec-form novalidate>
-            <label for="cp-codec-decode-input">復元するビット列（0と1、1〜160bit）</label>
-            <input id="cp-codec-decode-input" data-cp-codec-input maxlength="160" type="text" inputmode="numeric" value="11101011110110010110000110111010101000" autocomplete="off" spellcheck="false">
-            <div class="cp-controls cp-enhancement" data-cp-codec-controls hidden>
-              <button class="dr-button dr-button--primary" type="submit" data-cp-codec-next>次へ</button>
-              <button class="dr-button" type="button" data-cp-codec-reset>最初から</button>
-            </div>
-          </form>
+          <div class="cp-controls cp-enhancement" data-cp-codec-controls hidden>
+            <button class="dr-button dr-button--primary" type="button" data-cp-codec-next>次へ</button>
+            <button class="dr-button" type="button" data-cp-codec-reset>最初から</button>
+          </div>
           <div class="cp-codec-workspace">
+            <div class="cp-codec-result">
+              <section class="cp-codec-band">
+                <div class="cp-codec-heading">
+                  <h4>元のビット列 <span data-cp-codec-source-count>38bit</span></h4>
+                  <button class="dr-button cp-enhancement" type="button" data-cp-codec-edit aria-label="復元するビット列を編集" aria-expanded="false" aria-controls="cp-codec-decode-editor" hidden>編集</button>
+                </div>
+                <p class="cp-codec-source" data-cp-codec-source aria-label="復元するビット列">11101011110110010110000110111010101000</p>
+                <form id="cp-codec-decode-editor" data-cp-codec-form data-cp-codec-editor hidden novalidate>
+                  <label for="cp-codec-decode-input">復元するビット列（0と1、1〜160bit）</label>
+                  <input id="cp-codec-decode-input" data-cp-codec-input maxlength="160" type="text" inputmode="numeric" value="11101011110110010110000110111010101000" autocomplete="off" spellcheck="false" aria-describedby="cp-codec-decode-edit-status">
+                  <div class="cp-controls">
+                    <button class="dr-button dr-button--primary" type="submit" data-cp-codec-apply>適用</button>
+                    <button class="dr-button" type="button" data-cp-codec-cancel>取消し</button>
+                  </div>
+                  <p class="cp-hint" id="cp-codec-decode-edit-status" data-cp-codec-edit-status role="status"></p>
+                </form>
+              </section>
+              <section class="cp-codec-band">
+                <h4>復元した文字列 <span data-cp-codec-output-count>18文字</span></h4>
+                <p class="cp-codec-output" data-cp-codec-output aria-label="復元した文字列">DAEBCBACBBBCDAAABB</p>
+              </section>
+              <p class="cp-hint">まだ確定していないbit：<code class="cp-codec-pending" data-cp-codec-pending>—</code></p>
+            </div>
             <div class="cp-table-scroll" tabindex="0" role="region" aria-label="復元に使う文字と符号の表">
               <table class="cp-codec-table">
                 <caption>符号が一致した文字を確認</caption>
@@ -194,13 +225,6 @@
                   <tr data-cp-codec-row="E"><th scope="row">E</th><td>1111</td></tr>
                 </tbody>
               </table>
-            </div>
-            <div class="cp-codec-result">
-              <h4>読み取っているbit列</h4>
-              <p class="cp-codec-source" data-cp-codec-source aria-label="復元するビット列">11101011110110010110000110111010101000</p>
-              <h4>復元した文字列</h4>
-              <p class="cp-codec-output" data-cp-codec-output aria-label="復元した文字列">DAEBCBACBBBCDAAABB</p>
-              <p>まだ確定していないbit：<code class="cp-codec-pending" data-cp-codec-pending>—</code></p>
             </div>
           </div>
           <p class="cp-codec-status" data-cp-codec-status role="status" aria-live="polite">JavaScriptを有効にすると、1bitずつ復元できます。</p>
@@ -219,13 +243,13 @@
           <button class="dr-button" type="button" data-cp-practice-preset="0" aria-pressed="true">例1</button>
           <button class="dr-button" type="button" data-cp-practice-preset="1" aria-pressed="false">例2</button>
           <button class="dr-button" type="button" data-cp-practice-preset="2" aria-pressed="false">例3</button>
-          <button class="dr-button" type="button" data-cp-practice-preset="3" aria-pressed="false">例4（6文字・均等）</button>
-          <button class="dr-button" type="button" data-cp-practice-preset="4" aria-pressed="false">例5（6文字・偏り）</button>
-          <button class="dr-button" type="button" data-cp-practice-preset="5" aria-pressed="false">例6（7文字・均等）</button>
-          <button class="dr-button" type="button" data-cp-practice-preset="6" aria-pressed="false">例7（7文字・偏り）</button>
-          <button class="dr-button" type="button" data-cp-practice-preset="7" aria-pressed="false">例8（8文字・均等）</button>
-          <button class="dr-button" type="button" data-cp-practice-preset="8" aria-pressed="false">例9（8文字・2群）</button>
-          <button class="dr-button" type="button" data-cp-practice-preset="9" aria-pressed="false">例10（8文字・段階的）</button>
+          <button class="dr-button" type="button" data-cp-practice-preset="3" aria-pressed="false">例4</button>
+          <button class="dr-button" type="button" data-cp-practice-preset="4" aria-pressed="false">例5</button>
+          <button class="dr-button" type="button" data-cp-practice-preset="5" aria-pressed="false">例6</button>
+          <button class="dr-button" type="button" data-cp-practice-preset="6" aria-pressed="false">例7</button>
+          <button class="dr-button" type="button" data-cp-practice-preset="7" aria-pressed="false">例8</button>
+          <button class="dr-button" type="button" data-cp-practice-preset="8" aria-pressed="false">例9</button>
+          <button class="dr-button" type="button" data-cp-practice-preset="9" aria-pressed="false">例10</button>
         </div>
         <p class="cp-hint" data-cp-practice-frequency>例1：A9・B7・C3・D2・E1</p>
         <p class="cp-hint">結合する2つの根を選ぶと、自動で結合します。選んだ順に0の枝、1の枝を付けます。結合済みの根を選ぶと「結合解除」で、その結合とそれ以降の結合を戻せます。選択中は正誤を表示せず、木が完成してから「木を判定」を押します。同じ頻度や0・1の向きが異なる木も、毎回頻度の小さい2つを選んでいれば正解です。</p>

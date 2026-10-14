@@ -723,13 +723,21 @@
     const output = one(root, '[data-cp-codec-output]');
     const pendingDisplay = one(root, '[data-cp-codec-pending]');
     const codeRows = all(root, '[data-cp-codec-row]');
+    const editor = one(root, '[data-cp-codec-editor]');
+    const editButton = one(root, '[data-cp-codec-edit]');
+    const cancelButton = one(root, '[data-cp-codec-cancel]');
+    const editStatus = one(root, '[data-cp-codec-edit-status]');
+    const sourceCount = one(root, '[data-cp-codec-source-count]');
+    const outputCount = one(root, '[data-cp-codec-output-count]');
     const codes = fixture.codes;
     const codeToSymbol = Object.fromEntries(Object.entries(codes).map(([symbol, bits]) => [bits, symbol]));
     let step = 0;
+    let source = clean(input.value);
+    let editing = false;
+    const validSource = value => decode ? /^[01]{1,160}$/.test(value) : /^[A-E]{1,80}$/.test(value);
     const render = () => {
-      const source = clean(input.value);
-      const valid = decode ? /^[01]{1,160}$/.test(source) : /^[A-E]{1,80}$/.test(source);
-      input.setAttribute('aria-invalid', String(!valid));
+      const valid = validSource(source);
+      if (sourceCount) sourceCount.textContent = `${source.length}${decode ? 'bit' : '文字'}`;
       sourceDisplay.replaceChildren(...[...source].map((character, index) => {
         const span = make('span', character, `${decode ? 'cp-codec-bit' : ''}${index === step - 1 ? ' is-current' : ''}`);
         if (decode) span.dataset.cpBitIndex = String(index);
@@ -744,6 +752,7 @@
           ? (decode ? '0と1を1〜160bitで入力してください。' : 'A〜Eの文字を1〜80文字で入力してください。')
           : (decode ? 'ビット列を入力してください。' : '文字列を入力してください。');
         next.disabled = true;
+        if (outputCount) outputCount.textContent = decode ? '0文字' : '0bit';
         return;
       }
 
@@ -773,6 +782,7 @@
         const readingStart = currentSymbol ? completedStart : pendingStart;
         for (let index = readingStart; index < step; index += 1) sourceDisplay.children[index].classList.add('is-reading');
         output.textContent = decoded || '（まだ文字は確定していません）';
+        if (outputCount) outputCount.textContent = `${decoded.length}文字`;
         pendingDisplay.textContent = pending || '—';
         if (step === source.length && pending) status.textContent = `入力は符号の途中（${pending}）で終わっています。続きのbitを追加してください。`;
         else if (step === source.length) status.textContent = `復元完了。${decoded.length}文字を確認しました。`;
@@ -786,6 +796,7 @@
           return span;
         }));
         pendingDisplay.textContent = step ? codes[source[step - 1]] : '—';
+        if (outputCount) outputCount.textContent = `${Core.encodeHuffman(completed, codes).length}bit`;
         if (step < source.length) {
           status.textContent = step === 0
             ? `「次へ」で${source[step]}に対応する符号を表から追加します。`
@@ -794,19 +805,56 @@
           status.textContent = `符号化完了。${source.length}文字を${Core.encodeHuffman(source, codes).length}bitで表しました。`;
         }
       }
-      next.disabled = step >= source.length;
+      next.disabled = editing || step >= source.length;
+      reset.disabled = editing;
       next.setAttribute('aria-label', decode ? '次のbitを復元' : '次の文字を符号化');
       const activeSymbol = decode ? currentSymbol : source[step - 1] || '';
       codeRows.find(row => row.dataset.cpCodecRow === activeSymbol)?.classList.add('is-current');
     };
-    input.addEventListener('input', () => {
-      step = 0;
-      const normalized = clean(input.value);
-      if (input.value !== normalized) input.value = normalized;
+    const closeEditor = () => {
+      editing = false;
+      if (editor) editor.hidden = true;
+      sourceDisplay.hidden = false;
+      editButton?.setAttribute('aria-expanded', 'false');
+      input.value = source;
+      input.removeAttribute('aria-invalid');
+      if (editStatus) editStatus.textContent = '';
       render();
+      editButton?.focus({ preventScroll: true });
+    };
+    editButton?.addEventListener('click', () => {
+      if (editing) { closeEditor(); return; }
+      editing = true;
+      input.value = source;
+      input.removeAttribute('aria-invalid');
+      editor.hidden = false;
+      sourceDisplay.hidden = true;
+      editButton.setAttribute('aria-expanded', 'true');
+      next.disabled = true;
+      reset.disabled = true;
+      input.focus();
+      input.select();
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+    });
+    input.addEventListener('input', () => { input.removeAttribute('aria-invalid'); if (editStatus) editStatus.textContent = ''; });
+    cancelButton?.addEventListener('click', closeEditor);
+    form.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeEditor(); }
     });
     form.addEventListener('submit', event => {
       event.preventDefault();
+      const value = clean(input.value);
+      if (!validSource(value)) {
+        input.setAttribute('aria-invalid', 'true');
+        if (editStatus) editStatus.textContent = decode ? '0と1を1〜160bitで入力してください。' : 'A〜Eの文字を1〜80文字で入力してください。';
+        input.focus();
+        return;
+      }
+      source = value;
+      step = 0;
+      closeEditor();
+    });
+    next.addEventListener('click', () => {
       if (next.disabled) return;
       step += 1;
       render();

@@ -10,6 +10,7 @@
     { title: 'bit数と圧縮率', description: '文字ごとのbit数を求め、式ビルダーで圧縮前後のデータ量を確かめます。' },
     { title: '符号化と復元', description: '指定された文字列を符号化し、ビット列を文字へ復元します。' }
   ];
+  const gradeLabels = ['頻度を判定', '符号・符号長を判定', 'bit数・圧縮率を判定', '符号化・復元を判定'];
   const one = (root, selector) => root.querySelector(selector);
   const all = (root, selector) => [...root.querySelectorAll(selector)];
   const make = (tag, className, text) => {
@@ -63,12 +64,12 @@
     if (!feedback || !table || !answerCards || !submit || !reset) throw new Error('段階式クイズに必要な既存要素が見つかりません。');
 
     const nav = make('div', 'cp-staged-nav');
-    nav.setAttribute('role', 'tablist');
-    nav.setAttribute('aria-label', '問題の段階');
+    nav.setAttribute('role', 'group');
+    nav.setAttribute('aria-label', '判定する項目');
     const panel = make('section', 'cp-staged-panel');
     const panelId = `cp-huffman-stage-${index}-panel`;
     panel.id = panelId;
-    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('role', 'region');
     panel.tabIndex = -1;
     const heading = make('h4', 'cp-staged-title');
     heading.id = `${panelId}-title`;
@@ -78,26 +79,12 @@
     root.insertBefore(nav, tableScroll);
     root.insertBefore(panel, tableScroll);
 
-    const tabs = stages.map((stage, stageIndex) => {
-      const button = make('button', 'dr-button cp-staged-tab', `${stageIndex + 1}. ${stage.title}`);
+    stages.forEach((stage, stageIndex) => {
+      const button = make('button', 'dr-button cp-staged-tab', gradeLabels[stageIndex]);
       button.type = 'button';
       button.id = `${panelId}-tab-${stageIndex + 1}`;
-      button.setAttribute('role', 'tab');
-      button.setAttribute('aria-controls', panelId);
-      button.setAttribute('aria-pressed', 'false');
-      button.setAttribute('aria-selected', 'false');
-      button.tabIndex = -1;
-      button.addEventListener('click', () => showStage(stageIndex, false));
-      button.addEventListener('keydown', event => {
-        let target = null;
-        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') target = (stageIndex + 1) % tabs.length;
-        if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') target = (stageIndex + tabs.length - 1) % tabs.length;
-        if (event.key === 'Home') target = 0;
-        if (event.key === 'End') target = tabs.length - 1;
-        if (target !== null) { event.preventDefault(); showStage(target, false); tabs[target].focus(); }
-      });
+      button.addEventListener('click', () => judgeSelected(stageIndex));
       nav.append(button);
-      return button;
     });
 
     const fields = all(root, '[data-cp-huffman-field]').map(input => {
@@ -107,9 +94,6 @@
       input.dataset.cpQuizStage = String(fieldStage);
       return { input, wrapper, key, stage: fieldStage, expected: answers[key], label: input.getAttribute('aria-label') || key };
     });
-    const columnsByStage = { 0: [1], 1: [2, 3], 2: [4], 3: [] };
-    const headers = all(table, 'thead tr');
-    const rows = all(table, 'tbody tr');
 
     let activeStage = 0;
     const valid = [false, false, false, false];
@@ -119,7 +103,7 @@
     const practiceRoot = make('div', 'cp-quiz-practice');
     practiceRoot.dataset.cpQuizPractice = '';
     practiceRoot.setAttribute('data-lesson-slide-navigation-lock', '');
-    const treeHint = make('p', 'cp-hint', '頻度を入力して段階1を判定すると、木を組み立てられます。');
+    const treeHint = make('p', 'cp-hint', '表の頻度を入力し、「頻度を判定」を押すと木を組み立てられます。');
     const practiceFrequency = make('p', 'cp-hint');
     practiceFrequency.dataset.cpPracticeFrequency = '';
     const treeTitle = make('h5', '', '自分で木を組み立てる');
@@ -174,10 +158,11 @@
       feedback.removeAttribute('data-result');
     }
     function clearAcceptedTree() {
+      const hadAcceptedTree = acceptedCodes !== null;
       acceptedCodes = null;
       const decodeBits = one(root, '[data-cp-quiz-decode-bits]');
       if (decodeBits) decodeBits.textContent = '（木を判定すると表示します）';
-      invalidateFrom(1, true);
+      invalidateFrom(1, hadAcceptedTree);
       updateFormulaHost();
     }
     function adoptTree(judgment, state) {
@@ -195,14 +180,20 @@
       resized();
     }
     function showCounts(show) {
-      treeHint.textContent = show ? '丸を2つ選ぶと自動で結合します。結合済みの根を選んで「結合解除」で戻せます。途中では正誤を表示せず、完成後に「木を判定」で確認します。' : '頻度を入力して段階1を判定すると、木を組み立てられます。';
-      quizTree.hidden = !show;
+      treeHint.textContent = show ? '丸を2つ選ぶと自動で結合します。結合済みの根を選んで「結合解除」で戻せます。途中では正誤を表示せず、完成後に「木を判定」で確認します。' : '表の頻度を入力し、「頻度を判定」を押すと木を組み立てられます。';
+      quizTree.hidden = false;
       practiceFrequency.hidden = !show;
       selection.hidden = !show;
       treeStatus.hidden = !show;
       codes.hidden = !show;
       treeControls.hidden = !show;
-      if (!show) return;
+      if (!show) {
+        const letters = Object.keys(fixture.frequencies);
+        Views.renderTree(quizTree, letters.map(symbol => ({ id: symbol, prefix: '', symbol, count: 0 })), {
+          hideCounts: true, hideBits: true, leafOrder: letters, reservedDepth: letters.length - 1
+        });
+        return;
+      }
       if (!window.CompressionPractice?.mount) throw new Error('ハフマン木の練習を読み込めませんでした。');
       if (!practice) {
         syncingTree = true;
@@ -218,7 +209,8 @@
     const formulaReady = () => valid[0] && valid[1];
     const updateFormulaHost = () => {
       if (!formulaHost) return;
-      formulaHost.hidden = activeStage !== 2 || !formulaReady();
+      formulaHost.hidden = !formulaReady();
+      if (formulaReady()) mountFormula();
     };
 
     function showStage(next, focusPanel) {
@@ -226,43 +218,23 @@
       root.dataset.cpQuizStage = String(next);
       feedback.textContent = stageFeedback[next];
       feedback.removeAttribute('data-result');
-      panel.setAttribute('aria-labelledby', tabs[next].id);
-      tabs.forEach((tab, index) => {
-        const selected = index === next;
-        tab.setAttribute('aria-pressed', String(selected));
-        tab.setAttribute('aria-selected', String(selected));
-        tab.tabIndex = selected ? 0 : -1;
-      });
-      heading.textContent = `段階${next + 1}：${stages[next].title}`;
-      description.textContent = stages[next].description + (next === 2 && !formulaReady() ? ' まず段階1と2を判定して、頻度と符号表を確かめてください。' : '');
-      const showTable = next < 3;
-      tableScroll.hidden = !showTable;
-      practiceRoot.hidden = next > 1;
-      source.hidden = next > 2;
-      if (codecPrompt) codecPrompt.hidden = next !== 3;
+      heading.textContent = '表と木を使って解く';
+      description.textContent = '頻度を判定して木を組み立てます。その木から符号・符号長・bit数を表へ入力し、計算と符号化・復元を確かめます。';
+      tableScroll.hidden = false;
+      practiceRoot.hidden = false;
+      source.hidden = false;
+      if (codecPrompt) codecPrompt.hidden = false;
       fields.forEach(field => {
-        if (field.wrapper !== field.input) field.wrapper.hidden = field.stage !== next || (next === 2 && ['originalBits', 'compressedBits', 'rate'].includes(field.key));
-        else field.input.hidden = field.stage !== next;
+        field.wrapper.hidden = ['originalBits', 'compressedBits', 'rate'].includes(field.key);
+        field.input.hidden = false;
       });
       const formulaFields = answerCards.querySelectorAll('label');
       formulaFields.forEach(label => {
         const input = one(label, '[data-cp-huffman-field]');
-        label.hidden = !input || stageFor(input.dataset.cpHuffmanField) !== next || (next === 2 && ['originalBits', 'compressedBits', 'rate'].includes(input.dataset.cpHuffmanField));
+        label.hidden = !input || ['originalBits', 'compressedBits', 'rate'].includes(input.dataset.cpHuffmanField);
       });
-      headers.forEach(row => [...row.children].forEach((cell, column) => {
-        cell.hidden = column > 0 && !columnsByStage[next].includes(column);
-      }));
-      rows.forEach(row => [...row.children].forEach((cell, column) => {
-        const input = one(cell, '[data-cp-huffman-field]');
-        const key = input && input.dataset.cpHuffmanField;
-        const isRowLabel = column === 0;
-        const belongs = isRowLabel || (next === 0 && (key?.startsWith('frequency:') || key === 'frequencyTotal'))
-          || (next === 1 && (key?.startsWith('code:') || key?.startsWith('length:')))
-          || (next === 2 && (key?.startsWith('bits:') || key === 'bitsTotal'));
-        cell.hidden = !belongs;
-      }));
-      if (formulaHost) formulaHost.hidden = next !== 2 || !formulaReady();
-      submit.textContent = `段階${next + 1}を判定`;
+      updateFormulaHost();
+      submit.textContent = 'すべて判定';
       submit.closest('.cp-controls').hidden = false;
       if (next === 2 && formulaReady()) mountFormula();
       if (focusPanel) panel.focus();
@@ -284,7 +256,7 @@
       if (!complete) {
         current.forEach(({ input }) => input.setAttribute('aria-invalid', String(normalize(input.value) === '')));
         feedback.dataset.result = 'incorrect';
-        feedback.textContent = 'この段階の入力欄をすべて埋めてから判定してください。';
+        feedback.textContent = `${stages[number].title}の入力欄をすべて埋めてから判定してください。`;
         valid[number] = false;
       } else {
         Views.gradeFields(current, feedback);
@@ -307,12 +279,13 @@
       if (number === 2) {
         const formulaCorrect = judgeFormula();
         valid[2] = valid[2] && formulaCorrect;
-        if (valid[2]) feedback.textContent = '段階3は正解です。bit数の表と、圧縮前後のbit数・圧縮率の式が合っています。';
+        if (valid[2]) feedback.textContent = 'bit数と圧縮率は正解です。bit数の表と、圧縮前後のbit数・圧縮率の式が合っています。';
         else if (!formulaCorrect) feedback.textContent += ' 圧縮前後のbit数・圧縮率の式と、途中の計算結果を確認してください。';
       }
       if (!valid[number]) {
         for (let later = number + 1; later < valid.length; later += 1) { valid[later] = false; stageFeedback[later] = ''; }
       }
+      if (number !== 2) feedback.textContent = `${stages[number].title}：${feedback.textContent}`;
       stageFeedback[number] = feedback.textContent;
       feedback.dataset.result = valid[number] ? 'correct' : 'incorrect';
       resized();
@@ -348,7 +321,7 @@
           onChange() {
             valid[2] = false;
             valid[3] = false;
-            stageFeedback[2] = '式ビルダーの入力を変更しました。段階3をもう一度判定してください。';
+            stageFeedback[2] = '式ビルダーの入力を変更しました。bit数と圧縮率をもう一度判定してください。';
             stageFeedback[3] = '';
             feedback.textContent = stageFeedback[activeStage];
             feedback.removeAttribute('data-result');
@@ -375,16 +348,22 @@
       }
     }
 
-    root.addEventListener('submit', event => {
-      event.preventDefault();
+    function judgeSelected(number) {
       try {
-        if (activeStage === 2 && formulaReady()) mountFormula();
-        gradeStage(activeStage);
+        showStage(number, false);
+        if (number === 2 && formulaReady()) mountFormula();
+        return gradeStage(number);
       } catch (error) {
         feedback.dataset.result = 'incorrect';
-        feedback.textContent = 'この段階を判定できませんでした。入力を確認して再度お試しください。';
-        console.error(`ハフマン問題の段階${activeStage + 1}を判定できませんでした。`, error);
+        feedback.textContent = 'この項目を判定できませんでした。入力を確認して再度お試しください。';
+        console.error(`ハフマン問題の${stages[number].title}を判定できませんでした。`, error);
+        return false;
       }
+    }
+    root.addEventListener('submit', event => {
+      event.preventDefault();
+      for (let number = 0; number < stages.length; number += 1) if (!judgeSelected(number)) return;
+      feedback.textContent = 'すべて正解です。頻度・符号表・計算・符号化・復元が合っています。';
     });
     root.addEventListener('input', event => {
       const input = event.target.closest && event.target.closest('[data-cp-huffman-field]');
@@ -428,6 +407,7 @@
 
     Views.setupSteps(one(root, '[data-cp-huffman-solution]'), one(root, '[data-cp-huffman-solution-next]'), one(root, '[data-cp-huffman-solution-reset]'));
     all(root, '.cp-enhancement').forEach(element => { element.hidden = false; });
+    clearAcceptedTree();
     showCounts(false);
     ensureFormulaHost();
     updateFormulaHost();

@@ -106,7 +106,7 @@
 .cp-tree .cp-path-nodes.is-complete { opacity: 1; }
 .cp-tree .is-path-label { fill: var(--cp-path-color); }
 .cp-build-status { box-sizing: border-box; height: 5em; margin: 0; padding: 8px 10px; overflow: auto; border-left: 3px solid var(--dr-info); background: var(--dr-info-soft); overflow-wrap: anywhere; }
-.cp-codec-widget [data-cp-codec-form] { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px 12px; }
+.cp-codec-widget [data-cp-codec-form] { display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; gap: 8px 12px; }
 .cp-codec-widget [data-cp-codec-form] label { grid-column: 1 / -1; }
 .cp-codec-widget [data-cp-codec-input] { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; }
 .cp-codec-widget [data-cp-codec-controls] { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -114,6 +114,11 @@
 .cp-codec-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 12px; }
 .cp-codec-workspace > * { min-width: 0; }
 .cp-codec-result > h4:first-child { margin-top: 10px; }
+.cp-codec-band { min-width: 0; margin: 12px 0; padding: 12px 16px; border: 2px solid var(--dr-border); border-radius: 10px; background: var(--dr-panel-strong); }
+.cp-codec-band h4 { margin: 0; }
+.cp-codec-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.cp-codec-band :is([data-cp-codec-source-count], [data-cp-codec-output-count]) { margin-left: 1em; color: var(--dr-muted); font-size: .85em; font-variant-numeric: tabular-nums; }
+.cp-codec-band :is(.cp-codec-source, .cp-codec-output) { min-height: 2.2em; margin: 8px 0 0; padding: 4px 0; border: 0; background: transparent; }
 .cp-codec-table { width: min(100%, 24em); min-width: 0 !important; margin: 10px 0; border-collapse: collapse; font: inherit; }
 .cp-codec-table :is(th, td) { padding: 7px 10px; border: 1px solid var(--dr-border); }
 .cp-codec-table th { background: var(--dr-info-soft); text-align: left; }
@@ -131,10 +136,6 @@
 .cp-codec-status { box-sizing: border-box; min-height: 3.5em; margin: 10px 0; padding: 8px 10px; border-left: 3px solid var(--dr-info); background: var(--dr-info-soft); overflow-wrap: anywhere; }
 .cp-codec-widget [data-cp-codec-input][aria-invalid="true"] { border: 2px solid var(--dr-error); }
 .cp-codec-widget :is(button, input, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
-
-@media (min-width: 900px) {
-  .cp-codec-workspace { grid-template-columns: minmax(10em, .55fr) minmax(0, 1.45fr); gap: 20px; align-items: start; }
-}
 
 @media (min-width: 1000px) {
   .cp-build-workspace { grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); grid-template-areas: "explanation explanation" "diagram codes" "reset reset"; gap: 14px 20px; align-items: start; }
