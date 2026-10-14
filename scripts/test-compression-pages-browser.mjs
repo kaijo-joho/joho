@@ -339,6 +339,11 @@ try {
   await expect(frequency.locator('[data-cp-frequency-source]')).toHaveText(sample);
   await expect(frequency.locator('[data-cp-frequency-fixed-total]')).toHaveText('54bit');
   await expect(frequency.locator('[data-cp-frequency-variable-total]')).toHaveText('38bit');
+  await expect(frequency.locator('.cp-frequency-source-panel h3')).toHaveText('元の文字列 18文字');
+  await expect(frequency.locator('.cp-frequency-lane h4').first()).toHaveText('固定長符号：1文字3bit×18文字＝54bit');
+  await expect(frequency.locator('.cp-frequency-lane__description').first()).toHaveText('固定長符号は、どの文字も同じbit数で表します。この例ではA〜Eの5種類の文字があるため、各文字を3bitで表します。');
+  await expect(frequency.locator('.cp-frequency-lane__description').last()).toContainText('頻度とは、文字ごとの出現回数のこと');
+  await expect(frequency.locator('.cp-frequency-panel')).toHaveCount(3);
   for (const symbol of symbols) {
     await expect(frequency.locator(`[data-cp-frequency-count="${symbol}"]`)).toHaveText(`${frequencies[symbol]}回`);
     await expect(frequency.locator(`[data-cp-frequency-code="${symbol}"]`)).toHaveText(frequencyCodes[symbol]);

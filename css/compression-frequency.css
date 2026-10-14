@@ -7,7 +7,10 @@
 .cp-frequency-comparison [data-cp-frequency-column="D"] { --cp-letter-color: var(--dr-code); }
 .cp-frequency-comparison [data-cp-frequency-column="E"] { --cp-letter-color: var(--dr-error); }
 .cp-frequency-comparison [data-cp-frequency-column] { color: var(--cp-letter-color); }
-.cp-frequency-comparison > h3 { margin-top: 0; color: var(--dr-info); }
+.cp-frequency-panel { --cp-panel-padding: clamp(12px, 1.4vw, 20px); box-sizing: border-box; min-width: 0; padding: var(--cp-panel-padding); border: 2px solid var(--dr-border); border-radius: 10px; background: var(--dr-panel-strong); }
+.cp-frequency-source-panel h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4em 1em; margin: 0 0 .4em; color: var(--dr-info); }
+.cp-frequency-source-count { color: var(--dr-muted); font-size: .9em; font-variant-numeric: tabular-nums; }
+.cp-frequency-source-panel .cp-frequency-assignment__source { margin-bottom: 0; padding: 4px 0; }
 .cp-frequency-assignment__source { min-height: 2.2em; margin: .5em 0; padding: 10px 12px; border-radius: 6px; background: var(--dr-panel-strong); color: var(--dr-text); font: 700 1.25em/1.8 ui-monospace, monospace; overflow-wrap: anywhere; }
 .cp-frequency-assignment__source:has(span) { display: flex; flex-wrap: wrap; gap: .15em; }
 .cp-frequency-assignment__source span { padding: 0 .2em; color: var(--cp-letter-color); }
@@ -15,13 +18,16 @@
 .cp-frequency-comparison :is(button, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
 .cp-frequency-comparison [hidden] { display: none !important; }
 
-.cp-frequency-bands { min-width: 0; margin: 1em 0; }
+.cp-frequency-bands { min-width: 0; margin: 1em 0; container-type: inline-size; }
 .cp-frequency-bands__scroll { box-sizing: border-box; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; padding-bottom: 8px; }
 .cp-frequency-bands__canvas { min-width: max(648px, 36em); }
 .cp-frequency-lane + .cp-frequency-lane { margin-top: 1em; }
 .cp-frequency-lane h4 { display: flex; align-items: baseline; flex-wrap: wrap; gap: .4em 1em; margin: 0 0 .35em; color: var(--dr-text); }
-.cp-frequency-lane h4 span { font-weight: 600; }
+.cp-frequency-lane h4 > span { font-weight: 600; }
 .cp-frequency-lane h4 strong { font-variant-numeric: tabular-nums; }
+.cp-frequency-lane__description { margin: .5em 0 .8em; line-height: 1.7; }
+/* Keep explanations readable while both code tracks share the horizontal scroll. */
+.cp-frequency-lane :is(h4, .cp-frequency-lane__description) { position: sticky; left: 0; max-width: min(100%, calc(100cqw - 2 * var(--cp-panel-padding) - 4px)); }
 .cp-frequency-bit-track { display: flex; width: 100%; }
 .cp-frequency-word { box-sizing: border-box; flex: 0 0 auto; min-width: 0; padding-right: 1px; }
 .cp-frequency-word__symbol { display: block; text-align: center; color: var(--cp-letter-color); font: .82em/1.5 ui-monospace, monospace; }
