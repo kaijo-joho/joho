@@ -777,39 +777,56 @@
       const decoded = completed.map(group => group.symbol).join('');
       const currentSymbol = active && (!decode || active.end === step) ? active.symbol : '';
       const pending = decode && active && !currentSymbol ? active.bits.slice(0, step - active.start) : '';
-      const table = one(root, '[data-cp-codec-grid]');
-      table.style.setProperty('--cp-word-count', groups.length);
-      sourceDisplay.replaceChildren(make('th', decode ? '元の符号' : '元の文字'));
-      output.replaceChildren(make('th', decode ? '復元' : '符号化'));
-      sourceDisplay.firstElementChild.scope = output.firstElementChild.scope = 'row';
-      groups.forEach((group, column) => {
-        const confirmed = Boolean(group.symbol) && group.end <= step;
-        const isCurrent = column === activeIndex;
-        const sourceCell = make('td', decode ? '' : group.symbol, isCurrent ? 'is-current' : '');
-        const outputCell = make('td', confirmed ? (decode ? group.symbol : group.bits) : '', isCurrent ? 'is-current' : '');
-        for (const cell of [sourceCell, outputCell]) {
-          cell.dataset.cpCodecColumn = String(column);
-          // Do not hint at an unread letter through its color while decoding.
-          if (!decode || confirmed) cell.dataset.cpFrequencyColumn = group.symbol;
-        }
-        sourceCell.setAttribute('aria-label', decode ? `${column + 1}つ目の符号：${group.bits}` : `${column + 1}文字目：${group.symbol}`);
-        outputCell.setAttribute('aria-label', `${column + 1}列目の${decode ? '復元' : '符号化'}：${confirmed ? outputCell.textContent : '未確定'}`);
-        if (decode) {
-          sourceCell.append(...[...group.bits].map((bit, offset) => {
-            const index = group.start + offset;
-            const span = make('span', bit, 'cp-codec-bit');
-            span.dataset.cpBitIndex = String(index);
-            if (isCurrent && index < step) span.classList.add('is-reading');
-            if (index === step - 1) {
-              span.classList.add('is-current');
-              span.setAttribute('aria-current', 'true');
-            }
-            return span;
-          }));
-        }
-        sourceDisplay.append(sourceCell);
-        output.append(outputCell);
-      });
+      const grid = one(root, '[data-cp-codec-grid]');
+      if (decode) {
+        grid.style.setProperty('--cp-bit-count', source.length);
+        const lettersAtEnd = new Map(completed.map(group => [group.end - 1, group]));
+        const colorsAtBits = Array(source.length).fill('');
+        completed.forEach(group => {
+          for (let index = group.start; index < group.end; index += 1) colorsAtBits[index] = group.symbol;
+        });
+        sourceDisplay.replaceChildren(...[...source].map((bit, index) => {
+          const span = make('span', bit, 'cp-codec-bit');
+          span.dataset.cpBitIndex = String(index);
+          if (colorsAtBits[index]) span.dataset.cpFrequencyColumn = colorsAtBits[index];
+          if (active && index >= active.start && index < step) span.classList.add('is-reading');
+          if (index === step - 1) {
+            span.classList.add('is-current');
+            span.setAttribute('aria-current', 'true');
+          }
+          return span;
+        }));
+        output.replaceChildren(...[...source].map((_, index) => {
+          const group = lettersAtEnd.get(index);
+          const span = make('span', group?.symbol || '', 'cp-codec-restored');
+          span.dataset.cpBitIndex = String(index);
+          if (group) {
+            span.dataset.cpFrequencyColumn = group.symbol;
+            span.setAttribute('aria-label', `第${index + 1}bitまでの符号${group.bits}を復元：${group.symbol}`);
+            if (index === step - 1) span.classList.add('is-current');
+          } else span.setAttribute('aria-hidden', 'true');
+          return span;
+        }));
+      } else {
+        grid.style.setProperty('--cp-word-count', groups.length);
+        sourceDisplay.replaceChildren(make('th', '元の文字'));
+        output.replaceChildren(make('th', '符号化'));
+        sourceDisplay.firstElementChild.scope = output.firstElementChild.scope = 'row';
+        groups.forEach((group, column) => {
+          const confirmed = group.end <= step;
+          const isCurrent = column === activeIndex;
+          const sourceCell = make('td', group.symbol, isCurrent ? 'is-current' : '');
+          const outputCell = make('td', confirmed ? group.bits : '', isCurrent ? 'is-current' : '');
+          for (const cell of [sourceCell, outputCell]) {
+            cell.dataset.cpCodecColumn = String(column);
+            cell.dataset.cpFrequencyColumn = group.symbol;
+          }
+          sourceCell.setAttribute('aria-label', `${column + 1}文字目：${group.symbol}`);
+          outputCell.setAttribute('aria-label', `${column + 1}列目の符号化：${confirmed ? group.bits : '未確定'}`);
+          sourceDisplay.append(sourceCell);
+          output.append(outputCell);
+        });
+      }
       if (outputCount) outputCount.textContent = decode ? `${decoded.length}文字` : `${encoded.length}bit`;
       pendingDisplay.textContent = decode ? pending || '—' : active?.bits || '—';
       if (decode) {
@@ -822,14 +839,14 @@
           ? `「次へ」で${source[step]}に対応する符号を表から追加します。`
           : `${source[step - 1]}の符号${codes[source[step - 1]]}を追加しました。次は${source[step]}です。`;
       } else status.textContent = `符号化完了。${source.length}文字を${encoded.length}bitで表しました。`;
-      // Keep the current column visible inside the table without moving focus.
+      // Keep the current word or bit visible without moving keyboard focus.
       if (stripScroll && stripScroll.clientWidth > 0 && !editing) {
-        const current = sourceDisplay.querySelector('td.is-current');
+        const current = sourceDisplay.querySelector(decode ? '.cp-codec-bit.is-current' : 'td.is-current');
         if (!current) stripScroll.scrollLeft = 0;
         else {
           const bounds = stripScroll.getBoundingClientRect();
           const cellBounds = current.getBoundingClientRect();
-          const heading = sourceDisplay.firstElementChild;
+          const heading = decode ? grid.querySelector('.cp-codec-bitstream__label') : sourceDisplay.firstElementChild;
           const left = bounds.left + (getComputedStyle(heading).position === 'sticky' ? heading.getBoundingClientRect().width : 0);
           if (cellBounds.right > bounds.right) stripScroll.scrollLeft += cellBounds.right - bounds.right;
           else if (cellBounds.left < left) stripScroll.scrollLeft -= left - cellBounds.left;

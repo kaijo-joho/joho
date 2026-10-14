@@ -534,7 +534,7 @@ try {
   const decoder = page.locator('[data-cp-codec="decode"]');
   const encodedBits = async () => (await encoder.locator('[data-cp-codec-output] td').allTextContents()).join('');
   const sourceLetters = async () => (await encoder.locator('[data-cp-codec-source] td').allTextContents()).join('');
-  const decodedLetters = async () => (await decoder.locator('[data-cp-codec-output] td').allTextContents()).join('');
+  const decodedLetters = async () => (await decoder.locator('.cp-codec-restored').allTextContents()).join('');
   assert.equal(await page.locator('[data-cp-codec] [data-cp-tree]').count(), 0, '符号化/復元スライドは木を置かない');
   assert.equal(await encoder.locator('table [data-cp-codec-row]').count(), 5, '符号を表で提示');
   const editCodec = async (host, text) => {
@@ -547,6 +547,7 @@ try {
   await expect(encoder.locator('[data-cp-codec-grid] tbody tr')).toHaveCount(2);
   await expect(encoder.locator('[data-cp-codec-source] td')).toHaveCount(18);
   await expect(encoder.locator('[data-cp-codec-output] td')).toHaveCount(18);
+  assert(await encoder.locator('[data-cp-codec-grid]').evaluate(table => [table, ...table.querySelectorAll('th,td')].every(cell => ['Top','Right','Bottom','Left'].every(side => getComputedStyle(cell)[`border${side}Width`] === '0px'))), '符号化の表と各セルの枠線は非表示');
   assert.equal(await encodedBits(), '', '開始前は元の文字を1セルずつ表示し、対応する符号のセルは空欄');
   assert.equal(await sourceLetters(), 'DAEBCBACBBBCDAAABB');
   const codecLayout = await encoder.locator('[data-cp-codec-grid]').evaluate(table => {
@@ -592,9 +593,10 @@ try {
   await page.getByRole('tab', { name: '復元', exact: true }).click();
   await expect(decoder.locator('[data-cp-codec-input]')).toHaveValue(fullBits);
   await expect(decoder.locator('.cp-codec-band')).toHaveCount(1);
-  await expect(decoder.locator('[data-cp-codec-source] td')).toHaveCount(18);
+  await expect(decoder.locator('.cp-codec-bit')).toHaveCount(38);
+  await expect(decoder.locator('[data-cp-codec-grid] table')).toHaveCount(0);
   assert.equal(await decodedLetters(), '');
-  assert.deepEqual((await decoder.locator('[data-cp-codec-source] td').allTextContents()).slice(0, 5), ['1110', '10', '1111', '0', '110']);
+  assert.equal((await decoder.locator('.cp-codec-bit').allTextContents()).join(''), fullBits, '復元のビット列は区切りなしの文字列で提示');
   for (let i = 0; i < 3; i++) {
     await decoder.locator('[data-cp-codec-next]').click();
     assert.equal(await decoder.locator('.cp-codec-bit.is-reading').count(), i + 1, '文字が決まるまで読んだビット全部に下線を残す');
@@ -607,10 +609,12 @@ try {
   assert.equal(await decodedLetters(), 'D');
   assert.equal(await decoder.locator('.cp-codec-bit.is-reading').count(), 4, '文字を確定する最後のbitまで下線を残す');
   await expect(decoder.locator('.cp-codec-bit.is-current')).toHaveAttribute('data-cp-bit-index', '3');
-  await expect(decoder.locator('[data-cp-codec-source] td.is-current')).toHaveText('1110');
-  await expect(decoder.locator('[data-cp-codec-output] td.is-current')).toHaveText('D');
+  await expect(decoder.locator('.cp-codec-bit.is-current')).toHaveText('0');
+  await expect(decoder.locator('.cp-codec-restored.is-current')).toHaveText('D');
+  await expect(decoder.locator('.cp-codec-restored.is-current')).toHaveAttribute('data-cp-bit-index', '3');
   for (let i = 4; i < 38; i++) await decoder.locator('[data-cp-codec-next]').click();
   assert.equal(await decodedLetters(), 'DAEBCBACBBBCDAAABB');
+  assert.deepEqual(await decoder.locator('.cp-codec-restored').evaluateAll(spans => spans.filter(span => span.textContent).map(span => Number(span.dataset.cpBitIndex))), [3,5,9,10,13,14,16,19,20,21,22,25,29,31,33,35,36,37], '文字を確定したbitの位置へ表示');
   await editCodec(decoder, '11010');
   for (let i = 0; i < 3; i++) await decoder.locator('[data-cp-codec-next]').click();
   assert.equal(await decodedLetters(), 'C');
@@ -903,17 +907,26 @@ try {
         if (n === 3) {
           for (const mode of ['encode', 'decode']) {
             await page.getByRole('tab', { name: mode === 'encode' ? '符号化' : '復元', exact: true }).click();
-            const metrics = await page.locator(`[data-cp-codec="${mode}"] .cp-codec-strip-scroll`).evaluate(scroll => {
-              const cells = [...scroll.querySelectorAll('[data-cp-codec-grid] td')];
+            const metrics = await page.locator(`[data-cp-codec="${mode}"] .cp-codec-strip-scroll`).evaluate((scroll, mode) => {
+              const cells = [...scroll.querySelectorAll(mode === 'encode' ? '[data-cp-codec-grid] td' : '.cp-codec-bit, .cp-codec-restored')];
               const widths = cells.map(cell => cell.getBoundingClientRect().width);
               const digitFits = cells.filter(cell => cell.textContent).every(cell => {
                 const range = document.createRange(); range.selectNodeContents(cell);
                 const digit = range.getBoundingClientRect(), box = cell.getBoundingClientRect();
                 return digit.left >= box.left - 1 && digit.right <= box.right + 1;
               });
-              return { digitFits, equalWidths: Math.max(...widths) - Math.min(...widths), client: scroll.clientWidth, scroll: scroll.scrollWidth, tables: scroll.querySelectorAll('.x-scroll').length };
-            });
-            assert(metrics.digitFits && metrics.equalWidths < .1, `${mode}のセルの幅と文字の収まり ${width}/${theme}/${font}`);
+              const bits = [...scroll.querySelectorAll('.cp-codec-bit')];
+              const restored = [...scroll.querySelectorAll('.cp-codec-restored')];
+              const aligned = bits.every((bit, i) => Math.abs(bit.getBoundingClientRect().x - restored[i].getBoundingClientRect().x) < .1);
+              const gaps = bits.slice(1).map((bit, i) => bit.getBoundingClientRect().x - bits[i].getBoundingClientRect().x);
+              const equalSpacing = !gaps.length || Math.max(...gaps) - Math.min(...gaps) < .1;
+              return { digitFits, aligned, equalSpacing, equalWidths: Math.max(...widths) - Math.min(...widths), client: scroll.clientWidth, scroll: scroll.scrollWidth, tables: scroll.querySelectorAll('.x-scroll').length };
+            }, mode);
+            // Native fixed tables put fractional-pixel remainders in the last
+            // column; decoded bit tracks must still have exactly equal widths.
+            const widthTolerance = mode === 'encode' ? .5 : .1;
+            assert(metrics.digitFits && metrics.equalWidths < widthTolerance, `${mode}の文字の幅と収まり ${width}/${theme}/${font}`);
+            if (mode === 'decode') assert(metrics.aligned && metrics.equalSpacing, `等間隔のbitの真下へ文字を配置 ${width}/${theme}/${font}`);
             assert.equal(metrics.tables, 0, '共通のスクロール枠を使い二重の枠を作らない');
             if (width === 390) assert(metrics.scroll > metrics.client, '狭幅では対応表の中だけを横スクロール');
             assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), `${mode}の対応表がページ幅を広げない ${width}/${theme}/${font}`);
