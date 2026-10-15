@@ -32,22 +32,29 @@ export function parsePairingQr(value, origin) {
   return token;
 }
 export function checkPages(pages) {
-  const errors = [];
-  for (const side of ['F', 'B']) {
-    const p = pages[side];
-    if (!p || !p.correctedBlob || !p.reading) errors.push({side, message: (side === 'F' ? '表面' : '裏面') + 'を撮影・読取してください。'});
+  // F/B remain the storage keys of the two photos for existing drafts. The QR,
+  // rather than the selected input position, determines their submission sides.
+  const errors = [], identified = {};
+  for (const slot of ['F', 'B']) {
+    const p = pages[slot], side = slot;
+    if (!p) errors.push({side, message: '写真を追加してください。2枚そろうと自動で読み取ります。'});
+    else if (!p.correctedBlob || !p.reading) errors.push({side, message: '写真の読取が必要です。'});
     else if (p.reading.status !== 'OK') errors.push({side, message: p.reading.message || '読取結果を確認できません。'});
-    else if (p.reading.qr.side !== side) errors.push({side, message: '表裏が逆です。「表裏を入れ替える」か、画像を差し替えてください。'});
+    else if (!['F', 'B'].includes(p.reading.qr?.side)) errors.push({side, message: '表・裏を判別できません。QRが写るように撮り直してください。'});
+    else if (!Number.isInteger(p.reading.classNumber) || !Number.isInteger(p.reading.number)) errors.push({side, message: '組・番号のマークを確認できません。表裏とも3行すべてを塗ってください。'});
+    else if (identified[p.reading.qr.side]) errors.push({side, message: (p.reading.qr.side === 'F' ? '表面が2枚あります。1枚を裏面に' : '裏面が2枚あります。1枚を表面に') + '撮り直すか、写真を選び直してください。'});
+    else identified[p.reading.qr.side] = {page:p, slot};
   }
   if (errors.length) return {ok: false, errors};
-  const a = pages.F.reading, b = pages.B.reading;
+  const canonical = {F:identified.F.page, B:identified.B.page};
+  const a = canonical.F.reading, b = canonical.B.reading;
   if (a.qr.subject !== b.qr.subject || a.qr.year !== b.qr.year || a.qr.worksheetId !== b.qr.worksheetId) {
-    errors.push({side: 'B', message: '表面と裏面のWS識別QRが一致しません。両面を確認して差し替えてください。'});
+    errors.push({side: identified.B.slot, message: '別のワークシートが混じっています。同じ用紙の表面と裏面を選んでください。'});
   }
   if (a.classNumber !== b.classNumber || a.number !== b.number) {
-    errors.push({side: 'B', message: '表面と裏面の組・番号が一致しません。紙のマークを修正して撮り直してください。'});
+    errors.push({side: identified.B.slot, message: '表面と裏面の組・番号が一致しません。紙のマークを修正して撮り直してください。'});
   }
-  return {ok: !errors.length, errors, qr: a.qr, classNumber: a.classNumber, number: a.number};
+  return {ok: !errors.length, errors, pages:canonical, qr:a.qr, classNumber:a.classNumber, number:a.number};
 }
 export function newDraft(owner = null) {
   return {id: randomId(), owner, revision: 0, updatedAt: new Date().toISOString(), pages: {}, confirmed: false,
