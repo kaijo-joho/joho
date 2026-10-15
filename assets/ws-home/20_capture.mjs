@@ -33,9 +33,9 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   root.innerHTML = '<section id="photo-step" class="card capture-step photo-picker" aria-labelledby="photo-picker-title"><h2 id="photo-picker-title">①写真を2枚追加</h2><p>表・裏の順番は自由です。2枚そろうと自動で補正・読取します。</p>' +
     '<div id="initial-photo" class="actions"><label id="capture-photo-label" class="button primary upload-label">写真<input id="capture-photo" type="file" accept="image/*" multiple hidden></label></div>' +
     '<div id="photo-tabs" class="photo-tabs" role="tablist" aria-label="表示する写真" hidden><button id="photo-tab-F" type="button" role="tab" aria-controls="photo-panel-F" aria-selected="true">写真1</button><button id="photo-tab-B" type="button" role="tab" aria-controls="photo-panel-B" aria-selected="false" tabindex="-1">写真2</button></div>' +
-    '<div id="pages" hidden></div><p id="photo-progress" role="status"></p><p id="photo-error" class="notice warning" role="status" hidden></p><p id="capture-message" class="muted" role="status"></p><p id="storage-message" class="notice warning" role="status" hidden></p></section>' +
-    '<section id="review-step" class="card capture-step is-locked" aria-labelledby="review-title" aria-disabled="true"><h2 id="review-title">②読み取り結果を確認</h2><p id="review-hint" class="muted">写真を2枚追加すると確認できます。</p><div id="review-content" hidden><div id="checks" role="status"></div>' +
-    '<label class="confirmation"><input id="confirmed" type="checkbox" disabled><span>表裏の画像が自分のワークシートであり、表示された組・番号が正しいことを確認しました。</span></label></div></section>' +
+    '<div id="pages" hidden></div><p id="photo-progress" role="status"></p><p id="photo-error" class="notice warning" role="status" hidden></p><div id="read-warnings" role="status" hidden></div><p id="capture-message" class="muted" role="status"></p><p id="storage-message" class="notice warning" role="status" hidden></p></section>' +
+    '<section id="review-step" class="card capture-step is-locked" aria-labelledby="review-title" aria-disabled="true"><h2 id="review-title">②読み取り結果を確認</h2><p id="review-hint" class="muted">①で表面と裏面を読み取ると確認できます。</p><div id="review-content" hidden><div id="checks" role="status"></div>' +
+    '<label class="confirmation"><input id="confirmed" type="checkbox" disabled><span>表示された組・番号が自分のものであり、表裏の画像が自分のワークシートであることを確認しました。</span></label></div></section>' +
     '<section id="routes" class="card capture-step is-locked" aria-labelledby="routes-title" aria-disabled="true"><h2 id="routes-title">③提出方法を選ぶ</h2><p id="route-hint" class="muted">②で読み取り結果を確認すると選べます。</p><div id="route-content" hidden><div id="route-buttons" class="route-grid"></div><div id="route-detail"></div>' +
     '<div id="receipt-card" class="receipt-status" hidden><h3>処理・受付状況</h3><p id="send-state" class="state">未送信</p><p id="send-message" role="status"></p><div id="receipt"></div>' +
     '<div class="actions"><button id="lookup" hidden>受付結果を確認して再試行</button><button id="cancel-send" hidden>送信セッションを取り消す</button></div></div></div></section>' +
@@ -98,26 +98,29 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     const check = checkPages(draft.pages);
     const pending=!!draft.requestId && !['ACCEPTED','RESUBMIT_REQUIRED','CANCELLED'].includes(draft.receipt?.state);
     const count=slots.filter(slot=>draft.pages[slot]?.originalBlob).length;
+    const readingComplete=count===2&&!readingSlot&&slots.every(slot=>draft.pages[slot]?.reading&&!draft.pages[slot].reading.pending);
+    const reviewReady=readingComplete&&check.ok;
+    const routeReady=reviewReady&&!!draft.confirmed;
     q('#initial-photo').hidden=count>0;
     q('#photo-tabs').hidden=q('#pages').hidden=count===0;
-    q('#photo-progress').textContent=readingSlot?'写真'+photoNumber(readingSlot)+'を自動補正・読取中…':count<2?count+'/2枚 · '+(count?'写真'+photoNumber(slots.find(s=>!draft.pages[s]?.originalBlob))+'を開いて、もう1枚追加してください。':'表面と裏面を、好きな順番で追加してください。'):check.ok?'2/2枚 · QRから表面と裏面を判別しました。':'2/2枚 · ②の読み取り結果を確認してください。';
-    const reviewReady=count===2&&!readingSlot&&slots.every(slot=>draft.pages[slot]?.reading&&!draft.pages[slot].reading.pending);
-    const routeReady=check.ok&&!!draft.confirmed;
+    q('#photo-progress').textContent=readingSlot?'写真'+photoNumber(readingSlot)+'を自動補正・読取中…':count<2?count+'/2枚 · '+(count?'写真'+photoNumber(slots.find(s=>!draft.pages[s]?.originalBlob))+'を開いて、もう1枚追加してください。':'表面と裏面を、好きな順番で追加してください。'):!readingComplete?'2/2枚 · 自動で読み取っています…':reviewReady?'2/2枚 · ②で組・番号を確認してください。':'2/2枚 · ①の警告を確認してください。';
+    q('#read-warnings').replaceChildren();q('#read-warnings').hidden=!readingComplete||check.ok;
+    if(readingComplete&&!check.ok)check.errors.forEach(e=>q('#read-warnings').append(element('p','写真'+photoNumber(e.side)+'：'+e.message,'notice warning')));
     q('#review-step').classList.toggle('is-locked',!reviewReady);q('#review-step').setAttribute('aria-disabled',String(!reviewReady));
     q('#review-content').hidden=!reviewReady;q('#review-hint').hidden=reviewReady;
-    q('#review-hint').textContent=count===2?'自動で読み取っています。完了までお待ちください。':'写真を2枚追加すると確認できます。';
+    q('#review-hint').textContent=readingComplete?'①の警告を確認して、写真を撮り直すか調整してください。':count===2?'①で写真を読み取っています。完了までお待ちください。':'①で表面と裏面を読み取ると確認できます。';
     q('#routes').classList.toggle('is-locked',!routeReady);q('#routes').setAttribute('aria-disabled',String(!routeReady));
     q('#route-content').hidden=!routeReady;q('#route-hint').hidden=routeReady;
     if(!routeReady)q('#route-detail').replaceChildren();
     q('#checks').replaceChildren();
-    if (check.ok) {
-      q('#checks').append(element('p', 'WS：' + check.qr.worksheetId + '（' + check.qr.year + '年度・' + check.qr.subject + '）'),
-        element('p', '表裏一致：' + check.classNumber + '組 ' + String(check.number).padStart(2, '0') + '番', 'notice'));
+    if (reviewReady) {
+      const identity=element('p',check.classNumber+'組 '+String(check.number).padStart(2,'0')+'番','notice read-identity');identity.id='read-identity';
+      q('#checks').append(element('p','読み取ったクラス・番号','muted'),identity,
+        element('p','この組・番号はあなたのものですか？'),
+        element('p', 'WS：' + check.qr.worksheetId + '（' + check.qr.year + '年度・' + check.qr.subject + '）','muted'));
       q('#checks').append(element('p', '提出対象かどうかと本人の名簿との照合は、ログイン／Mac接続後に行います。', 'muted'));
-    } else if(count<2) q('#checks').append(element('p','写真を2枚追加すると、表裏・QR・組と番号を自動で確認します。','muted'));
-    else if(readingSlot) q('#checks').append(element('p','2枚の読取が終わるまでお待ちください。','muted'));
-    else check.errors.forEach(e => q('#checks').append(element('p', '写真'+photoNumber(e.side)+'：' + e.message, 'notice warning')));
-    q('#confirmed').disabled = !check.ok || busy || conflict || pending; q('#confirmed').checked = !!draft.confirmed && check.ok;
+    }
+    q('#confirmed').disabled = !reviewReady || busy || conflict || pending; q('#confirmed').checked = !!draft.confirmed && reviewReady;
     q('#send-state').textContent = stateLabel(draft.state);
     q('#send-state').className = 'state ' + draft.state;
     q('#lookup').hidden = !draft.requestId; q('#lookup').disabled = busy || conflict;
@@ -216,7 +219,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       draft.pages[side] = {originalBlob:file, correctedBlob:result.correctedBlob || null, sha256:result.sha256 || null,
         reading:result.reading, options:{turns:options.turns || 0, brightness:options.brightness || 0, contrast:options.contrast || 0, autoTone:options.autoTone!==false,corners:result.corners,preciseCorners:!!options.preciseCorners}};
       sources[side] = result.source; manuals[side] = -1;sectionFor(side).querySelector('.manual-help').textContent='';
-      await persist(); drawSource(side); message('表裏の画像と読取結果を確認してください。');
+      await persist(); drawSource(side); message(checkPages(draft.pages).ok?'読み取った組・番号を②で確認してください。':'');
     } catch (e) {
       // Keep the selected file even on decode/read failure; it can be exported.
       draft.pages[side] = {originalBlob:file, correctedBlob:null, reading:{status:'REVIEW',message:imageError(e.message)}, options};
