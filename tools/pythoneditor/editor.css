@@ -83,3 +83,6 @@
 #save-status{margin-left:auto}
 #result-note{font-size:.8em}
 @media(pointer:coarse){.run-icon{width:44px;height:44px;min-width:44px;min-height:44px}.run-icon::before{inset:0}.output-transcript #interactive-input button{width:44px;height:44px;min-width:44px;min-height:44px}.output-transcript #input-line{height:36px}}
+
+/* Indentation guides occupy leading whitespace on the first visual row only. */
+#code-cell .CodeMirror pre.cm-indent-guides::before{content:"";position:absolute;left:4px;top:0;width:var(--indent-guide-width);height:1lh;max-height:100%;pointer-events:none;background-image:repeating-linear-gradient(to right,color-mix(in srgb,var(--text) 14%,transparent) 0,color-mix(in srgb,var(--text) 14%,transparent) 1px,transparent 1px,transparent var(--indent-guide-step))}

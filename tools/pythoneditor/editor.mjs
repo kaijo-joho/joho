@@ -49,6 +49,18 @@ function setCode(value, q) {
     cm.refresh();
   } else { $('code').value = value; $('code').readOnly = q.kind === 'observation'; }
 }
+function renderIndentGuides(editor, line, element) {
+  const whitespace = line.text.match(/^[ \t]+/)?.[0];
+  if (!whitespace) return;
+  const step = editor.getOption('indentUnit');
+  const columns = CodeMirror.countColumn(whitespace, null, editor.getOption('tabSize'));
+  const width = Math.floor(columns / step) * step;
+  if (!width) return;
+  // A decorative layer over leading whitespace keeps code, caret and selection intact.
+  element.classList.add('cm-indent-guides');
+  element.style.setProperty('--indent-guide-width', `${width}ch`);
+  element.style.setProperty('--indent-guide-step', `${step}ch`);
+}
 function dirty() {
   if (busy || !question) return;
   editGeneration++;
@@ -362,6 +374,7 @@ async function init() {
     cm = CodeMirror.fromTextArea($('code'), {mode:'python', readOnly:true, lineNumbers:true, indentUnit:4, tabSize:4, viewportMargin:20, lineWrapping:true, extraKeys:{Tab: cm => cm.somethingSelected() ? cm.indentSelection('add') : cm.replaceSelection(' '.repeat(4),'end'), 'Cmd-Enter':run, 'Ctrl-Enter':run, 'Shift-Enter':run}});
     cm.getWrapperElement().setAttribute('aria-label', 'Pythonコード');
     cm.getInputField().setAttribute('aria-label', 'Pythonコード');
+    cm.on('renderLine', renderIndentGuides);
     cm.on('change', dirty);
     cm.on('update', () => {
       // CodeMirror hides decorative gutters from assistive technology; warning buttons are interactive.
@@ -373,6 +386,10 @@ async function init() {
     notice:(message,danger)=>showNotice(message,danger,true),closeMenus:()=>closeMenus(true),addCatalog:addCloudCatalog,importDraft:importCloudDraft,
     archive:(e,reason)=>{if(!store)throw new Error('ローカルの控えを保存できません。コードをファイルに保存してください。');store.archive(e,reason);}});
   try { JohoUI.theme({storageKey:'joho.pythoneditor.view.v1',themeSelect:$('theme'),sizeSelect:$('text-size')}); JohoUI.tooltip(); } catch {}
+  if (cm) {
+    $('text-size').addEventListener('change', () => cm.refresh());
+    cm.refresh();
+  }
   let help;
   $('help-button').addEventListener('click', () => closeMenus());
   try { help = JohoToolHelp.create({root:$('operation-help'),opener:$('help-button'),title:'Pythonエディタの使い方',storageKey:'joho.pythoneditor.help.v1',returnToEditor:()=>cm ? cm.focus() : $('code').focus(),bounds:()=>({top:$('topbar')?.getBoundingClientRect().bottom || 50,bottom:innerHeight-10})}); } catch { $('help-button').disabled = true; }
