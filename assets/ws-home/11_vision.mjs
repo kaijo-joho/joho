@@ -20,13 +20,15 @@ function percentile(values, p) {
 }
 export async function loadImage(blob, turns = 0) {
   if (!(blob instanceof Blob) || blob.size > provisionalLimits.maxInputBytes) throw Error('INPUT_TOO_LARGE');
-  const head = new Uint8Array(await blob.slice(0, 12).arrayBuffer());
+  const head = new Uint8Array(await blob.slice(0, 64).arrayBuffer());
   const png = head[0] === 137 && head[1] === 80 && head[2] === 78 && head[3] === 71;
   const jpeg = head[0] === 255 && head[1] === 216 && head[2] === 255;
-  if (!png && !jpeg) throw Error('INPUT_FORMAT_UNSUPPORTED');
+  const brands=String.fromCharCode(...head.slice(4)),heic=brands.startsWith('ftyp')&&/heic|heix|hevc|hevx|mif1/.test(brands);
+  if (!png && !jpeg && !heic) throw Error('INPUT_FORMAT_UNSUPPORTED');
   const url = URL.createObjectURL(blob), image = new Image();
   try {
-    image.src = url; await image.decode();
+    image.src = url;
+    try {await image.decode();} catch {throw Error(heic?'HEIC_BROWSER_UNSUPPORTED':'INPUT_DECODE_FAILED');}
     if (image.naturalWidth * image.naturalHeight > provisionalLimits.maxPixels) throw Error('INPUT_TOO_MANY_PIXELS');
     // Modern Image decoding applies EXIF orientation; output PNG has no orientation dependency.
     const scale = Math.min(1, 3000 / Math.max(image.naturalWidth, image.naturalHeight));
@@ -93,14 +95,14 @@ function markerComponents(source) {
       for(const j of [x?i-1:-1,x<w-1?i+1:-1,y?i-w:-1,y<h-1?i+w:-1])if(j>=0&&mask[j]===1){mask[j]=2;queue[count++]=j;}
     }
     const bw=maxX-minX+1,bh=maxY-minY+1;
-    if(count<Math.max(16,total*.000025)||count>total*.004||bw/bh<.4||bw/bh>2.5||minX<2||minY<2||maxX>w-3||maxY>h-3)continue;
+    if(count<Math.max(16,total*.000025)||count>total*.004||bw/bh<.15||bw/bh>6.7||minX<2||minY<2||maxX>w-3||maxY>h-3)continue;
     const left=new Int32Array(bh).fill(w),right=new Int32Array(bh).fill(-1);
     for(let n=0;n<count;n++){const i=queue[n],x=i%w,y=Math.floor(i/w)-minY;left[y]=Math.min(left[y],x);right[y]=Math.max(right[y],x);}
     const boundary=[];for(let y=0;y<bh;y++)if(right[y]>=0){boundary.push({x:left[y],y:y+minY},{x:right[y],y:y+minY});}
     const hull=convexHull(boundary),area=polygonArea(hull),fill=count/(area+bw+bh);
     if(fill<.8)continue;
     const center=squareCenter(boundary);if(!center)continue;
-    const candidate={x:center.x/ratio,y:center.y/ratio,area:area/(ratio*ratio),size:Math.sqrt(area)/ratio,fill};
+    const candidate={x:center.x/ratio,y:center.y/ratio,area:area/(ratio*ratio),size:Math.sqrt(area)/ratio,fill,polygon:center.polygon.map(p=>({x:p.x/ratio,y:p.y/ratio}))};
     const old=found.find(p=>Math.hypot(p.x-candidate.x,p.y-candidate.y)<Math.min(p.size,candidate.size)*.6);
     if(!old)found.push(candidate);else if(candidate.fill>old.fill)Object.assign(old,candidate);
   }
@@ -130,6 +132,44 @@ export function snapMarker(source,point) {
   if(!nearby.length||nearby[1]&&nearby[1].d-nearby[0].d<nearby[0].size*.35)return {...point};
   return {x:nearby[0].x,y:nearby[0].y};
 }
+// Paper edges provide a second, independent registration cue when printing clips a square.
+// No text, QR modules or OMR marks are reconstructed.
+function paperQuads(source) {
+  const ratio=Math.min(1,1000/Math.max(source.width,source.height)),image=canvas(Math.round(source.width*ratio),Math.round(source.height*ratio));
+  image.getContext('2d').drawImage(source,0,0,image.width,image.height);
+  const gray=grayscale(image),w=image.width,h=image.height,total=w*h,paper=percentile(gray,.9),quads=[],queue=new Int32Array(total);
+  for(const fraction of [.78,.65,.88]){
+    const mask=Uint8Array.from(gray,v=>v>Math.max(70,paper*fraction)?1:0);
+    for(let start=0;start<total;start++){
+      if(mask[start]!==1)continue;mask[start]=2;queue[0]=start;let count=1;
+      for(let n=0;n<count;n++){
+        const i=queue[n],x=i%w,y=Math.floor(i/w);
+        for(const j of [x?i-1:-1,x<w-1?i+1:-1,y?i-w:-1,y<h-1?i+w:-1])if(j>=0&&mask[j]===1){mask[j]=2;queue[count++]=j;}
+      }
+      if(count<total*.22||count>total*.96)continue;
+      const left=new Int32Array(h).fill(w),right=new Int32Array(h).fill(-1);
+      for(let n=0;n<count;n++){const i=queue[n],y=Math.floor(i/w),x=i%w;left[y]=Math.min(left[y],x);right[y]=Math.max(right[y],x);}
+      const boundary=[];for(let y=0;y<h;y++)if(right[y]>=0)boundary.push({x:left[y],y},{x:right[y],y});
+      const shape=squareCenter(boundary);if(!shape)continue;
+      let points=shape.polygon,area=polygonArea(points);
+      if(area<count*.92||area>count*1.3||points.some(p=>p.x<2||p.y<2||p.x>w-3||p.y>h-3))continue;
+      const first=points.reduce((best,p,i)=>p.x+p.y<points[best].x+points[best].y?i:best,0);
+      points=points.slice(first).concat(points.slice(0,first)).map(p=>({x:p.x/ratio,y:p.y/ratio}));
+      if(!quads.some(q=>q.every((p,i)=>Math.hypot(p.x-points[i].x,p.y-points[i].y)<6/ratio)))quads.push(points);
+    }
+  }
+  return quads;
+}
+function fitHomography(from,to,weights) {
+  const fw=Math.max(1,...from.map(p=>p.x)),fh=Math.max(1,...from.map(p=>p.y)),tw=Math.max(1,...to.map(p=>p.x)),th=Math.max(1,...to.map(p=>p.y));
+  const normal=Array.from({length:8},()=>new Array(9).fill(0));
+  from.forEach((p,i)=>{
+    const x=p.x/fw,y=p.y/fh,u=to[i].x/tw,v=to[i].y/th;
+    for(const row of [[x,y,1,0,0,0,-u*x,-u*y,u],[0,0,0,x,y,1,-v*x,-v*y,v]])for(let a=0;a<8;a++)for(let b=0;b<=8;b++)normal[a][b]+=row[a]*row[b]*weights[i];
+  });
+  const m=solve(normal);
+  return [m[0]*tw/fw,m[1]*tw/fh,m[2]*tw,m[3]*th/fw,m[4]*th/fh,m[5]*th,m[6]/fw,m[7]/fh,1];
+}
 function homography(from, to) {
   const rows = [];
   for (let i = 0; i < 4; i++) {
@@ -137,14 +177,18 @@ function homography(from, to) {
     rows.push([x, y, 1, 0, 0, 0, -u * x, -u * y, u]);
     rows.push([0, 0, 0, x, y, 1, -v * x, -v * y, v]);
   }
-  for (let p = 0; p < 8; p++) {
-    let m = p; for (let r = p + 1; r < 8; r++) if (Math.abs(rows[r][p]) > Math.abs(rows[m][p])) m = r;
+  return solve(rows).concat(1);
+}
+function solve(rows) {
+  const n=rows.length;
+  for (let p = 0; p < n; p++) {
+    let m = p; for (let r = p + 1; r < n; r++) if (Math.abs(rows[r][p]) > Math.abs(rows[m][p])) m = r;
     [rows[p], rows[m]] = [rows[m], rows[p]];
     if (Math.abs(rows[p][p]) < 1e-9) throw Error('INVALID_CORNERS');
-    const f = rows[p][p]; for (let j = p; j <= 8; j++) rows[p][j] /= f;
-    for (let r = 0; r < 8; r++) if (r !== p) {const t = rows[r][p]; for (let j = p; j <= 8; j++) rows[r][j] -= t * rows[p][j];}
+    const f = rows[p][p]; for (let j = p; j <= n; j++) rows[p][j] /= f;
+    for (let r = 0; r < n; r++) if (r !== p) {const t = rows[r][p]; for (let j = p; j <= n; j++) rows[r][j] -= t * rows[p][j];}
   }
-  return rows.map(r => r[8]).concat(1);
+  return rows.map(r => r[n]);
 }
 export function warp(source, sourcePoints, targetPoints, width, height) {
   const matrix = homography(targetPoints, sourcePoints);
@@ -166,10 +210,27 @@ function targetMarkers(c, width, height) {
     x: c.markers[key].center.mm.x / c.page.widthMm * width, y: c.markers[key].center.mm.y / c.page.heightMm * height
   }));
 }
-function tone(image, brightness, contrast) {
+function tone(image, brightness, contrast, automatic = true) {
   const ctx = image.getContext('2d', {willReadFrequently: true}), id = ctx.getImageData(0, 0, image.width, image.height);
+  let illumination=null,black=0,cols=0,rows=0,tile=0;
+  if(automatic){
+    const gray=grayscale(image);black=Math.min(48,percentile(gray,.01));tile=Math.max(48,Math.round(image.width/12));cols=Math.ceil(image.width/tile);rows=Math.ceil(image.height/tile);illumination=[];
+    const floor=Math.max(90,percentile(gray,.9)*.5);
+    for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+      const values=[];for(let yy=y*tile;yy<Math.min(image.height,(y+1)*tile);yy+=2)for(let xx=x*tile;xx<Math.min(image.width,(x+1)*tile);xx+=2)values.push(gray[yy*image.width+xx]);
+      illumination.push(Math.max(floor,percentile(values,.93)));
+    }
+  }
   const factor = Math.max(.4, 1 + contrast / 100);
-  for (let i = 0; i < id.data.length; i += 4) for (let k = 0; k < 3; k++) id.data[i + k] = (id.data[i + k] - 128) * factor + 128 + brightness * 2.55;
+  for (let y=0,i=0;y<image.height;y++)for(let x=0;x<image.width;x++,i+=4){
+    let gain=1;
+    if(illumination){
+      const gx=Math.max(0,Math.min(cols-1,x/tile-.5)),gy=Math.max(0,Math.min(rows-1,y/tile-.5)),x0=Math.floor(gx),y0=Math.floor(gy),x1=Math.min(cols-1,x0+1),y1=Math.min(rows-1,y0+1),fx=gx-x0,fy=gy-y0;
+      const white=illumination[y0*cols+x0]*(1-fx)*(1-fy)+illumination[y0*cols+x1]*fx*(1-fy)+illumination[y1*cols+x0]*(1-fx)*fy+illumination[y1*cols+x1]*fx*fy;
+      gain=Math.min(2.5,244/Math.max(40,white-black));
+    }
+    for(let k=0;k<3;k++){const value=automatic?(id.data[i+k]-black)*gain:id.data[i+k];id.data[i+k]=(value-128)*factor+128+brightness*2.55;}
+  }
   ctx.putImageData(id, 0, 0);
 }
 function transformPoint(matrix,p) {const d=matrix[6]*p.x+matrix[7]*p.y+1;return {x:(matrix[0]*p.x+matrix[1]*p.y+matrix[2])/d,y:(matrix[3]*p.x+matrix[4]*p.y+matrix[5])/d};}
@@ -178,7 +239,7 @@ function qrCrop(source,points,c,options) {
   const r=c.qr.region.mm,margin=5*c.scale,density=10,left=Math.max(0,r.x-margin),top=Math.max(0,r.y-margin);
   const width=Math.ceil((r.width+margin*2)*density),height=Math.ceil((r.height+margin*2)*density);
   const target=targetMarkers(c,c.page.widthMm*density,c.page.heightMm*density).map(p=>({x:p.x-left*density,y:p.y-top*density}));
-  const image=warp(source,points,target,width,height);tone(image,options.brightness||0,options.contrast||0);
+  const image=warp(source,points,target,width,height);tone(image,options.brightness||0,options.contrast||0,options.autoTone!==false);
   return {image,left,top,density};
 }
 function readQr(region,c) {
@@ -195,7 +256,118 @@ function readQr(region,c) {
   const expected=[{x:r.x+quiet,y:r.y+quiet},{x:r.x+r.width-quiet,y:r.y+quiet},{x:r.x+r.width-quiet,y:r.y+r.height-quiet},{x:r.x+quiet,y:r.y+r.height-quiet}];
   const actual=['topLeftCorner','topRightCorner','bottomRightCorner','bottomLeftCorner'].map(key=>({x:decoded.location[key].x/density+left,y:decoded.location[key].y/density+top}));
   const error=Math.max(...actual.map((p,i)=>Math.hypot(p.x-expected[i].x,p.y-expected[i].y)));
-  return {qr,error,modules,actual};
+  return {qr,error,modules,actual,expected};
+}
+function recoverRegistration(source,points,c,found) {
+  const physical=targetMarkers(c,c.page.widthMm,c.page.heightMm),toMm=homography(points,physical),toSource=homography(physical,points),observed=markerComponents(source),matches=[];
+  for(const target of physical){
+    const nearby=observed.map(m=>({m,point:transformPoint(toMm,m)})).map(v=>({...v,d:Math.hypot(v.point.x-target.x,v.point.y-target.y)})).filter(v=>v.d<5.5*c.scale).sort((a,b)=>a.d-b.d);
+    if(!nearby.length||nearby[1]&&nearby[1].d-nearby[0].d<.5*c.scale)return null;
+    const {m}=nearby[0],poly=m.polygon.map(p=>transformPoint(toMm,p));
+    const lengths=poly.map((p,i)=>Math.hypot(p.x-poly[(i+1)%4].x,p.y-poly[(i+1)%4].y)),side=3.5*c.scale;
+    matches.push({m,complete:Math.min(...lengths)>side*.74&&Math.max(...lengths)<side*1.28,lengths});
+  }
+  // At least three intact printed squares AND a visible remnant are mandatory.
+  if(new Set(matches.map(v=>v.m)).size!==4||matches.filter(v=>v.complete).length!==3)return null;
+  const from=[],to=[],weights=[];
+  matches.forEach((v,i)=>{if(v.complete){from.push(physical[i]);to.push(v.m);weights.push(4);}});
+  found.expected.forEach((p,i)=>{from.push(p);to.push(transformPoint(toSource,found.actual[i]));weights.push(1);});
+  const damaged=matches.findIndex(v=>!v.complete),remnant=matches[damaged],poly=remnant.m.polygon.map(p=>transformPoint(toMm,p)),lengths=remnant.lengths;
+  const axis=(lengths[0]+lengths[2])<(lengths[1]+lengths[3])?0:1,short=(lengths[axis]+lengths[axis+2])/2,long=(lengths[(axis+1)%4]+lengths[(axis+3)%4])/2;
+  if(short>long*.74||short<long*.18)return null;
+  const a=poly[axis],b=poly[(axis+1)%4],size=Math.hypot(b.x-a.x,b.y-a.y),unit={x:(b.x-a.x)/size,y:(b.y-a.y)/size},center=transformPoint(toMm,remnant.m),fits=[];
+  // Test both possible missing edges. The QR must decide, rather than guessing an answer.
+  for(const sign of [-1,1]){
+    const inferred=transformPoint(toSource,{x:center.x+sign*unit.x*(long-short)/2,y:center.y+sign*unit.y*(long-short)/2});
+    const src=from.concat(physical[damaged]),dst=to.concat(inferred),fit=fitHomography(src,dst,weights.concat(4)),newPoints=physical.map(p=>transformPoint(fit,p)),inverse=homography(newPoints,physical);
+    const errors=dst.map((p,i)=>{const q=transformPoint(inverse,p);return Math.hypot(q.x-src[i].x,q.y-src[i].y);}),error=Math.max(...errors);
+    if(error>.55*c.scale||!validCorners(newPoints,source))continue;
+    const p=physical[damaged],remainder=remnant.m.polygon.map(v=>transformPoint(inverse,v)),half=1.75*c.scale;
+    if(remainder.some(v=>Math.abs(v.x-p.x)>half+.65*c.scale||Math.abs(v.y-p.y)>half+.65*c.scale)||polygonArea(remainder)<(3.5*c.scale)**2*.18)continue;
+    fits.push({points:newPoints,error,restored:[damaged]});
+  }
+  fits.sort((a,b)=>a.error-b.error);
+  return fits[0]&&(fits.length===1||fits[1].error-fits[0].error>.06*c.scale)?fits[0]:null;
+}
+function completeMarkerSet(source,points,c) {
+  const mm=homography(points,targetMarkers(c,c.page.widthMm,c.page.heightMm)),observed=markerComponents(source),side=3.5*c.scale;
+  return points.every(point=>{
+    const nearby=observed.filter(m=>Math.hypot(m.x-point.x,m.y-point.y)<Math.max(3,m.size*.65));
+    return nearby.some(m=>{const p=m.polygon.map(v=>transformPoint(mm,v)),lengths=p.map((v,i)=>Math.hypot(v.x-p[(i+1)%4].x,v.y-p[(i+1)%4].y));return Math.min(...lengths)>side*.74&&Math.max(...lengths)<side*1.28;});
+  });
+}
+function pixelAt(data,w,h,x,y,channel=0,channels=1) {
+  x=Math.max(0,Math.min(w-1.001,x));y=Math.max(0,Math.min(h-1.001,y));const xx=Math.floor(x),yy=Math.floor(y),fx=x-xx,fy=y-yy,i=(yy*w+xx)*channels;
+  return data[i+channel]*(1-fx)*(1-fy)+data[i+channels+channel]*fx*(1-fy)+data[i+w*channels+channel]*(1-fx)*fy+data[i+(w+1)*channels+channel]*fx*fy;
+}
+function remapRegion(image,c,box,sourceAt) {
+  const ctx=image.getContext('2d'),input=ctx.getImageData(0,0,image.width,image.height),sx=image.width/c.page.widthMm,sy=image.height/c.page.heightMm;
+  const x0=Math.floor(box.x*sx),y0=Math.floor(box.y*sy),w=Math.ceil(box.width*sx),h=Math.ceil(box.height*sy),out=ctx.createImageData(w,h);
+  for(let y=0,i=0;y<h;y++)for(let x=0;x<w;x++,i+=4){
+    const p={x:(x+x0)/sx,y:(y+y0)/sy},q=sourceAt(p),fade=Math.max(0,Math.min(1,(p.x-box.x)/c.scale,(box.x+box.width-p.x)/c.scale,(p.y-box.y)/c.scale,(box.y+box.height-p.y)/c.scale));
+    const xx=(p.x+(q.x-p.x)*fade)*sx,yy=(p.y+(q.y-p.y)*fade)*sy;
+    for(let k=0;k<3;k++)out.data[i+k]=pixelAt(input.data,image.width,image.height,xx,yy,k,4);out.data[i+3]=255;
+  }
+  ctx.putImageData(out,x0,y0);
+}
+function sharpenPrintedQr(image,c,payload) {
+  const r=c.qr.region.mm,ctx=image.getContext('2d'),x=Math.round(r.x/c.page.widthMm*image.width),y=Math.round(r.y/c.page.heightMm*image.height),w=Math.round((r.x+r.width)/c.page.widthMm*image.width)-x,h=Math.round((r.y+r.height)/c.page.heightMm*image.height)-y;
+  const original=ctx.getImageData(x,y,w,h),out=ctx.createImageData(w,h),gray=new Uint8Array(w*h),hist=new Uint32Array(256);
+  let sum=0;for(let i=0;i<gray.length;i++){gray[i]=Math.round((original.data[i*4]+original.data[i*4+1]+original.data[i*4+2])/3);hist[gray[i]]++;sum+=gray[i];}
+  let weight=0,partial=0,best=0,threshold=128;
+  for(let t=0;t<255;t++){weight+=hist[t];partial+=t*hist[t];const rest=gray.length-weight;if(!weight||!rest)continue;const score=weight*rest*(partial/weight-(sum-partial)/rest)**2;if(score>best){best=score;threshold=t;}}
+  if(percentile(gray,.9)-percentile(gray,.1)<60)return;
+  for(let i=0;i<gray.length;i++){const value=gray[i]>threshold?255:0;out.data[i*4]=out.data[i*4+1]=out.data[i*4+2]=value;out.data[i*4+3]=255;}
+  ctx.putImageData(out,x,y);
+  const decoded=readQr(qrCrop(image,targetMarkers(c,image.width,image.height),c,{autoTone:false}),c);
+  if(!decoded||decoded.qr.payload!==payload)ctx.putImageData(original,x,y);
+}
+function alignPrintedHeader(image,c) {
+  // Use the outlines of many EMPTY printed circles, never the selected answers,
+  // to correct small header skew/print drift left after the page homography.
+  const gray=grayscale(image),sx=image.width/c.page.widthMm,sy=image.height/c.page.heightMm,points=[];
+  const directions=Array.from({length:24},(_,i)=>({x:Math.cos(i*Math.PI/12),y:Math.sin(i*Math.PI/12)}));
+  const sample=(x,y)=>pixelAt(gray,image.width,image.height,x*sx,y*sy);
+  for(const row of rowNames)for(const mark of c.omr[row]){
+    const expected=mark.center.mm;let best=null;
+    for(let dy=-1.2*c.scale;dy<=1.201*c.scale;dy+=.12*c.scale)for(let dx=-1.2*c.scale;dx<=1.201*c.scale;dx+=.12*c.scale){
+      const x=expected.x+dx,y=expected.y+dy;if(sample(x,y)<165)continue;
+      for(const radius of [.9,1,1.1].map(v=>v*mark.radiusMm)){
+        let ring=0,inner=0,outer=0;
+        for(const d of directions){ring+=sample(x+d.x*radius,y+d.y*radius);inner+=sample(x+d.x*radius*.64,y+d.y*radius*.64);outer+=sample(x+d.x*radius*1.3,y+d.y*radius*1.3);}
+        ring/=24;inner/=24;outer/=24;const score=(inner+outer)/2-ring;
+        if(inner<outer*.85||score<32)continue;
+        if(!best||score>best.score)best={expected,actual:{x,y},row,score};
+      }
+    }
+    if(best)points.push(best);
+  }
+  function fit(data){
+    const origin=c.omr.class[0].center.mm,normal=Array.from({length:3},()=>new Array(4).fill(0)),other=Array.from({length:3},()=>new Array(4).fill(0));
+    for(const p of data){const row=[p.expected.x-origin.x,p.expected.y-origin.y,1],dx=p.actual.x-p.expected.x,dy=p.actual.y-p.expected.y;for(let a=0;a<3;a++){for(let b=0;b<3;b++)normal[a][b]+=row[a]*row[b];normal[a][3]+=row[a]*dx;other[a][3]+=row[a]*dy;}}
+    for(let a=0;a<3;a++)for(let b=0;b<3;b++)other[a][b]=normal[a][b];const x=solve(normal),y=solve(other);
+    return p=>({x:p.x+x[0]*(p.x-origin.x)+x[1]*(p.y-origin.y)+x[2],y:p.y+y[0]*(p.x-origin.x)+y[1]*(p.y-origin.y)+y[2]});
+  }
+  function enough(data){return data.length>=18&&rowNames.every(row=>data.filter(p=>p.row===row).length>=5)&&new Set(data.map(p=>p.expected.x)).size>=8;}
+  let aligned=false;
+  if(enough(points)){
+    let model=fit(points),stable=points.filter(p=>{const q=model(p.expected);return Math.hypot(q.x-p.actual.x,q.y-p.actual.y)<.25*c.scale;});
+    if(enough(stable)){
+      model=fit(stable);const offsets=stable.map(p=>{const q=model(p.expected);return Math.hypot(q.x-p.expected.x,q.y-p.expected.y);});
+      if(Math.max(...offsets)>.15*c.scale&&Math.max(...offsets)<1.25*c.scale){
+        const first=c.omr.class[0].center.mm,last=c.omr.ones.at(-1).center.mm;
+        remapRegion(image,c,{x:first.x-4*c.scale,y:first.y-3.5*c.scale,width:last.x-first.x+8.5*c.scale,height:last.y-first.y+7*c.scale},model);aligned=true;
+      }
+    }
+  }
+  // Move the photographed QR pixels into their known print position; do not regenerate a code.
+  const found=readQr(qrCrop(image,targetMarkers(c,image.width,image.height),c,{autoTone:false}),c);
+  if(found&&found.error>.35*c.scale&&found.error<=.8*c.scale){
+    const matrix=homography(found.expected,found.actual),r=c.qr.region.mm;
+    remapRegion(image,c,{x:r.x-2*c.scale,y:r.y-2*c.scale,width:r.width+4*c.scale,height:r.height+4*c.scale},p=>transformPoint(matrix,p));aligned=true;
+  }
+  if(found)sharpenPrintedQr(image,c,found.qr.payload);
+  return aligned;
 }
 function markSamples(gray, image, c, mark) {
   const cx = mark.center.mm.x / c.page.widthMm * image.width, cy = mark.center.mm.y / c.page.heightMm * image.height;
@@ -245,31 +417,70 @@ export async function processImage(blob, options = {}) {
   const began=performance.now(),source=await loadImage(blob,options.turns||0);
   const sets=options.corners?[{points:options.corners.map(p=>options.preciseCorners?{...p}:snapMarker(source,p))}]:markerSets(source);
   let corners=sets[0]?.points||null;
-  if(!corners)return {source,corners:null,reading:{status:'REVIEW',reason:'MARKERS_NOT_FOUND',message:'四隅の黒い■を確認できません。用紙全体が写っているか確認し、「黒いマーカーを指定」で拡大して合わせてください。'}};
-  if(!validCorners(corners,source))return {source,corners,reading:{status:'REVIEW',reason:'INVALID_CORNERS',message:'黒いマーカーを左上→右上→右下→左下の順に指定してください。紙の角ではなく、黒い■の中心です。'}};
+  if(Math.max(source.width,source.height)<900)return {source,corners,reading:{status:'REVIEW',reason:'SOURCE_TOO_SMALL',message:'画像が小さすぎてQRを確認できません。スクリーンショットや縮小画像ではなく、撮影した元の写真を選んでください。'}};
+  if(options.corners&&!validCorners(corners,source))return {source,corners,reading:{status:'REVIEW',reason:'INVALID_CORNERS',message:'黒いマーカーを左上→右上→右下→左下の順に指定してください。紙の角ではなく、黒い■の中心です。'}};
   const candidates=[];
+  const catalog=await layouts();
   for(const set of sets){
     if(!validCorners(set.points,source))continue;
-    for(const c of await layouts())for(let turn=0;turn<4;turn++){
+    for(const c of catalog)for(let turn=0;turn<4;turn++){
       const points=set.points.slice(turn).concat(set.points.slice(0,turn)),found=readQr(qrCrop(source,points,c,options),c);
-      if(found)candidates.push({...found,c,points,corners:set.points});
+      if(found){
+        if(completeMarkerSet(source,points,c))candidates.push({...found,c,points,corners:set.points});
+        else if(!options.preciseCorners){
+          const recovered=recoverRegistration(source,points,c,found);
+          if(recovered){const refined=readQr(qrCrop(source,recovered.points,c,options),c);if(refined&&refined.qr.payload===found.qr.payload)candidates.push({...refined,error:Math.max(refined.error,recovered.error),c,points:recovered.points,corners:recovered.points,restored:recovered.restored});}
+        }
+      }
     }
     if(candidates.some(v=>v.error<=.8))break;
   }
+  if(!options.corners&&!candidates.some(v=>v.error<=.8)){
+    for(const paper of paperQuads(source))for(const c of catalog)for(let turn=0;turn<4;turn++){
+      const page=[{x:0,y:0},{x:c.page.widthMm,y:0},{x:c.page.widthMm,y:c.page.heightMm},{x:0,y:c.page.heightMm}],matrix=homography(page,paper.slice(turn).concat(paper.slice(0,turn)));
+      const points=targetMarkers(c,c.page.widthMm,c.page.heightMm).map(p=>transformPoint(matrix,p));
+      if(!validCorners(points,source))continue;
+      const found=readQr(qrCrop(source,points,c,options),c);if(!found||found.error>4*c.scale)continue;
+      const recovered=recoverRegistration(source,points,c,found);if(!recovered)continue;
+      const refined=readQr(qrCrop(source,recovered.points,c,options),c);if(!refined||refined.qr.payload!==found.qr.payload)continue;
+      candidates.push({...refined,error:Math.max(refined.error,recovered.error),c,points:recovered.points,corners:recovered.points,restored:recovered.restored});
+    }
+  }
   candidates.sort((a,b)=>a.error-b.error);
   const best=candidates[0],alternative=best&&candidates.find(v=>v.c.pageSize!==best.c.pageSize||v.qr.payload!==best.qr.payload);
-  if(!best)return {source,corners,reading:{status:'REVIEW',reason:'QR_UNREADABLE',message:'WS識別QRを読み取れません。QRの汚れ・影・ピンぼけを確認し、黒いマーカーの位置を拡大して合わせてください。'}};
+  if(!best)return {source,corners,reading:{status:'REVIEW',reason:corners?'QR_UNREADABLE':'MARKERS_NOT_FOUND',message:corners?'WS識別QRを読み取れません。影・ピンぼけを避けて撮り直すか、「調整する」で四隅を確認してください。':'用紙の位置を確認できません。暗めの机の上で、用紙の四隅がすべて入るように撮影してください。'}};
   corners=best.corners;
   if(best.error>.8||alternative&&alternative.error-best.error<.1)return {source,corners,reading:{status:'REVIEW',reason:'QR_POSITION_MISMATCH',message:'QRは読めましたが、用紙と黒いマーカーの位置が合いません。紙の角ではなく四隅の黒い■の中心へ合わせてください。'}};
   const c=best.c,width=provisionalLimits.normalizedWidth,height=Math.round(width*c.page.heightMm/c.page.widthMm);
-  const corrected=warp(source,best.points,targetMarkers(c,width,height),width,height);tone(corrected,options.brightness||0,options.contrast||0);
-  const omr=readOmr(corrected,c),q=quality(corrected,c),problems=omr.issues.slice();
+  const corrected=warp(source,best.points,targetMarkers(c,width,height),width,height);tone(corrected,options.brightness||0,options.contrast||0,options.autoTone!==false);
+  const q=quality(corrected,c);
+  const headerAligned=alignPrintedHeader(corrected,c);
+  const omr=readOmr(corrected,c),problems=omr.issues.slice();
   const matrix=homography(targetMarkers(c,c.page.widthMm,c.page.heightMm),best.points),sourceQr=best.actual.map(p=>transformPoint(matrix,p));
   const modulePixels=Math.min(...sourceQr.map((p,i)=>Math.hypot(p.x-sourceQr[(i+1)%4].x,p.y-sourceQr[(i+1)%4].y)))/best.modules;
   if(modulePixels<3)problems.push('解像度が不足しています。用紙を大きく写して撮り直してください。');
   if(q.headerSharpness<25)problems.push('画像がぼけています。明るい場所でピントを合わせて撮り直してください。');
   if(q.paperBrightness<100)problems.push('画像が暗すぎます。明るさを調整するか、撮り直してください。');
-  const correctedBlob=await new Promise(resolve=>corrected.toBlob(resolve,'image/png'));
+  // After printed QR + three intact squares agree, standardize the four registration
+  // guides, including the clipped one, to avoid another detector shifting the page.
+  // Only their fixed, blank margin regions are replaced. The original is retained.
+  if(best.restored){
+    const ctx=corrected.getContext('2d');
+    const keys=['topLeft','topRight','bottomRight','bottomLeft'];
+    for(const key of keys){
+      const r=c.markers[key].mm,sx=width/c.page.widthMm,sy=height/c.page.heightMm,pad=.8*c.scale;
+      ctx.fillStyle='#fff';ctx.fillRect(Math.floor((r.x-pad)*sx),Math.floor((r.y-pad)*sy),Math.ceil((r.width+pad*2)*sx),Math.ceil((r.height+pad*2)*sy));
+      ctx.fillStyle='#111';ctx.fillRect(Math.round(r.x*sx),Math.round(r.y*sy),Math.round(r.width*sx),Math.round(r.height*sy));
+    }
+  }
+  let correctedBlob=await new Promise(resolve=>corrected.toBlob(resolve,'image/png')),grayscaleExport=false;
+  if(correctedBlob?.size>provisionalLimits.maxImageBytes){
+    // iPhone paper texture can exceed the PNG limit. Preserve all sampled luminance,
+    // rather than reducing QR resolution; the original colour photo remains in the draft.
+    const ctx=corrected.getContext('2d'),id=ctx.getImageData(0,0,width,height);
+    for(let i=0;i<id.data.length;i+=4){const gray=Math.round((id.data[i]+id.data[i+1]+id.data[i+2])/3);id.data[i]=id.data[i+1]=id.data[i+2]=gray;}
+    ctx.putImageData(id,0,0);correctedBlob=await new Promise(resolve=>corrected.toBlob(resolve,'image/png'));grayscaleExport=true;
+  }
   if(!correctedBlob||correctedBlob.size>provisionalLimits.maxImageBytes)throw Error('OUTPUT_TOO_LARGE');
-  return {source,corners,correctedBlob,sha256:await hashBlob(correctedBlob),reading:{status:problems.length?'REVIEW':'OK',message:problems[0]||'',qr:best.qr,classNumber:omr.classNumber,number:omr.number,rows:omr.rows,pageSize:c.pageSize,quality:q,sourcePixelsPerModule:modulePixels,elapsedMs:Math.round(performance.now()-began),correctedBytes:correctedBlob.size}};
+  return {source,corners,correctedBlob,sha256:await hashBlob(correctedBlob),reading:{status:problems.length?'REVIEW':'OK',message:problems[0]||'',qr:best.qr,classNumber:omr.classNumber,number:omr.number,rows:omr.rows,pageSize:c.pageSize,quality:q,autoTone:options.autoTone!==false,grayscaleExport,headerAligned,registration:best.restored?'QRと残る3点で欠けた■を補正':'四隅の■で補正',restoredMarkers:best.restored?.length||0,sourcePixelsPerModule:modulePixels,elapsedMs:Math.round(performance.now()-began),correctedBytes:correctedBlob.size}};
 }

@@ -23,6 +23,13 @@ const cases=[
  {name:'background-squares',paper:'b5',side:'F',photo:true,decoys:true},
  {name:'shadow-and-jpeg',paper:'a4',side:'F',photo:true,shadow:true,jpeg:true},
  {name:'rotated-photo',paper:'b5',side:'B',photo:true,rotate:true},
+ {name:'clipped-bottom-left',paper:'b5',side:'B',photo:true,clip:'bottomLeft'},
+ {name:'clipped-bottom-right-a4',paper:'a4',side:'F',photo:true,clip:'bottomRight'},
+ {name:'clipped-top-left',paper:'b5',side:'F',photo:true,clip:'topLeft'},
+ {name:'clipped-marker-blank-back',paper:'b5',side:'B',photo:true,clip:'bottomLeft',blank:true,review:true},
+ {name:'missing-marker',paper:'b5',side:'F',photo:true,missingMarker:true,review:true},
+ {name:'two-clipped-markers',paper:'b5',side:'B',photo:true,twoClipped:true,review:true},
+ {name:'manual-tone-only',paper:'b5',side:'F',photo:true,manualTone:true},
  {name:'manual-rough-centres',paper:'b5',side:'F',photo:true,manual:true},
  {name:'manual-paper-corners',paper:'b5',side:'B',photo:true,paperCorners:true},
  {name:'incorrect-precise-corners',paper:'b5',side:'F',photo:true,manual:true,precise:true,review:true},
@@ -39,6 +46,10 @@ for(const mode of baseline?['baseline','candidate']:['candidate'])for(const spec
     const width=spec.lowRes?500:1800,height=Math.round(width*c.page.heightMm/c.page.widthMm),sx=width/c.page.widthMm,sy=height/c.page.heightMm;
     const sheet=v.canvas(width,height),ctx=sheet.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);ctx.fillStyle='#111';
     for(const m of Object.values(c.markers)){const r=m.mm;ctx.fillRect(Math.round(r.x*sx),Math.round(r.y*sy),Math.round(r.width*sx),Math.round(r.height*sy));}
+    for(const key of spec.clip?[spec.clip]:spec.twoClipped?['bottomLeft','bottomRight']:spec.missingMarker?['bottomLeft']:[]){
+      const r=c.markers[key].mm;ctx.fillStyle='#fff';ctx.fillRect(Math.round(r.x*sx)-1,Math.round(r.y*sy)-1,Math.round(r.width*sx)+2,Math.round(r.height*sy)+2);
+      if(!spec.missingMarker){ctx.fillStyle='#111';ctx.fillRect(Math.round(r.x*sx),Math.round(r.y*sy),Math.round(r.width*sx*.45),Math.round(r.height*sy));}
+    }ctx.fillStyle='#111';
     for(const [index,name] of ['class','tens','ones'].entries())for(let digit=0;digit<10;digit++){
       const mark=c.omr[name][digit],p=mark.center.mm,r=mark.radiusMm||1.5*c.scale;ctx.beginPath();ctx.arc(p.x*sx,p.y*sy,r*sx,0,2*Math.PI);ctx.strokeStyle='#111';ctx.lineWidth=.25*c.scale*sx;ctx.stroke();
       if(!spec.blank&&digit===[3,0,7][index]){ctx.beginPath();ctx.arc(p.x*sx,p.y*sy,r*.9*sx,0,2*Math.PI);ctx.fill();}
@@ -61,6 +72,7 @@ for(const mode of baseline?['baseline','candidate']:['candidate'])for(const spec
       if(spec.shadow){const g=ic.createLinearGradient(0,0,image.width,200);g.addColorStop(0,'#0007');g.addColorStop(.5,'#0002');g.addColorStop(1,'#0000');ic.fillStyle=g;ic.fillRect(0,0,image.width,image.height);}
     }
     let options={};
+    if(spec.manualTone)options.autoTone=false;
     if(spec.manual||spec.paperCorners){
       const [p0,p1,p2,p3]=destination,dx1=p1.x-p2.x,dx2=p3.x-p2.x,dx3=p0.x-p1.x+p2.x-p3.x,dy1=p1.y-p2.y,dy2=p3.y-p2.y,dy3=p0.y-p1.y+p2.y-p3.y,den=dx1*dy2-dx2*dy1,g=(dx3*dy2-dx2*dy3)/den,h=(dx1*dy3-dx3*dy1)/den;
       const project=(u,v)=>({x:((p1.x-p0.x+g*p1.x)*u+(p3.x-p0.x+h*p3.x)*v+p0.x)/(g*u+h*v+1),y:((p1.y-p0.y+g*p1.y)*u+(p3.y-p0.y+h*p3.y)*v+p0.y)/(g*u+h*v+1)});
@@ -72,10 +84,10 @@ for(const mode of baseline?['baseline','candidate']:['candidate'])for(const spec
     const blob=await new Promise(resolve=>image.toBlob(resolve,spec.jpeg?'image/jpeg':'image/png',.76));
     const result=await v.processImage(blob,options),reading=result.reading;
     const bytes=result.correctedBlob?Array.from(new Uint8Array(await result.correctedBlob.arrayBuffer())):null;
-    return {status:reading.status,reason:reading.reason||null,message:reading.message,worksheetId:reading.qr?.worksheetId,side:reading.qr?.side,marksMatch:reading.classNumber===3&&reading.number===7,elapsedMs:reading.elapsedMs||0,bytes:bytes&&(spec.name==='inset-on-dark-desk'||spec.name==='off-centre-perspective')?bytes:null};
+    return {status:reading.status,reason:reading.reason||null,message:reading.message,worksheetId:reading.qr?.worksheetId,side:reading.qr?.side,marksMatch:reading.classNumber===3&&reading.number===7,restoredMarkers:reading.restoredMarkers||0,autoTone:reading.autoTone,elapsedMs:reading.elapsedMs||0,bytes:bytes&&(spec.name==='inset-on-dark-desk'||spec.name==='off-centre-perspective'||spec.clip&&!spec.blank)?bytes:null};
   },{spec,mode});
-  const pass=spec.review?result.status==='REVIEW':result.status==='OK'&&result.worksheetId==='dr41'&&result.side===spec.side&&result.marksMatch;
-  if(result.bytes&&output){fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(path.join(path.dirname(output),mode+'-'+spec.side+'.png'),Buffer.from(result.bytes));}delete result.bytes;
+  const pass=spec.review?result.status==='REVIEW':result.status==='OK'&&result.worksheetId==='dr41'&&result.side===spec.side&&result.marksMatch&&(!spec.clip||result.restoredMarkers===1)&&result.autoTone!==!!spec.manualTone;
+  if(result.bytes&&output){fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(path.join(path.dirname(output),mode+'-'+(spec.clip?spec.name:spec.side)+'.png'),Buffer.from(result.bytes));}delete result.bytes;
   results.push({mode,name:spec.name,pass,...result});console.log(JSON.stringify(results.at(-1)));
 }
 await browser.close();
