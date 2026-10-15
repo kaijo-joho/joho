@@ -46,7 +46,7 @@ function grayscale(c) {
   for (let i = 0; i < gray.length; i++) gray[i] = Math.round((rgba[i * 4] + rgba[i * 4 + 1] + rgba[i * 4 + 2]) / 3);
   return gray;
 }
-const markerCache = new WeakMap();
+const markerCache = new WeakMap(), markerSetCache = new WeakMap(), paperCache = new WeakMap();
 function polygonArea(points) {return Math.abs(points.reduce((sum,p,i)=>{const q=points[(i+1)%points.length];return sum+p.x*q.y-p.y*q.x;},0))/2;}
 function cross(a,b,c) {return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);}
 function convexHull(points) {
@@ -110,7 +110,8 @@ function markerComponents(source) {
   markerCache.set(source,found);return found;
 }
 function markerSets(source) {
-  const w=source.width,h=source.height,all=markerComponents(source),groups=[];
+  if(markerSetCache.has(source))return markerSetCache.get(source);
+  const w=source.width,h=source.height,all=markerComponents(source),groups=[],paper=paperQuads(source);
   for(const [right,bottom] of [[false,false],[true,false],[true,true],[false,true]]){
     const nearby=all.filter(p=>(right?p.x>w*.35:p.x<w*.65)&&(bottom?p.y>h*.35:p.y<h*.65));
     nearby.sort((a,b)=>(Math.hypot(a.x/w-Number(right),a.y/h-Number(bottom))+(1-a.fill))-(Math.hypot(b.x/w-Number(right),b.y/h-Number(bottom))+(1-b.fill)));
@@ -122,20 +123,47 @@ function markerSets(source) {
     const area=polygonArea(p);if(area<w*h*.2||Math.min(b.x-a.x,c.x-d.x)<w*.18||Math.min(d.y-a.y,c.y-b.y)<h*.18)continue;
     const ratios=p.map(v=>v.area/area),average=ratios.reduce((s,v)=>s+v,0)/4;
     if(Math.min(...ratios)<.00009||Math.max(...ratios)>.0009||Math.max(...ratios)/Math.min(...ratios)>4)continue;
-    const score=Math.abs(Math.log(average/.00030))+ratios.reduce((s,v)=>s+Math.abs(Math.log(v/average)),0)/4+(1-area/(w*h))*.2;
+    // Test the four shapes in page coordinates, not just their hull area.
+    // Dense characters can have the same area as a square. Three intact 3.5 mm
+    // squares must agree; the fourth may be a clipped printed remnant.
+    const squareFit=[[168.5,243.5],[243.5,168.5]].some(([width,height])=>{
+      const mm=homography(p,[{x:0,y:0},{x:width,y:0},{x:width,y:height},{x:0,y:height}]);
+      const sides=p.map(m=>{const q=m.polygon.map(v=>transformPoint(mm,v));return q.map((v,i)=>Math.hypot(v.x-q[(i+1)%4].x,v.y-q[(i+1)%4].y));});
+      return sides.every(v=>Math.min(...v)>.45&&Math.max(...v)<5.3)&&sides.filter(v=>Math.min(...v)>2.35&&Math.max(...v)<4.8).length>=3;
+    });
+    if(!squareFit)continue;
+    const edgeError=paper.length?Math.min(...paper.map(q=>{
+      const unit=homography(q,[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}]);
+      const distances=p.map((v,i)=>{const t=transformPoint(unit,v);return Math.hypot(t.x-([0,1,1,0][i]),t.y-([0,0,1,1][i]));});
+      return Math.max(...distances)<.14?distances.reduce((sum,v)=>sum+v,0)/4:Infinity;
+    })):0;
+    if(!Number.isFinite(edgeError))continue;
+    const score=Math.abs(Math.log(average/.00030))+ratios.reduce((s,v)=>s+Math.abs(Math.log(v/average)),0)/4+(1-area/(w*h))*.2+edgeError*8;
     quads.push({points:p.map(v=>({x:v.x,y:v.y})),score});
   }
-  return quads.sort((a,b)=>a.score-b.score).slice(0,6);
+  const sets=quads.sort((a,b)=>a.score-b.score).slice(0,6);markerSetCache.set(source,sets);return sets;
 }
-export function detectMarkers(source) {return markerSets(source)[0]?.points||null;}
+export function detectMarkers(source) {
+  const set=markerSets(source)[0];if(set)return set.points;
+  // These are only starting positions for manual adjustment. Paper edges alone
+  // never authorize correction: processImage still verifies the printed marks/QR.
+  const paper=paperQuads(source)[0];if(!paper)return null;
+  const unit=homography(paper,[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}]),back=homography([{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}],paper),all=markerComponents(source);
+  return [[.037,.026],[.963,.026],[.963,.974],[.037,.974]].map(([x,y])=>{
+    const nearby=all.map(m=>({m,p:transformPoint(unit,m)})).map(v=>({...v,d:Math.hypot(v.p.x-x,v.p.y-y)})).filter(v=>v.d<.045).sort((a,b)=>a.d-b.d);
+    return nearby.length?{x:nearby[0].m.x,y:nearby[0].m.y}:transformPoint(back,{x,y});
+  });
+}
 export function snapMarker(source,point) {
-  const nearby=markerComponents(source).map(p=>({...p,d:Math.hypot(p.x-point.x,p.y-point.y)})).filter(p=>p.d<Math.max(p.size*2,Math.min(source.width,source.height)*.045)).sort((a,b)=>a.d-b.d);
+  const guides=detectMarkers(source)||[],edge=Math.min(source.width,source.height);
+  const nearby=markerComponents(source).filter(p=>guides.some(g=>Math.hypot(p.x-g.x,p.y-g.y)<p.size*.6)).map(p=>({...p,d:Math.hypot(p.x-point.x,p.y-point.y)})).filter(p=>p.d<Math.min(edge*.015,Math.max(p.size*.85,edge*.012))).sort((a,b)=>a.d-b.d);
   if(!nearby.length||nearby[1]&&nearby[1].d-nearby[0].d<nearby[0].size*.35)return {...point};
   return {x:nearby[0].x,y:nearby[0].y};
 }
 // Paper edges provide a second, independent registration cue when printing clips a square.
 // No text, QR modules or OMR marks are reconstructed.
 function paperQuads(source) {
+  if(paperCache.has(source))return paperCache.get(source);
   const ratio=Math.min(1,1000/Math.max(source.width,source.height)),image=canvas(Math.round(source.width*ratio),Math.round(source.height*ratio));
   image.getContext('2d').drawImage(source,0,0,image.width,image.height);
   const gray=grayscale(image),w=image.width,h=image.height,total=w*h,paper=percentile(gray,.9),quads=[],queue=new Int32Array(total);
@@ -159,7 +187,7 @@ function paperQuads(source) {
       if(!quads.some(q=>q.every((p,i)=>Math.hypot(p.x-points[i].x,p.y-points[i].y)<6/ratio)))quads.push(points);
     }
   }
-  return quads;
+  paperCache.set(source,quads);return quads;
 }
 function fitHomography(from,to,weights) {
   const fw=Math.max(1,...from.map(p=>p.x)),fh=Math.max(1,...from.map(p=>p.y)),tw=Math.max(1,...to.map(p=>p.x)),th=Math.max(1,...to.map(p=>p.y));
@@ -513,7 +541,7 @@ function validCorners(points,source) {
 export async function processImage(blob, options = {}) {
   const began=performance.now(),source=await loadImage(blob,options.turns||0);
   const sets=options.corners?[{points:options.corners.map(p=>options.preciseCorners?{...p}:snapMarker(source,p))}]:markerSets(source);
-  let corners=sets[0]?.points||null;
+  let corners=sets[0]?.points||(!options.corners?detectMarkers(source):null);
   if(Math.max(source.width,source.height)<900)return {source,corners,reading:{status:'REVIEW',reason:'SOURCE_TOO_SMALL',message:'画像が小さすぎてQRを確認できません。スクリーンショットや縮小画像ではなく、撮影した元の写真を選んでください。'}};
   if(options.corners&&!validCorners(corners,source))return {source,corners,reading:{status:'REVIEW',reason:'INVALID_CORNERS',message:'黒いマーカーを左上→右上→右下→左下の順に指定してください。紙の角ではなく、黒い■の中心です。'}};
   const candidates=[];

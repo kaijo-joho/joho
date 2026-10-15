@@ -1,5 +1,5 @@
 import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob} from './10_model.mjs?v=20261015-5';
-import {processImage, loadImage, detectMarkers, snapMarker, layouts} from './11_vision.mjs?v=20261015-5';
+import {processImage, loadImage, detectMarkers, layouts} from './11_vision.mjs?v=20261016-1';
 import {getDraft, saveDraft, probeStorage, deviceId} from './12_store.mjs';
 import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs?v=20261015-9';
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
@@ -305,7 +305,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       section.querySelector('.corner-previous').disabled=manuals[side]===0;
       drawSource(side);
     }
-    function setPosition(point,snap=false){if(!active())return;manualPoints[side]=snap?snapMarker(sources[side],point):point;showCorner();}
+    function setPosition(point){if(!active())return;manualPoints[side]=point;showCorner();}
     async function confirmCorner(){
       if(!active()||busy)return;
       const n=manuals[side];draft.pages[side].options.corners[n]={...manualPoints[side]};manuals[side]++;
@@ -317,12 +317,18 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     section.querySelector('.manual').addEventListener('click',()=>{
       if(!draft.pages[side]||!sources[side]||busy)return;
       const source=sources[side],previous=draft.pages[side].options.corners;
-      manualSuggestions[side]=(previous?.length===4?previous:detectMarkers(source)||[{x:source.width*.05,y:source.height*.05},{x:source.width*.95,y:source.height*.05},{x:source.width*.95,y:source.height*.95},{x:source.width*.05,y:source.height*.95}]).map(p=>({...p}));
+      const keepPrevious=previous?.length===4&&(draft.pages[side].options.preciseCorners||draft.pages[side].reading?.status==='OK');
+      manualSuggestions[side]=(keepPrevious?previous:detectMarkers(source)||[{x:source.width*.05,y:source.height*.05},{x:source.width*.95,y:source.height*.05},{x:source.width*.95,y:source.height*.95},{x:source.width*.05,y:source.height*.95}]).map(p=>({...p}));
       draft=editedDraft(draft);manuals[side]=0;draft.pages[side].options.corners=[];
       draft.pages[side].reading={...draft.pages[side].reading,status:'REVIEW',message:'拡大表示で黒いマーカーの位置を確認してください。'};
       manualPoints[side]={...manualSuggestions[side][0]};render();showCorner();zoom.focus({preventScroll:true});zoom.scrollIntoView({block:'center',behavior:'smooth'});
     });
-    image.addEventListener('click',e=>{if(!active())return;const r=image.getBoundingClientRect();setPosition({x:(e.clientX-r.left)*image.width/r.width,y:(e.clientY-r.top)*image.height/r.height},true);});
+    image.addEventListener('click',e=>{
+      if(!active())return;
+      const r=image.getBoundingClientRect(),style=getComputedStyle(image),left=parseFloat(style.borderLeftWidth)||0,top=parseFloat(style.borderTopWidth)||0;
+      const width=r.width-left-(parseFloat(style.borderRightWidth)||0),height=r.height-top-(parseFloat(style.borderBottomWidth)||0);
+      setPosition({x:(e.clientX-r.left-left)*image.width/width,y:(e.clientY-r.top-top)*image.height/height});
+    });
     function nudge(dx,dy){if(!active())return;const p=manualPoints[side];setPosition({x:p.x+dx,y:p.y+dy});}
     function handleKey(e){
       if(!active())return;
