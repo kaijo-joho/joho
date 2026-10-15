@@ -1,7 +1,7 @@
 import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob} from './10_model.mjs?v=20261015-5';
 import {processImage, loadImage, detectMarkers, snapMarker, layouts} from './11_vision.mjs?v=20261015-5';
 import {getDraft, saveDraft, probeStorage, deviceId} from './12_store.mjs';
-import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs?v=20261015-6';
+import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs?v=20261015-9';
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const reasonText = {
   WORKSHEET_MISMATCH:'表裏のWS識別QRが一致しません。', STUDENT_MARK_MISMATCH:'表裏の組・番号が一致しません。',
@@ -53,10 +53,11 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   // Keep the old draft keys as photo positions; QR determines the actual side.
   const slots = ['F', 'B'], photoNumber = slot => slot === 'F' ? 1 : 2;
   const sources = {}, urls = {}, manuals = {}, manualPoints = {}, manualSuggestions = {}, cleanup = [];
+  let stopPairCamera=()=>{},lastPairCheck=0;
   let saveQueue=Promise.resolve();
   const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('worksheet-home-drafts-v1') : null;
   root.innerHTML = '<section id="photo-step" class="card capture-step photo-picker" aria-labelledby="photo-picker-title"><h2 id="photo-picker-title">①写真を2枚追加</h2>' +
-    '<div id="initial-photo" class="actions"><label id="capture-photo-label" class="button primary upload-label">写真<input id="capture-photo" type="file" accept="image/*" multiple hidden></label></div>' +
+    '<p id="pair-connection" class="notice" role="status" hidden></p><div id="initial-photo" class="actions"><label id="capture-photo-label" class="button primary upload-label">写真<input id="capture-photo" type="file" accept="image/*" multiple hidden></label></div>' +
     '<div id="photo-tabs" class="photo-tabs" role="tablist" aria-label="表示する写真" hidden><button id="photo-tab-F" type="button" role="tab" aria-controls="photo-panel-F" aria-selected="true">写真1</button><button id="photo-tab-B" type="button" role="tab" aria-controls="photo-panel-B" aria-selected="false" tabindex="-1">写真2</button></div>' +
     '<div id="pages" hidden></div><p id="photo-progress" role="status"></p><p id="photo-error" class="notice warning" role="status" hidden></p><div id="read-warnings" role="status" hidden></div><p id="capture-message" class="muted" role="status"></p><p id="storage-message" class="notice warning" role="status" hidden></p></section>' +
     '<section id="review-step" class="card capture-step is-locked" aria-labelledby="review-title" aria-disabled="true"><h2 id="review-title">②読み取り結果を確認</h2><p id="review-hint" class="muted">①で表面と裏面を読み取ると確認できます。</p><div id="review-content" hidden><div id="checks" role="status"></div>' +
@@ -81,7 +82,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   } catch (e) {storeOk = false; storageWarning('撮影内容を再表示できません。写真を選び直してください。');}
   try {
     const savedPair = JSON.parse(sessionStorage.getItem('ws-home-pair') || 'null');
-    if (savedPair && savedPair.deviceId === deviceId()) pairing = savedPair;
+    if (savedPair && savedPair.deviceId === deviceId() && /^[a-f0-9]{64}$/.test(savedPair.capability||'')) pairing = savedPair;
   } catch (e) {}
   async function persistSnapshot(snapshot) {
     if (conflict) throw Error('DRAFT_CONFLICT');
@@ -136,7 +137,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     q('#review-hint').textContent=readingComplete?'①の警告を確認して、写真を撮り直すか調整してください。':count===2?'①で写真を読み取っています。完了までお待ちください。':'①で表面と裏面を読み取ると確認できます。';
     q('#routes').classList.toggle('is-locked',!routeReady);q('#routes').setAttribute('aria-disabled',String(!routeReady));
     q('#route-content').hidden=!routeReady;q('#route-hint').hidden=routeReady;
-    if(!routeReady)q('#route-detail').replaceChildren();
+    if(!routeReady){stopPairCamera();q('#route-detail').replaceChildren();}
     q('#checks').replaceChildren();
     if (reviewReady) {
       const identity=element('p',check.classNumber+'組 '+String(check.number).padStart(2,'0')+'番','notice read-identity');identity.id='read-identity';
@@ -371,6 +372,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   }
   async function submit(route) {
     if(busy || conflict || !draft.confirmed || !checkPages(draft.pages).ok)return;
+    if(draft.requestId&&draft.route&&draft.route!==route){message('別の提出方法で送信を開始しています。先に「受付結果を確認」で結果を確認してください。');return;}
     busy=true;draft.route=draft.route || route;draft.requestId=draft.requestId || randomId();draft.state='SENDING';render();
     try {
       let authContext=null;
@@ -408,17 +410,17 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   q('#cancel-send').addEventListener('click',async()=>{
     try {
       if(pairing){
-        await api('/api/pairs/'+pairing.pairId+'/device-cancel',{},pairing);
-        if(draft.receipt && draft.receipt.state!=='ACCEPTED'){draft.receipt={...draft.receipt,state:'CANCELLED'};draft.state='CANCELLED';}
+        const cancelled=await api('/api/pairs/'+pairing.pairId+'/device-cancel',{},pairing);
+        if(cancelled.receipt){draft.receipt=cancelled.receipt;draft.state=cancelled.receipt.state;}
         message('接続・送信セッションを取り消しました。撮影内容は保持しています。');
       } else if(draft.receipt && !['ACCEPTED','CANCELLED'].includes(draft.receipt.state)) {
         draft.receipt=await api('/api/submissions/'+draft.receipt.receiptId+'/cancel',{},draft.route==='pair'?pairing:null);draft.state=draft.receipt.state;
       }
-      pairing=null;sessionStorage.removeItem('ws-home-pair');await persist();render();
+      pairing=null;sessionStorage.removeItem('ws-home-pair');updatePairBanner();q('#route-detail').replaceChildren();await persist();render();
     }catch(e){message(messageFor(e.message));}
   });
   function addRoute(label,description,handler,iconName='send') {
-    const b=element('button'),title=element('strong',label);setIcon(title,iconName);b.append(title,element('span',description));b.addEventListener('click',handler);q('#route-buttons').append(b);
+    const b=element('button'),title=element('strong',label);setIcon(title,iconName);b.append(title,element('span',description));b.addEventListener('click',event=>{stopPairCamera();handler(event);});q('#route-buttons').append(b);
   }
   if(mode==='mac') addRoute('このMacから提出','ログイン済みの本人と画像の組・番号を照合して受け付けます。',()=>submit('mac'),'laptop');
   else {
@@ -430,10 +432,11 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       const send=element('button','ログイン完了後に送信');setIcon(send,'send');send.addEventListener('click',()=>submit('phone'));detail.append(send);
       const history=element('a','今回までの受付を確認','button');setIcon(history,'history');history.href=loginUrl;history.target='_blank';history.rel='noopener';detail.append(history);
     },'phone');
-    addRoute('Macと接続して提出（準備中）','一時受付QRの経路は今回の限定公開では未開放です。',()=>{
-      message('一時受付QRの経路は今回の限定公開では未開放です。「スマホでログインして送信」を利用してください。');return;
-      const detail=q('#route-detail');detail.replaceChildren(element('p','Macのダッシュボードで一時受付QRを発行します。カメラでQRのリンクを開くか、QRの画像を選んで読み取ってください。'));
+    addRoute('Macと接続して提出','ログイン済みMacのQRを読み取ります。スマホのログインは不要です。',()=>{
+      const detail=q('#route-detail');detail.replaceChildren(element('p','Macのダッシュボードから「スマホ提出用QRを表示」を開き、QRを発行してください。'));
+      const scan=element('button','MacのQRをカメラで読み取る');setIcon(scan,'scan');scan.addEventListener('click',startPairScan);detail.append(scan);
       const label=element('label','一時受付QRの画像を選択','button upload-label'),input=element('input');setIcon(label,'scan');input.type='file';input.accept='image/*';input.hidden=true;label.append(input);detail.append(label);
+      label.tabIndex=0;label.setAttribute('role','button');label.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();input.click();}});
       input.addEventListener('change',async()=>{
         try{if(!input.files[0])return;const {parsePairingQr}=await import('./10_model.mjs'),image=await loadImage(input.files[0]),id=image.getContext('2d').getImageData(0,0,image.width,image.height),
           found=window.jsQR(id.data,image.width,image.height,{inversionAttempts:'attemptBoth'});if(!found)throw Error('PAIR_QR_INVALID');await claimPair(parsePairingQr(found.data,location.origin));}
@@ -452,24 +455,50 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       });detail.append(share);}
     },'download');
   }
+  function updatePairBanner(){
+    const banner=q('#pair-connection');banner.hidden=!pairing;
+    if(pairing)banner.textContent='Macとの接続：'+(pairing.accountLabel||'学校アカウント')+' ／ 確認コード '+(pairing.verificationCode||'確認中')+' ／ '+({AWAITING_APPROVAL:'Macでコードの一致を確認して承認してください。',APPROVED:'承認済み。③から送信できます。',SUBMITTING:'送信結果を確認しています。',SUBMITTED:'この接続で送信済みです。',EXPIRED:'期限切れ。新しいQRで接続してください。',CANCELLED:'接続は取り消されました。',MAC_OFFLINE:'Macの接続画面を開いてください。'}[pairing.status]||'接続を確認しています。');
+  }
+  async function startPairScan(){
+    stopPairCamera();const detail=q('#route-detail'),box=element('div'),video=element('video'),stop=element('button','QRの読み取りを中止');setIcon(stop,'close');
+    video.autoplay=true;video.muted=true;video.playsInline=true;video.style.cssText='display:block;width:100%;max-height:380px;object-fit:contain';box.append(video,stop);detail.append(box);
+    let stream,active=true,timer;stopPairCamera=()=>{active=false;clearTimeout(timer);stream?.getTracks().forEach(t=>t.stop());box.remove();};stop.addEventListener('click',()=>stopPairCamera());
+    try{
+      if(!navigator.mediaDevices?.getUserMedia)throw Error('CAMERA_UNAVAILABLE');
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280}},audio:false});
+      if(!active){stream.getTracks().forEach(t=>t.stop());return;}video.srcObject=stream;await video.play();
+      const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
+      const read=async()=>{
+        if(!active)return;
+        if(video.videoWidth){canvas.width=Math.min(1280,video.videoWidth);canvas.height=Math.round(video.videoHeight*canvas.width/video.videoWidth);ctx.drawImage(video,0,0,canvas.width,canvas.height);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),found=window.jsQR(pixels.data,pixels.width,pixels.height,{inversionAttempts:'attemptBoth'});
+          if(found){try{const {parsePairingQr}=await import('./10_model.mjs');const token=parsePairingQr(found.data,'https://joho.kaijo.ed.jp');stopPairCamera();await claimPair(token);return;}catch(e){message(messageFor(e.message));}}
+        }timer=setTimeout(read,450);
+      };read();
+    }catch(e){stopPairCamera();message('カメラを利用できません。カメラの使用を許可するか、「一時受付QRの画像を選択」を使ってください。');}
+  }
   function showPairControls(){
     const detail=q('#route-detail');
     if(!pairing)return;
-    detail.append(element('p','Macの承認後、スマートフォンで送信できます。接続ID：'+pairing.pairId.slice(-6)));
+    detail.append(element('p',(pairing.accountLabel||'Mac')+' ／ 確認コード '+pairing.verificationCode+'。Macにも同じコードが表示されていることを確認してください。期限：'+timeLabel(pairing.expiresAt)));
     const send=element('button','接続の承認を確認して送信');setIcon(send,'send');send.addEventListener('click',async()=>{
-      try{const status=await api('/api/pairs/'+pairing.pairId+'/status',undefined,pairing);if(!['APPROVED','USED','SUBMITTED'].includes(status.status))throw Error('PAIR_NOT_APPROVED');await submit('pair');}
+      try{const status=await api('/api/pairs/'+pairing.pairId+'/status',undefined,pairing);pairing={...pairing,...status};updatePairBanner();if(!['APPROVED','SUBMITTING','SUBMITTED'].includes(status.status))throw Error(status.status==='EXPIRED'?'PAIR_EXPIRED':status.status==='MAC_OFFLINE'?'PAIR_MAC_OFFLINE':'PAIR_NOT_APPROVED');await submit('pair');}
       catch(e){message(messageFor(e.message));}
     });detail.append(send);
+    const disconnect=element('button','Macとの接続を取り消す');setIcon(disconnect,'close');disconnect.addEventListener('click',()=>q('#cancel-send').click());detail.append(disconnect);
   }
   async function claimPair(qrToken){
-    const identity=deviceId(),result=await api('/api/pairs/claim',{qrToken,deviceId:identity});
-    pairing={...result,deviceId:identity};sessionStorage.setItem('ws-home-pair',JSON.stringify(pairing));
-    message('接続要求を送信しました。Macで承認してください。撮影内容は保持しています。');
-    q('#route-detail').replaceChildren();showPairControls();
+    let candidate;try{candidate=JSON.parse(sessionStorage.getItem('ws-home-pair-claim')||'null');}catch{}
+    const identity=deviceId(),same=pairing?.pairId===qrToken.slice(0,36),capability=same?pairing.capability:candidate?.qrToken===qrToken?candidate.capability:randomId().replaceAll('-','')+randomId().replaceAll('-','');
+    sessionStorage.setItem('ws-home-pair-claim',JSON.stringify({qrToken,capability}));
+    const result=await api('/api/pairs/claim',{qrToken,deviceId:identity,capability});
+    pairing={...result,deviceId:identity,capability};sessionStorage.setItem('ws-home-pair',JSON.stringify(pairing));sessionStorage.removeItem('ws-home-pair-claim');updatePairBanner();
+    message('接続要求を送信しました。確認コード '+pairing.verificationCode+' がMacと同じことを確認し、Macで承認してください。');
+    q('#cancel-send').hidden=false;q('#route-detail').replaceChildren();showPairControls();
   }
   async function poll(){
     if(stopped)return;
     try {
+      if(pairing&&!busy&&Date.now()-lastPairCheck>5000){lastPairCheck=Date.now();const status=await api('/api/pairs/'+pairing.pairId+'/status',undefined,pairing);pairing={...pairing,...status};sessionStorage.setItem('ws-home-pair',JSON.stringify(pairing));updatePairBanner();}
       if(draft.receipt && ['RECEIVED','VERIFYING'].includes(draft.receipt.state) && !busy && !conflict) {
         const previousId=draft.id,previousReceipt=draft.receipt.receiptId;
         const result=await api('/api/submissions/'+draft.receipt.receiptId,undefined,draft.route==='pair'?pairing:null);
@@ -481,6 +510,6 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   local=false;
   for(const side of ['F','B'])if(draft.pages[side]){try{sources[side]=await loadImage(draft.pages[side].originalBlob,draft.pages[side].options?.turns || 0);drawSource(side);}catch(e){if(!draft.pages[side].reading?.pending)draft.pages[side].reading={status:'REVIEW',message:'原画像を復元できません。保持された補正画像を保存して退避してください。'};}}
   activeSlot=slots.find(slot=>draft.pages[slot]?.originalBlob)||'F';
-  render();await readPendingPages();poll();
-  return {claimPair,dispose(){stopped=true;cleanup.forEach(f=>f());channel?.close();for(const side of ['F','B'])clearPreview(side);}};
+  render();updatePairBanner();await readPendingPages();poll();
+  return {claimPair,dispose(){stopped=true;stopPairCamera();cleanup.forEach(f=>f());channel?.close();for(const side of ['F','B'])clearPreview(side);}};
 }

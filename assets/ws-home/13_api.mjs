@@ -1,4 +1,7 @@
 export const loginUrl='https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbzypkAyvoQEHOEvtl3wSob3H6pcheKQQTWGygKP539w1NqNO8lsInO9aQ0uypx3QyVS/exec?home=1';
+export const pairGatewayUrl='https://script.google.com/macros/s/AKfycbyPClzS6qn65sTffk99bwTS45zSyiErpTJR-RxQoCiA1uGXh8fduKzLlGnsOM7n7Ran/exec';
+let pairFrame,pairPeer,pairOrigin,pairChannel,pairReadyPromise;
+const pairPending=new Map();
 let frame,popup,peer,peerOrigin,channel,readyPromise,readyResolve,readyTimer;const pending=new Map();
 export const isNativeGas=!!globalThis.google?.script?.run;
 const googleOrigin=value=>{try{const u=new URL(value);return u.protocol==='https:'&&(u.hostname==='script.googleusercontent.com'||/^[a-z0-9-]+-script\.googleusercontent\.com$/.test(u.hostname));}catch{return false;}};
@@ -23,13 +26,36 @@ async function ready(){
   });}return readyPromise;
 }
 export async function api(path,body,pairing=null){
-  if(pairing||path.startsWith('/api/pairs'))throw Error('PAIR_NOT_OPEN');
-  if(!/^\/api\/(me|submissions(?:\/(?:by-request\/)?(?:home-)?[a-f0-9-]{36}(?:\/cancel)?)?)$/.test(path))throw Error('HOME_INVALID');
+  if(pairing||path==='/api/pairs/claim')return pairApi(path,body,pairing);
+  if(!/^\/api\/(me|pairs(?:\/[a-f0-9-]{36}\/(?:status|approve|cancel))?|submissions(?:\/(?:by-request\/)?(?:home-)?[a-f0-9-]{36}(?:\/cancel)?)?)$/.test(path))throw Error('HOME_INVALID');
   if(isNativeGas)return new Promise((resolve,reject)=>google.script.run.withSuccessHandler(r=>{if(r?.ok)resolve(r.data||r);else {const e=Error(r?.code||'HOME_UNAVAILABLE');e.status=e.message==='NOT_FOUND'?404:e.message==='HOME_FORBIDDEN'?403:400;reject(e);}}).withFailureHandler(()=>reject(Error('NETWORK_RETRYABLE'))).worksheetHomeRpc(path,body));
   await ready();const id=crypto.randomUUID();return new Promise((resolve,reject)=>{
     const timer=setTimeout(()=>{pending.delete(id);reject(Error('NETWORK_RETRYABLE'));},60000);pending.set(id,{resolve,reject,timer});
     peer.postMessage({type:'WS_HOME_REQUEST',channel,id,path,body},peerOrigin);
   });
+}
+window.addEventListener('message',event=>{
+  const v=event.data;if(!v||v.channel!==pairChannel||!googleOrigin(event.origin))return;
+  if(v.type==='WS_PAIR_READY'&&pairFrame&&!pairPeer){pairPeer=event.source;pairOrigin=event.origin;pairFrame._ready();return;}
+  if(v.type!=='WS_PAIR_RESPONSE'||event.source!==pairPeer||event.origin!==pairOrigin)return;
+  const p=pairPending.get(v.id);if(!p)return;clearTimeout(p.timer);pairPending.delete(v.id);
+  if(v.result?.ok)p.resolve(v.result.data);else {const e=Error(v.result?.code||'HOME_UNAVAILABLE');e.status=e.message==='NOT_FOUND'?404:400;p.reject(e);}
+});
+async function pairReady(){
+  if(pairPeer)return;if(pairReadyPromise)return pairReadyPromise;
+  if(location.origin!=='https://joho.kaijo.ed.jp'||!pairGatewayUrl.startsWith('https://script.google.com/'))throw Error('PAIR_NOT_OPEN');
+  pairChannel=crypto.randomUUID();
+  pairReadyPromise=new Promise((resolve,reject)=>{
+    pairFrame=document.createElement('iframe');pairFrame.hidden=true;pairFrame.title='Macとの一時接続';pairFrame.referrerPolicy='no-referrer';
+    const timer=setTimeout(()=>{pairFrame?.remove();pairFrame=pairPeer=pairReadyPromise=null;reject(Error('NETWORK_RETRYABLE'));},20000);
+    pairFrame._ready=()=>{clearTimeout(timer);resolve();};pairFrame.src=pairGatewayUrl+'?channel='+pairChannel;document.body.append(pairFrame);
+  });return pairReadyPromise;
+}
+async function pairApi(path,body,pairing){
+  const proof=pairing?{pairId:pairing.pairId,deviceId:pairing.deviceId,capability:pairing.capability}:null;
+  if(isNativeGas)return new Promise((resolve,reject)=>google.script.run.withSuccessHandler(r=>{if(r?.ok)resolve(r.data);else {const e=Error(r?.code||'HOME_UNAVAILABLE');e.status=e.message==='NOT_FOUND'?404:400;reject(e);}}).withFailureHandler(()=>reject(Error('NETWORK_RETRYABLE'))).worksheetHomePairRpc(path,body??null,proof));
+  await pairReady();const id=crypto.randomUUID();
+  return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pairPending.delete(id);reject(Error('NETWORK_RETRYABLE'));},90000);pairPending.set(id,{timer,resolve,reject});pairPeer.postMessage({type:'WS_PAIR_REQUEST',channel:pairChannel,id,path,body,proof},pairOrigin);});
 }
 export async function blobBase64(blob){const bytes=new Uint8Array(await blob.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=16384)binary+=String.fromCharCode(...bytes.subarray(i,i+16384));return btoa(binary);}
 export function messageFor(code){return {
@@ -46,7 +72,15 @@ export function messageFor(code){return {
   HOME_ORIGIN_REQUIRED:'学校教材サイトの撮影ページから開いてください。',
   HOME_LIMIT:'限定試験の受付上限に達しました。管理者へお知らせください。',
   HOME_FINALIZING:'最終登録を確認しています。受付結果を確認してから、必要なら取消をやり直してください。',
-  PAIR_NOT_OPEN:'今回の限定公開はスマホでログインして送信する経路です。',
+  PAIR_NOT_OPEN:'Macとの接続を準備できません。ページを再読み込みしてください。',
+  PAIR_INVALID:'接続用QRを確認できません。Macで新しいQRを発行してください。',
+  PAIR_EXPIRED:'QRの期限を過ぎました。Macで新しいQRを発行してください。撮影画像は保持しています。',
+  PAIR_CANCELLED:'Macとの接続は取り消されました。新しいQRで接続してください。',
+  PAIR_ALREADY_CLAIMED:'このQRは別の接続で使用されています。Macで新しいQRを発行してください。',
+  PAIR_NOT_APPROVED:'スマホとMacの確認コードが同じことを確かめ、Macで接続を承認してください。',
+  PAIR_MAC_OFFLINE:'Macの接続画面を開いたままにして、接続状態を更新してください。',
+  PAIR_USED:'このQRは別の提出に使用済みです。Macで新しいQRを発行してください。',
+  HOME_MARK_MISMATCH:'写真の組・番号がMacでログインした本人と一致しません。マークとログイン先を確認してください。',
   DRAFT_CONFLICT:'別のタブで撮影内容が更新されました。必要な画像を保存してから、このページを再読み込みしてください。',
   NETWORK_RETRYABLE:'通信結果を確認できません。受付照会後に同じ提出を再試行できます。',
   BUSY:'受付が混み合っています。画像を保持して再試行してください。'
