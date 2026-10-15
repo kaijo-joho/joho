@@ -390,3 +390,37 @@ test('作成中に台帳が並べ替えられても本人行を再照合して�
   assert.equal(f.ledger.cells[1][0], other); assert.equal(f.ledger.cells[1][4], undefined);
   assert.equal(f.ledger.cells[2][0], student); assert.equal(f.ledger.cells[2][4], result.value.spreadsheetId);
 });
+
+test('採点表の追加は別フラグと教員prepareが必要で、旧下書きの列・本文を維持する', () => {
+  const f = fixture({ registered: true }), ss = registeredSS(f), original = ss.getSheetByName('Python');
+  original.getRange(2, 3).setValue('KEEP DRAFT');
+  assert.equal(ss.getSheetByName('Python提出受付'), null);
+  f.state.active = teacher;
+  assert.equal(f.api.preview({ accounts: [student] }).value.accounts[0].gradingState, 'upgrade_required');
+  f.data.set('TOOLS_STORE_DIST_GRADING_PROVISIONING_ENABLED', 'true');
+  assert.equal(f.api.prepare({ accounts: [student], confirmation: 'PREPARE_TOOLS_STORES_V1' }).value.results[0].state, 'ready');
+  assert.equal(original.getRange(2, 3).getValue(), 'KEEP DRAFT');
+  assert.deepEqual(original.getRange(1, 1, 1, 14).getValues()[0], plain(f.ctx.ToolsStoreContract.constants.HEADERS));
+  for (const name of ['Python提出受付', 'Python提出結果', 'Python提出完了']) {
+    const sheet = ss.getSheetByName(name);
+    assert.ok(sheet.getMaxRows() >= 2049); assert.equal(sheet.isSheetHidden(), true);
+    assert.deepEqual(sheet.getRange(1, 1, 1, 34).getValues()[0], plain(f.ctx.ToolsStoreContract.constants.GRADING_HEADERS));
+    assert.deepEqual(sheet.protections[0].editors, [teacher]);
+    assert.equal(sheet.protections[0].range.rows, 1); assert.equal(sheet.protections[0].range.columns, 34);
+  }
+  assert.equal(f.api.preview({ accounts: [student] }).value.accounts[0].gradingState, 'provisioned');
+  const result = ss.getSheetByName('Python提出結果'); result.getRange(2, 10).setValue('KEEP SIGNED RESULT');
+  assert.equal(f.api.prepare({ accounts: [student], confirmation: 'PREPARE_TOOLS_STORES_V1' }).value.results[0].state, 'ready');
+  assert.equal(result.getRange(2, 10).getValue(), 'KEEP SIGNED RESULT');
+  assert.equal(f.state.creates, 1);
+});
+
+test('一度整備した採点表の消失は、空表の再作成で隠さず停止する', () => {
+  const f = fixture({ registered: true }), ss = registeredSS(f);
+  f.state.active = teacher; f.data.set('TOOLS_STORE_DIST_GRADING_PROVISIONING_ENABLED', 'true');
+  const input = { accounts: [student], confirmation: 'PREPARE_TOOLS_STORES_V1' };
+  assert.equal(f.api.prepare(input).value.results[0].state, 'ready');
+  ss.sheets = ss.sheets.filter(sheet => sheet.name !== 'Python提出完了');
+  assert.equal(f.api.prepare(input).value.results[0].code, 'store_invalid');
+  assert.equal(ss.getSheetByName('Python提出完了'), null);
+});

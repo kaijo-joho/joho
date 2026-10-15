@@ -130,3 +130,15 @@ test('二重iframeの子孫とnonce/origin/sourceを照合し、他のGAS枠を�
   listener({ origin: 'https://evil.test', source: child, data: { protocol: 'tools-store-rpc-v1', channel, type: 'ready' } }); assert.equal(requests, 0);
   listener({ origin, source: child, data: { protocol: 'tools-store-rpc-v1', channel, type: 'ready' } }); assert.deepEqual(await pending, session); assert.equal(requests, 1); bridge.dispose();
 });
+test('生徒権限GASの受付時刻証明をエラーから引き継ぐ', async () => {
+  let listener, frame;
+  const origin='https://script.googleusercontent.com',win={location:{origin:'https://editor.test'},addEventListener(_t,fn){listener=fn;},removeEventListener(){}};
+  const peer={parent:null,postMessage(data){
+    queueMicrotask(()=>listener({origin,source:peer,data:{protocol:'tools-store-rpc-v1',channel:bridge.channel,type:'response',id:data.id,result:data.action==='session'?{ok:true,value:session}:{ok:false,error:{code:'lock_busy',message:'受付処理中',intakeTicket:'server-signed-arrival-proof'}}}}));
+  }};peer.parent=peer;
+  const doc={createElement:()=>frame={contentWindow:peer,remove(){}},body:{append(){}}};
+  const bridge=new ToolsBridge('https://script.google.com/macros/s/EXAMPLE/exec',{win,doc,timeout:100});
+  const connected=bridge.connect();listener({origin,source:peer,data:{protocol:'tools-store-rpc-v1',channel:bridge.channel,type:'ready'}});await connected;
+  await assert.rejects(bridge.call('submit',{requestId:'a'.repeat(32)}),e=>e.code==='lock_busy'&&e.intakeTicket==='server-signed-arrival-proof');
+  bridge.dispose();
+});

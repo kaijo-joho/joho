@@ -6,8 +6,9 @@ const date = value => new Date(value).toLocaleString('ja-JP');
 const CACHE = 'joho.pythoneditor.tools-connection.v1.';
 
 export class ToolsDraftPanel {
-  constructor(host, render) {
+  constructor(host, render, { beforeAttach = () => {} } = {}) {
     this.host = host; this.update = render; this.loads = new Map(); this.conflicts = new Map(); this.generation = 0;
+    this.beforeAttach = beforeAttach;
     $('tools-connect-retry').addEventListener('click', () => $('cloud-connect').click());
     $('tools-connect-dialog').addEventListener('cancel', () => this.connectBridge?.dispose());
     $('tools-connect-dialog').addEventListener('close', () => { this.connectBridge?.dispose(); $('cloud-connect').focus(); this.showConflict(); });
@@ -25,8 +26,8 @@ export class ToolsDraftPanel {
   async resume() {
     let cached;
     try { const key = localStorage.getItem(CACHE + 'last'); if (key) cached = validateConnection(JSON.parse(localStorage.getItem(CACHE + key))); } catch { return; }
-    if (!cached) return;
-    try { await this.attach(cached); } catch (e) { this.fail(e); }
+    if (!cached) return false;
+    try { await this.attach(cached); return true; } catch (e) { this.fail(e); return false; }
   }
   async connect() {
     const dialog = $('tools-connect-dialog'); if (!dialog.open) dialog.showModal();
@@ -41,18 +42,21 @@ export class ToolsDraftPanel {
       $('tools-store-login').href=gasURL(connection.storeURL,location.origin,channel,'store');$('tools-store-login').hidden=false;
       if (this.client && this.client.session.actorKey !== connection.actorKey && this.auto.unsaved())
         throw new Error('前のアカウントの未保存内容があります。元の学校アカウントへ再接続して保存してください。コードと送信番号は保持しています。');
+      this.beforeAttach(connection);
       let previous;
       try { previous = localStorage.getItem(CACHE + 'last'); } catch {}
       if (previous && previous !== connection.actorKey) {
         if (!confirm('接続する学校アカウントが変わります。ブラウザにあるコードを、新しいアカウントの保存先へ引き継ぎますか？')) throw new Error('アカウントの切り替えを中止しました。コードは保持しています。');
         this.host.archiveEntries('学校アカウント切り替え前');
       }
-      await this.attach(connection); dialog.close();
+      await this.attach(connection,{checked:true}); dialog.close();
       this.host.notice('学校アカウントに接続しました。コードはクラウドへ自動保存します。正式提出は別の操作です。');
     } catch (e) { $('tools-connect-status').textContent = e.message; throw e; }
     finally { $('tools-connect-retry').disabled = false; }
   }
-  async attach(connection) {
+  async attach(connection,{checked=false}={}) {
+    // 未確認の正式提出があるアカウントから離れる前に、送信控えを保護する。
+    if(!checked)this.beforeAttach(connection);
     const bridge = new ToolsBridge(connection.storeURL, { binding: connection.binding });
     const session = await bridge.connect();
     if (session.account !== connection.account || session.actorKey !== connection.actorKey || session.spreadsheetId !== connection.spreadsheetId || session.schemaVersion !== 1) {

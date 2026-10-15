@@ -19,7 +19,16 @@ test('配置準備は旧Colab/HTML本文・manifest・原本を保持し、別�
   const source = await readFile(f.root + '/dist/00_code.js', 'utf8'); assert.match(source, /type === 'toolsStore'/); assert.match(source, /existingColabAndHtml/);
   assert.equal((await readdir(f.root + '/store')).includes('.clasp.json'), false);
   const proposed = JSON.parse(await readFile(f.root + '/store/appsscript.json', 'utf8')); assert.equal(proposed.webapp.executeAs, 'USER_ACCESSING');
+  assert.ok(proposed.oauthScopes.includes('https://www.googleapis.com/auth/script.scriptapp'));
+  for (const name of ['30_grading_packages.js', '31_grading_sync.js', '32_student_grading.js', '33_grading_collection.js', '13_python_editor_grader.js', '45_python_editor_store.js']) {
+    assert.ok((await readFile(f.root + '/store/' + name, 'utf8')).length > 100);
+  }
+  const bundle = (await readdir(f.root + '/store')).filter(name => name.endsWith('.js'));
+  // GASでは同一globalへ配置されるため、単独構文確認に加えて候補全体をまとめて解析する。
+  const code = await Promise.all(bundle.map(name => readFile(f.root + '/store/' + name, 'utf8')));
+  assert.doesNotThrow(() => new Function(code.join('\n')));
   const report = JSON.parse(await readFile(f.root + '/dist-review.json', 'utf8')); assert.equal(report.pushed, false); assert.equal(report.permissionsChanged, false); assert.equal(report.productionReadbackVerifiedByCommand, false);
+  for (const name of ['studentGradingEnabled','teacherSyncEnabled','collectorEnabled','gradingProvisioningEnabled','triggersInstalled']) assert.equal(report.flags[name], false);
   await assert.rejects(exec(process.execPath, [script, ...f.args]), /置換しません/);
 });
 test('入口が異なる原本や既存追加ファイルは自動置換せず停止する', async () => {

@@ -4,8 +4,9 @@ import { DraftStore, exportDraft } from './storage.mjs';
 import { PythonRunner } from './runner.mjs?v=20261015-errors';
 import { errorHints } from './diagnostics.mjs?v=20261015-errors';
 import { renderPrompt } from './prompt.mjs';
-import { CloudPanel } from './cloud-ui.mjs?v=20261015-tools-store';
+import { CloudPanel } from './cloud-ui.mjs?v=20261015-student-grading';
 import { cloudConfig } from './cloud-config.mjs';
+import { toolsStoreConfig } from './tools-store-config.mjs';
 import { questionGroups, setRating, renderRating } from './navigation.mjs';
 import { demoRatings } from './demo-ratings.mjs';
 const $ = id => document.getElementById(id);
@@ -21,7 +22,7 @@ let showDemoRatings=false;
 const params = new URLSearchParams(location.search);
 const requested = { set: params.get('set'), question: params.get('question') || params.get('practice'), version: params.get('version') };
 for (const value of Object.values(requested)) if (value && !validId(value)) showNotice('URLのIDが不正です。問題一覧から選んでください。', true);
-pendingRequested=cloudConfig.enabled&&!!(requested.set||requested.question);
+pendingRequested=(cloudConfig.enabled||toolsStoreConfig.enabled&&toolsStoreConfig.studentGrading)&&!!(requested.set||requested.question);
 function showNotice(message, danger = false, reveal = false) {
   $('notice').textContent = message; $('notice').classList.toggle('danger', danger);
   $('status-menu').classList.toggle('has-alert', danger);
@@ -535,7 +536,7 @@ async function init() {
     const set = catalog.sets.find(s => s.setId === selection.set && (!selection.question || s.questions.some(matchesSelection)))
       || catalog.sets.find(s => s.questions.some(matchesSelection)) || catalog.sets.find(s => s.setId === selection.set) || catalog.sets[0];
     const selected = set.questions.find(q => q.questionId === selection.question && (!selection.version || q.version === selection.version));
-    pendingRequested=cloudConfig.enabled&&!!(requested.set||requested.question)&&(!catalog.sets.some(s=>(!requested.set||s.setId===requested.set)&&s.questions.some(q=>(!requested.question||q.questionId===requested.question)&&(!requested.version||q.version===requested.version))));
+    pendingRequested=(cloudConfig.enabled||toolsStoreConfig.enabled&&toolsStoreConfig.studentGrading)&&!!(requested.set||requested.question)&&(!catalog.sets.some(s=>(!requested.set||s.setId===requested.set)&&s.questions.some(q=>(!requested.question||q.questionId===requested.question)&&(!requested.version||q.version===requested.version))));
     if ((selection.version || selection.question) && !selected) showNotice('指定した問題・版がありません。別版の下書きを上書きせず、一覧を表示します。',true);
     selectSet(set,selected);
     await cloudPanel.resume();

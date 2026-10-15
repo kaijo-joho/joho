@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var boot = <?!= bootJson ?>;
-  var actions = ['session', 'listDrafts', 'getDraft', 'saveDraft', 'lookupSave'];
+  var actions = ['session', 'listDrafts', 'getDraft', 'saveDraft', 'lookupSave', 'gradingSession', 'submit', 'getSubmission', 'resumeSubmission', 'questionStatus'];
   // HtmlServiceの二重iframeでも、エディタのtopだけと通信する。
   var peer = window.top;
   function send(message) { peer.postMessage(Object.assign({ protocol: boot.protocol, channel: boot.channel }, message), boot.origin); }

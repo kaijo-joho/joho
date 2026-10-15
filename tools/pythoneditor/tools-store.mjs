@@ -47,7 +47,11 @@ export class ToolsBridge {
       const pending = this.requests.get(d.id); if (!pending) return;
       clearTimeout(pending.timer); this.requests.delete(d.id);
       if (d.result?.ok === true) pending.resolve(d.result.value);
-      else pending.reject(fail(d.result?.error?.code || 'transport', d.result?.error?.message || '通信を確認できません。コードは保持しています。'));
+      else {
+        const e = fail(d.result?.error?.code || 'transport', d.result?.error?.message || '通信を確認できません。コードは保持しています。');
+        if (d.result?.error?.intakeTicket) e.intakeTicket = d.result.error.intakeTicket;
+        pending.reject(e);
+      }
     };
     this.win.addEventListener('message', this.listener); (container || this.doc.body).append(frame);
     try { await ready; return await this.call('session', this.mode === 'dist' ? { tool: 'python' } : {}); }

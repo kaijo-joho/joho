@@ -1,5 +1,5 @@
 var PythonEditorConfig = (function () {
-  function config() {
+  function config(options) {
     var raw = PropertiesService.getScriptProperties().getProperty('PYTHON_EDITOR_CONFIG');
     PythonEditor.assert(raw && raw.length <= 8500, 'unavailable');
     var c;
@@ -8,7 +8,7 @@ var PythonEditorConfig = (function () {
       typeof c.editorOrigin === 'string' && /^https:\/\/[A-Za-z0-9.-]+(?::\d+)?$/.test(c.editorOrigin) &&
       /^[A-Za-z0-9_-]{20,150}$/.test(c.storageSpreadsheetId) && Array.isArray(c.assignmentIds) && c.assignmentIds.length <= 100 &&
       c.assignmentIds.every(function (id, i) { return PythonEditor.assignmentId(id) && c.assignmentIds.indexOf(id) === i; }), 'unavailable');
-    c.assignments = loadAssignments(c.assignmentIds);
+    c.assignments = loadAssignments(c.assignmentIds, options && options.fileListId);
     var seen = {};
     c.assignments.forEach(function (p) {
       PythonEditor.assert(p && PythonEditor.assignmentId(p.assignmentId) && PythonEditor.id(p.setId) && PythonEditor.id(p.version) &&
@@ -21,9 +21,9 @@ var PythonEditorConfig = (function () {
     });
     c.hash = PythonEditor.hashText(PythonEditor.canonical({ property: raw, assignments: c.assignments })); return c;
   }
-  function loadAssignments(ids) {
+  function loadAssignments(ids, fileListId) {
     if (!ids.length) return [];
-    var sheet = SpreadsheetApp.openById(Common.SSID.fileList).getSheetByName('課題設定');
+    var sheet = SpreadsheetApp.openById(fileListId || Common.SSID.fileList).getSheetByName('課題設定');
     PythonEditor.assert(sheet && sheet.getLastRow() >= 1 && sheet.getLastRow() <= 5001 && sheet.getLastColumn() <= 40, 'unavailable');
     var values = sheet.getRange(1, 1, sheet.getLastRow(), sheet.getLastColumn()).getValues(), header = values.shift().map(String);
     var required = ['id','status','year','grade','item','targetId','subTargetId','startAt','standardDueAt','finalDueAt','gradingMode'];

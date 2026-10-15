@@ -49,6 +49,7 @@ var ToolsStoreDistribution = (function () {
       enabled: get('TOOLS_STORE_DIST_ENABLED') === 'true',
       provisioningEnabled: get('TOOLS_STORE_DIST_PROVISIONING_ENABLED') === 'true',
       adminEnabled: get('TOOLS_STORE_DIST_ADMIN_ENABLED') === 'true',
+      studentGradingProvisioning: get('TOOLS_STORE_DIST_GRADING_PROVISIONING_ENABLED') === 'true',
       bindingKey: text(get('TOOLS_STORE_BINDING_KEY')),
       bindingLifetimeMs: 3600000,
       allowedOrigins: strictJSON(get('TOOLS_STORE_ALLOWED_ORIGINS'), []),
@@ -170,8 +171,8 @@ var ToolsStoreDistribution = (function () {
       assert(allowPreparing && (meta.state === 'creating' || meta.state === 'upgrading'), 'store_busy');
     }
   }
-  function assertHeader(sheet) {
-    var expected = ToolsStoreContract.constants.HEADERS;
+  function assertHeader(sheet, expected) {
+    expected = expected || ToolsStoreContract.constants.HEADERS;
     assert(sheet && sheet.getMaxColumns() >= expected.length, 'store_invalid');
     var actual = sheet.getRange(1, 1, 1, expected.length).getValues()[0];
     assert(actual.every(function (value, index) { return value === expected[index]; }), 'store_invalid');
@@ -180,12 +181,16 @@ var ToolsStoreDistribution = (function () {
       assert(extra.every(function (value) { return !text(value); }), 'store_invalid');
     }
   }
-  function assertLayout(ss) {
+  function assertLayout(ss, grading) {
     var c = ToolsStoreContract.constants;
     var current = ss.getSheetByName('Python'), history = ss.getSheetByName('Python履歴');
     assertHeader(current); assertHeader(history);
     assert(current.getMaxRows() >= c.DRAFT_ROWS && history.getMaxRows() >= c.HISTORY_ROWS, 'store_invalid');
     assert(current.isSheetHidden() && history.isSheetHidden() && !ss.getSheetByName(META_SHEET).isSheetHidden(), 'store_invalid');
+    if (grading) c.GRADING_SHEETS.forEach(function (name) {
+      var sheet = ss.getSheetByName(name); assertHeader(sheet, c.GRADING_HEADERS);
+      assert(sheet.getMaxRows() >= c.GRADING_ROWS && sheet.isSheetHidden(), 'store_invalid');
+    });
   }
   function getExisting(env, c, entry, allowPreparing) {
     var file = safeFile(env, entry.spreadsheetId);
@@ -243,6 +248,9 @@ var ToolsStoreDistribution = (function () {
   function ensureStructure(env, c, ss, account, owner, isNew) {
     var constants = ToolsStoreContract.constants;
     var meta = metadata(ss), guide;
+    // 一度整備した採点表の消失を空表で隠さない。移行前だけ追加を認める。
+    var oldGuide = ss.getSheetByName(META_SHEET);
+    if (oldGuide && oldGuide.getRange(14, 2).getValue() === 1) assertLayout(ss, true);
     if (!meta) {
       assert(isNew, 'store_invalid');
       assertBlankNewSpreadsheet(ss);
@@ -269,18 +277,25 @@ var ToolsStoreDistribution = (function () {
       ['困ったとき', '保存先を削除せず教員へ連絡してください。']
     ]);
     protect(env, guide, guide.getRange(1, 1, 6, 2), 'tools-store:metadata:v1', c.teachers);
-    [ ['Python', constants.DRAFT_ROWS], ['Python履歴', constants.HISTORY_ROWS] ].forEach(function (spec) {
+    var specs = [ ['Python', constants.DRAFT_ROWS, constants.HEADERS], ['Python履歴', constants.HISTORY_ROWS, constants.HEADERS] ];
+    if (c.studentGradingProvisioning) constants.GRADING_SHEETS.forEach(function (name) { specs.push([name, constants.GRADING_ROWS, constants.GRADING_HEADERS]); });
+    specs.forEach(function (spec) {
       var sheet = ss.getSheetByName(spec[0]);
       if (!sheet) sheet = ss.insertSheet(spec[0]);
-      ensureGrid(sheet, spec[1], constants.HEADERS.length);
-      if (sheet.getLastRow() === 0) sheet.getRange(1, 1, 1, constants.HEADERS.length).setValues([constants.HEADERS.slice()]);
-      else assertHeader(sheet);
+      var headers = spec[2];
+      ensureGrid(sheet, spec[1], headers.length);
+      if (sheet.getLastRow() === 0) sheet.getRange(1, 1, 1, headers.length).setValues([headers.slice()]);
+      else assertHeader(sheet, headers);
       sheet.setFrozenRows(1);
-      protect(env, sheet, sheet.getRange(1, 1, 1, constants.HEADERS.length), 'tools-store:header:' + spec[0] + ':v1', c.teachers);
+      protect(env, sheet, sheet.getRange(1, 1, 1, headers.length), 'tools-store:header:' + spec[0] + ':v1', c.teachers);
       sheet.hideSheet();
     });
+    if (c.studentGradingProvisioning) {
+      guide.getRange(14, 1, 1, 2).setValues([['pythonGradingSchema', 1]]);
+      protect(env, guide, guide.getRange(14, 1, 1, 2), 'tools-store:grading-schema:v1', c.teachers);
+    }
     env.flush();
-    assertLayout(ss);
+    assertLayout(ss, c.studentGradingProvisioning);
     guide.getRange(4, 2).setValue('active');
     env.flush();
     assertMetadata(metadata(ss), account, owner, false);
@@ -348,7 +363,7 @@ var ToolsStoreDistribution = (function () {
       existing.file.addEditor(account);
       existing.file.setShareableByEditors(false);
     }
-    assertLayout(existing.spreadsheet);
+    assertLayout(existing.spreadsheet, c.studentGradingProvisioning);
     assertEditors(existing.file, c, account);
     var pending = readPending(env, account);
     if (pending) {
@@ -366,7 +381,7 @@ var ToolsStoreDistribution = (function () {
     assertFolder(env, entry, c);
     if (entry.spreadsheetId) {
       existing = getExisting(env, c, entry, false);
-      assertLayout(existing.spreadsheet);
+      assertLayout(existing.spreadsheet, c.studentGradingProvisioning);
       assertEditors(existing.file, c, account);
     } else {
       assert(c.provisioningEnabled, 'preparation_required');
@@ -395,6 +410,7 @@ var ToolsStoreDistribution = (function () {
     var accounts = adminAccounts(input);
     return { readOnly: true, ledgerSheet: LEDGER_SHEET, ledgerHeader: STORE_HEADER,
       enabled: c.enabled, provisioningEnabled: c.provisioningEnabled, adminEnabled: c.adminEnabled,
+      gradingProvisioningEnabled: c.studentGradingProvisioning,
       accounts: accounts.map(function (account) {
         try {
           assertRoster(env, account);
@@ -405,7 +421,8 @@ var ToolsStoreDistribution = (function () {
             var existing = getExisting(env, c, entry, true);
             assertLayout(existing.spreadsheet);
             return { account: account, state: existing.metadata.state === 'active' ? 'registered' : 'preparing',
-              spreadsheetId: entry.spreadsheetId, pending: !!pending };
+              spreadsheetId: entry.spreadsheetId, pending: !!pending,
+              gradingState: existing.spreadsheet.getSheetByName(META_SHEET).getRange(14, 2).getValue() === 1 ? 'provisioned' : 'upgrade_required' };
           }
           return { account: account, state: entry.storeColumn ? (pending ? 'resume_required' : 'create_candidate') : 'ledger_column_required', pending: !!pending };
         } catch (error) { return { account: account, state: 'blocked', code: ERROR_MESSAGES[error.code] ? error.code : 'internal' }; }

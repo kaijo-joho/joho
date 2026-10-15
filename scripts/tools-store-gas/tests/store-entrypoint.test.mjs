@@ -20,6 +20,8 @@ function environment(values = {}) {
 test('未設定の新規保存GASは無効でRPCやiframe接続を開始しない', () => {
   const f = environment();
   assert.equal(f.context.toolsStoreConfig_().enabled, false);
+  assert.equal(f.context.toolsStoreConfig_().studentGrading.enabled, false);
+  assert.equal(f.context.toolsStoreConfig_().studentGrading.collectorEnabled, false);
   assert.equal(f.context.doGet({ parameter: {} }).html.includes('準備中'), true);
   const result = f.context.toolsStoreRpc('session', {}, 'not-a-binding', 'https://school.example');
   assert.equal(result.ok, false); assert.equal(result.error.code, 'disabled'); assert.equal(f.rendered.length, 0);
@@ -32,8 +34,8 @@ test('入口は許可originと64hex channel、正しいkindだけで橋を生成
   assert.equal(result.name, '20_tools_store_bridge'); assert.equal(result.boot.origin, parameter.origin); assert.equal(result.boot.channel, parameter.channel);
   assert.equal(result.frameMode, 'ALLOWALL');
 });
-test('提案manifestはアクセスユーザー実行・学校domain・Sheetsと本人メールだけを要求する', () => {
+test('提案manifestは利用者実行・学校domainで教員トリガー管理を明記し、Drive依存を増やさない', () => {
   const manifest = JSON.parse(readFileSync(new URL('../store/appsscript.proposed.json', import.meta.url), 'utf8'));
   assert.deepEqual(manifest.webapp, { executeAs: 'USER_ACCESSING', access: 'DOMAIN' });
-  assert.deepEqual(manifest.oauthScopes, ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/userinfo.email']);
+  assert.deepEqual(manifest.oauthScopes, ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/script.scriptapp']);
 });

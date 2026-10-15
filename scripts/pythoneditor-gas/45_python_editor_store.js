@@ -6,7 +6,8 @@ var PythonEditorStore = (function () {
   var MAX_ROWS = 100000;
   function create(c, dependencies) {
     var dep = dependencies || {}, book = dep.book || SpreadsheetApp.openById(c.storageSpreadsheetId), tables = {};
-    var hash = dep.hash || PythonEditor.hashText;
+    var hash = dep.hash || PythonEditor.hashText, integrityHash = dep.integrityHash || hash;
+    var names = Object.assign({}, NAMES, dep.names || {});
     function locked(fn) {
       var lock = dep.lock ? dep.lock() : LockService.getScriptLock();
       PythonEditor.assert(lock.tryLock(20000), 'busy');
@@ -14,7 +15,7 @@ var PythonEditorStore = (function () {
     }
     function table(name) {
       if (tables[name]) return tables[name];
-      var sheet = book.getSheetByName(NAMES[name]);
+      var sheet = book.getSheetByName(names[name]);
       PythonEditor.assert(sheet && sheet.getLastRow() >= 1 && sheet.getLastRow() <= MAX_ROWS && sheet.getLastColumn() === HEADERS.length, 'storage_not_ready');
       var header = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0];
       PythonEditor.assert(header.every(function (v, i) { return v === HEADERS[i]; }), 'storage_not_ready');
@@ -26,7 +27,7 @@ var PythonEditorStore = (function () {
       PythonEditor.assert(size < MAX_ROWS, 'storage_full');
       return t.getRange(2, column, size, 1).createTextFinder(String(value)).matchEntireCell(true).useRegularExpression(false).findAll().map(function (cell) { return cell.getRow(); });
     }
-    function decode(values, metaOnly) {
+    function decode(values, metaOnly, name) {
       var meta;
       try { meta = JSON.parse(values[9]); } catch (e) { PythonEditor.fail('storage_ambiguous'); }
       PythonEditor.assert(meta && values[0] === meta.recordKey && values[1] === meta.groupKey && values[2] === meta.actorKey &&
@@ -39,17 +40,17 @@ var PythonEditorStore = (function () {
         bodyText += part ? part.slice(2) : '';
       });
       try { meta.body = JSON.parse(bodyText); } catch (e) { PythonEditor.fail('storage_ambiguous'); }
-      PythonEditor.assert(hash(PythonEditor.canonical(meta)) === values[8], 'storage_ambiguous');
+      PythonEditor.assert(integrityHash(PythonEditor.canonical(meta), name) === values[8], 'storage_ambiguous');
       return meta;
     }
-    function read(name, row) { return decode(table(name).getRange(row, 1, 1, HEADERS.length).getValues()[0], false); }
+    function read(name, row) { return decode(table(name).getRange(row, 1, 1, HEADERS.length).getValues()[0], false, name); }
     function readRows(name, rows) {
       var result = [], sorted = rows.slice().sort(function (a, b) { return a - b; });
       for (var i = 0; i < sorted.length;) {
         var end = i;
         while (end + 1 < sorted.length && sorted[end + 1] === sorted[end] + 1 && end - i < 199) end++;
         var values = table(name).getRange(sorted[i], 1, end - i + 1, HEADERS.length).getValues();
-        values.forEach(function (row) { result.push(decode(row, false)); }); i = end + 1;
+        values.forEach(function (row) { result.push(decode(row, false, name)); }); i = end + 1;
       }
       return result;
     }
@@ -70,7 +71,7 @@ var PythonEditorStore = (function () {
       delete meta.body;
       PythonEditor.assert(bodyText.length <= PythonEditor.LIMITS.payload && PythonEditor.canonical(meta).length < 40000, 'payload_too_large');
       var row = [record.recordKey, record.groupKey, record.actorKey, record.questionId, record.version, record.requestId || '',
-        record.seq || 0, record.at, hash(PythonEditor.canonical(record)), PythonEditor.canonical(meta)];
+        record.seq || 0, record.at, integrityHash(PythonEditor.canonical(record), name), PythonEditor.canonical(meta)];
       var cursor = 0;
       for (var i = 0; i < PythonEditor.LIMITS.parts; i++) {
         var end = Math.min(cursor + PythonEditor.LIMITS.chunk, bodyText.length);
@@ -82,6 +83,7 @@ var PythonEditorStore = (function () {
       }
       PythonEditor.assert(cursor === bodyText.length, 'payload_too_large');
       if (number > t.getMaxRows()) {
+        PythonEditor.assert(dep.allowGrow !== false, 'storage_full');
         var extra = Math.min(500, MAX_ROWS - t.getMaxRows());
         var cells = book.getSheets().reduce(function (n, s) { return n + s.getMaxRows() * s.getMaxColumns(); }, 0);
         PythonEditor.assert(extra > 0 && cells + extra * HEADERS.length <= 10000000, 'storage_full');
@@ -132,7 +134,7 @@ var PythonEditorStore = (function () {
         var rows = matches('drafts', 3, actorKey), latest = {};
         // 一覧は本文を返さない。指定した問題を選んでから全文を取得する。
         rows.forEach(function (row) {
-          var r = decode(table('drafts').getRange(row, 1, 1, 10).getValues()[0], true), key = PythonEditor.key(r);
+          var r = decode(table('drafts').getRange(row, 1, 1, 10).getValues()[0], true, 'drafts'), key = PythonEditor.key(r);
           PythonEditor.assert(r.actorKey === actorKey, 'storage_ambiguous');
           if (!latest[key] || r.seq > latest[key].seq) latest[key] = r;
         });

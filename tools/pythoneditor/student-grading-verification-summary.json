@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-15",
+  "environment": "Local Node and browsers; synthetic Google identity, Sheets, Properties and triggers",
+  "unitAndIntegration": {
+    "tests": 215,
+    "passed": 215,
+    "failed": 0,
+    "includesActualRpcIntakeAndCollector": true,
+    "googleServicesSynthetic": true
+  },
+  "studentGradingBrowser": {
+    "Chrome": { "checks": 10, "passed": true },
+    "PlaywrightWebKit": { "checks": 10, "passed": true },
+    "coversRetryAfterFinalIntakeWithSignedProof": true,
+    "realSafariVerified": false,
+    "realGoogleAuthenticationVerified": false
+  },
+  "legacyBrowserRegression": {
+    "directGradeChromeChecks": 20,
+    "directGradeWebKitChecks": 20,
+    "draftStoreChromeChecks": 10,
+    "passed": true
+  },
+  "privateCurriculumRoundtrip": {
+    "sourceCapturedAt": "2026-10-15T12:01:56.330Z",
+    "sourceWasModifiedOrAdopted": false,
+    "sourceStatus": "編集中",
+    "sets": 22,
+    "questions": 125,
+    "graded": 119,
+    "observation": 6,
+    "syntheticUsers": 40,
+    "rawPackageBytes": 473506,
+    "firstPropertiesBytesIncludingKeys": 84789,
+    "retainedPropertiesBytesIncludingKeys": 169231,
+    "maxPropertyBytes": 7600,
+    "ttlRefreshes": 12,
+    "retainedGenerations": 2,
+    "allRecordsMatched": true,
+    "compressionAndPropertiesSynthetic": true
+  },
+  "additionalValidation": {
+    "changedJavaScriptSyntax": true,
+    "combinedGasCandidateSyntax": true,
+    "searchIndexAndSearchTests": true,
+    "diffWhitespace": true,
+    "independentSourceReview": true
+  },
+  "production": {
+    "gasSourcePushed": false,
+    "gasDeployed": false,
+    "propertiesChanged": false,
+    "gssChanged": false,
+    "permissionsChanged": false,
+    "oauthChanged": false,
+    "triggersInstalled": false,
+    "websitePublished": false,
+    "legacyColabChanged": false,
+    "htmlEditorChanged": false,
+    "publicConnectionsEnabled": false,
+    "real40ConcurrentUsersVerified": false
+  }
+}

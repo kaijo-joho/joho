@@ -4,12 +4,17 @@ var ToolsStoreContract = (function () {
   var HEADERS = ['recordKey', 'recordKind', 'metaJson', 'フォルダ'];
   for (var i = 1; i <= 5; i++) HEADERS.push('code0' + i);
   for (var j = 1; j <= 5; j++) HEADERS.push('stdin0' + j);
+  // 下書きの14列とは独立した署名付き採点記録。旧シートは拡張しない。
+  var GRADING_HEADERS = ['recordKey', 'groupKey', 'actorKey', 'questionId', 'version', 'requestId', 'seq', 'at', 'sha256', 'metaJson'];
+  for (var k = 1; k <= 24; k++) GRADING_HEADERS.push('text' + ('0' + k).slice(-2));
   var C = Object.freeze({
     SCHEMA_VERSION: 1, KIND: 'tools-store-v1', AUDIENCE: 'tools-store-v1',
     GUIDE: '使い方', SHEET: 'Python', HISTORY: 'Python履歴',
     HEADERS: Object.freeze(HEADERS), DRAFTS: 256, BLOCK: 4, DRAFT_ROWS: 1025,
     HISTORY_ROWS: 2049, PARTS: 5, CHUNK: 45000, MAX_TEXT: 200000,
-    RECENT: 16, CHECKPOINT_MS: 300000
+    RECENT: 16, CHECKPOINT_MS: 300000,
+    GRADING_HEADERS: Object.freeze(GRADING_HEADERS), GRADING_ROWS: 2049,
+    GRADING_SHEETS: Object.freeze(['Python提出受付', 'Python提出結果', 'Python提出完了'])
   });
   function fail(code, message) {
     var error = new Error(message || 'クラウド保存を完了できませんでした。');

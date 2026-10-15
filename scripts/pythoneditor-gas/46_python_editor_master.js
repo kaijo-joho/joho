@@ -2,10 +2,11 @@
 var PythonEditorMaster = (function () {
   var MASTER_HEADERS = ['questionId','setId','order','version','title','prompt','templateCode','setupCode','answerCode','explanation',
     'gradingVersion','scoringIds','status','sourceFileId','sourceCellIds','sourceHash','runtimeConfig','note'];
-  function bounded(sheet, columns, maxRows) {
+  function bounded(sheet, columns, maxRows, ignoredFormulaColumn) {
     PythonEditor.assert(sheet && sheet.getLastRow() >= 1 && sheet.getLastRow() <= maxRows && sheet.getLastColumn() === columns, 'snapshot_invalid');
     var range = sheet.getRange(1, 1, sheet.getLastRow(), columns);
-    PythonEditor.assert(range.getFormulas().every(function (r) { return r.every(function (v) { return !v; }); }), 'snapshot_invalid');
+    // 既存採点表のN列URLは配付用の数式。判定に使う列と見出しは数式を許可しない。
+    PythonEditor.assert(range.getFormulas().every(function (r, row) { return r.every(function (v, column) { return !v || row > 0 && column === ignoredFormulaColumn; }); }), 'snapshot_invalid');
     return range.getValues();
   }
   function build(rows, rubricRows, spec) {
@@ -45,9 +46,9 @@ var PythonEditorMaster = (function () {
     });
     return { records: records, digest: PythonEditor.hashText(PythonEditor.canonical(records)), canAdopt: records.every(function (r) { return ['採用済み','旧版'].indexOf(r.sourceStatus) >= 0; }) };
   }
-  function read(spec) {
-    var book = SpreadsheetApp.openById(Common.SSID.fileList);
-    return build(bounded(book.getSheetByName('Python問題マスター'), 18, 5001), bounded(book.getSheetByName(spec.gradingSheet), 15, 10001), spec);
+  function read(spec, options) {
+    var book = SpreadsheetApp.openById(options && options.fileListId || Common.SSID.fileList);
+    return build(bounded(book.getSheetByName('Python問題マスター'), 18, 5001), bounded(book.getSheetByName(spec.gradingSheet), 15, 10001, 13), spec);
   }
   function preview(spec) {
     PythonEditorConfig.identity(true);

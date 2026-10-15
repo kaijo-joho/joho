@@ -17,7 +17,10 @@ if (source.split('function doGet(e) {').length !== 2 || source.split(guard).leng
   throw new Error('distの入口が確認済み構造と異なります。原本を確認してください。');
 if (clasp.rootDir && clasp.rootDir !== '.') throw new Error('distのrootDirを確認してください。');
 const common = '05_tools_store_contract.js', distFiles = ['19_tools_store_distribution.js', '25_toolsStoreConnection.html'];
-const storeFiles = ['01_tools_store_config.js', '40_tools_store_repository.js', '10_tools_store_api.js', '20_tools_store_bridge.html'];
+const storeFiles = ['01_tools_store_config.js', '40_tools_store_repository.js', '10_tools_store_api.js', '20_tools_store_bridge.html',
+  '30_grading_packages.js', '31_grading_sync.js', '32_student_grading.js', '33_grading_collection.js'];
+const pythonFiles = ['06_python_editor_contract.js', '07_python_editor_config.js', '13_python_editor_grader.js',
+  '22_python_editor_api.js', '45_python_editor_store.js', '46_python_editor_master.js'];
 for (const name of [common, ...distFiles]) {
   try { await access(join(base, name)); throw new Error('追加予定ファイルが既にあります: ' + name); } catch (e) { if (e.code !== 'ENOENT') throw e; }
 }
@@ -29,11 +32,12 @@ await writeFile(join(dist, '00_code.js'), source.replace(guard, guard + "\n  if 
 for (const target of [dist, store]) await cp(new URL('common/' + common, bundle), join(target, common));
 for (const name of distFiles) await cp(new URL('dist/' + name, bundle), join(dist, name));
 for (const name of storeFiles) await cp(new URL('store/' + name, bundle), join(store, name));
+for (const name of pythonFiles) await cp(new URL('./pythoneditor-gas/' + name, import.meta.url), join(store, name));
 await cp(new URL('store/appsscript.proposed.json', bundle), join(store, 'appsscript.json'));
 clasp.filePushOrder = [...(clasp.filePushOrder || []), common, ...distFiles];
 await writeFile(join(dist, '.clasp.json'), JSON.stringify(clasp, null, 2) + '\n');
 const at = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Tokyo' });
-for (const [target, label] of [[dist, 'distにtools保存先の取得・準備と専用接続を追加'], [store, '生徒権限のtools下書き保存・復元GASを新規準備']]) {
+for (const [target, label] of [[dist, 'distにtools保存先の取得・準備と専用接続を追加'], [store, '生徒権限の下書き・圧縮基準による採点と教員実行の採用版同期・結果回収GASを新規準備']]) {
   for (const name of ['_CHANGELOG.html', 'AI_NOTES.md']) {
     let previous = ''; try { previous = await readFile(join(target, name), 'utf8'); } catch (e) { if (e.code !== 'ENOENT') throw e; }
     await writeFile(join(target, name), previous + `\n${at} | Codex | ${label}。無効既定。実GSS/権限/OAuth/本番反映は別途承認。今年度Colab/HTML/gradeは保持。\n`);
@@ -44,9 +48,10 @@ for (const [name, digest] of Object.entries(before)) if (!allowed.has(name)) {
   if (hash(await readFile(join(dist, name))) !== digest) throw new Error('範囲外変更: ' + name); unchanged.push(name);
 }
 const review = { at, baseline: base, baselineHashes: before, dist, store, unchanged,
-  modifiedDist: [...allowed], addedDist: [common, ...distFiles], storeFiles: [common, ...storeFiles, 'appsscript.json'],
+  modifiedDist: [...allowed], addedDist: [common, ...distFiles], storeFiles: [common, ...storeFiles, ...pythonFiles, 'appsscript.json'],
   productionReadbackVerifiedByCommand: false, pushed: false, deployed: false, permissionsChanged: false,
-  flags: { distEnabled: false, provisioningEnabled: false, adminEnabled: false, storeEnabled: false },
+  flags: { distEnabled: false, provisioningEnabled: false, adminEnabled: false, storeEnabled: false,
+    gradingProvisioningEnabled: false, studentGradingEnabled: false, teacherSyncEnabled: false, collectorEnabled: false, triggersInstalled: false },
   rollback: '保持したdist原本/既存deployへ戻し、両接続を無効化。生徒GSSの保存データは削除しない。' };
 await writeFile(dist + '-review.json', JSON.stringify(review, null, 2) + '\n');
 await writeFile(join(store, 'DEPLOYMENT_REVIEW.json'), JSON.stringify({ ...review, notice: '新規保存用GASのプロジェクト作成・USER_ACCESSING設定・スコープは承認後。既存.claspを転用しない。' }, null, 2) + '\n');

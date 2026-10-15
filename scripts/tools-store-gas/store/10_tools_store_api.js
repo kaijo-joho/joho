@@ -77,10 +77,12 @@ var ToolsStoreService = (function () {
       verifyTable(book.getSheetByName(C.HISTORY), C.HISTORY_ROWS);
       return book;
     }
-    function call(action, input, token, origin) {
+    function call(action, input, token, origin, receivedAt) {
+      // 認証・UserLock待ち・採点に要した時間を締切判定へ加えない。
+      var time = receivedAt === undefined ? (dep.now ? dep.now() : Date.now()) : receivedAt;
+      assertion(Number.isSafeInteger(time) && time > 0, 'invalid_request');
       assertion(config.enabled === true, 'disabled', 'クラウド保存は準備中です。');
       assertion(Array.isArray(config.teacherOwners) && config.teacherOwners.length > 0 && Array.isArray(config.allowedDomains) && config.allowedDomains.length > 0, 'configuration_required');
-      var time = dep.now ? dep.now() : Date.now();
       var binding = T.verifyBinding(token, config, time);
       assertion(typeof origin === 'string' && binding.origin === origin && config.allowedOrigins.indexOf(origin) >= 0, 'origin_denied');
       var identity = dep.identity ? dep.identity() : { active: Session.getActiveUser().getEmail(), effective: Session.getEffectiveUser().getEmail() };
@@ -88,30 +90,49 @@ var ToolsStoreService = (function () {
       assertion(account === T.normalizeAccount(identity.effective), 'execution_mode_mismatch');
       assertion(config.allowedDomains.indexOf(account.split('@')[1]) >= 0, 'account_denied');
       assertion(account === binding.account && T.actorKey(account) === binding.actorKey, 'account_mismatch', '接続した学校アカウントが異なります。');
-      assertion(['session', 'listDrafts', 'getDraft', 'saveDraft', 'lookupSave'].indexOf(action) >= 0, 'invalid_action');
+      var grading = ['gradingSession', 'submit', 'getSubmission', 'resumeSubmission', 'questionStatus'].indexOf(action) >= 0;
+      assertion(grading || ['session', 'listDrafts', 'getDraft', 'saveDraft', 'lookupSave'].indexOf(action) >= 0, 'invalid_action');
+      if (grading) assertion(config.studentGrading && config.studentGrading.enabled === true, 'grading_disabled', '新版の正式採点は準備中です。');
       var normalized;
       if (action === 'session') { only(input, []); normalized = {}; }
       if (action === 'listDrafts') { only(input, ['tool']); assertion(input.tool === 'python', 'invalid_tool'); normalized = { tool: 'python' }; }
       if (action === 'getDraft') { only(input, ['tool', 'questionId', 'version', 'revision']); normalized = query(input); if (input.revision !== undefined) normalized.revision = id(input.revision); }
       if (action === 'saveDraft') normalized = saveInput(input);
       if (action === 'lookupSave') { only(input, ['tool', 'requestId']); assertion(input.tool === 'python', 'invalid_tool'); normalized = { tool: 'python', requestId: id(input.requestId) }; }
-      var lock = dep.lock ? dep.lock() : LockService.getUserLock();
-      assertion(lock.tryLock(5000), 'busy', '保存処理中です。少し待って再試行してください。');
+      var lock = dep.lock ? dep.lock() : LockService.getUserLock(), held = false, book, grader, intakeTicket;
+      function recheck() {
+        var values = book.getSheetByName(C.GUIDE).getRange(1, 1, 6, 2).getValues();
+        assertion(Number(values[0][1]) === C.SCHEMA_VERSION && values[4][1] === C.KIND, 'schema_mismatch');
+        assertion(values[1][1] === binding.actorKey, 'account_mismatch');
+        assertion(values[2][1] === binding.generation, 'binding_stale');
+        assertion(values[3][1] === 'active', 'store_inactive');
+      }
+      function gradingContext() { return { account: account, actorKey: binding.actorKey, binding: binding,
+        book: book, receivedAt: new Date(time).toISOString(), recheck: recheck }; }
       try {
+        if (grading) grader = dep.studentGrading || ToolsStudentGrading.create(config, dep);
+        if (action === 'submit') {
+          // 書込前の本人・実権限・課題確認後に到着証明を準備し、UserLock混雑にも元の時刻を返す。
+          book = open(binding, account);
+          assertion(typeof grader.prepareIntake === 'function', 'grading_configuration');
+          intakeTicket = grader.prepareIntake(input, gradingContext());
+        }
+        held = lock.tryLock(5000);
+        assertion(held, 'busy', '保存処理中です。少し待って再試行してください。');
         // ロック取得後にも構成・世代・所有者・保護を確認する。教員による更新中は書き込まない。
-        var book = open(binding, account);
+        book = open(binding, account);
         if (action === 'session') return { account: account, actorKey: binding.actorKey, spreadsheetId: binding.spreadsheetId, schemaVersion: C.SCHEMA_VERSION };
-        function recheck() {
-          var values = book.getSheetByName(C.GUIDE).getRange(1, 1, 6, 2).getValues();
-          assertion(Number(values[0][1]) === C.SCHEMA_VERSION && values[4][1] === C.KIND, 'schema_mismatch');
-          assertion(values[1][1] === binding.actorKey, 'account_mismatch');
-          assertion(values[2][1] === binding.generation, 'binding_stale');
-          assertion(values[3][1] === 'active', 'store_inactive');
+        if (grading) {
+          var graded = grader.call(action, input, gradingContext());
+          recheck(); return graded;
         }
         var repository = ToolsStoreRepository.create(book, Object.assign({}, dep, { recheck: recheck }));
         var value = repository[action](normalized);
         recheck(); return value;
-      } finally { lock.releaseLock(); }
+      } catch (error) {
+        if (intakeTicket && !error.intakeTicket) error.intakeTicket = intakeTicket;
+        throw error;
+      } finally { if (held) lock.releaseLock(); }
     }
     return Object.freeze({ call: call });
   }
@@ -119,9 +140,12 @@ var ToolsStoreService = (function () {
 }());
 
 function toolsStoreRpc(action, input, binding, origin) {
-  try { return { ok: true, value: ToolsStoreService.create(toolsStoreConfig_()).call(action, input, binding, origin) }; }
+  var receivedAt = Date.now();
+  try { return { ok: true, value: ToolsStoreService.create(toolsStoreConfig_()).call(action, input, binding, origin, receivedAt) }; }
   catch (error) {
-    return { ok: false, error: { code: error.toolsStoreCode || 'service_unavailable', message: error.toolsStoreCode ? error.message : 'クラウドへ接続できません。学校アカウントと通信状況を確認してください。' } };
+    var safe = { code: error.toolsStoreCode || 'service_unavailable', message: error.toolsStoreCode ? error.message : 'クラウドへ接続できません。学校アカウントと通信状況を確認してください。' };
+    if (error.toolsStoreCode && typeof error.intakeTicket === 'string' && error.intakeTicket.length <= 16000) safe.intakeTicket = error.intakeTicket;
+    return { ok: false, error: safe };
   }
 }
 

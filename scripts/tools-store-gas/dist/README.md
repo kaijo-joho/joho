@@ -31,6 +31,7 @@ if (e && e.parameter && e.parameter.type === 'toolsStore') {
 | `TOOLS_STORE_DIST_ENABLED` | 生徒の接続入口。文字列 `true` のときだけ有効 | 無効 |
 | `TOOLS_STORE_DIST_PROVISIONING_ENABLED` | GSS作成・共有・保護等の構成管理を許可 | 無効 |
 | `TOOLS_STORE_DIST_ADMIN_ENABLED` | 明示した教員用の台帳追加・事前準備を許可 | 無効 |
+| `TOOLS_STORE_DIST_GRADING_PROVISIONING_ENABLED` | 新版の署名付き採点用3表を教員prepareで追加 | 無効 |
 | `TOOLS_STORE_BINDING_KEY` | 保存用GASと共有する32文字以上の署名鍵 | 未設定 |
 | `TOOLS_STORE_ALLOWED_ORIGINS` | 許可するHTTPS originのJSON配列 | 空配列 |
 | `TOOLS_STORE_TEACHERS` | 実行者・所有者・管理操作を許可する教員メールのJSON配列 | 空配列 |
@@ -53,6 +54,8 @@ if (e && e.parameter && e.parameter.type === 'toolsStore') {
 保存先は教員所有のGSSを本人の既存個別フォルダへ配置し、本人へ編集権限を付与、編集者による再共有を無効化します。案内 `使い方` を表示、`Python` / `Python履歴` を非表示にします。案内A1:B6とデータ各シートの見出しA1:N1は教員限定保護とし、本文には書き込めます。D列の `フォルダ` を疑似フォルダとして扱い、コード等と同じ行のJSON metadataとの一致を確認します。非表示は秘匿機能ではありません。
 
 ## 再試行・構成更新
+
+採点表追加の新仕様は [STUDENT-GRADING.md](../../../tools/pythoneditor/STUDENT-GRADING.md)。既存の下書き2表・14列を維持し、34列の `Python提出受付` / `Python提出結果` / `Python提出完了` を別途準備する。実行済みの採点表を消失時に空で再作成しない。`使い方` A14:B14の構成済み印も教員限定保護する。今回この設定・実GSS変更は行っていない。
 
 初回作成と教員の構成整備にだけScriptLockを使い、登録済み接続はロック・共有変更をしません。40名の初回接続集中は事前作成で避けます。作成前にScriptPropertiesへ意図を記録し、作成後に応答が失われても同じファイルを照合して続行します。候補がゼロ・複数・別人・別フォルダなら新規作成せず教員確認へ止めます。
 

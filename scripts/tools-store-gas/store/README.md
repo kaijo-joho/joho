@@ -1,13 +1,13 @@
 # tools共通の下書き保存GAS（配置前の実装）
 
-2026-10-15。生徒本人として実行する新規GAS。初版の接続対象はPythonだけ。既存のHTMLエディタ、Colab、distの既存配付、gradeの正式採点を変更しない。正式得点・提出記録はこのGSSへ保存しない。
+2026-10-15。生徒本人として実行する新規GAS。初版の接続対象はPythonだけ。既存のHTMLエディタ、Colab、distの既存配付、gradeの正式採点を変更しない。圧縮採点基準と生徒実行採点・教員同期/回収を追加した。本人GSSの採点結果は中央保存待ちと区別し、正式結果は教員の完了記録から返す。追加仕様・設定・反映前手順は [STUDENT-GRADING.md](../../../tools/pythoneditor/STUDENT-GRADING.md)。
 
 ## 承認が必要な配置
 
 - `appsscript.proposed.json`は提案であり、稼働設定ではない。`.clasp.json`や実scriptIdは含めない。
-- 新規プロジェクトへ`common/05_tools_store_contract.js`とこのディレクトリの`.js`/橋`.html`を配置する。
+- 準備スクリプトで`common/05_tools_store_contract.js`、このディレクトリの`.js`/橋`.html`、`pythoneditor-gas/`の固定判定用6モジュールを候補へ配置する。既存gradeのproject IDを流用しない。
 - 実行は`USER_ACCESSING`、アクセスは学校ドメイン限定の`DOMAIN`。既存dist/gradeの実行者は変更しない。
-- 提案スコープは`spreadsheets`と`userinfo.email`。保存先の所有者・編集者は`Spreadsheet.getOwner()/getEditors()`で確認し、保存GASにDrive権限を要求しない。[Google公式仕様](https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet#getOwner())
+- 提案スコープは`spreadsheets`、`userinfo.email`、教員トリガー管理用の`script.scriptapp`。最後のscope追加は今回未適用で、生徒の承認画面への影響も学校で確認する。保存先の所有者・編集者は`Spreadsheet.getOwner()/getEditors()`で確認し、保存GASにDrive権限を要求しない。[Google公式仕様](https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet#getOwner())
 - 学校管理者の許可、初回OAuth承認、Safari/Chromeの認証・二重iframe、公開デプロイ、実GSSの作成・生徒への共有・保護設定は未実施。承認後に別手順で検証する。
 
 ScriptPropertiesへ次の**設定名**を用意する。実値はコード・公開資料・ブラウザへ含めない。

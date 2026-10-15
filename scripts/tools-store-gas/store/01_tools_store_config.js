@@ -11,6 +11,15 @@ function toolsStoreConfig_() {
     allowedOrigins: list('TOOLS_STORE_ALLOWED_ORIGINS'),
     allowedDomains: list('TOOLS_STORE_ALLOWED_DOMAINS'),
     teacherOwners: list('TOOLS_STORE_TEACHER_OWNERS'),
-    bindingLifetimeMs: 3600000
+    bindingLifetimeMs: 3600000,
+    studentGrading: {
+      enabled: p.getProperty('TOOLS_STUDENT_GRADING_ENABLED') === 'true',
+      signingKey: p.getProperty('TOOLS_STUDENT_GRADING_SIGNING_KEY') || '',
+      keyId: p.getProperty('TOOLS_STUDENT_GRADING_KEY_ID') || '',
+      centralSpreadsheetId: p.getProperty('TOOLS_STUDENT_GRADING_CENTRAL_ID') || '',
+      collectorEnabled: p.getProperty('TOOLS_GRADING_COLLECTOR_ENABLED') === 'true',
+      teacherAccounts: list('TOOLS_STORE_TEACHER_OWNERS'),
+      maxStudentsPerRun: 5, maxReceiptsPerStudent: 20
+    }
   };
 }

@@ -121,7 +121,7 @@ var PythonEditorService = (function () {
     var frozen = snapshot(receipt, env);
     PythonEditor.assert(frozen.payloadHash === receipt.snapshotHash && frozen.body.graded, 'snapshot_invalid');
     env.authorize(frozen, receipt.policy.assignmentId, receipt.at, false);
-    var result = PythonEditorGraderV1.grade(frozen.body, receipt.body);
+    var result = env.grade ? env.grade(frozen, receipt) : PythonEditorGraderV1.grade(frozen.body, receipt.body);
     env.store.finish(receipt, result, env.now(), function () { env.recheck(frozen, receipt.policy.assignmentId, receipt.at, false); });
     return response(receipt, env);
   }
