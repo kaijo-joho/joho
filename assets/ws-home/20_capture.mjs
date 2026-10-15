@@ -14,6 +14,31 @@ const reasonText = {
   IMAGE_QUALITY:'画像品質を再確認できません。'
 };
 function element(tag, text, className) {const e = document.createElement(tag); if (text) e.textContent = text; if (className) e.className = className; return e;}
+const iconPaths = {
+  image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m21 15-5-5L5 21"/>',
+  refresh:'<path d="M20 3v6h-6M4 21v-6h6M19 9a7 7 0 0 0-12-4L4 8M5 15a7 7 0 0 0 12 4l3-3"/>',
+  sparkle:'<path d="m12 3 2.3 6.7L21 12l-6.7 2.3L12 21l-2.3-6.7L3 12l6.7-2.3L12 3ZM20 2v4m-2-2h4"/>',
+  rotate:'<path d="M20 3v6h-6M19 9a7 7 0 1 0 0 6"/>',
+  scan:'<path d="M8 3H3v5m13-5h5v5m0 8v5h-5m-8 0H3v-5M8 8h8v8H8z"/>',
+  download:'<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>',
+  check:'<path d="m5 12 4 4L19 6"/>',
+  close:'<path d="m6 6 12 12M6 18 18 6"/>',
+  back:'<path d="M20 12H4m7-7-7 7 7 7"/>',
+  laptop:'<path d="M4 4h16v12H4zM2 20h20l-2-4H4l-2 4"/>',
+  phone:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 18h4"/>',
+  login:'<path d="M14 4h6v16h-6M3 12h12m-5-5 5 5-5 5"/>',
+  send:'<path d="m3 3 18 9-18 9 4-9-4-9Zm4 9h14"/>',
+  history:'<path d="M3 4v6h6M4 10a8 8 0 1 1 0 6M12 7v5l3 2"/>',
+  share:'<path d="M12 16V3m-5 5 5-5 5 5M5 13H3v8h18v-8h-2"/>'
+};
+function setIcon(node,name){
+  if(!node)return;
+  const old=node.querySelector(':scope > .ws-icon');if(old?.dataset.icon===name)return;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  for(const [key,value] of Object.entries({class:'ws-icon',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true',focusable:'false'}))svg.setAttribute(key,value);
+  svg.dataset.icon=name;svg.innerHTML=iconPaths[name]||iconPaths.image;
+  if(old)old.replaceWith(svg);else node.prepend(svg);
+}
 function imageError(code) {
   return {INPUT_TOO_LARGE:'写真は1枚32MiBまで取り込めます。これより大きい場合はJPEG形式で保存して選び直してください。',
     INPUT_TOO_MANY_PIXELS:'写真が大きすぎます。8000万画素以下の写真を選んでください。2400万・4800万画素の写真は自動で縮小して読み取れます。',
@@ -30,7 +55,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   const sources = {}, urls = {}, manuals = {}, manualPoints = {}, manualSuggestions = {}, cleanup = [];
   let saveQueue=Promise.resolve();
   const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('worksheet-home-drafts-v1') : null;
-  root.innerHTML = '<section id="photo-step" class="card capture-step photo-picker" aria-labelledby="photo-picker-title"><h2 id="photo-picker-title">①写真を2枚追加</h2><p>表・裏の順番は自由です。2枚そろうと自動で補正・読取します。</p>' +
+  root.innerHTML = '<section id="photo-step" class="card capture-step photo-picker" aria-labelledby="photo-picker-title"><h2 id="photo-picker-title">①写真を2枚追加</h2>' +
     '<div id="initial-photo" class="actions"><label id="capture-photo-label" class="button primary upload-label">写真<input id="capture-photo" type="file" accept="image/*" multiple hidden></label></div>' +
     '<div id="photo-tabs" class="photo-tabs" role="tablist" aria-label="表示する写真" hidden><button id="photo-tab-F" type="button" role="tab" aria-controls="photo-panel-F" aria-selected="true">写真1</button><button id="photo-tab-B" type="button" role="tab" aria-controls="photo-panel-B" aria-selected="false" tabindex="-1">写真2</button></div>' +
     '<div id="pages" hidden></div><p id="photo-progress" role="status"></p><p id="photo-error" class="notice warning" role="status" hidden></p><div id="read-warnings" role="status" hidden></div><p id="capture-message" class="muted" role="status"></p><p id="storage-message" class="notice warning" role="status" hidden></p></section>' +
@@ -103,7 +128,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     const routeReady=reviewReady&&!!draft.confirmed;
     q('#initial-photo').hidden=count>0;
     q('#photo-tabs').hidden=q('#pages').hidden=count===0;
-    q('#photo-progress').textContent=readingSlot?'写真'+photoNumber(readingSlot)+'を自動補正・読取中…':count<2?count+'/2枚 · '+(count?'写真'+photoNumber(slots.find(s=>!draft.pages[s]?.originalBlob))+'を開いて、もう1枚追加してください。':'表面と裏面を、好きな順番で追加してください。'):!readingComplete?'2/2枚 · 自動で読み取っています…':reviewReady?'2/2枚 · ②で組・番号を確認してください。':'2/2枚 · ①の警告を確認してください。';
+    q('#photo-progress').textContent=readingSlot?'写真'+photoNumber(readingSlot)+'を自動補正・読取中…':count===0?'0/2枚':count===1?'1/2枚 · 写真'+photoNumber(slots.find(s=>!draft.pages[s]?.originalBlob))+'を開いて、もう1枚追加してください。':!readingComplete?'2/2枚 · 自動で読み取っています…':reviewReady?'2/2枚 · ②で組・番号を確認してください。':'2/2枚 · ①の警告を確認してください。';
     q('#read-warnings').replaceChildren();q('#read-warnings').hidden=!readingComplete||check.ok;
     if(readingComplete&&!check.ok)check.errors.forEach(e=>q('#read-warnings').append(element('p','写真'+photoNumber(e.side)+'：'+e.message,'notice warning')));
     q('#review-step').classList.toggle('is-locked',!reviewReady);q('#review-step').setAttribute('aria-disabled',String(!reviewReady));
@@ -132,6 +157,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       section.hidden=count===0||side!==activeSlot;
       section.querySelector('h3').textContent=title;
       section.querySelector('.photo-input-text').textContent=p?'撮り直す／選び直す':'写真（'+photoNumber(side)+'枚目）';
+      setIcon(section.querySelector('.photo-actions .upload-label'),p?'refresh':'image');
       const tab=q('#photo-tab-'+side);tab.setAttribute('aria-selected',String(side===activeSlot));tab.tabIndex=side===activeSlot?0:-1;
       section.querySelector('.photo-save').hidden=!p;
       section.querySelector('.corner-editor').hidden=!(p&&manuals[side]>=0&&manuals[side]<4);
@@ -185,7 +211,6 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   }
   function photoError(value){q('#photo-error').textContent=value;q('#photo-error').hidden=!value;if(value)message(value);}
   async function readPendingPages() {
-    if(!slots.every(slot=>draft.pages[slot]?.originalBlob))return;
     for(const slot of slots){
       if(stopped || conflict)return;
       const p=draft.pages[slot];
@@ -202,14 +227,13 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     try{
       selected.forEach((file,i)=>{
         const target=targets[i];clearPreview(target);delete sources[target];manuals[target]=-1;
-        draft.pages[target]={originalBlob:file,correctedBlob:null,reading:{status:'PENDING',pending:true,message:'2枚そろうと自動で読み取ります。'},options:{autoTone:true}};
+        draft.pages[target]={originalBlob:file,correctedBlob:null,reading:{status:'PENDING',pending:true,message:'自動補正・読取を待っています。'},options:{autoTone:true}};
         sectionFor(target).querySelector('.manual-help').textContent='';
       });
       render();await persist();
     }catch(e){message(messageFor(e.message));return;}
     finally{busy=false;render();}
-    if(slots.every(s=>draft.pages[s]?.originalBlob))await readPendingPages();
-    else message('写真'+photoNumber(slots.find(s=>!draft.pages[s]?.originalBlob))+'を開いて、もう1枚追加してください。');
+    await readPendingPages();
   }
   async function readPage(side, file, options = {}) {
     if (stopped || busy || conflict || draft.requestId && !['ACCEPTED','RESUBMIT_REQUIRED','CANCELLED'].includes(draft.receipt?.state)) return;
@@ -247,6 +271,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       '<details class="tone-controls"><summary>明るさ・コントラストを調整</summary><label class="auto-tone-label"><input class="auto-tone" type="checkbox" checked>明るさ・影を自動補正</label><label>明るさ<input class="brightness" type="range" min="-50" max="70" value="0"></label><label>コントラスト<input class="contrast" type="range" min="-50" max="100" value="0"></label><button class="apply">調整を反映して再読取</button></details></div></details>' +
       '<div class="actions photo-save" hidden><button class="save-page" disabled>この写真を保存</button></div>';
     q('#pages').append(section);
+    for(const [selector,name] of Object.entries({'.auto':'sparkle','.rotate':'rotate','.manual':'scan','.apply':'check','.save-page':'download','.corner-confirm':'check','.corner-previous':'back','.corner-cancel':'close'}))setIcon(section.querySelector(selector),name);
     for (const input of section.querySelectorAll('input[type=file]')) input.addEventListener('change', async () => {try{await addPhotos(input.files,side);}catch(e){message(messageFor(e.message));}finally{input.value='';}});
     section.querySelector('.save-page').addEventListener('click', () => download(side));
     section.querySelector('.auto-tone').addEventListener('change',()=>{const p=draft.pages[side];if(p){p.options.autoTone=section.querySelector('.auto-tone').checked;readPage(side,p.originalBlob,{...p.options,corners:p.options.preciseCorners?p.options.corners:null});}});
@@ -275,6 +300,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       for(const [color,width] of [['white',5],['#c74900',2]]){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(mid-24,mid);ctx.lineTo(mid-5,mid);ctx.moveTo(mid+5,mid);ctx.lineTo(mid+24,mid);ctx.moveTo(mid,mid-24);ctx.lineTo(mid,mid-5);ctx.moveTo(mid,mid+5);ctx.lineTo(mid,mid+24);ctx.stroke();}
       section.querySelector('.manual-help').textContent=(manuals[side]+1)+'/4 '+names[manuals[side]]+'の黒い■の中心を指定します。';
       section.querySelector('.corner-confirm').textContent=manuals[side]===3?'この位置で補正・再読取':'この位置を確定して次へ';
+      setIcon(section.querySelector('.corner-confirm'),'check');
       section.querySelector('.corner-previous').disabled=manuals[side]===0;
       drawSource(side);
     }
@@ -331,6 +357,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   q('#capture-photo').addEventListener('change',async event=>{
     const input=event.target;try{await addPhotos(input.files);}catch(e){message(messageFor(e.message));}finally{input.value='';}
   });
+  for(const [id,name] of Object.entries({'capture-photo-label':'image','photo-tab-F':'image','photo-tab-B':'image',lookup:'refresh','cancel-send':'close','load-fixture':'scan'}))setIcon(q('#'+id),name);
   root.querySelectorAll('.upload-label').forEach(label=>{label.tabIndex=0;label.setAttribute('role','button');label.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();const input=label.querySelector('input');if(!input.disabled)input.click();}});});
   q('#confirmed').addEventListener('change', async () => {draft.confirmed=q('#confirmed').checked;message('');await persist();render();});
   function frozenPayload(route) {
@@ -390,46 +417,46 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       pairing=null;sessionStorage.removeItem('ws-home-pair');await persist();render();
     }catch(e){message(messageFor(e.message));}
   });
-  function addRoute(label,description,handler) {
-    const b=element('button');b.append(element('strong',label),element('span',description));b.addEventListener('click',handler);q('#route-buttons').append(b);
+  function addRoute(label,description,handler,iconName='send') {
+    const b=element('button'),title=element('strong',label);setIcon(title,iconName);b.append(title,element('span',description));b.addEventListener('click',handler);q('#route-buttons').append(b);
   }
-  if(mode==='mac') addRoute('このMacから提出','ログイン済みの本人と画像の組・番号を照合して受け付けます。',()=>submit('mac'));
+  if(mode==='mac') addRoute('このMacから提出','ログイン済みの本人と画像の組・番号を照合して受け付けます。',()=>submit('mac'),'laptop');
   else {
     addRoute('スマホでログインして送信','撮影内容を保持したまま学校アカウントでログインします。',async()=>{
       if(isNativeGas){await submit('phone');return;}
       const detail=q('#route-detail');detail.replaceChildren(element('p','学校アカウントで接続を確認し、元の撮影タブへ戻って送信します。画像はこのタブに保持しています。'));
-      const link=element('a','学校アカウントでログイン・接続確認','button');link.href=loginUrl;link.target='_blank';link.rel='noopener';detail.append(link);
+      const link=element('a','学校アカウントでログイン・接続確認','button');setIcon(link,'login');link.href=loginUrl;link.target='_blank';link.rel='noopener';detail.append(link);
       link.addEventListener('click',event=>{event.preventDefault();if(!openConnection())message('接続画面を開けません。ブラウザーのポップアップを確認するか、接続確認リンクから保存画像を提出してください。');});
-      const send=element('button','ログイン完了後に送信');send.addEventListener('click',()=>submit('phone'));detail.append(send);
-      const history=element('a','今回までの受付を確認','button');history.href=loginUrl;history.target='_blank';history.rel='noopener';detail.append(history);
-    });
+      const send=element('button','ログイン完了後に送信');setIcon(send,'send');send.addEventListener('click',()=>submit('phone'));detail.append(send);
+      const history=element('a','今回までの受付を確認','button');setIcon(history,'history');history.href=loginUrl;history.target='_blank';history.rel='noopener';detail.append(history);
+    },'phone');
     addRoute('Macと接続して提出（準備中）','一時受付QRの経路は今回の限定公開では未開放です。',()=>{
       message('一時受付QRの経路は今回の限定公開では未開放です。「スマホでログインして送信」を利用してください。');return;
       const detail=q('#route-detail');detail.replaceChildren(element('p','Macのダッシュボードで一時受付QRを発行します。カメラでQRのリンクを開くか、QRの画像を選んで読み取ってください。'));
-      const label=element('label','一時受付QRの画像を選択','button upload-label'),input=element('input');input.type='file';input.accept='image/*';input.hidden=true;label.append(input);detail.append(label);
+      const label=element('label','一時受付QRの画像を選択','button upload-label'),input=element('input');setIcon(label,'scan');input.type='file';input.accept='image/*';input.hidden=true;label.append(input);detail.append(label);
       input.addEventListener('change',async()=>{
         try{if(!input.files[0])return;const {parsePairingQr}=await import('./10_model.mjs'),image=await loadImage(input.files[0]),id=image.getContext('2d').getImageData(0,0,image.width,image.height),
           found=window.jsQR(id.data,image.width,image.height,{inversionAttempts:'attemptBoth'});if(!found)throw Error('PAIR_QR_INVALID');await claimPair(parsePairingQr(found.data,location.origin));}
         catch(e){message(messageFor(e.message));}finally{input.value='';}
       });
       showPairControls();
-    });
+    },'laptop');
     addRoute('画像を保存','表裏を保存し、自分でMacへ転送して提出します。',()=>{
       const detail=q('#route-detail');detail.replaceChildren(element('p','表面と裏面をそれぞれ保存してください。保存だけでは提出されません。'));
-      for(const side of ['F','B']){const b=element('button',side==='F'?'表面画像を保存':'裏面画像を保存');b.addEventListener('click',()=>{const checked=checkPages(draft.pages);if(checked.ok)download(slots.find(slot=>draft.pages[slot]===checked.pages[side]));});detail.append(b);}
-      if(navigator.canShare){const share=element('button','表裏をまとめて共有');share.addEventListener('click',async()=>{
+      for(const side of ['F','B']){const b=element('button',side==='F'?'表面画像を保存':'裏面画像を保存');setIcon(b,'download');b.addEventListener('click',()=>{const checked=checkPages(draft.pages);if(checked.ok)download(slots.find(slot=>draft.pages[slot]===checked.pages[side]));});detail.append(b);}
+      if(navigator.canShare){const share=element('button','表裏をまとめて共有');setIcon(share,'share');share.addEventListener('click',async()=>{
         const checked=checkPages(draft.pages);if(!checked.ok)return;
         const files=['F','B'].map(side=>new File([checked.pages[side].correctedBlob],'worksheet-'+side+'.png',{type:'image/png'}));
         if(!navigator.canShare({files})){message('このブラウザーは画像の一括共有に対応していません。各面を保存してください。');return;}
         try{await navigator.share({files});message('共有操作を完了しました。Macで提出するまで、提出は未送信です。');}catch(e){message('共有を中断しました。撮影画像は保持しています。');}
       });detail.append(share);}
-    });
+    },'download');
   }
   function showPairControls(){
     const detail=q('#route-detail');
     if(!pairing)return;
     detail.append(element('p','Macの承認後、スマートフォンで送信できます。接続ID：'+pairing.pairId.slice(-6)));
-    const send=element('button','接続の承認を確認して送信');send.addEventListener('click',async()=>{
+    const send=element('button','接続の承認を確認して送信');setIcon(send,'send');send.addEventListener('click',async()=>{
       try{const status=await api('/api/pairs/'+pairing.pairId+'/status',undefined,pairing);if(!['APPROVED','USED','SUBMITTED'].includes(status.status))throw Error('PAIR_NOT_APPROVED');await submit('pair');}
       catch(e){message(messageFor(e.message));}
     });detail.append(send);

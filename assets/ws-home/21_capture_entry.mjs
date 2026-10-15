@@ -1,4 +1,4 @@
-import {mountCapture} from './20_capture.mjs?v=20261015-7';
+import {mountCapture} from './20_capture.mjs?v=20261015-8';
 const params=new URLSearchParams(location.hash.slice(1)),token=params.get('pair');
 if(location.hash)history.replaceState(null,'',location.pathname+location.search);
 const controller=await mountCapture(document.getElementById('capture-root'));
