@@ -1,5 +1,7 @@
 # Pythonエディタ 0.1 BETA
 
+2026-10-16：教員1名による問題配布専用の検証入口を準備した。[TEACHER-PREVIEW.md](TEACHER-PREVIEW.md) に新規GAS・OAuthの具体案、配置・実機確認・停止手順を記載。接続は無効で、学校アカウントの承認・新GAS配置・公開接続は未実施。
+
 2026-10-15追記：圧縮した採用版をScriptPropertiesへ同期し、生徒権限の保存GASで採点、教員が結果を回収する方式を追加した。詳細は [STUDENT-GRADING.md](STUDENT-GRADING.md)。本番・権限・実トリガー登録は保留し、接続・新方式の採点とも無効。以下のgrade直接接続は先行実装の記録として維持する。
 
 2026-10-15：distによる生徒別保存先管理、利用者権限の共通保存GAS、Pythonの接続・クラウド自動保存・復元を追加した。接続は無効のまま。新しい本番GAS/OAuth/共有・台帳変更は未実施。構成、検証、本番反映前の具体案は[TOOLS-CLOUD.md](TOOLS-CLOUD.md)を参照。今年度のColabとHTMLエディタの経路は変更しない。

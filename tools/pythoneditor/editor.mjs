@@ -9,6 +9,7 @@ import { cloudConfig } from './cloud-config.mjs';
 import { toolsStoreConfig } from './tools-store-config.mjs';
 import { questionGroups, setRating, renderRating } from './navigation.mjs';
 import { demoRatings } from './demo-ratings.mjs';
+import { TeacherPreviewPanel } from './teacher-preview.mjs?v=20261016-preview';
 const $ = id => document.getElementById(id);
 const entries = new Map(), outputs = new Map(), docs = new Map();
 let catalog, selectedSet, question, cm, store, runSnapshot, busy = false, pendingImport;
@@ -20,9 +21,10 @@ let editGeneration=0;
 let catalogGeneration=0;
 let showDemoRatings=false;
 const params = new URLSearchParams(location.search);
+const teacherPreviewMode = params.get('mode') === 'teacher-preview';
 const requested = { set: params.get('set'), question: params.get('question') || params.get('practice'), version: params.get('version') };
 for (const value of Object.values(requested)) if (value && !validId(value)) showNotice('URLのIDが不正です。問題一覧から選んでください。', true);
-pendingRequested=(cloudConfig.enabled||toolsStoreConfig.enabled&&toolsStoreConfig.studentGrading)&&!!(requested.set||requested.question);
+pendingRequested=(teacherPreviewMode||cloudConfig.enabled||toolsStoreConfig.enabled&&toolsStoreConfig.studentGrading)&&!!(requested.set||requested.question);
 function showNotice(message, danger = false, reveal = false) {
   $('notice').textContent = message; $('notice').classList.toggle('danger', danger);
   $('status-menu').classList.toggle('has-alert', danger);
@@ -123,6 +125,7 @@ function selectQuestion(q, updateURL = true) {
   busy = false;
   if (updateURL && !pendingRequested) {
     const url = new URL(location.href); url.search = new URLSearchParams({set: q.setId, question: q.questionId, version: q.version}).toString();
+    if (teacherPreviewMode) url.searchParams.set('mode', 'teacher-preview');
     history.replaceState(null, '', url);
   }
   try { store?.last({ set: q.setId, question: q.questionId, version: q.version }); } catch (e) { showNotice('再開位置の保存に失敗しました。コードは画面に保持しています。', true); }
@@ -158,10 +161,11 @@ function updateNavigationRatings() {
     $('set-trigger').setAttribute('aria-label',`問題セットを選択：${selectedSet.title}`);
     const rating=setRating(selectedSet,ratingFor);
     renderRating($('set-current-rating'),rating,true);
-    $('rating-note').textContent=rating?.example?'★は表示例です。実行・編集では変わりません。':'★は締切内最高点の提出で満たしたコードのチェック数です。';
+    $('rating-note').textContent=teacherPreviewMode?'教員用の問題配布検証です。今回の接続では★評価を取得しません。':rating?.example?'★は表示例です。実行・編集では変わりません。':'★は締切内最高点の提出で満たしたコードのチェック数です。';
   }
 }
 function buildSetPicker() {
+  $('set-trigger').disabled = !catalog.sets.length;
   $('set-menu').replaceChildren();
   for(const set of catalog.sets) {
     const button=document.createElement('button'),title=document.createElement('span'),rating=document.createElement('span');
@@ -454,7 +458,8 @@ async function init() {
     });
   }
   $('code').addEventListener('input', dirty); $('stdin').addEventListener('input', dirty);
-  cloudPanel=new CloudPanel({catalog:()=>catalog,renderRatings:updateNavigationRatings,question:()=>question,entry:q=>({...currentEntry(q)}),run:q=>outputs.get(questionKey(q)),running:()=>!!runner.active,
+  const ConnectionPanel = teacherPreviewMode ? TeacherPreviewPanel : CloudPanel;
+  cloudPanel=new ConnectionPanel({catalog:()=>catalog,renderRatings:updateNavigationRatings,question:()=>question,entry:q=>({...currentEntry(q)}),run:q=>outputs.get(questionKey(q)),running:()=>!!runner.active,
     notice:(message,danger)=>showNotice(message,danger,true),closeMenus:()=>closeMenus(true),addCatalog:addCloudCatalog,importDraft:importCloudDraft,
     archive:(e,reason)=>{if(!store)throw new Error('ローカルの控えを保存できません。コードをファイルに保存してください。');store.archive(e,reason);},
     archiveEntries:reason=>{if(!store)throw new Error('切り替え前の控えを保存できません。ファイルに保存してください。');for(const e of entries.values())store.archive(e,reason);},
@@ -516,6 +521,14 @@ async function init() {
   document.addEventListener('click', e => {if (!e.target.closest('.menu')) closeMenus();if(!e.target.closest('.set-picker'))closeSetPicker();});
   addEventListener('beforeunload', e => {if (saveFailed||cloudPanel?.unsaved()) {e.preventDefault();e.returnValue='';}});
   addEventListener('pagehide', () => runner.dispose());
+  if (teacherPreviewMode) {
+    catalog = validateCatalog({ schema: 'python-editor-catalog-v1', label: '教員用・問題配布検証', sets: [] });
+    $('catalog-label').textContent = catalog.label;
+    $('set-current-title').textContent = '教員アカウントに接続してください';
+    $('set-trigger').disabled = true;
+    showNotice('教員用の問題配布検証です。学校アカウントに接続して問題を取得してください。');
+    return;
+  }
   // 固定した同一originの読取経路だけ。401/403や不正応答では別経路へ取得しない。
   const initialGeneration=catalogGeneration;
   try {
