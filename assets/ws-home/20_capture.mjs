@@ -1,5 +1,5 @@
 import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob} from './10_model.mjs';
-import {processImage, loadImage, detectMarkers, snapMarker, layouts} from './11_vision.mjs?v=20261015-2';
+import {processImage, loadImage, detectMarkers, snapMarker, layouts} from './11_vision.mjs?v=20261015-3';
 import {getDraft, listDrafts, saveDraft, discardDraft, probeStorage, deviceId} from './12_store.mjs';
 import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs';
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));

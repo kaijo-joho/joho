@@ -26,6 +26,16 @@ const cases=[
  {name:'clipped-bottom-left',paper:'b5',side:'B',photo:true,clip:'bottomLeft'},
  {name:'clipped-bottom-right-a4',paper:'a4',side:'F',photo:true,clip:'bottomRight'},
  {name:'clipped-top-left',paper:'b5',side:'F',photo:true,clip:'topLeft'},
+ {name:'clipped-header-drift-b5',paper:'b5',side:'B',photo:true,clip:'bottomLeft',headerDrift:true},
+ {name:'clipped-header-drift-a4',paper:'a4',side:'F',photo:true,clip:'bottomLeft',headerDrift:true},
+ {name:'excessive-header-drift-b5',paper:'b5',side:'B',photo:true,clip:'bottomLeft',headerDrift:[-1.5,1.5],review:true},
+ {name:'excessive-header-drift-a4',paper:'a4',side:'F',photo:true,clip:'bottomLeft',headerDrift:[-1.5,1.5],review:true},
+ {name:'clipped-alternate-marks-b5',paper:'b5',side:'B',photo:true,clip:'bottomLeft',marks:[6,2,4]},
+ {name:'clipped-alternate-marks-a4',paper:'a4',side:'F',photo:true,clip:'bottomLeft',marks:[6,2,4]},
+ {name:'displaced-qr-b5',paper:'b5',side:'B',photo:true,qrShift:-2,review:true},
+ {name:'displaced-qr-a4',paper:'a4',side:'F',photo:true,qrShift:-2,review:true},
+ {name:'clipped-displaced-qr-b5',paper:'b5',side:'B',photo:true,clip:'bottomLeft',qrShift:-2,review:true},
+ {name:'clipped-displaced-qr-a4',paper:'a4',side:'F',photo:true,clip:'bottomLeft',qrShift:-2,review:true},
  {name:'clipped-marker-blank-back',paper:'b5',side:'B',photo:true,clip:'bottomLeft',blank:true,review:true},
  {name:'missing-marker',paper:'b5',side:'F',photo:true,missingMarker:true,review:true},
  {name:'two-clipped-markers',paper:'b5',side:'B',photo:true,twoClipped:true,review:true},
@@ -52,13 +62,20 @@ for(const mode of baseline?['baseline','candidate']:['candidate'])for(const spec
     }ctx.fillStyle='#111';
     for(const [index,name] of ['class','tens','ones'].entries())for(let digit=0;digit<10;digit++){
       const mark=c.omr[name][digit],p=mark.center.mm,r=mark.radiusMm||1.5*c.scale;ctx.beginPath();ctx.arc(p.x*sx,p.y*sy,r*sx,0,2*Math.PI);ctx.strokeStyle='#111';ctx.lineWidth=.25*c.scale*sx;ctx.stroke();
-      if(!spec.blank&&digit===[3,0,7][index]){ctx.beginPath();ctx.arc(p.x*sx,p.y*sy,r*.9*sx,0,2*Math.PI);ctx.fill();}
+      if(!spec.blank&&digit===(spec.marks||[3,0,7])[index]){ctx.beginPath();ctx.arc(p.x*sx,p.y*sy,r*.9*sx,0,2*Math.PI);ctx.fill();}
     }
     if(!spec.missingQr){
       const qr=window.qrcodegen.QrCode.encodeText(spec.wrongQr?'https://example.test/unrelated':'INFO1|2026|dr41|'+spec.side,window.qrcodegen.QrCode.Ecc.MEDIUM),r=c.qr.region.mm,q=v.canvas(Math.round(r.width*sx),Math.round(r.height*sy)),qc=q.getContext('2d');
       qc.fillStyle='#fff';qc.fillRect(0,0,q.width,q.height);qc.fillStyle='#000';const pitch=q.width/(qr.size+8);
       for(let y=0;y<qr.size;y++)for(let x=0;x<qr.size;x++)if(qr.getModule(x,y))qc.fillRect(Math.round((x+4)*pitch),Math.round((y+4)*pitch),Math.round((x+5)*pitch)-Math.round((x+4)*pitch),Math.round((y+5)*pitch)-Math.round((y+4)*pitch));
-      ctx.drawImage(q,r.x*sx,r.y*sy,r.width*sx,r.height*sy);
+      ctx.drawImage(q,(r.x+(spec.qrShift||0)*c.scale)*sx,r.y*sy,r.width*sx,r.height*sy);
+    }
+    if(spec.headerDrift){
+      const r=c.qr.region.mm,first=c.omr.class[0].center.mm,last=c.omr.ones.at(-1).center.mm;
+      const x=Math.floor((first.x-3*c.scale)*sx),y=Math.floor(r.y*sy),w=Math.ceil((r.x+r.width)*sx)-x,h=Math.ceil((last.y+3*c.scale)*sy)-y;
+      const part=v.canvas(w,h);part.getContext('2d').drawImage(sheet,x,y,w,h,0,0,w,h);
+      const [dx,dy]=Array.isArray(spec.headerDrift)?spec.headerDrift:[-.35,.45];
+      ctx.fillStyle='#fff';ctx.fillRect(x,y,w,h);ctx.drawImage(part,x+dx*c.scale*sx,y+dy*c.scale*sy);
     }
     ctx.font='bold 28px sans-serif';ctx.fillStyle='#111';ctx.fillText('SYNTHETIC WORKSHEET - no real student information',130,450);
     for(let y=650;y<height-220;y+=160){ctx.fillRect(130,y,width-260,2);ctx.fillText('Practice writing',130,y-30);}
@@ -84,9 +101,9 @@ for(const mode of baseline?['baseline','candidate']:['candidate'])for(const spec
     const blob=await new Promise(resolve=>image.toBlob(resolve,spec.jpeg?'image/jpeg':'image/png',.76));
     const result=await v.processImage(blob,options),reading=result.reading;
     const bytes=result.correctedBlob?Array.from(new Uint8Array(await result.correctedBlob.arrayBuffer())):null;
-    return {status:reading.status,reason:reading.reason||null,message:reading.message,worksheetId:reading.qr?.worksheetId,side:reading.qr?.side,marksMatch:reading.classNumber===3&&reading.number===7,restoredMarkers:reading.restoredMarkers||0,autoTone:reading.autoTone,elapsedMs:reading.elapsedMs||0,bytes:bytes&&(spec.name==='inset-on-dark-desk'||spec.name==='off-centre-perspective'||spec.clip&&!spec.blank)?bytes:null};
+    return {status:reading.status,reason:reading.reason||null,message:reading.message,worksheetId:reading.qr?.worksheetId,side:reading.qr?.side,pageSize:reading.pageSize,marksMatch:reading.classNumber===(spec.marks||[3,0,7])[0]&&reading.number===(spec.marks||[3,0,7])[1]*10+(spec.marks||[3,0,7])[2],restoredMarkers:reading.restoredMarkers||0,autoTone:reading.autoTone,elapsedMs:reading.elapsedMs||0,bytes:bytes&&(spec.name==='inset-on-dark-desk'||spec.name==='off-centre-perspective'||spec.clip&&!spec.blank)?bytes:null};
   },{spec,mode});
-  const pass=spec.review?result.status==='REVIEW':result.status==='OK'&&result.worksheetId==='dr41'&&result.side===spec.side&&result.marksMatch&&(!spec.clip||result.restoredMarkers===1)&&result.autoTone!==!!spec.manualTone;
+  const pass=spec.review?result.status==='REVIEW':result.status==='OK'&&result.worksheetId==='dr41'&&result.side===spec.side&&result.pageSize===spec.paper&&result.marksMatch&&(!spec.clip||result.restoredMarkers===1)&&result.autoTone!==!!spec.manualTone;
   if(result.bytes&&output){fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(path.join(path.dirname(output),mode+'-'+(spec.clip?spec.name:spec.side)+'.png'),Buffer.from(result.bytes));}delete result.bytes;
   results.push({mode,name:spec.name,pass,...result});console.log(JSON.stringify(results.at(-1)));
 }

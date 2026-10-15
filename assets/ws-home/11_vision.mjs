@@ -242,6 +242,50 @@ function qrCrop(source,points,c,options) {
   const image=warp(source,points,target,width,height);tone(image,options.brightness||0,options.contrast||0,options.autoTone!==false);
   return {image,left,top,density};
 }
+function printedQrGeometry(region,c,decoded) {
+  // Measure the photographed nested finder squares. Decoders can infer a noisy
+  // fourth QR corner even when the payload is correct; do not use it as a ruler.
+  const {image,left,top,density}=region,gray=grayscale(image),w=image.width,h=image.height;
+  const modules=decoded.version*4+17,r=c.qr.region.mm,pitch=r.width/(modules+8);
+  const centers=['topLeftFinderPattern','topRightFinderPattern','bottomLeftFinderPattern'].map(k=>decoded.location[k]);
+  if(centers.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)))return null;
+  const lo=percentile(gray,.04),hi=percentile(gray,.96);if(hi-lo<40)return null;
+  const threshold=(lo+hi)/2,mask=Uint8Array.from(gray,v=>v<threshold?1:0),queue=new Int32Array(w*h),patterns=[];
+  for(let start=0;start<mask.length;start++){
+    if(mask[start]!==1)continue;mask[start]=2;queue[0]=start;let count=1,minX=w,maxX=0,minY=h,maxY=0;
+    for(let n=0;n<count;n++){
+      const i=queue[n],x=i%w,y=Math.floor(i/w);minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+      for(const j of [x?i-1:-1,x<w-1?i+1:-1,y?i-w:-1,y<h-1?i+w:-1])if(j>=0&&mask[j]===1){mask[j]=2;queue[count++]=j;}
+    }
+    const bw=maxX-minX+1,bh=maxY-minY+1,size=7*pitch*density;
+    if(bw<size*.65||bh<size*.65||bw>size*1.4||bh>size*1.4||minX<1||minY<1||maxX>w-2||maxY>h-2)continue;
+    const edgeLeft=new Int32Array(bh).fill(w),edgeRight=new Int32Array(bh).fill(-1);
+    for(let n=0;n<count;n++){const i=queue[n],y=Math.floor(i/w)-minY,x=i%w;edgeLeft[y]=Math.min(edgeLeft[y],x);edgeRight[y]=Math.max(edgeRight[y],x);}
+    const boundary=[];for(let y=0;y<bh;y++)if(edgeRight[y]>=0)boundary.push({x:edgeLeft[y],y:y+minY},{x:edgeRight[y],y:y+minY});
+    const shape=squareCenter(boundary);if(!shape)continue;
+    let poly=shape.polygon;const first=poly.reduce((best,p,i)=>p.x+p.y<poly[best].x+poly[best].y?i:best,0);
+    poly=poly.slice(first).concat(poly.slice(0,first));
+    const matrix=homography([{x:0,y:0},{x:7,y:0},{x:7,y:7},{x:0,y:7}],poly);
+    let correct=0;
+    for(let y=0;y<7;y++)for(let x=0;x<7;x++){
+      const p=transformPoint(matrix,{x:x+.5,y:y+.5}),dark=gray[Math.round(p.y)*w+Math.round(p.x)]<threshold;
+      const expected=x===0||x===6||y===0||y===6||x>=2&&x<=4&&y>=2&&y<=4;
+      if(dark===expected)correct++;
+    }
+    if(correct>=47)patterns.push({center:{x:shape.x,y:shape.y},poly});
+  }
+  const expected=[],actual=[],used=new Set();
+  for(const [i,center] of centers.entries()){
+    const nearby=patterns.map((p,index)=>({p,index,d:Math.hypot(p.center.x-center.x,p.center.y-center.y)})).filter(v=>!used.has(v.index)&&v.d<pitch*density*1.5).sort((a,b)=>a.d-b.d);
+    if(!nearby.length||nearby[1]&&nearby[1].d-nearby[0].d<pitch*density*.5)return null;
+    used.add(nearby[0].index);
+    const x=i===1?modules-3:4,y=i===2?modules-3:4;
+    expected.push(...[{x,y},{x:x+7,y},{x:x+7,y:y+7},{x,y:y+7}].map(p=>({x:r.x+p.x*pitch,y:r.y+p.y*pitch})));
+    actual.push(...nearby[0].p.poly.map(p=>({x:p.x/density+left,y:p.y/density+top})));
+  }
+  return {expected,actual,error:Math.max(...actual.map((p,i)=>Math.hypot(p.x-expected[i].x,p.y-expected[i].y)))};
+}
+
 function readQr(region,c) {
   const {image,left,top,density}=region,ctx=image.getContext('2d',{willReadFrequently:true}),data=ctx.getImageData(0,0,image.width,image.height);
   let decoded=window.jsQR(data.data,image.width,image.height,{inversionAttempts:'attemptBoth'});
@@ -256,9 +300,10 @@ function readQr(region,c) {
   const expected=[{x:r.x+quiet,y:r.y+quiet},{x:r.x+r.width-quiet,y:r.y+quiet},{x:r.x+r.width-quiet,y:r.y+r.height-quiet},{x:r.x+quiet,y:r.y+r.height-quiet}];
   const actual=['topLeftCorner','topRightCorner','bottomRightCorner','bottomLeftCorner'].map(key=>({x:decoded.location[key].x/density+left,y:decoded.location[key].y/density+top}));
   const error=Math.max(...actual.map((p,i)=>Math.hypot(p.x-expected[i].x,p.y-expected[i].y)));
-  return {qr,error,modules,actual,expected};
+  const measured=printedQrGeometry(region,c,decoded);
+  return {qr,error:measured?.error??error,decodedError:error,modules,actual,expected,measured};
 }
-function recoverRegistration(source,points,c,found) {
+function recoverRegistration(source,points,c,found,options={}) {
   const physical=targetMarkers(c,c.page.widthMm,c.page.heightMm),toMm=homography(points,physical),toSource=homography(physical,points),observed=markerComponents(source),matches=[];
   for(const target of physical){
     const nearby=observed.map(m=>({m,point:transformPoint(toMm,m)})).map(v=>({...v,d:Math.hypot(v.point.x-target.x,v.point.y-target.y)})).filter(v=>v.d<5.5*c.scale).sort((a,b)=>a.d-b.d);
@@ -269,25 +314,36 @@ function recoverRegistration(source,points,c,found) {
   }
   // At least three intact printed squares AND a visible remnant are mandatory.
   if(new Set(matches.map(v=>v.m)).size!==4||matches.filter(v=>v.complete).length!==3)return null;
-  const from=[],to=[],weights=[];
-  matches.forEach((v,i)=>{if(v.complete){from.push(physical[i]);to.push(v.m);weights.push(4);}});
-  found.expected.forEach((p,i)=>{from.push(p);to.push(transformPoint(toSource,found.actual[i]));weights.push(1);});
+  const from=[],to=[];
+  matches.forEach((v,i)=>{if(v.complete){from.push(physical[i]);to.push(v.m);}});
+  const registration=found.measured||found;
+  registration.expected.forEach((p,i)=>{from.push(p);to.push(transformPoint(toSource,registration.actual[i]));});
   const damaged=matches.findIndex(v=>!v.complete),remnant=matches[damaged],poly=remnant.m.polygon.map(p=>transformPoint(toMm,p)),lengths=remnant.lengths;
   const axis=(lengths[0]+lengths[2])<(lengths[1]+lengths[3])?0:1,short=(lengths[axis]+lengths[axis+2])/2,long=(lengths[(axis+1)%4]+lengths[(axis+3)%4])/2;
   if(short>long*.74||short<long*.18)return null;
-  const a=poly[axis],b=poly[(axis+1)%4],size=Math.hypot(b.x-a.x,b.y-a.y),unit={x:(b.x-a.x)/size,y:(b.y-a.y)/size},center=transformPoint(toMm,remnant.m),fits=[];
+  const a=poly[axis],b=poly[(axis+1)%4],size=Math.hypot(b.x-a.x,b.y-a.y),unit={x:(b.x-a.x)/size,y:(b.y-a.y)/size},center=transformPoint(toMm,remnant.m);
   // Test both possible missing edges. The QR must decide, rather than guessing an answer.
-  for(const sign of [-1,1]){
-    const inferred=transformPoint(toSource,{x:center.x+sign*unit.x*(long-short)/2,y:center.y+sign*unit.y*(long-short)/2});
-    const src=from.concat(physical[damaged]),dst=to.concat(inferred),fit=fitHomography(src,dst,weights.concat(4)),newPoints=physical.map(p=>transformPoint(fit,p)),inverse=homography(newPoints,physical);
-    const errors=dst.map((p,i)=>{const q=transformPoint(inverse,p);return Math.hypot(q.x-src[i].x,q.y-src[i].y);}),error=Math.max(...errors);
-    if(error>.55*c.scale||!validCorners(newPoints,source))continue;
-    const p=physical[damaged],remainder=remnant.m.polygon.map(v=>transformPoint(inverse,v)),half=1.75*c.scale;
-    if(remainder.some(v=>Math.abs(v.x-p.x)>half+.65*c.scale||Math.abs(v.y-p.y)>half+.65*c.scale)||polygonArea(remainder)<(3.5*c.scale)**2*.18)continue;
-    fits.push({points:newPoints,error,restored:[damaged]});
+  // Prefer the original total QR weight and 0.55 mm page fit. The second fit
+  // uses all 12 measured vertices and requires the independent printed-circle
+  // layout proof before applying the existing bounded local header correction.
+  const attempts=found.measured?[{weight:1/3,limit:.55},{weight:1,limit:1.25}]:[{weight:1,limit:.55}];
+  for(const attempt of attempts){
+    const weights=from.map((_,i)=>i<3?4:attempt.weight),fits=[];
+    for(const sign of [-1,1]){
+      const inferred=transformPoint(toSource,{x:center.x+sign*unit.x*(long-short)/2,y:center.y+sign*unit.y*(long-short)/2});
+      const src=from.concat(physical[damaged]),dst=to.concat(inferred),fit=fitHomography(src,dst,weights.concat(4)),newPoints=physical.map(p=>transformPoint(fit,p)),inverse=homography(newPoints,physical);
+      const errors=dst.map((p,i)=>{const q=transformPoint(inverse,p);return Math.hypot(q.x-src[i].x,q.y-src[i].y);}),error=Math.max(...errors);
+      if(error>attempt.limit*c.scale||errors.slice(0,3).some(v=>v>.55*c.scale)||errors.at(-1)>.55*c.scale||!validCorners(newPoints,source))continue;
+      const p=physical[damaged],remainder=remnant.m.polygon.map(v=>transformPoint(inverse,v)),half=1.75*c.scale;
+      if(remainder.some(v=>Math.abs(v.x-p.x)>half+.65*c.scale||Math.abs(v.y-p.y)>half+.65*c.scale)||polygonArea(remainder)<(3.5*c.scale)**2*.18)continue;
+      const headerProof=found.measured?provePrintedHeader(source,newPoints,c,options):null;
+      if(found.measured&&!headerProof)continue;
+      fits.push({points:newPoints,error:Math.max(error,headerProof?.qrPositionError||0,headerProof?.headerResidual||0),score:error,limit:headerProof?1.25*c.scale:.8,headerProof,restored:[damaged]});
+    }
+    fits.sort((a,b)=>a.score-b.score);
+    if(fits[0]&&(fits.length===1||fits[1].score-fits[0].score>.06*c.scale))return fits[0];
   }
-  fits.sort((a,b)=>a.error-b.error);
-  return fits[0]&&(fits.length===1||fits[1].error-fits[0].error>.06*c.scale)?fits[0]:null;
+  return null;
 }
 function completeMarkerSet(source,points,c) {
   const mm=homography(points,targetMarkers(c,c.page.widthMm,c.page.heightMm)),observed=markerComponents(source),side=3.5*c.scale;
@@ -322,7 +378,7 @@ function sharpenPrintedQr(image,c,payload) {
   const decoded=readQr(qrCrop(image,targetMarkers(c,image.width,image.height),c,{autoTone:false}),c);
   if(!decoded||decoded.qr.payload!==payload)ctx.putImageData(original,x,y);
 }
-function alignPrintedHeader(image,c) {
+function printedHeaderModel(image,c) {
   // Use the outlines of many EMPTY printed circles, never the selected answers,
   // to correct small header skew/print drift left after the page homography.
   const gray=grayscale(image),sx=image.width/c.page.widthMm,sy=image.height/c.page.heightMm,points=[];
@@ -340,7 +396,7 @@ function alignPrintedHeader(image,c) {
         if(!best||score>best.score)best={expected,actual:{x,y},row,score};
       }
     }
-    if(best)points.push(best);
+    if(best&&Math.abs(best.actual.x-best.expected.x)<1.18*c.scale&&Math.abs(best.actual.y-best.expected.y)<1.18*c.scale)points.push(best);
   }
   function fit(data){
     const origin=c.omr.class[0].center.mm,normal=Array.from({length:3},()=>new Array(4).fill(0)),other=Array.from({length:3},()=>new Array(4).fill(0));
@@ -349,25 +405,65 @@ function alignPrintedHeader(image,c) {
     return p=>({x:p.x+x[0]*(p.x-origin.x)+x[1]*(p.y-origin.y)+x[2],y:p.y+y[0]*(p.x-origin.x)+y[1]*(p.y-origin.y)+y[2]});
   }
   function enough(data){return data.length>=18&&rowNames.every(row=>data.filter(p=>p.row===row).length>=5)&&new Set(data.map(p=>p.expected.x)).size>=8;}
-  let aligned=false;
   if(enough(points)){
     let model=fit(points),stable=points.filter(p=>{const q=model(p.expected);return Math.hypot(q.x-p.actual.x,q.y-p.actual.y)<.25*c.scale;});
     if(enough(stable)){
-      model=fit(stable);const offsets=stable.map(p=>{const q=model(p.expected);return Math.hypot(q.x-p.expected.x,q.y-p.expected.y);});
-      if(Math.max(...offsets)>.15*c.scale&&Math.max(...offsets)<1.25*c.scale){
-        const first=c.omr.class[0].center.mm,last=c.omr.ones.at(-1).center.mm;
-        remapRegion(image,c,{x:first.x-4*c.scale,y:first.y-3.5*c.scale,width:last.x-first.x+8.5*c.scale,height:last.y-first.y+7*c.scale},model);aligned=true;
-      }
+      model=fit(stable);const maxOffset=Math.max(...stable.map(p=>{const q=model(p.expected);return Math.hypot(q.x-p.expected.x,q.y-p.expected.y);}));
+      if(maxOffset<1.25*c.scale)return {model,maxOffset};
     }
   }
-  // Move the photographed QR pixels into their known print position; do not regenerate a code.
-  const found=readQr(qrCrop(image,targetMarkers(c,image.width,image.height),c,{autoTone:false}),c);
-  if(found&&found.error>.35*c.scale&&found.error<=.8*c.scale){
-    const matrix=homography(found.expected,found.actual),r=c.qr.region.mm;
-    remapRegion(image,c,{x:r.x-2*c.scale,y:r.y-2*c.scale,width:r.width+4*c.scale,height:r.height+4*c.scale},p=>transformPoint(matrix,p));aligned=true;
+  return null;
+}
+function qrHeaderResidual(found,calibration,c) {
+  if(!found?.measured||!calibration)return null;
+  const {model}=calibration,{expected,actual}=found.measured;
+  if(expected.some(p=>{const q=model(p);return Math.hypot(q.x-p.x,q.y-p.y)>1.25*c.scale;}))return null;
+  const error=Math.max(...actual.map((p,i)=>{const q=model(expected[i]);return Math.hypot(p.x-q.x,p.y-q.y);}));
+  return error<=1.25*c.scale?error:null;
+}
+function provePrintedHeader(source,points,c,options) {
+  const width=provisionalLimits.normalizedWidth,height=Math.round(width*c.page.heightMm/c.page.widthMm);
+  const image=warp(source,points,targetMarkers(c,width,height),width,height);tone(image,options.brightness||0,options.contrast||0,options.autoTone!==false);
+  const found=readQr(qrCrop(source,points,c,options),c);
+  if(!found?.measured||found.error>1.25*c.scale)return null;
+  const calibration=printedHeaderModel(image,c),headerResidual=qrHeaderResidual(found,calibration,c);
+  if(headerResidual===null)return null;
+  const matrix=fitHomography(found.measured.expected,found.measured.actual,new Array(12).fill(1));
+  const error=Math.max(...found.measured.actual.map((p,i)=>{const q=transformPoint(matrix,found.measured.expected[i]);return Math.hypot(p.x-q.x,p.y-q.y);}));
+  return error<=.45*c.scale?{patternResidual:error,headerResidual,qrPositionError:found.error,headerOffset:calibration.maxOffset}:null;
+}
+function alignPrintedHeader(image,c) {
+  const calibration=printedHeaderModel(image,c);let aligned=false,qrConsistent=false;
+  if(calibration&&calibration.maxOffset>.15*c.scale){
+    const first=c.omr.class[0].center.mm,last=c.omr.ones.at(-1).center.mm;
+    remapRegion(image,c,{x:first.x-4*c.scale,y:first.y-3.5*c.scale,width:last.x-first.x+8.5*c.scale,height:last.y-first.y+7*c.scale},calibration.model);aligned=true;
   }
-  if(found)sharpenPrintedQr(image,c,found.qr.payload);
-  return aligned;
+  // A larger local correction requires agreement with the EMPTY printed circles.
+  const found=readQr(qrCrop(image,targetMarkers(c,image.width,image.height),c,{autoTone:false}),c);
+  if(found){
+    const r=c.qr.region.mm,box={x:r.x-2*c.scale,y:r.y-2*c.scale,width:r.width+4*c.scale,height:r.height+4*c.scale};
+    const ctx=image.getContext('2d'),sx=image.width/c.page.widthMm,sy=image.height/c.page.heightMm;
+    const x=Math.floor(box.x*sx),y=Math.floor(box.y*sy),w=Math.ceil(box.width*sx),h=Math.ceil(box.height*sy),original=ctx.getImageData(x,y,w,h);
+    const methods=[{name:'original',matrix:null}];
+    const decodedAllowed=found.decodedError<=.8*c.scale;
+    const measuredAllowed=found.measured&&(found.error<=.8*c.scale||found.error<=1.25*c.scale&&qrHeaderResidual(found,calibration,c)!==null);
+    if(decodedAllowed)methods.push({name:'decoded',matrix:homography(found.expected,found.actual)});
+    if(measuredAllowed)methods.push({name:'printed',matrix:fitHomography(found.measured.expected,found.measured.actual,new Array(12).fill(1))});
+    if(decodedAllowed&&measuredAllowed)methods.push({name:'combined',matrix:fitHomography(found.measured.expected.concat(found.expected),found.measured.actual.concat(found.actual),new Array(16).fill(1))});
+    let best=null;
+    for(const method of methods){
+      ctx.putImageData(original,x,y);
+      if(method.matrix)remapRegion(image,c,box,p=>transformPoint(method.matrix,p));
+      sharpenPrintedQr(image,c,found.qr.payload);
+      const after=readQr(qrCrop(image,targetMarkers(c,image.width,image.height),c,{autoTone:false}),c);
+      if(!after||after.qr.payload!==found.qr.payload)continue;
+      const score=Math.max(after.decodedError,after.measured?.error??after.decodedError);
+      if(!best||score<best.score)best={score,pixels:ctx.getImageData(x,y,w,h),moved:!!method.matrix};
+    }
+    ctx.putImageData(best?.pixels||original,x,y);if(best?.moved)aligned=true;
+    qrConsistent=!!best&&best.score<=.8*c.scale;
+  }
+  return {aligned,qrConsistent};
 }
 function markSamples(gray, image, c, mark) {
   const cx = mark.center.mm.x / c.page.widthMm * image.width, cy = mark.center.mm.y / c.page.heightMm * image.height;
@@ -428,34 +524,35 @@ export async function processImage(blob, options = {}) {
       if(found){
         if(completeMarkerSet(source,points,c))candidates.push({...found,c,points,corners:set.points});
         else if(!options.preciseCorners){
-          const recovered=recoverRegistration(source,points,c,found);
-          if(recovered){const refined=readQr(qrCrop(source,recovered.points,c,options),c);if(refined&&refined.qr.payload===found.qr.payload)candidates.push({...refined,error:Math.max(refined.error,recovered.error),c,points:recovered.points,corners:recovered.points,restored:recovered.restored});}
+          const recovered=recoverRegistration(source,points,c,found,options);
+          if(recovered){const refined=readQr(qrCrop(source,recovered.points,c,options),c);if(refined&&refined.qr.payload===found.qr.payload)candidates.push({...refined,error:Math.max(refined.error,recovered.error),limit:recovered.limit,c,points:recovered.points,corners:recovered.points,restored:recovered.restored});}
         }
       }
     }
-    if(candidates.some(v=>v.error<=.8))break;
+    if(candidates.some(v=>v.error<=(v.limit??.8)))break;
   }
-  if(!options.corners&&!candidates.some(v=>v.error<=.8)){
+  if(!options.corners&&!candidates.some(v=>v.error<=(v.limit??.8))){
     for(const paper of paperQuads(source))for(const c of catalog)for(let turn=0;turn<4;turn++){
       const page=[{x:0,y:0},{x:c.page.widthMm,y:0},{x:c.page.widthMm,y:c.page.heightMm},{x:0,y:c.page.heightMm}],matrix=homography(page,paper.slice(turn).concat(paper.slice(0,turn)));
       const points=targetMarkers(c,c.page.widthMm,c.page.heightMm).map(p=>transformPoint(matrix,p));
       if(!validCorners(points,source))continue;
       const found=readQr(qrCrop(source,points,c,options),c);if(!found||found.error>4*c.scale)continue;
-      const recovered=recoverRegistration(source,points,c,found);if(!recovered)continue;
+      const recovered=recoverRegistration(source,points,c,found,options);if(!recovered)continue;
       const refined=readQr(qrCrop(source,recovered.points,c,options),c);if(!refined||refined.qr.payload!==found.qr.payload)continue;
-      candidates.push({...refined,error:Math.max(refined.error,recovered.error),c,points:recovered.points,corners:recovered.points,restored:recovered.restored});
+      candidates.push({...refined,error:Math.max(refined.error,recovered.error),limit:recovered.limit,c,points:recovered.points,corners:recovered.points,restored:recovered.restored});
     }
   }
-  candidates.sort((a,b)=>a.error-b.error);
+  candidates.sort((a,b)=>a.error/a.c.scale-b.error/b.c.scale);
   const best=candidates[0],alternative=best&&candidates.find(v=>v.c.pageSize!==best.c.pageSize||v.qr.payload!==best.qr.payload);
   if(!best)return {source,corners,reading:{status:'REVIEW',reason:corners?'QR_UNREADABLE':'MARKERS_NOT_FOUND',message:corners?'WS識別QRを読み取れません。影・ピンぼけを避けて撮り直すか、「調整する」で四隅を確認してください。':'用紙の位置を確認できません。暗めの机の上で、用紙の四隅がすべて入るように撮影してください。'}};
   corners=best.corners;
-  if(best.error>.8||alternative&&alternative.error-best.error<.1)return {source,corners,reading:{status:'REVIEW',reason:'QR_POSITION_MISMATCH',message:'QRは読めましたが、用紙と黒いマーカーの位置が合いません。紙の角ではなく四隅の黒い■の中心へ合わせてください。'}};
+  if(best.error>(best.limit??.8)||alternative&&alternative.error/alternative.c.scale-best.error/best.c.scale<.1)return {source,corners,reading:{status:'REVIEW',reason:'QR_POSITION_MISMATCH',message:'QRは読めましたが、用紙と黒いマーカーの位置が合いません。紙の角ではなく四隅の黒い■の中心へ合わせてください。'}};
   const c=best.c,width=provisionalLimits.normalizedWidth,height=Math.round(width*c.page.heightMm/c.page.widthMm);
   const corrected=warp(source,best.points,targetMarkers(c,width,height),width,height);tone(corrected,options.brightness||0,options.contrast||0,options.autoTone!==false);
   const q=quality(corrected,c);
-  const headerAligned=alignPrintedHeader(corrected,c);
+  const {aligned:headerAligned,qrConsistent}=alignPrintedHeader(corrected,c);
   const omr=readOmr(corrected,c),problems=omr.issues.slice();
+  if(!qrConsistent)problems.push('補正後のQRの位置を確認できません。四隅を確認するか、撮り直してください。');
   const matrix=homography(targetMarkers(c,c.page.widthMm,c.page.heightMm),best.points),sourceQr=best.actual.map(p=>transformPoint(matrix,p));
   const modulePixels=Math.min(...sourceQr.map((p,i)=>Math.hypot(p.x-sourceQr[(i+1)%4].x,p.y-sourceQr[(i+1)%4].y)))/best.modules;
   if(modulePixels<3)problems.push('解像度が不足しています。用紙を大きく写して撮り直してください。');
