@@ -169,6 +169,11 @@
     function structural(actual, expected) {
       return !actual.relation && sameDimensions(actual.dimensions, expected.dimensions) && Formula.equivalent(actual.symbolic, expected.symbolic);
     }
+    function expectedExpressions(task, index) {
+      // 数量の由来を保つ別解だけを教材側が明示する。数値一致への緩和はしない。
+      return [task.legacyExpectedTokens || task.expectedTokens, ...(task.expectedAlternatives || [])]
+        .map(tokens => evaluate(tokens, index, false));
+    }
     function formulaExpression(result) {
       const relation = result.relation;
       return relation && relation.operators.every(operator => operator === '=') ? relation.operands[0] : result;
@@ -256,8 +261,8 @@
         const formulaCorrect = task.rule === 'minimum-bits'
           ? minimumBits(task, index) && (!fields || Object.values(fields).every(Boolean))
           : (() => {
-            const expected = evaluate(task.legacyExpectedTokens || task.expectedTokens, index, false);
-            return evaluateVariants(rows[index].tokens, index).some(candidate => structural(formulaExpression(candidate.result), expected));
+            const expected = expectedExpressions(task, index);
+            return evaluateVariants(rows[index].tokens, index).some(candidate => expected.some(expression => structural(formulaExpression(candidate.result), expression)));
           })();
         const answerCorrect = close(answer, task.expected, task.tolerance);
         const messages = [];

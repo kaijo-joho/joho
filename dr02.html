@@ -8,9 +8,14 @@
   <link rel="stylesheet" href="./css/digital-representation.css">
   <link rel="stylesheet" href="./css/digital-basics.css">
   <link rel="stylesheet" href="./css/digital-radix.css">
+  <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/digital-basics-core.js"></script>
   <script defer src="./js/digital-radix-core.js"></script>
+  <script defer src="./js/lesson-formula-core.js"></script>
+  <script defer src="./js/lesson-formula-grader.js"></script>
+  <script defer src="./js/lesson-formula-builder.js"></script>
+  <script defer src="./js/digital-radix-formulas.js"></script>
   <script defer src="./js/digital-basics-lessons.js"></script>
   <script defer src="./js/digital-radix-lessons.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
@@ -196,55 +201,55 @@
 <li>商が0になったので、余りを<strong>下から上へ</strong>読みます。</li>
 <li>答えは<strong><span class="rx-numeral">111110111<sub>(2)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
 </form>
-<form class="db-exercise" data-db-question="rx-binary-6" data-db-question-title="問題6　10101（2進数）を10進数へ" data-db-source="10101" data-db-source-base="2" data-db-answer-base="10">
+<form class="db-exercise" data-db-question="rx-binary-6" data-db-formula-question="radix" data-db-question-title="問題6　10101（2進数）を10進数へ" data-db-source="10101" data-db-source-base="2" data-db-answer-base="10">
 <h3>問題6　10101（2進数）を10進数へ</h3><p><span class="rx-numeral">10101<sub>(2)</sub></span>を10進数に変換してください。</p>
-<div class="db-answer-row db-enhancement" hidden><label for="rx-binary-6">10進数の解答<input id="rx-binary-6" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" data-db-answer aria-describedby="rx-binary-6-hint rx-binary-6-feedback" tabindex="0"></label></div>
-<p class="db-hint" id="rx-binary-6-hint">数値だけを入力します。全角数字・英字にも対応しています。</p>
-<div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary" tabindex="0">判定</button><button type="reset" class="dr-button" tabindex="0">入力を消す</button></div>
+<div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+<p class="db-hint" id="rx-binary-6-hint">桁の数字と位の重みを使って式を組み、10進数の答えを入力します。</p>
+<div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
 <p class="db-feedback" id="rx-binary-6-feedback" data-db-feedback role="status"></p>
-<details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から2<sup>0</sup>、2<sup>1</sup>、2<sup>2</sup>…の位の値があります。</li>
+<details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から2<sup>0</sup>、2<sup>1</sup>、2<sup>2</sup>…の位の値があります。</li>
 <li>1 × 16 ＋ 0 × 8 ＋ 1 × 4 ＋ 0 × 2 ＋ 1 × 1</li>
-<li>合計すると<strong><span class="rx-numeral">21<sub>(10)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
+<li>合計すると<strong><span class="rx-numeral">21<sub>(10)</sub></span></strong>です。</li></ol></div></details>
 </form>
-<form class="db-exercise" data-db-question="rx-binary-7" data-db-question-title="問題7　11010（2進数）を10進数へ" data-db-source="11010" data-db-source-base="2" data-db-answer-base="10">
+<form class="db-exercise" data-db-question="rx-binary-7" data-db-formula-question="radix" data-db-question-title="問題7　11010（2進数）を10進数へ" data-db-source="11010" data-db-source-base="2" data-db-answer-base="10">
 <h3>問題7　11010（2進数）を10進数へ</h3><p><span class="rx-numeral">11010<sub>(2)</sub></span>を10進数に変換してください。</p>
-<div class="db-answer-row db-enhancement" hidden><label for="rx-binary-7">10進数の解答<input id="rx-binary-7" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" data-db-answer aria-describedby="rx-binary-7-hint rx-binary-7-feedback" tabindex="0"></label></div>
-<p class="db-hint" id="rx-binary-7-hint">数値だけを入力します。全角数字・英字にも対応しています。</p>
-<div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary" tabindex="0">判定</button><button type="reset" class="dr-button" tabindex="0">入力を消す</button></div>
+<div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+<p class="db-hint" id="rx-binary-7-hint">桁の数字と位の重みを使って式を組み、10進数の答えを入力します。</p>
+<div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
 <p class="db-feedback" id="rx-binary-7-feedback" data-db-feedback role="status"></p>
-<details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から2<sup>0</sup>、2<sup>1</sup>、2<sup>2</sup>…の位の値があります。</li>
+<details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から2<sup>0</sup>、2<sup>1</sup>、2<sup>2</sup>…の位の値があります。</li>
 <li>1 × 16 ＋ 1 × 8 ＋ 0 × 4 ＋ 1 × 2 ＋ 0 × 1</li>
-<li>合計すると<strong><span class="rx-numeral">26<sub>(10)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
+<li>合計すると<strong><span class="rx-numeral">26<sub>(10)</sub></span></strong>です。</li></ol></div></details>
 </form>
-<form class="db-exercise" data-db-question="rx-binary-8" data-db-question-title="問題8　111001（2進数）を10進数へ" data-db-source="111001" data-db-source-base="2" data-db-answer-base="10">
+<form class="db-exercise" data-db-question="rx-binary-8" data-db-formula-question="radix" data-db-question-title="問題8　111001（2進数）を10進数へ" data-db-source="111001" data-db-source-base="2" data-db-answer-base="10">
 <h3>問題8　111001（2進数）を10進数へ</h3><p><span class="rx-numeral">111001<sub>(2)</sub></span>を10進数に変換してください。</p>
-<div class="db-answer-row db-enhancement" hidden><label for="rx-binary-8">10進数の解答<input id="rx-binary-8" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" data-db-answer aria-describedby="rx-binary-8-hint rx-binary-8-feedback" tabindex="0"></label></div>
-<p class="db-hint" id="rx-binary-8-hint">数値だけを入力します。全角数字・英字にも対応しています。</p>
-<div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary" tabindex="0">判定</button><button type="reset" class="dr-button" tabindex="0">入力を消す</button></div>
+<div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+<p class="db-hint" id="rx-binary-8-hint">桁の数字と位の重みを使って式を組み、10進数の答えを入力します。</p>
+<div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
 <p class="db-feedback" id="rx-binary-8-feedback" data-db-feedback role="status"></p>
-<details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から2<sup>0</sup>、2<sup>1</sup>、2<sup>2</sup>…の位の値があります。</li>
+<details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から2<sup>0</sup>、2<sup>1</sup>、2<sup>2</sup>…の位の値があります。</li>
 <li>1 × 32 ＋ 1 × 16 ＋ 1 × 8 ＋ 0 × 4 ＋ 0 × 2 ＋ 1 × 1</li>
-<li>合計すると<strong><span class="rx-numeral">57<sub>(10)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
+<li>合計すると<strong><span class="rx-numeral">57<sub>(10)</sub></span></strong>です。</li></ol></div></details>
 </form>
-<form class="db-exercise" data-db-question="rx-binary-9" data-db-question-title="問題9　1001100（2進数）を10進数へ" data-db-source="1001100" data-db-source-base="2" data-db-answer-base="10">
+<form class="db-exercise" data-db-question="rx-binary-9" data-db-formula-question="radix" data-db-question-title="問題9　1001100（2進数）を10進数へ" data-db-source="1001100" data-db-source-base="2" data-db-answer-base="10">
 <h3>問題9　1001100（2進数）を10進数へ</h3><p><span class="rx-numeral">1001100<sub>(2)</sub></span>を10進数に変換してください。</p>
-<div class="db-answer-row db-enhancement" hidden><label for="rx-binary-9">10進数の解答<input id="rx-binary-9" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" data-db-answer aria-describedby="rx-binary-9-hint rx-binary-9-feedback" tabindex="0"></label></div>
-<p class="db-hint" id="rx-binary-9-hint">数値だけを入力します。全角数字・英字にも対応しています。</p>
-<div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary" tabindex="0">判定</button><button type="reset" class="dr-button" tabindex="0">入力を消す</button></div>
+<div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+<p class="db-hint" id="rx-binary-9-hint">桁の数字と位の重みを使って式を組み、10進数の答えを入力します。</p>
+<div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
 <p class="db-feedback" id="rx-binary-9-feedback" data-db-feedback role="status"></p>
-<details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から2<sup>0</sup>、2<sup>1</sup>、2<sup>2</sup>…の位の値があります。</li>
+<details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から2<sup>0</sup>、2<sup>1</sup>、2<sup>2</sup>…の位の値があります。</li>
 <li>1 × 64 ＋ 0 × 32 ＋ 0 × 16 ＋ 1 × 8 ＋ 1 × 4 ＋ 0 × 2 ＋ 0 × 1</li>
-<li>合計すると<strong><span class="rx-numeral">76<sub>(10)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
+<li>合計すると<strong><span class="rx-numeral">76<sub>(10)</sub></span></strong>です。</li></ol></div></details>
 </form>
-<form class="db-exercise" data-db-question="rx-binary-10" data-db-question-title="問題10　1010110（2進数）を10進数へ" data-db-source="1010110" data-db-source-base="2" data-db-answer-base="10">
+<form class="db-exercise" data-db-question="rx-binary-10" data-db-formula-question="radix" data-db-question-title="問題10　1010110（2進数）を10進数へ" data-db-source="1010110" data-db-source-base="2" data-db-answer-base="10">
 <h3>問題10　1010110（2進数）を10進数へ</h3><p><span class="rx-numeral">1010110<sub>(2)</sub></span>を10進数に変換してください。</p>
-<div class="db-answer-row db-enhancement" hidden><label for="rx-binary-10">10進数の解答<input id="rx-binary-10" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" data-db-answer aria-describedby="rx-binary-10-hint rx-binary-10-feedback" tabindex="0"></label></div>
-<p class="db-hint" id="rx-binary-10-hint">数値だけを入力します。全角数字・英字にも対応しています。</p>
-<div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary" tabindex="0">判定</button><button type="reset" class="dr-button" tabindex="0">入力を消す</button></div>
+<div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+<p class="db-hint" id="rx-binary-10-hint">桁の数字と位の重みを使って式を組み、10進数の答えを入力します。</p>
+<div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
 <p class="db-feedback" id="rx-binary-10-feedback" data-db-feedback role="status"></p>
-<details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から2<sup>0</sup>、2<sup>1</sup>、2<sup>2</sup>…の位の値があります。</li>
+<details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から2<sup>0</sup>、2<sup>1</sup>、2<sup>2</sup>…の位の値があります。</li>
 <li>1 × 64 ＋ 0 × 32 ＋ 1 × 16 ＋ 0 × 8 ＋ 1 × 4 ＋ 1 × 2 ＋ 0 × 1</li>
-<li>合計すると<strong><span class="rx-numeral">86<sub>(10)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
+<li>合計すると<strong><span class="rx-numeral">86<sub>(10)</sub></span></strong>です。</li></ol></div></details>
 </form>
 </div>
 </article></section>
@@ -329,55 +334,55 @@
 <li>商が0になったので、余りを<strong>下から上へ</strong>読みます。</li>
 <li>答えは<strong><span class="rx-numeral">65<sub>(16)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
 </form>
-<form class="db-exercise" data-db-question="rx-hex-4" data-db-question-title="問題4　CC（16進数）を10進数へ" data-db-source="CC" data-db-source-base="16" data-db-answer-base="10">
+<form class="db-exercise" data-db-question="rx-hex-4" data-db-formula-question="radix" data-db-question-title="問題4　CC（16進数）を10進数へ" data-db-source="CC" data-db-source-base="16" data-db-answer-base="10">
 <h3>問題4　CC（16進数）を10進数へ</h3><p><span class="rx-numeral">CC<sub>(16)</sub></span>を10進数に変換してください。</p>
-<div class="db-answer-row db-enhancement" hidden><label for="rx-hex-4">10進数の解答<input id="rx-hex-4" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" data-db-answer aria-describedby="rx-hex-4-hint rx-hex-4-feedback" tabindex="0"></label></div>
-<p class="db-hint" id="rx-hex-4-hint">数値だけを入力します。全角数字・英字にも対応しています。</p>
-<div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary" tabindex="0">判定</button><button type="reset" class="dr-button" tabindex="0">入力を消す</button></div>
+<div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+<p class="db-hint" id="rx-hex-4-hint">桁の数字と位の重みを使って式を組み、10進数の答えを入力します。</p>
+<div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
 <p class="db-feedback" id="rx-hex-4-feedback" data-db-feedback role="status"></p>
-<details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から16<sup>0</sup>、16<sup>1</sup>、16<sup>2</sup>…の位の値があります。</li>
+<details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から16<sup>0</sup>、16<sup>1</sup>、16<sup>2</sup>…の位の値があります。</li>
 <li>C（12） × 16 ＋ C（12） × 1</li>
-<li>合計すると<strong><span class="rx-numeral">204<sub>(10)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
+<li>合計すると<strong><span class="rx-numeral">204<sub>(10)</sub></span></strong>です。</li></ol></div></details>
 </form>
-<form class="db-exercise" data-db-question="rx-hex-5" data-db-question-title="問題5　A4（16進数）を10進数へ" data-db-source="A4" data-db-source-base="16" data-db-answer-base="10">
+<form class="db-exercise" data-db-question="rx-hex-5" data-db-formula-question="radix" data-db-question-title="問題5　A4（16進数）を10進数へ" data-db-source="A4" data-db-source-base="16" data-db-answer-base="10">
 <h3>問題5　A4（16進数）を10進数へ</h3><p><span class="rx-numeral">A4<sub>(16)</sub></span>を10進数に変換してください。</p>
-<div class="db-answer-row db-enhancement" hidden><label for="rx-hex-5">10進数の解答<input id="rx-hex-5" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" data-db-answer aria-describedby="rx-hex-5-hint rx-hex-5-feedback" tabindex="0"></label></div>
-<p class="db-hint" id="rx-hex-5-hint">数値だけを入力します。全角数字・英字にも対応しています。</p>
-<div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary" tabindex="0">判定</button><button type="reset" class="dr-button" tabindex="0">入力を消す</button></div>
+<div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+<p class="db-hint" id="rx-hex-5-hint">桁の数字と位の重みを使って式を組み、10進数の答えを入力します。</p>
+<div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
 <p class="db-feedback" id="rx-hex-5-feedback" data-db-feedback role="status"></p>
-<details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から16<sup>0</sup>、16<sup>1</sup>、16<sup>2</sup>…の位の値があります。</li>
+<details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から16<sup>0</sup>、16<sup>1</sup>、16<sup>2</sup>…の位の値があります。</li>
 <li>A（10） × 16 ＋ 4 × 1</li>
-<li>合計すると<strong><span class="rx-numeral">164<sub>(10)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
+<li>合計すると<strong><span class="rx-numeral">164<sub>(10)</sub></span></strong>です。</li></ol></div></details>
 </form>
-<form class="db-exercise" data-db-question="rx-hex-6" data-db-question-title="問題6　4F（16進数）を10進数へ" data-db-source="4F" data-db-source-base="16" data-db-answer-base="10">
+<form class="db-exercise" data-db-question="rx-hex-6" data-db-formula-question="radix" data-db-question-title="問題6　4F（16進数）を10進数へ" data-db-source="4F" data-db-source-base="16" data-db-answer-base="10">
 <h3>問題6　4F（16進数）を10進数へ</h3><p><span class="rx-numeral">4F<sub>(16)</sub></span>を10進数に変換してください。</p>
-<div class="db-answer-row db-enhancement" hidden><label for="rx-hex-6">10進数の解答<input id="rx-hex-6" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" data-db-answer aria-describedby="rx-hex-6-hint rx-hex-6-feedback" tabindex="0"></label></div>
-<p class="db-hint" id="rx-hex-6-hint">数値だけを入力します。全角数字・英字にも対応しています。</p>
-<div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary" tabindex="0">判定</button><button type="reset" class="dr-button" tabindex="0">入力を消す</button></div>
+<div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+<p class="db-hint" id="rx-hex-6-hint">桁の数字と位の重みを使って式を組み、10進数の答えを入力します。</p>
+<div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
 <p class="db-feedback" id="rx-hex-6-feedback" data-db-feedback role="status"></p>
-<details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から16<sup>0</sup>、16<sup>1</sup>、16<sup>2</sup>…の位の値があります。</li>
+<details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から16<sup>0</sup>、16<sup>1</sup>、16<sup>2</sup>…の位の値があります。</li>
 <li>4 × 16 ＋ F（15） × 1</li>
-<li>合計すると<strong><span class="rx-numeral">79<sub>(10)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
+<li>合計すると<strong><span class="rx-numeral">79<sub>(10)</sub></span></strong>です。</li></ol></div></details>
 </form>
-<form class="db-exercise" data-db-question="rx-hex-7" data-db-question-title="問題7　6D（16進数）を10進数へ" data-db-source="6D" data-db-source-base="16" data-db-answer-base="10">
+<form class="db-exercise" data-db-question="rx-hex-7" data-db-formula-question="radix" data-db-question-title="問題7　6D（16進数）を10進数へ" data-db-source="6D" data-db-source-base="16" data-db-answer-base="10">
 <h3>問題7　6D（16進数）を10進数へ</h3><p><span class="rx-numeral">6D<sub>(16)</sub></span>を10進数に変換してください。</p>
-<div class="db-answer-row db-enhancement" hidden><label for="rx-hex-7">10進数の解答<input id="rx-hex-7" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" data-db-answer aria-describedby="rx-hex-7-hint rx-hex-7-feedback" tabindex="0"></label></div>
-<p class="db-hint" id="rx-hex-7-hint">数値だけを入力します。全角数字・英字にも対応しています。</p>
-<div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary" tabindex="0">判定</button><button type="reset" class="dr-button" tabindex="0">入力を消す</button></div>
+<div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+<p class="db-hint" id="rx-hex-7-hint">桁の数字と位の重みを使って式を組み、10進数の答えを入力します。</p>
+<div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
 <p class="db-feedback" id="rx-hex-7-feedback" data-db-feedback role="status"></p>
-<details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から16<sup>0</sup>、16<sup>1</sup>、16<sup>2</sup>…の位の値があります。</li>
+<details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から16<sup>0</sup>、16<sup>1</sup>、16<sup>2</sup>…の位の値があります。</li>
 <li>6 × 16 ＋ D（13） × 1</li>
-<li>合計すると<strong><span class="rx-numeral">109<sub>(10)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
+<li>合計すると<strong><span class="rx-numeral">109<sub>(10)</sub></span></strong>です。</li></ol></div></details>
 </form>
-<form class="db-exercise" data-db-question="rx-hex-8" data-db-question-title="問題8　99（16進数）を10進数へ" data-db-source="99" data-db-source-base="16" data-db-answer-base="10">
+<form class="db-exercise" data-db-question="rx-hex-8" data-db-formula-question="radix" data-db-question-title="問題8　99（16進数）を10進数へ" data-db-source="99" data-db-source-base="16" data-db-answer-base="10">
 <h3>問題8　99（16進数）を10進数へ</h3><p><span class="rx-numeral">99<sub>(16)</sub></span>を10進数に変換してください。</p>
-<div class="db-answer-row db-enhancement" hidden><label for="rx-hex-8">10進数の解答<input id="rx-hex-8" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" data-db-answer aria-describedby="rx-hex-8-hint rx-hex-8-feedback" tabindex="0"></label></div>
-<p class="db-hint" id="rx-hex-8-hint">数値だけを入力します。全角数字・英字にも対応しています。</p>
-<div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary" tabindex="0">判定</button><button type="reset" class="dr-button" tabindex="0">入力を消す</button></div>
+<div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+<p class="db-hint" id="rx-hex-8-hint">桁の数字と位の重みを使って式を組み、10進数の答えを入力します。</p>
+<div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
 <p class="db-feedback" id="rx-hex-8-feedback" data-db-feedback role="status"></p>
-<details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から16<sup>0</sup>、16<sup>1</sup>、16<sup>2</sup>…の位の値があります。</li>
+<details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>各桁には、右から16<sup>0</sup>、16<sup>1</sup>、16<sup>2</sup>…の位の値があります。</li>
 <li>9 × 16 ＋ 9 × 1</li>
-<li>合計すると<strong><span class="rx-numeral">153<sub>(10)</sub></span></strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button" data-db-step-next tabindex="0">次へ</button><button type="button" class="dr-button" data-db-step-reset tabindex="0">解説を最初に戻す</button></div></div></details>
+<li>合計すると<strong><span class="rx-numeral">153<sub>(10)</sub></span></strong>です。</li></ol></div></details>
 </form>
 </div>
 </article></section>

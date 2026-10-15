@@ -146,11 +146,12 @@ try {
     await manual.locator('[data-formula-answer]').fill('４０９６');
     await manual.locator('[data-formula-judge]').click();
     assert.match((await manual.locator('.formula-feedback').allTextContents()).join(' / '), /立式.*○.*答え.*○/);
-    // The reused multiple-choice controller still handles slide 8 and dr02.
+    // Slide 8 keeps all three independent choice questions visible.
     await go(8);
+    assert.equal(await page.locator('.lesson-slide.is-current [data-db-question]:visible').count(), 3);
+    assert.equal(await page.locator('.lesson-slide.is-current [data-db-question-select]').count(), 0);
     for (const [i, answer] of ['discrete', 'fine', 'two'].entries()) {
-      await page.locator('[data-db-question-select]').selectOption(String(i));
-      const question = page.locator('.lesson-slide.is-current [data-db-question]:visible');
+      const question = page.locator('.lesson-slide.is-current [data-db-question]').nth(i);
       await question.locator(`input[value="${answer}"]`).check(); await question.locator('[type="submit"]').click();
       assert.equal(await question.locator('[data-db-feedback]').getAttribute('data-correct'), 'true');
     }
@@ -158,7 +159,7 @@ try {
       if (mode === 'full') for (const width of [1440, 720, 390]) for (const theme of ['light', 'dark', 'system']) for (const size of ['standard', 'large', 'xlarge']) {
         await page.setViewportSize({ width, height: 960 });
         await page.evaluate(({ theme, size }) => { siteTheme.setPreference(theme, { persist: false }); siteTextSize.setPreference(size, { persist: false }); }, { theme, size });
-        for (const slide of [1, 2, 3, 4, 6, 9, 10]) { await go(slide); await fits(`${width}/${theme}/${size}/${slide}`); }
+        for (const slide of [1, 2, 3, 4, 6, 8, 9, 10]) { await go(slide); await fits(`${width}/${theme}/${size}/${slide}`); }
         await go(6); await opener.click();
         const d = await dialog.evaluate(el => ({ width: innerWidth, right: el.getBoundingClientRect().right, panel: [...el.querySelectorAll('.dr-supplement-dialog__panel')].map(n => [n.clientWidth, n.scrollWidth]) }));
         assert.ok(d.right <= d.width + 1 && d.panel.every(([width, scroll]) => scroll <= width + 1), JSON.stringify(d));
@@ -179,6 +180,12 @@ try {
         await page.evaluate(id => { location.hash = id; }, heading); await group.waitFor({ state: 'visible' });
         for (let i = 0; i < await group.locator('[data-db-question]').count(); i++) {
           await group.locator('[data-db-question-select]').selectOption(String(i)); const form = group.locator('[data-db-question]').nth(i);
+          if (await form.getAttribute('data-db-formula-question') !== null) {
+            await correctDraft(await form.getAttribute('data-db-question'));
+            await form.locator('[data-formula-judge]').click();
+            assert.match((await form.locator('.formula-feedback').allTextContents()).join(' / '), /立式.*○.*答え.*○/);
+            continue;
+          }
           await form.evaluate(el => { el.querySelector('[data-db-answer]').value = parseInt(el.dataset.dbSource, Number(el.dataset.dbSourceBase)).toString(Number(el.dataset.dbAnswerBase)); });
           await form.locator('[type="submit"]').click(); assert.equal(await form.locator('[data-db-feedback]').getAttribute('data-correct'), 'true');
         }

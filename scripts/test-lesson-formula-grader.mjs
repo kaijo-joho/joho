@@ -104,4 +104,16 @@ assert.equal(colorResult.status, 'judged', 'MediaFormulas経由の色数問題�
 assert.equal(colorResult.formulaCorrect, true, '32768色の左右比較を共通判定で通す');
 assert.equal(colorResult.answerCorrect, true, '32768色の最小15bitを共通判定で通す');
 
+const alternatives = {
+  units: { '': { dimensions: {} }, bits: { dimensions: {} }, channels: { dimensions: {} } },
+  sources: [{ value: '8', unit: 'bits', symbol: 'bits' }, { value: '3', unit: 'channels', symbol: 'channels' }],
+  tasks: [{ id: 'total', expected: 24,
+    expectedTokens: [value(8, 'bits'), op('×'), value(3, 'channels')],
+    expectedAlternatives: [[value(8, 'bits'), op('+'), value(8, 'bits'), op('+'), value(8, 'bits')]] }]
+};
+const alternativeDraft = tokens => ({ rows: [{ id: 'sum', taskId: 'total', tokens }], targets: { total: 'sum' }, answers: { total: '24' } });
+assert.equal(Grader.grade(alternatives, alternativeDraft(alternatives.tasks[0].expectedAlternatives[0])).formulaCorrect, true, '教材が明示した加算の別式を受理する');
+assert.equal(Grader.grade(alternatives, alternativeDraft([value(24)])).formulaCorrect, false, '別式を追加しても数量を使わない答えだけは受理しない');
+assert.equal(Grader.grade(alternatives, alternativeDraft([value(8, 'bits'), op('+'), value(3, 'channels')])).formulaCorrect, false, '別式以外の誤った演算は受理しない');
+
 console.log('lesson-formula-grader: ok');

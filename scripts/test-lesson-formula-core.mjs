@@ -22,6 +22,8 @@ assert.equal(evaluate([op('('), v(2), op('+'), v(3), op(')'), op('×'), v(4)]).v
 assert.equal(evaluate([{ kind: 'fraction', numerator: [v(3)], denominator: [v(4)] }, op('+'), v(1)]).value, 1.75, '分数を評価する');
 assert.equal(evaluate([op('-'), v(3), op('×'), v(2)]).value, -6, '単項マイナスを扱う');
 assert.equal(evaluate([{ kind: 'power', base: [v(2)], exponent: [v(3)] }]).value, 8, '指数を評価する');
+assert.equal(Core.equivalent(evaluate([{ kind: 'power', base: [v(2)], exponent: [v(0)] }]), evaluate([v(1)])), true, '位の重み2の0乗と1を同値とする');
+assert.equal(Core.equivalent(evaluate([{ kind: 'power', base: [v(2)], exponent: [v(0, '', { symbol: 'n' })] }]), evaluate([v(1)])), false, '値が0でも出自を持つ指数を定数へ置き換えない');
 const chained = evaluate([v(1), op('<'), v(2), op('<='), v(2)]);
 assert.equal(chained.value, true, '関係式チェーン全体を真偽値で返す');
 assert.deepEqual(chained.relation.operators, ['<', '<='], '関係式チェーンの演算子を残す');

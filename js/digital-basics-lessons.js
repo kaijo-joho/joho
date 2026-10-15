@@ -147,7 +147,13 @@
     render();
   }
   function setupFormulaQuestion(form) {
-    const Formulas = window.DigitalBasicsFormulas, Builder = window.LessonFormulaBuilder;
+    const providers = {
+      basics: window.DigitalBasicsFormulas,
+      radix: window.DigitalRadixFormulas,
+      number: window.DigitalNumberFormulas,
+      content: window.DigitalContentFormulas
+    };
+    const Formulas = providers[form.dataset.dbFormulaQuestion || 'basics'], Builder = window.LessonFormulaBuilder;
     const host = one(form, '[data-db-formula-builder]');
     if (!host) return;
     if (!Formulas || !Builder) {

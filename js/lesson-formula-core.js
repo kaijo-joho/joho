@@ -368,7 +368,10 @@
     if (ast.type === 'power') {
       const base = evalAst(ast.base, options); const exponent = evalAst(ast.exponent, options);
       if (!sameDimensions(exponent.dimensions, {})) fail('UNIT_MISMATCH', '指数には単位を付けられません。');
-      const exponentIsConstant = exponent.symbolicInternal.kind === 'rational-internal' && polyEntries(exponent.symbolicInternal.numerator).length === 1 && polyEntries(exponent.symbolicInternal.denominator).length === 1 && !Object.keys(polyEntries(exponent.symbolicInternal.numerator)[0].factors).length && !Object.keys(polyEntries(exponent.symbolicInternal.denominator)[0].factors).length;
+      // ゼロ多項式は項を持たない。指数0も定数として扱い、2^0と1を同値にする。
+      const exponentIsConstant = isRational(exponent.symbolicInternal)
+        && [exponent.symbolicInternal.numerator, exponent.symbolicInternal.denominator]
+          .every(poly => polyEntries(poly).every(term => !Object.keys(term.factors).length));
       if (!Number.isInteger(exponent.value) && !sameDimensions(base.dimensions, {})) fail('EXPONENT', '単位を持つ量の指数は整数にしてください。');
       if (Number.isInteger(exponent.value) && Math.abs(exponent.value) > MAX_INTEGER_EXPONENT) {
         fail('LIMIT', `整数の指数は${MAX_INTEGER_EXPONENT}以下にしてください。`);
