@@ -1,7 +1,7 @@
 import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob} from './10_model.mjs?v=20261015-5';
 import {processImage, loadImage, detectMarkers, snapMarker, layouts} from './11_vision.mjs?v=20261015-5';
-import {getDraft, listDrafts, saveDraft, discardDraft, probeStorage, deviceId} from './12_store.mjs';
-import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs';
+import {getDraft, saveDraft, probeStorage, deviceId} from './12_store.mjs';
+import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs?v=20261015-6';
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const reasonText = {
   WORKSHEET_MISMATCH:'表裏のWS識別QRが一致しません。', STUDENT_MARK_MISMATCH:'表裏の組・番号が一致しません。',
@@ -24,34 +24,36 @@ function imageError(code) {
 }
 export async function mountCapture(root, {mode = 'phone', owner = null, onSubmitted = () => {}} = {}) {
   const tabId = randomId(), key = 'ws-home-active-' + mode + '-' + (owner || 'anonymous');
-  let draft = newDraft(owner), busy = false, conflict = false, storeOk = true, pairing = null, local = false, stopped = false, readingSlot = null;
+  let draft = newDraft(owner), busy = false, conflict = false, storeOk = true, pairing = null, local = false, stopped = false, readingSlot = null, activeSlot = 'F', statusMessage = '';
   // Keep the old draft keys as photo positions; QR determines the actual side.
   const slots = ['F', 'B'], photoNumber = slot => slot === 'F' ? 1 : 2;
   const sources = {}, urls = {}, manuals = {}, manualPoints = {}, manualSuggestions = {}, cleanup = [];
   let saveQueue=Promise.resolve();
   const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('worksheet-home-drafts-v1') : null;
-  root.innerHTML = '<ol class="capture-steps" aria-label="提出の手順"><li>写真を2枚追加</li><li>読取結果を確認</li><li>提出方法を選ぶ</li></ol>' +
-    '<details class="draft-tools"><summary>保存した撮影・下書きの管理</summary><p id="storage-message" class="muted" role="status">端末内の画像保持を確認しています…</p>' +
-    '<div class="actions"><button id="resume">保存した撮影下書きを開く</button><button id="new-draft">新しい撮影を始める</button><button id="discard">この撮影内容を破棄</button></div>' +
-    '<p class="muted">共用端末では終了時に撮影内容を破棄してください。ブラウザー終了やOSによる保存領域の削除後の復元は保証できません。</p></details>' +
-    '<section class="card photo-picker" aria-labelledby="photo-picker-title"><h2 id="photo-picker-title">ワークシートを2枚追加</h2><p>表・裏の順番は自由です。2枚そろうと自動で補正・読取します。</p>' +
-    '<div class="actions"><label id="capture-camera-label" class="button primary upload-label"><span id="capture-camera-text">1枚目を撮影</span><input id="capture-camera" type="file" accept="image/*" capture="environment" hidden></label>' +
-    '<label class="button upload-label"><span id="capture-album-text">写真を選ぶ（2枚まで）</span><input id="capture-album" type="file" accept="image/*" multiple hidden></label><button id="retake-two" hidden>2枚とも撮り直す</button></div><p id="photo-progress" role="status"></p><p id="photo-error" class="notice warning" role="status" hidden></p></section>' +
-    '<div id="pages" class="pages"></div>' +
-    '<section class="card"><h2>画像・QR・組番号の確認</h2><div id="checks" role="status"></div>' +
-    '<label class="confirmation"><input id="confirmed" type="checkbox" disabled><span>表裏の画像が自分のワークシートであり、表示された組・番号が正しいことを確認しました。</span></label></section>' +
-    '<section id="routes" class="card" hidden><h2>提出方法を選ぶ</h2><div id="route-buttons" class="route-grid"></div><div id="route-detail"></div></section>' +
-    '<section id="receipt-card" class="card"><h2>処理・受付状況</h2><p id="send-state" class="state">未送信</p><p id="send-message" role="status"></p><div id="receipt"></div>' +
-    '<div class="actions"><button id="lookup" hidden>受付結果を確認して再試行</button><button id="cancel-send" hidden>送信セッションを取り消す</button></div></section>' +
+  root.innerHTML = '<section id="photo-step" class="card capture-step photo-picker" aria-labelledby="photo-picker-title"><h2 id="photo-picker-title">①写真を2枚追加</h2><p>表・裏の順番は自由です。2枚そろうと自動で補正・読取します。</p>' +
+    '<div id="initial-photo" class="actions"><label id="capture-photo-label" class="button primary upload-label">写真<input id="capture-photo" type="file" accept="image/*" multiple hidden></label></div>' +
+    '<div id="photo-tabs" class="photo-tabs" role="tablist" aria-label="表示する写真" hidden><button id="photo-tab-F" type="button" role="tab" aria-controls="photo-panel-F" aria-selected="true">写真1</button><button id="photo-tab-B" type="button" role="tab" aria-controls="photo-panel-B" aria-selected="false" tabindex="-1">写真2</button></div>' +
+    '<div id="pages" hidden></div><p id="photo-progress" role="status"></p><p id="photo-error" class="notice warning" role="status" hidden></p><p id="capture-message" class="muted" role="status"></p><p id="storage-message" class="notice warning" role="status" hidden></p></section>' +
+    '<section id="review-step" class="card capture-step is-locked" aria-labelledby="review-title" aria-disabled="true"><h2 id="review-title">②読み取り結果を確認</h2><p id="review-hint" class="muted">写真を2枚追加すると確認できます。</p><div id="review-content" hidden><div id="checks" role="status"></div>' +
+    '<label class="confirmation"><input id="confirmed" type="checkbox" disabled><span>表裏の画像が自分のワークシートであり、表示された組・番号が正しいことを確認しました。</span></label></div></section>' +
+    '<section id="routes" class="card capture-step is-locked" aria-labelledby="routes-title" aria-disabled="true"><h2 id="routes-title">③提出方法を選ぶ</h2><p id="route-hint" class="muted">②で読み取り結果を確認すると選べます。</p><div id="route-content" hidden><div id="route-buttons" class="route-grid"></div><div id="route-detail"></div>' +
+    '<div id="receipt-card" class="receipt-status" hidden><h3>処理・受付状況</h3><p id="send-state" class="state">未送信</p><p id="send-message" role="status"></p><div id="receipt"></div>' +
+    '<div class="actions"><button id="lookup" hidden>受付結果を確認して再試行</button><button id="cancel-send" hidden>送信セッションを取り消す</button></div></div></div></section>' +
     '<details id="demo" class="card" hidden><summary>架空用紙で試す（ローカル試作のみ）</summary><label>試験画像のケース <select id="fixture-kind"></select></label><label>用紙 <select id="fixture-paper"><option value="b5">B5</option><option value="a4">A4</option></select></label><div class="actions"><button id="load-fixture">架空の表裏を読み込む</button></div><p>実際に画像内のQRとマークを読み取ります。実物の用紙や本人認証の試験とは区別します。</p></details>';
-  const q = selector => root.querySelector(selector), message = value => {q('#send-message').textContent = value;};
-  function storageWarning(value) {q('.draft-tools').open=true;q('#storage-message').textContent = value; q('#storage-message').classList.add('notice','warning');}
-  try {await probeStorage(); q('#storage-message').textContent = '撮影内容をこのブラウザー内に保持できます。念のため画像保存も利用してください。';}
-  catch (e) {storeOk = false; storageWarning('端末内に画像を保存できません。画面を離れる前に「画像を保存」で退避してください。');}
+  const q = selector => root.querySelector(selector), message = value => {statusMessage=value;renderMessage();};
+  function renderMessage(){
+    const ready=!!draft.confirmed&&checkPages(draft.pages).ok;
+    q('#capture-message').textContent=ready?'':statusMessage;
+    q('#send-message').textContent=ready?statusMessage:'';
+    q('#receipt-card').hidden=!ready||!(draft.requestId||draft.receipt||statusMessage);
+  }
+  function storageWarning(value) {q('#storage-message').textContent = value;q('#storage-message').hidden=false;}
+  try {await probeStorage();}
+  catch (e) {storeOk = false; storageWarning('端末内に画像を保持できません。この画面を開いたまま進めてください。');}
   try {
     const active = sessionStorage.getItem(key), saved = active && await getDraft(active);
     if (saved && saved.owner === owner) draft = saved;
-  } catch (e) {storeOk = false; storageWarning('保存した下書きを復元できません。新しい撮影内容は画像保存で退避してください。');}
+  } catch (e) {storeOk = false; storageWarning('撮影内容を再表示できません。写真を選び直してください。');}
   try {
     const savedPair = JSON.parse(sessionStorage.getItem('ws-home-pair') || 'null');
     if (savedPair && savedPair.deviceId === deviceId()) pairing = savedPair;
@@ -96,11 +98,17 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     const check = checkPages(draft.pages);
     const pending=!!draft.requestId && !['ACCEPTED','RESUBMIT_REQUIRED','CANCELLED'].includes(draft.receipt?.state);
     const count=slots.filter(slot=>draft.pages[slot]?.originalBlob).length;
-    q('#capture-camera-label').hidden=count===2;
-    q('#retake-two').hidden=count!==2;
-    q('#capture-camera-text').textContent=(count+1)+'枚目を撮影';
-    q('#capture-album-text').textContent=count===2?'2枚を選び直す':'写真を選ぶ（2枚まで）';
-    q('#photo-progress').textContent=readingSlot?'写真'+photoNumber(readingSlot)+'を自動補正・読取中…':count<2?count+'/2枚 · '+(count?'もう1枚追加してください。':'表面と裏面を、好きな順番で追加してください。'):check.ok?'2/2枚 · QRから表面と裏面を判別しました。':'2/2枚 · 下の読取結果を確認してください。';
+    q('#initial-photo').hidden=count>0;
+    q('#photo-tabs').hidden=q('#pages').hidden=count===0;
+    q('#photo-progress').textContent=readingSlot?'写真'+photoNumber(readingSlot)+'を自動補正・読取中…':count<2?count+'/2枚 · '+(count?'写真'+photoNumber(slots.find(s=>!draft.pages[s]?.originalBlob))+'を開いて、もう1枚追加してください。':'表面と裏面を、好きな順番で追加してください。'):check.ok?'2/2枚 · QRから表面と裏面を判別しました。':'2/2枚 · ②の読み取り結果を確認してください。';
+    const reviewReady=count===2&&!readingSlot&&slots.every(slot=>draft.pages[slot]?.reading&&!draft.pages[slot].reading.pending);
+    const routeReady=check.ok&&!!draft.confirmed;
+    q('#review-step').classList.toggle('is-locked',!reviewReady);q('#review-step').setAttribute('aria-disabled',String(!reviewReady));
+    q('#review-content').hidden=!reviewReady;q('#review-hint').hidden=reviewReady;
+    q('#review-hint').textContent=count===2?'自動で読み取っています。完了までお待ちください。':'写真を2枚追加すると確認できます。';
+    q('#routes').classList.toggle('is-locked',!routeReady);q('#routes').setAttribute('aria-disabled',String(!routeReady));
+    q('#route-content').hidden=!routeReady;q('#route-hint').hidden=routeReady;
+    if(!routeReady)q('#route-detail').replaceChildren();
     q('#checks').replaceChildren();
     if (check.ok) {
       q('#checks').append(element('p', 'WS：' + check.qr.worksheetId + '（' + check.qr.year + '年度・' + check.qr.subject + '）'),
@@ -109,8 +117,8 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     } else if(count<2) q('#checks').append(element('p','写真を2枚追加すると、表裏・QR・組と番号を自動で確認します。','muted'));
     else if(readingSlot) q('#checks').append(element('p','2枚の読取が終わるまでお待ちください。','muted'));
     else check.errors.forEach(e => q('#checks').append(element('p', '写真'+photoNumber(e.side)+'：' + e.message, 'notice warning')));
-    q('#confirmed').disabled = !check.ok || busy || conflict; q('#confirmed').checked = !!draft.confirmed && check.ok;
-    q('#routes').hidden = !check.ok || !draft.confirmed; q('#send-state').textContent = stateLabel(draft.state);
+    q('#confirmed').disabled = !check.ok || busy || conflict || pending; q('#confirmed').checked = !!draft.confirmed && check.ok;
+    q('#send-state').textContent = stateLabel(draft.state);
     q('#send-state').className = 'state ' + draft.state;
     q('#lookup').hidden = !draft.requestId; q('#lookup').disabled = busy || conflict;
     q('#cancel-send').hidden = !draft.receipt && !pairing;
@@ -118,15 +126,17 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     for (const side of ['F', 'B']) {
       const section = q('[data-side="' + side + '"]'), p = draft.pages[side], result = section.querySelector('.result');
       const detected=p?.reading?.qr?.side, title='写真'+photoNumber(side)+(detected==='F'?'（表面）':detected==='B'?'（裏面）':'');
-      section.querySelector('h2').textContent=title;
-      section.querySelector('.photo-actions').hidden=!p;
+      section.hidden=count===0||side!==activeSlot;
+      section.querySelector('h3').textContent=title;
+      section.querySelector('.photo-input-text').textContent=p?'撮り直す／選び直す':'写真（'+photoNumber(side)+'枚目）';
+      const tab=q('#photo-tab-'+side);tab.setAttribute('aria-selected',String(side===activeSlot));tab.tabIndex=side===activeSlot?0:-1;
       section.querySelector('.photo-save').hidden=!p;
       section.querySelector('.corner-editor').hidden=!(p&&manuals[side]>=0&&manuals[side]<4);
       section.querySelector('.image-box').hidden = !p || !sources[side];
       section.querySelector('.controls').hidden = !p || !sources[side] || !!p.reading?.pending;
       section.querySelector('.save-page').disabled = !p || busy;
       if (!p) {
-        result.textContent = '写真はまだありません。';result.classList.remove('bad');
+        result.textContent = 'この写真はまだありません。';result.classList.remove('bad');
         const preview=section.querySelector('.corrected-preview');preview.hidden=true;preview.removeAttribute('src');clearPreview(side);
         section.querySelector('.header-detail').hidden=true;section.querySelector('.header-preview').width=0;section.querySelector('.image-box canvas').width=0;
         section.querySelector('.metrics').textContent='';continue;
@@ -162,13 +172,13 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
         element('p', r.reason ? reasonText[r.reason] || '画像・本人照合を通過しませんでした。紙とログイン先を確認してください。' : r.state === 'ACCEPTED' ? '画像の再読取と本人照合を通過しました。' : '受信後の画像検証を待っています。'));
     }
     q('#route-buttons').querySelectorAll('button').forEach(b => {b.disabled = busy || conflict || !draft.confirmed;});
-    for(const id of ['new-draft','retake-two','resume','load-fixture'])q('#'+id).disabled=busy || pending;
-    q('#discard').disabled=busy;
+    q('#load-fixture').disabled=busy || pending;
     q('#pages').querySelectorAll('input[type=file],.apply,.rotate,.auto,.manual,input[type=range],.auto-tone').forEach(input=>{input.disabled=busy || conflict || pending;});
-    q('#capture-camera').disabled=q('#capture-album').disabled=busy || conflict || pending;
+    q('#capture-photo').disabled=busy || conflict || pending;
     q('#pages').querySelectorAll('.corner-editor button').forEach(input=>{input.disabled=busy||conflict||pending;});
     for(const side of ['F','B'])if(draft.pages[side]&&manuals[side]>=0&&manuals[side]<4){const section=sectionFor(side);section.querySelector('.apply').disabled=true;section.querySelectorAll('input[type=range],.auto-tone').forEach(input=>{input.disabled=true;});section.querySelector('.corner-previous').disabled=busy||conflict||pending||manuals[side]===0;root.querySelectorAll('input[type=file]').forEach(input=>{input.disabled=true;});}
     root.querySelectorAll('.upload-label').forEach(label=>{const disabled=label.querySelector('input').disabled;label.setAttribute('aria-disabled',String(disabled));label.tabIndex=disabled?-1:0;});
+    renderMessage();
   }
   function photoError(value){q('#photo-error').textContent=value;q('#photo-error').hidden=!value;if(value)message(value);}
   async function readPendingPages() {
@@ -182,10 +192,10 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   async function addPhotos(files, slot = null) {
     if(stopped || busy || conflict || draft.requestId && !['ACCEPTED','RESUBMIT_REQUIRED','CANCELLED'].includes(draft.receipt?.state))return;
     const selected=Array.from(files);if(!selected.length)return;
-    if(selected.length>(slot?1:2)){photoError('一度に選べる写真は2枚までです。写真を選び直してください。');return;}
+    if(selected.length>(slot?1:2)){photoError(slot?'差し替える写真を1枚選んでください。':'一度に選べる写真は2枚までです。写真を選び直してください。');return;}
     const targets=slot?[slot]:selected.length===2?slots:[slots.find(s=>!draft.pages[s]?.originalBlob)];
-    if(!targets[0]){photoError('2枚ともそろっています。差し替える写真の「撮り直す」か、2枚まとめて選び直してください。');return;}
-    photoError('');busy=true;draft=editedDraft(draft);
+    if(!targets[0]){photoError('差し替える写真を開き、「撮り直す／選び直す」を押してください。');return;}
+    photoError('');busy=true;draft=editedDraft(draft);activeSlot=targets[0];
     try{
       selected.forEach((file,i)=>{
         const target=targets[i];clearPreview(target);delete sources[target];manuals[target]=-1;
@@ -196,7 +206,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     }catch(e){message(messageFor(e.message));return;}
     finally{busy=false;render();}
     if(slots.every(s=>draft.pages[s]?.originalBlob))await readPendingPages();
-    else message('1枚目を保持しました。表・裏を指定せず、もう1枚追加してください。');
+    else message('写真'+photoNumber(slots.find(s=>!draft.pages[s]?.originalBlob))+'を開いて、もう1枚追加してください。');
   }
   async function readPage(side, file, options = {}) {
     if (stopped || busy || conflict || draft.requestId && !['ACCEPTED','RESUBMIT_REQUIRED','CANCELLED'].includes(draft.receipt?.state)) return;
@@ -225,10 +235,10 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     message(p.correctedBlob ? '補正画像を保存しました。表裏ともMacへ転送してください。' : '読取前の画像を退避しました。提出前に再確認が必要です。');
   }
   for (const side of ['F', 'B']) {
-    const section = element('section', '', 'card page-card'); section.dataset.side = side;
-    section.innerHTML = '<h2>写真'+photoNumber(side)+'</h2><div class="actions photo-actions" hidden><label class="button upload-label">この写真を撮り直す<input class="camera-input" type="file" accept="image/*" capture="environment" hidden></label><label class="button upload-label">この写真を選び直す<input class="album-input" type="file" accept="image/*" hidden></label></div>' +
+    const section = element('section', '', 'page-card'); section.dataset.side = side;section.id='photo-panel-'+side;section.setAttribute('role','tabpanel');section.setAttribute('aria-labelledby','photo-tab-'+side);
+    section.innerHTML = '<h3>写真'+photoNumber(side)+'</h3><div class="actions photo-actions"><label class="button primary upload-label"><span class="photo-input-text">写真（'+photoNumber(side)+'枚目）</span><input class="photo-input" type="file" accept="image/*" hidden></label></div>' +
       '<p class="result" role="status"></p><p class="metrics muted"></p><img class="corrected-preview" alt="読取前の写真" hidden><details class="header-detail" hidden><summary>QR・組番号を拡大して確認</summary><canvas class="header-preview" aria-label="QRとクラス・番号のマーク欄の拡大表示"></canvas></details>' +
-      '<details class="controls" hidden><summary>調整する</summary><div class="adjustment-body"><p class="muted">自動補正で読めないときに調整します。撮り直す場合は「この写真を撮り直す」を押してください。</p><div class="actions"><button class="auto">自動でやり直す</button><button class="rotate">90度回転</button><button class="manual">黒いマーカーを指定</button></div>' +
+      '<details class="controls" hidden><summary>調整する</summary><div class="adjustment-body"><p class="muted">自動補正で読めないときに調整します。撮り直す場合は「撮り直す／選び直す」を押してください。</p><div class="actions"><button class="auto">自動でやり直す</button><button class="rotate">90度回転</button><button class="manual">黒いマーカーを指定</button></div>' +
       '<div class="image-box" hidden><p class="muted">元の写真（枠・数字は保存画像に入りません）</p><canvas tabindex="0" aria-label="補正前画像。四隅指定中はクリックまたは矢印キーとEnterでマーカーを指定"></canvas></div>' +
       '<p class="manual-help" role="status"></p><div class="corner-editor" hidden><p>紙の角ではなく、黒い■の中心を指定します。全体画像をタップして位置を選び、拡大画像を動かして十字に合わせてください。</p><canvas class="corner-zoom" width="280" height="280" tabindex="0" aria-label="黒いマーカーの拡大表示。ドラッグ・矢印キーで微調整し、Enterで確定"></canvas><div class="corner-nudges"><button type="button" data-dx="0" data-dy="-1" aria-label="位置を上へ微調整">↑</button><button type="button" data-dx="-1" data-dy="0" aria-label="位置を左へ微調整">←</button><button type="button" data-dx="1" data-dy="0" aria-label="位置を右へ微調整">→</button><button type="button" data-dx="0" data-dy="1" aria-label="位置を下へ微調整">↓</button></div><div class="actions"><button class="corner-previous" type="button">前のマーカーへ</button><button class="corner-confirm primary" type="button">この位置を確定して次へ</button><button class="corner-cancel" type="button">手動指定をやめる</button></div></div>' +
       '<details class="tone-controls"><summary>明るさ・コントラストを調整</summary><label class="auto-tone-label"><input class="auto-tone" type="checkbox" checked>明るさ・影を自動補正</label><label>明るさ<input class="brightness" type="range" min="-50" max="70" value="0"></label><label>コントラスト<input class="contrast" type="range" min="-50" max="100" value="0"></label><button class="apply">調整を反映して再読取</button></details></div></details>' +
@@ -306,40 +316,20 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     section.querySelector('.corner-previous').addEventListener('click',()=>{if(!active()||manuals[side]===0)return;manuals[side]--;manualPoints[side]={...(draft.pages[side].options.corners[manuals[side]]||manualSuggestions[side][manuals[side]])};draft.pages[side].options.corners.length=manuals[side];showCorner();});
     section.querySelectorAll('input[type=range]').forEach(input => input.addEventListener('input', () => {draft.pages[side].options[input.className]=Number(input.value);draft.confirmed=false; draft.pages[side].reading={...draft.pages[side].reading,status:'REVIEW',message:'明るさ・コントラストを変更しました。「調整を反映して再読取」を押してください。'}; render();}));
   }
-  for(const id of ['capture-camera','capture-album'])q('#'+id).addEventListener('change',async event=>{
+  function selectPhoto(slot,focus=false){activeSlot=slot;render();if(focus)q('#photo-tab-'+slot).focus();}
+  for(const slot of slots){
+    const tab=q('#photo-tab-'+slot);
+    tab.addEventListener('click',()=>selectPhoto(slot));
+    tab.addEventListener('keydown',event=>{
+      const target=event.key==='Home'?'F':event.key==='End'?'B':['ArrowLeft','ArrowRight'].includes(event.key)?(slot==='F'?'B':'F'):null;
+      if(target){event.preventDefault();selectPhoto(target,true);}
+    });
+  }
+  q('#capture-photo').addEventListener('change',async event=>{
     const input=event.target;try{await addPhotos(input.files);}catch(e){message(messageFor(e.message));}finally{input.value='';}
   });
   root.querySelectorAll('.upload-label').forEach(label=>{label.tabIndex=0;label.setAttribute('role','button');label.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();const input=label.querySelector('input');if(!input.disabled)input.click();}});});
-  q('#confirmed').addEventListener('change', async () => {draft.confirmed=q('#confirmed').checked; await persist(); render();});
-  async function restore(id) {
-    if(busy || draft.requestId && !['ACCEPTED','RESUBMIT_REQUIRED','CANCELLED'].includes(draft.receipt?.state))return;busy=true;render();
-    try{
-      const saved = await getDraft(id); if (!saved || saved.owner !== owner) throw Error('STORAGE_READ_FAILED');
-      draft=saved; conflict=false; sessionStorage.setItem(key,id);photoError('');
-      for(const side of ['F','B']) {delete sources[side];manuals[side]=-1;if(draft.pages[side]) {try{sources[side]=await loadImage(draft.pages[side].originalBlob,draft.pages[side].options?.turns || 0);drawSource(side);}catch(e){/* Keep the original available for saving or replacing. */}}}
-    }finally{busy=false;render();}
-    message('撮影下書きを復元しました。画像と読取結果をもう一度確認してください。');
-    await readPendingPages();
-  }
-  q('#resume').addEventListener('click', async () => {
-    try {
-      const drafts=await listDrafts(owner), detail=q('#route-detail'); detail.replaceChildren(); q('#routes').hidden=false;
-      if(!drafts.length) {message('保存した撮影下書きはありません。');return;}
-      detail.append(element('p','開く下書きを選んでください。'));
-      for(const d of drafts) {const b=element('button',timeLabel(d.updatedAt)+' · '+Object.keys(d.pages).length+'面'); b.addEventListener('click',()=>restore(d.id).catch(e=>message(imageError(e.message)))); detail.append(b);}
-    } catch(e) {storageWarning('下書きを取得できません。現在表示中の画像を保存して退避してください。');}
-  });
-  async function startNewDraft(){
-    if(busy)return;busy=true;draft=newDraft(owner);conflict=false;photoError('');for(const side of ['F','B']){delete sources[side];manuals[side]=-1;clearPreview(side);}render();
-    try{await persist();}finally{busy=false;render();}
-    message('新しい撮影を開始しました。以前の下書きは「保存した撮影下書き」から開けます。');
-  }
-  q('#new-draft').addEventListener('click',startNewDraft);q('#retake-two').addEventListener('click',startNewDraft);
-  q('#discard').addEventListener('click', async () => {
-    if(!confirm('このブラウザーの今回の撮影下書きを破棄します。送信済みの提出記録は履歴に残ります。'))return;
-    try {await saveQueue.catch(()=>{});await discardDraft(draft.id);draft=newDraft(owner);conflict=false;photoError('');sessionStorage.removeItem(key);for(const side of ['F','B']){delete sources[side];manuals[side]=-1;clearPreview(side);} render();message('この撮影内容を破棄しました。送信済みの受付はログイン端末の履歴から確認できます。');}
-    catch(e){storageWarning('保存領域からの破棄を完了できませんでした。ブラウザーのサイトデータ削除を確認してください。');}
-  });
+  q('#confirmed').addEventListener('change', async () => {draft.confirmed=q('#confirmed').checked;message('');await persist();render();});
   function frozenPayload(route) {
     const checked=checkPages(draft.pages);
     if(!checked.ok)throw Error('QR_OMR_REVIEW');
@@ -460,6 +450,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   }
   local=false;
   for(const side of ['F','B'])if(draft.pages[side]){try{sources[side]=await loadImage(draft.pages[side].originalBlob,draft.pages[side].options?.turns || 0);drawSource(side);}catch(e){if(!draft.pages[side].reading?.pending)draft.pages[side].reading={status:'REVIEW',message:'原画像を復元できません。保持された補正画像を保存して退避してください。'};}}
+  activeSlot=slots.find(slot=>draft.pages[slot]?.originalBlob)||'F';
   render();await readPendingPages();poll();
   return {claimPair,dispose(){stopped=true;cleanup.forEach(f=>f());channel?.close();for(const side of ['F','B'])clearPreview(side);}};
 }
