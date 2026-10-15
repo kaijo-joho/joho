@@ -1,5 +1,5 @@
 import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob} from './10_model.mjs';
-import {processImage, loadImage, detectMarkers, layouts} from './11_vision.mjs';
+import {processImage, loadImage, detectMarkers, snapMarker, layouts} from './11_vision.mjs';
 import {getDraft, listDrafts, saveDraft, discardDraft, probeStorage, deviceId} from './12_store.mjs';
 import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs';
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
@@ -24,7 +24,7 @@ function imageError(code) {
 export async function mountCapture(root, {mode = 'phone', owner = null, onSubmitted = () => {}} = {}) {
   const tabId = randomId(), key = 'ws-home-active-' + mode + '-' + (owner || 'anonymous');
   let draft = newDraft(owner), busy = false, conflict = false, storeOk = true, pairing = null, local = false, stopped = false;
-  const sources = {}, urls = {}, manuals = {}, cleanup = [];
+  const sources = {}, urls = {}, manuals = {}, manualPoints = {}, manualSuggestions = {}, cleanup = [];
   let saveQueue=Promise.resolve();
   const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('worksheet-home-drafts-v1') : null;
   root.innerHTML = '<p id="storage-message" class="notice" role="status">端末内の画像保持を確認しています…</p>' +
@@ -82,6 +82,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     const ctx = destination.getContext('2d'); ctx.drawImage(source, 0, 0);
     const corners = draft.pages[side]?.options?.corners || [];
     for (const [i, p] of corners.entries()) {ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(8, source.width / 100), 0, Math.PI * 2); ctx.strokeStyle = '#ea7a00'; ctx.lineWidth = Math.max(3, source.width / 400); ctx.stroke(); ctx.fillStyle = '#c45d00'; ctx.font = 'bold ' + Math.max(18, source.width / 45) + 'px sans-serif'; ctx.fillText(String(i + 1), p.x + 15, p.y + 10);}
+    if(manuals[side]>=0&&manuals[side]<4&&manualPoints[side]){const p=manualPoints[side],r=source.width/60;ctx.strokeStyle='#d94d00';ctx.lineWidth=Math.max(2,source.width/500);ctx.strokeRect(p.x-r,p.y-r,r*2,r*2);}
   }
   function render() {
     const check = checkPages(draft.pages);
@@ -100,6 +101,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     q('#cancel-send').disabled = busy;
     for (const side of ['F', 'B']) {
       const section = q('[data-side="' + side + '"]'), p = draft.pages[side], result = section.querySelector('.result');
+      section.querySelector('.corner-editor').hidden=!(p&&manuals[side]>=0&&manuals[side]<4);
       section.querySelector('.image-box').hidden = !p || !sources[side];
       section.querySelector('.controls').hidden = !p || !sources[side];
       section.querySelector('.save-page').disabled = !p;
@@ -119,7 +121,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
         const header=section.querySelector('.header-preview');
         preview.onload=async()=>{
           if(stopped || draft.pages[side]!==p)return;
-          const c=(await layouts()).find(c=>c.pageSize===r.pageSize&&c.identity.side===r.qr.side);
+          const c=(await layouts()).find(c=>c.pageSize===r?.pageSize&&c.identity.side===r?.qr?.side);
           if(!c)return;
           const x=c.columns.middle.mm.x,y=Math.max(0,c.qr.region.mm.y-2),right=c.qr.region.mm.x+c.qr.region.mm.width+2,bottom=c.header.mm.y+c.header.mm.height+2;
           const sx=preview.naturalWidth/c.page.widthMm,sy=preview.naturalHeight/c.page.heightMm;
@@ -140,6 +142,8 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     for(const id of ['new-draft','swap','load-fixture'])q('#'+id).disabled=busy || pending;
     q('#discard').disabled=busy;
     q('#pages').querySelectorAll('input[type=file],.apply,.rotate,.auto,.manual,input[type=range]').forEach(input=>{input.disabled=busy || conflict || pending;});
+    q('#pages').querySelectorAll('.corner-editor button').forEach(input=>{input.disabled=busy||conflict||pending;});
+    for(const side of ['F','B'])if(manuals[side]>=0&&manuals[side]<4){const section=sectionFor(side);section.querySelector('.apply').disabled=true;section.querySelectorAll('input[type=range]').forEach(input=>{input.disabled=true;});section.querySelector('.corner-previous').disabled=busy||conflict||pending||manuals[side]===0;q('#swap').disabled=true;}
   }
   async function readPage(side, file, options = {}) {
     if (busy || conflict || draft.requestId && !['ACCEPTED','RESUBMIT_REQUIRED','CANCELLED'].includes(draft.receipt?.state)) return;
@@ -147,8 +151,8 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     try {
       const result = await processImage(file, options);
       draft.pages[side] = {originalBlob:file, correctedBlob:result.correctedBlob || null, sha256:result.sha256 || null,
-        reading:result.reading, options:{turns:options.turns || 0, brightness:options.brightness || 0, contrast:options.contrast || 0, corners:result.corners}};
-      sources[side] = result.source; manuals[side] = -1;
+        reading:result.reading, options:{turns:options.turns || 0, brightness:options.brightness || 0, contrast:options.contrast || 0, corners:result.corners,preciseCorners:!!options.preciseCorners}};
+      sources[side] = result.source; manuals[side] = -1;sectionFor(side).querySelector('.manual-help').textContent='';
       await persist(); drawSource(side); message('表裏の画像と読取結果を確認してください。');
     } catch (e) {
       // Keep the selected file even on decode/read failure; it can be exported.
@@ -171,7 +175,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     const section = element('section', '', 'card page-card'); section.dataset.side = side;
     section.innerHTML = '<h2>' + (side === 'F' ? '表面' : '裏面') + '</h2><div class="actions"><label class="button upload-label">カメラで撮影<input class="camera-input" type="file" accept="image/*" capture="environment" hidden></label><label class="button upload-label">アルバム・画像を選択<input class="album-input" type="file" accept="image/*" hidden></label></div>' +
       '<div class="image-box" hidden><p class="muted">補正前（枠と数字は確認用で、送信画像には入りません）</p><canvas tabindex="0" aria-label="補正前画像。四隅指定中はクリックまたは矢印キーとEnterでマーカーを指定"></canvas></div>' +
-      '<div class="controls" hidden><div class="actions"><button class="rotate">90度回転</button><button class="auto">四隅を自動検出</button><button class="manual">四隅を指定</button></div><p class="manual-help" role="status"></p>' +
+      '<div class="controls" hidden><div class="actions"><button class="rotate">90度回転</button><button class="auto">四隅を自動検出</button><button class="manual">黒いマーカーを指定</button></div><p class="muted">紙の角ではなく、四隅の黒い■の中心を合わせます。</p><p class="manual-help" role="status"></p><div class="corner-editor" hidden><p>全体画像をタップすると、その場所を拡大します。拡大画像を動かして、黒い■の中心を十字に合わせてください。</p><canvas class="corner-zoom" width="280" height="280" tabindex="0" aria-label="黒いマーカーの拡大表示。ドラッグ・矢印キーで微調整し、Enterで確定"></canvas><div class="corner-nudges"><button type="button" data-dx="0" data-dy="-1" aria-label="位置を上へ微調整">↑</button><button type="button" data-dx="-1" data-dy="0" aria-label="位置を左へ微調整">←</button><button type="button" data-dx="1" data-dy="0" aria-label="位置を右へ微調整">→</button><button type="button" data-dx="0" data-dy="1" aria-label="位置を下へ微調整">↓</button></div><div class="actions"><button class="corner-previous" type="button">前のマーカーへ</button><button class="corner-confirm primary" type="button">この位置を確定して次へ</button></div></div>' +
       '<label>明るさ<input class="brightness" type="range" min="-50" max="70" value="0"></label><label>コントラスト<input class="contrast" type="range" min="-50" max="100" value="0"></label><button class="apply">補正して再読取</button></div>' +
       '<p class="result" role="status"></p><p class="metrics muted"></p><details class="header-detail" hidden><summary>QR・組番号のマーク欄を拡大して確認</summary><canvas class="header-preview" aria-label="QRとクラス・番号のマーク欄の拡大表示"></canvas></details><img class="corrected-preview" alt="' + (side === 'F' ? '表面' : '裏面') + 'の補正画像" hidden><div class="actions"><button class="save-page" disabled>この面の画像を保存</button></div>';
     q('#pages').append(section);
@@ -186,29 +190,64 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     section.querySelector('.auto').addEventListener('click', () => {
       const p = draft.pages[side]; if (p) readPage(side,p.originalBlob,{...p.options,corners:null});
     });
-    section.querySelector('.manual').addEventListener('click', () => {
-      if (!draft.pages[side] || busy) return;
-      manuals[side] = 0; draft.pages[side].options.corners = []; draft.confirmed = false;
-      section.querySelector('.manual-help').textContent = '黒いマーカーの中心を、左上→右上→右下→左下の順に指定します。'; drawSource(side); render();
-    });
-    const image = section.querySelector('canvas');
-    function setCorner(point) {
-      const n = manuals[side]; if (n === undefined || n < 0 || n > 3) return;
-      draft.pages[side].options.corners[n] = point; manuals[side]++;
-      section.querySelector('.manual-help').textContent = manuals[side] === 4 ? '四隅を指定しました。「補正して再読取」を押してください。' : ['左上','右上','右下','左下'][manuals[side]] + 'のマーカー中心を指定してください。';
-      draft.pages[side].reading = {status:'REVIEW',message:'四隅変更後に再読取してください。'}; draft.confirmed = false; drawSource(side); render();
+    const image = section.querySelector('.image-box canvas'),zoom=section.querySelector('.corner-zoom');
+    const names=['左上','右上','右下','左下'];
+    let zoomScale=3,drag=null;
+    const active=()=>manuals[side]>=0&&manuals[side]<4;
+    function showCorner(){
+      if(!active()||!sources[side]||!manualPoints[side])return;
+      const source=sources[side],p=manualPoints[side],ctx=zoom.getContext('2d');
+      p.x=Math.max(0,Math.min(source.width-1,p.x));p.y=Math.max(0,Math.min(source.height-1,p.y));
+      zoomScale=Math.max(2,Math.min(7,zoom.width/(source.width*.055)));
+      const span=zoom.width/zoomScale;ctx.fillStyle='#fff';ctx.fillRect(0,0,zoom.width,zoom.height);ctx.imageSmoothingEnabled=false;
+      ctx.drawImage(source,p.x-span/2,p.y-span/2,span,span,0,0,zoom.width,zoom.height);
+      const mid=zoom.width/2;
+      for(const [color,width] of [['white',5],['#c74900',2]]){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(mid-24,mid);ctx.lineTo(mid-5,mid);ctx.moveTo(mid+5,mid);ctx.lineTo(mid+24,mid);ctx.moveTo(mid,mid-24);ctx.lineTo(mid,mid-5);ctx.moveTo(mid,mid+5);ctx.lineTo(mid,mid+24);ctx.stroke();}
+      section.querySelector('.manual-help').textContent=(manuals[side]+1)+'/4 '+names[manuals[side]]+'の黒い■の中心を指定します。';
+      section.querySelector('.corner-confirm').textContent=manuals[side]===3?'この位置で補正・再読取':'この位置を確定して次へ';
+      section.querySelector('.corner-previous').disabled=manuals[side]===0;
+      drawSource(side);
     }
-    image.addEventListener('click', e => {const r = image.getBoundingClientRect(); setCorner({x:(e.clientX-r.left)*image.width/r.width,y:(e.clientY-r.top)*image.height/r.height});});
-    image.addEventListener('keydown', e => {
-      const n = manuals[side]; if (!(n >= 0 && n < 4)) return;
-      const suggested = detectMarkers(sources[side]) || [{x:30,y:30},{x:image.width-30,y:30},{x:image.width-30,y:image.height-30},{x:30,y:image.height-30}];
-      const p = draft.pages[side].options.corners[n] || {...suggested[n]}, step = e.shiftKey ? 10 : 1;
-      if (e.key === 'Enter') {setCorner(p); e.preventDefault(); return;}
-      if (!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) return;
-      e.preventDefault(); p.x += e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0; p.y += e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
-      draft.pages[side].options.corners[n] = p; drawSource(side);
+    function setPosition(point,snap=false){if(!active())return;manualPoints[side]=snap?snapMarker(sources[side],point):point;showCorner();}
+    async function confirmCorner(){
+      if(!active()||busy)return;
+      const n=manuals[side];draft.pages[side].options.corners[n]={...manualPoints[side]};manuals[side]++;
+      if(manuals[side]===4){
+        const p=draft.pages[side];manuals[side]=-1;section.querySelector('.corner-editor').hidden=true;
+        await readPage(side,p.originalBlob,{...p.options,preciseCorners:true});
+      }else{manualPoints[side]={...manualSuggestions[side][n+1]};render();showCorner();zoom.focus({preventScroll:true});}
+    }
+    section.querySelector('.manual').addEventListener('click',()=>{
+      if(!draft.pages[side]||!sources[side]||busy)return;
+      const source=sources[side],previous=draft.pages[side].options.corners;
+      manualSuggestions[side]=(previous?.length===4?previous:detectMarkers(source)||[{x:source.width*.05,y:source.height*.05},{x:source.width*.95,y:source.height*.05},{x:source.width*.95,y:source.height*.95},{x:source.width*.05,y:source.height*.95}]).map(p=>({...p}));
+      draft=editedDraft(draft);manuals[side]=0;draft.pages[side].options.corners=[];
+      draft.pages[side].reading={...draft.pages[side].reading,status:'REVIEW',message:'拡大表示で黒いマーカーの位置を確認してください。'};
+      manualPoints[side]={...manualSuggestions[side][0]};render();showCorner();zoom.focus({preventScroll:true});
     });
-    section.querySelectorAll('input[type=range]').forEach(input => input.addEventListener('input', () => {draft.confirmed=false; draft.pages[side].reading={status:'REVIEW',message:'階調変更後に「補正して再読取」を押してください。'}; render();}));
+    image.addEventListener('click',e=>{if(!active())return;const r=image.getBoundingClientRect();setPosition({x:(e.clientX-r.left)*image.width/r.width,y:(e.clientY-r.top)*image.height/r.height},true);});
+    function nudge(dx,dy){if(!active())return;const p=manualPoints[side];setPosition({x:p.x+dx,y:p.y+dy});}
+    function handleKey(e){
+      if(!active())return;
+      if(e.key==='Enter'){e.preventDefault();confirmCorner();return;}
+      const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+      if(delta){e.preventDefault();const step=e.shiftKey?10:1;nudge(delta[0]*step,delta[1]*step);}
+    }
+    image.addEventListener('keydown',handleKey);zoom.addEventListener('keydown',handleKey);
+    zoom.addEventListener('pointerdown',e=>{
+      if(!active())return;e.preventDefault();zoom.setPointerCapture(e.pointerId);const r=zoom.getBoundingClientRect();
+      drag={id:e.pointerId,x:e.clientX,y:e.clientY,point:{...manualPoints[side]},scale:zoomScale*r.width/zoom.width};
+    });
+    zoom.addEventListener('pointermove',e=>{if(drag?.id===e.pointerId){e.preventDefault();setPosition({x:drag.point.x-(e.clientX-drag.x)/drag.scale,y:drag.point.y-(e.clientY-drag.y)/drag.scale});}});
+    zoom.addEventListener('pointerup',e=>{if(drag?.id!==e.pointerId)return;
+      if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<4){const r=zoom.getBoundingClientRect();setPosition({x:drag.point.x+(e.clientX-r.left-r.width/2)/drag.scale,y:drag.point.y+(e.clientY-r.top-r.height/2)/drag.scale});}
+      drag=null;
+    });
+    zoom.addEventListener('pointercancel',()=>{drag=null;});
+    section.querySelectorAll('[data-dx]').forEach(button=>button.addEventListener('click',()=>nudge(Number(button.dataset.dx),Number(button.dataset.dy))));
+    section.querySelector('.corner-confirm').addEventListener('click',confirmCorner);
+    section.querySelector('.corner-previous').addEventListener('click',()=>{if(!active()||manuals[side]===0)return;manuals[side]--;manualPoints[side]={...(draft.pages[side].options.corners[manuals[side]]||manualSuggestions[side][manuals[side]])};draft.pages[side].options.corners.length=manuals[side];showCorner();});
+    section.querySelectorAll('input[type=range]').forEach(input => input.addEventListener('input', () => {draft.confirmed=false; draft.pages[side].reading={...draft.pages[side].reading,status:'REVIEW',message:'階調変更後に「補正して再読取」を押してください。'}; render();}));
     section.querySelectorAll('.upload-label').forEach(label=>{label.tabIndex=0;label.setAttribute('role','button');label.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();const input=label.querySelector('input');if(!input.disabled)input.click();}});});
   }
   q('#confirmed').addEventListener('change', async () => {draft.confirmed=q('#confirmed').checked; await persist(); render();});
