@@ -7,10 +7,10 @@ const date = value => new Date(value).toLocaleString('ja-JP');
 export class CloudPanel {
   constructor(host) {
     this.host=host;this.bridge=new GoogleBridge(cloudConfig);this.states=new Map();this.readRevisions=new Map();this.generation=0;this.working=false;this.opener=null;
-    $('cloud-connect').addEventListener('click',()=>this.connect());
+    $('cloud-connect').addEventListener('click',()=>{host.closeMenus();this.connect();});
     $('save-cloud').addEventListener('click',()=>{host.closeMenus();this.save();});
     $('open-cloud').addEventListener('click',()=>{host.closeMenus();this.restore();});
-    $('formal-submit').addEventListener('click',()=>this.prepareSubmit());
+    $('formal-submit').addEventListener('click',()=>{host.closeMenus();this.prepareSubmit();});
     $('formal-query').addEventListener('click',()=>this.query(false));
     $('formal-resume').addEventListener('click',()=>this.query(true));
     $('submit-confirm').addEventListener('click',()=>this.submit());
@@ -54,8 +54,11 @@ export class CloudPanel {
   revision(q) {const n=(this.readRevisions.get(q.questionId)||0)+1;this.readRevisions.set(q.questionId,n);return n;}
   render() {
     const q=this.host.question(), policy=q&&this.cloud?.policy(q), enabled=this.connected&&!!policy;
-    $('cloud-connect').disabled=this.working;
-    $('cloud-connect').textContent=this.connected?'再接続':'学校アカウントに接続';
+    $('cloud-connect').disabled=this.working||!cloudConfig.enabled;
+    const connectionLabel=this.connected?'学校アカウントに再接続':'学校アカウントに接続';
+    $('cloud-connect-label').textContent=connectionLabel;
+    $('cloud-connect').setAttribute('aria-label',connectionLabel);
+    $('cloud-connect').title=cloudConfig.enabled?connectionLabel:'学校アカウント接続は準備中です';
     $('save-cloud').disabled=this.working||!enabled;
     $('open-cloud').disabled=this.working||!this.connected;
     $('formal-submit').disabled=this.working||!enabled||!policy?.canSubmit||this.host.running();
@@ -70,7 +73,7 @@ export class CloudPanel {
     $('formal-score').textContent=receipt?.state==='submitted'?`最新の得点 ${score(receipt.score)}${receipt.late?'（締切後・成績対象外）':''}`:'';
     $('formal-best').textContent=state?`この問題の締切内最高点 ${score(state.bestScore)}`:'';
     $('formal-time').textContent=receipt?`サーバー受付 ${date(receipt.receivedAt)} ／ 締切 ${date(receipt.dueAt)}`:policy?`締切 ${date(policy.dueAt)}`:'';
-    $('formal-note').textContent=!enabled?'今年度は従来のColabで提出してください。':this.cloud?.session.teacher?'教員閲覧では生徒の成績として提出しません。':receipt?.state==='pending'?'採点と結果保存が完了してから提出済みになります。「採点・保存を再試行」で続けられます。':'実行結果・ローカル進捗と、下の正式得点・提出履歴は別です。';
+    $('formal-note').textContent=!enabled?'今年度は従来のColabで提出してください。':this.cloud?.session.teacher?'教員閲覧では生徒の成績として提出しません。':receipt?.state==='pending'?'採点と結果保存が完了してから提出済みになります。「採点・保存を再試行」で続けられます。':'実行結果・ローカル進捗と、ここに表示する正式得点・提出履歴は別です。';
     $('formal-checks').replaceChildren();
     for(const check of receipt?.checks||[]){const li=document.createElement('li');li.textContent=`${check.passed?'✓':'×'} ${check.label}（${check.earned} / ${check.points}）`;$('formal-checks').append(li);}
     $('formal-diagnostics').textContent=(receipt?.diagnostics||[]).join('\n');

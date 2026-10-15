@@ -60,5 +60,19 @@
     "nodeTests": 34,
     "syntheticCloudChecksPerEngine": 18,
     "schoolSafariAppVerified": false
+  },
+  "inlineToolbar": {
+    "date": "2026-10-15",
+    "baseline": "5168e1f",
+    "operationChecksPerEngine": 32,
+    "layoutCasesPerEngine": 27,
+    "nodeTests": 34,
+    "syntheticCloudChecksPerEngine": 18,
+    "promptAndInputSameLine": true,
+    "workspaceContainsOnlyLearningCells": true,
+    "optionalInputsMovedToSettings": true,
+    "storedInputsPreserved": true,
+    "runtimeChanged": false,
+    "schoolDevicesVerified": false
   }
 }

@@ -33,7 +33,7 @@ async function context() {
   await context.route('**/cloud-config.mjs',route=>route.fulfill({contentType:'text/javascript',body:"export const cloudConfig={enabled:true,bridgeURL:'https://script.google.com/macros/s/PYTHON_EDITOR_TEST_ONLY/exec'};"}));
   // 本番60秒の同じタイムアウト分岐を1.5秒で検査する。
   assert.ok(ui.includes('new GoogleBridge(cloudConfig)'));
-  await context.route('**/cloud-ui.mjs',route=>route.fulfill({contentType:'text/javascript',body:ui.replace('new GoogleBridge(cloudConfig)','new GoogleBridge(cloudConfig,{timeout:1500})')}));
+  await context.route(/\/cloud-ui\.mjs(?:\?.*)?$/,route=>route.fulfill({contentType:'text/javascript',body:ui.replace('new GoogleBridge(cloudConfig)','new GoogleBridge(cloudConfig,{timeout:1500})')}));
   await context.route('https://script.google.com/**',route=>{
     const url=new URL(route.request().url());
     return route.fulfill({contentType:'text/html',body:`<!doctype html><iframe src="https://n-pythoneditor-fixture-0lu-script.googleusercontent.com/python-editor-fixture?${url.searchParams}"></iframe>`});
@@ -50,6 +50,10 @@ async function edit(page,code){await page.evaluate(code=>document.querySelector(
 async function code(page){return page.evaluate(()=>document.querySelector('.CodeMirror').CodeMirror.getValue());}
 async function connect(page){await page.locator('#cloud-connect').click();await page.waitForFunction(()=>document.querySelector('#cloud-account').textContent.includes('@example.invalid'));await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);}
 async function menu(page,id){await page.locator('#file-menu summary').click();await page.locator('#'+id).click();}
+async function statusAction(page,id){
+  if(!await page.locator('#status-menu').evaluate(el=>el.open))await page.locator('#status-menu > summary').click();
+  await page.locator('#'+id).click();
+}
 async function save(page){await menu(page,'save-cloud');await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);}
 async function submit(page){await page.locator('#formal-submit').click();await page.waitForSelector('#submit-dialog[open]');await page.locator('#submit-confirm').click();await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);}
 let primary;
@@ -90,11 +94,11 @@ try {
   await edit(page,'edited during disconnect');const callsBefore=backendCalls.filter(c=>c.action==='saveDraft').at(-1).input;
   await save(page);const callsAfter=backendCalls.filter(c=>c.action==='saveDraft').at(-1).input;assert.deepEqual(callsAfter,callsBefore);assert.equal(await code(page),'edited during disconnect');assert.match(await page.locator('#notice').textContent(),/送信開始時/);check('lost draft response retries identical request/code while keeping newer in-browser edits');
   await edit(page,'# start\nx = 2\nprint("value:", x)\n# end');loseAction='submit';const resultsBefore=f.sheets.Python提出結果.values.length;
-  await submit(page);assert.match(await page.locator('#notice').textContent(),/応答/);await page.locator('#formal-query').click();await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);
+  await submit(page);assert.match(await page.locator('#notice').textContent(),/応答/);await statusAction(page,'formal-query');await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);
   assert.match(await page.locator('#formal-status').textContent(),/提出済み/);assert.equal(f.sheets.Python提出結果.values.length,resultsBefore+1);check('lost submission response is recovered by request ID without a duplicate result');
   f.sheets.Python提出結果.beforeWrite=()=>{throw new Error('temporary failure');};await submit(page);
-  await page.locator('#formal-query').click();await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);assert.match(await page.locator('#formal-status').textContent(),/結果保存待ち/);
-  f.sheets.Python提出結果.beforeWrite=null;setClock('2026-10-14T02:00:00.000Z');await page.locator('#formal-resume').click();await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);
+  await statusAction(page,'formal-query');await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);assert.match(await page.locator('#formal-status').textContent(),/結果保存待ち/);
+  f.sheets.Python提出結果.beforeWrite=null;setClock('2026-10-14T02:00:00.000Z');await statusAction(page,'formal-resume');await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);
   assert.match(await page.locator('#formal-status').textContent(),/提出済み/);assert.ok(f.dispatch('questionStatus',{questionId:'q1',version:'v1',assignmentId:'exercise1'}).receipt.receivedAt<T0.slice(0,11)+'01:00:00.000Z');check('result write failure remains pending; retry after deadline uses original server receipt');
   loginExpired=true;await edit(page,'saved after reauthentication');await save(page);assert.match(await page.locator('#notice').textContent(),/再接続/);assert.equal(await code(page),'saved after reauthentication');
   loginExpired=false;await connect(page);await save(page);assert.equal(f.dispatch('getDraft',{questionId:'q1',version:'v1'}).draft.code,'saved after reauthentication');check('synthetic authentication expiry keeps code and immutable draft request through reconnect');
@@ -107,8 +111,8 @@ try {
   assert.equal(await page.locator('.CodeMirror').evaluate(el=>getComputedStyle(el).backgroundColor),await page.locator('#code-cell').evaluate(el=>getComputedStyle(el).backgroundColor));
   await page.screenshot({path:evidence+'/cloud-mobile.png',fullPage:true});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));check('390px dark theme and largest text retain usable cloud/submission controls');
-  await page.setViewportSize({width:1440,height:1000});await page.locator('#settings-menu summary').click();await page.selectOption('#theme','light');await page.selectOption('#text-size','standard');await page.locator('#settings-menu summary').click();await page.locator('#question-list button').nth(0).click();await page.locator('#formal-query').click();await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);
+  await page.setViewportSize({width:1440,height:1000});await page.locator('#settings-menu summary').click();await page.selectOption('#theme','light');await page.selectOption('#text-size','standard');await page.locator('#settings-menu summary').click();await page.locator('#question-list button').nth(0).click();await statusAction(page,'formal-query');await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);
   await page.evaluate(()=>{scrollTo(0,0);return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));});
   await page.screenshot({path:evidence+'/cloud-desktop.png',fullPage:true});assert.deepEqual(errors,[]);check('no unhandled browser errors');
-} catch(e) {report.failure=String(e);if(primary){const pages=primary.pages();report.ui=await pages[0]?.evaluate(()=>({notice:document.querySelector('#notice')?.textContent,account:document.querySelector('#cloud-account')?.textContent,formal:document.querySelector('#formal-status')?.textContent})).catch(()=>null);}throw e;}
+} catch(e) {report.failure=String(e);report.pendingFault=loseAction;report.calls=backendCalls.slice(-12).map(c=>({action:c.action,questionId:c.input?.questionId,requestId:c.input?.requestId}));if(primary){const pages=primary.pages();report.ui=await pages[0]?.evaluate(()=>({notice:document.querySelector('#notice')?.textContent,account:document.querySelector('#cloud-account')?.textContent,formal:document.querySelector('#formal-status')?.textContent})).catch(()=>null);}throw e;}
 finally {await writeFile(evidence+'/report.json',JSON.stringify(report,null,2));await browser.close();await new Promise(r=>server.server.close(r));}

@@ -60,7 +60,7 @@ export function validateDraft(raw) {
 }
 export function errorAdvice(error) {
   const message = String(error);
-  if (/EOFError/.test(message)) return 'input()の入力が終了しました。もう一度実行して出力欄へ入力するか、「入力値をまとめて渡す」に1回分ずつ改行して指定してください。';
+  if (/EOFError/.test(message)) return 'input()の入力が終了しました。もう一度実行して出力欄へ入力するか、設定の「確認用の入力値」に1回分ずつ改行して指定してください。';
   if (/IndentationError|TabError/.test(message)) return '字下げを確認してください。ブロック内は半角スペース4個にそろえると確認しやすくなります。';
   if (/SyntaxError/.test(message)) return '表示された行の記号、括弧、引用符、行末のコロンを確認してください。';
   if (/NameError/.test(message)) return '変数名の綴りと、その変数に値を入れる順序を確認してください。';

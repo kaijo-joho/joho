@@ -17,6 +17,11 @@ const context=await browser.newContext({viewport:{width:1440,height:1000},accept
 const page=await context.newPage(),errors=[];
 page.on('pageerror',e=>errors.push(e.message));
 async function edit(code){await page.evaluate(code=>document.querySelector('.CodeMirror').CodeMirror.setValue(code),code);}
+async function inputSettings(){
+  await page.locator('#settings-menu summary').click();await page.locator('#input-settings').click();
+  await page.waitForSelector('#stdin-dialog[open]');
+}
+async function closeInputs(){await page.locator('#stdin-dialog [data-close]').click();}
 async function uiRun(){await page.locator('#run').click();await page.waitForFunction(()=>document.querySelector('#run').dataset.state==='run',null,{timeout:125000});}
 async function apiRun(target,request,timeout=120000){
   return target.evaluate(async({request,timeout})=>{
@@ -39,6 +44,13 @@ async function apiRun(target,request,timeout=120000){
 try{
   await page.goto(demo.url);await page.waitForSelector('#question-list button');
   assert.equal(await page.locator('#question-list button').count(),3);check('standalone vertical cells and demo startup');
+  const structure=await page.evaluate(()=>({
+    controls:['cloud-connect','formal-submit','previous','next'].every(id=>document.getElementById(id).closest('.topbar')),
+    workspaceChildren:[...document.querySelector('#workspace').children].map(el=>el.id||el.className),
+    outsidePanels:['stdin','notice','formal-status','cloud-account'].every(id=>!document.querySelector('#workspace').contains(document.getElementById(id)))
+  }));
+  assert.equal(structure.controls,true);assert.equal(structure.outsidePanels,true);assert.deepEqual(structure.workspaceChildren,['question-heading','problem-cell','execution-cell']);
+  check('toolbar owns school connection/submission/navigation; workspace contains title/problem/code/output only');
   const geometry=await page.evaluate(()=>{
     const code=document.querySelector('#code-cell').getBoundingClientRect(),output=document.querySelector('#output-cell').getBoundingClientRect();
     const gutter=document.querySelector('.CodeMirror-gutters').getBoundingClientRect(),button=document.querySelector('#run').getBoundingClientRect();
@@ -51,10 +63,18 @@ try{
   await edit('print("こんにちは")\nprint("a","b",sep="-",end="!")');await uiRun();
   assert.equal(await page.locator('#output').textContent(),'こんにちは\na-b!');check('actual Pyodide Japanese stdout and print sep/end');
   await page.locator('#question-list button').nth(1).click();await edit('name = input("名前: ")\nn = int(input("整数: "))\nprint(name,n+1)');
-  await page.locator('#stdin-section summary').click();await page.locator('#stdin').fill('海城\n7\n');await uiRun();
+  await inputSettings();await page.locator('#stdin').fill('海城\n7\n');await closeInputs();await uiRun();
   assert.match(await page.locator('#output').textContent(),/海城 8/);check('multiple queued inputs and Japanese input');
-  await page.locator('#stdin').fill('');await page.locator('#run').click();
-  await page.waitForSelector('#interactive-input:not([hidden])');await page.locator('#input-line').fill('対話');await page.locator('#interactive-input button[type=submit]').click();
+  await inputSettings();await page.locator('#clear-stdin').click();await closeInputs();await page.locator('#run').click();
+  await page.waitForSelector('#interactive-input:not([hidden])');
+  const inline=await page.evaluate(()=>{
+    const output=document.querySelector('#output'),node=output.firstChild,range=document.createRange();
+    range.setStart(node,output.textContent.lastIndexOf('\n')+1);range.setEnd(node,node.length);
+    const prompt=range.getBoundingClientRect(),input=document.querySelector('#input-line').getBoundingClientRect();
+    return {overlap:input.top<prompt.bottom&&input.bottom>prompt.top,after:input.left>=prompt.right-1};
+  });
+  assert.equal(inline.overlap,true);assert.equal(inline.after,true);check('input box follows the prompt on the same output line');
+  await page.locator('#input-line').fill('対話');await page.locator('#interactive-input button[type=submit]').click();
   await page.waitForSelector('#interactive-input:not([hidden])');await page.locator('#input-line').fill('9');await page.locator('#interactive-input button[type=submit]').click();
   await page.waitForFunction(()=>document.querySelector('#run').dataset.state==='run');assert.match(await page.locator('#output').textContent(),/対話 10/);check('interactive input in isolated worker');
   await page.locator('#run').click();await page.waitForSelector('#interactive-input:not([hidden])');await page.locator('#input-eof').click();await page.waitForFunction(()=>document.querySelector('#run').dataset.state==='run');
@@ -77,7 +97,7 @@ try{
   assert.match(await page.evaluate(()=>document.querySelector('.CodeMirror').CodeMirror.getValue()),/^import matplotlib.pyplot as plt\nimport japanize_matplotlib/);
   assert.equal(await page.locator('#setup').isVisible(),false);await uiRun();assert.equal(await page.locator('#figures img').count(),1);assert.equal(await page.locator('#error').textContent(),'');assert.doesNotMatch(await page.locator('#stderr').textContent(),/Glyph.*missing/);check('NumPy/matplotlib and Japanese font without glyph warnings');
   assert.match(await page.locator('.formal-state').textContent(),/接続前/);check('execution state remains separate from formal score/submission');
-  await page.locator('#help-button').click();assert.equal(await page.locator('#operation-help').isVisible(),true);await edit('import matplotlib.pyplot as plt\nimport japanize_matplotlib\nplt.plot([1,2],[3,5])\nplt.show()');assert.equal(await page.locator('#operation-help').isVisible(),true);await page.locator('[data-help-close]').click();check('shared non-modal help while editing');
+  await page.locator('#settings-menu summary').click();await page.locator('#help-button').click();assert.equal(await page.locator('#operation-help').isVisible(),true);await edit('import matplotlib.pyplot as plt\nimport japanize_matplotlib\nplt.plot([1,2],[3,5])\nplt.show()');assert.equal(await page.locator('#operation-help').isVisible(),true);await page.locator('[data-help-close]').click();check('shared non-modal help while editing');
   for(const width of [1440,720,390])for(const theme of ['light','dark','auto'])for(const size of ['standard','large','largest']){
     await page.setViewportSize({width,height:900});await page.locator('#settings-menu summary').click();await page.locator('#theme').selectOption(theme);await page.locator('#text-size').selectOption(size);await page.locator('#settings-menu summary').click();
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${width}/${theme}/${size} overflow`);

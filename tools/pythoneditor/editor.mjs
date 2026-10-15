@@ -1,9 +1,9 @@
-import { LIMITS, APP, FORMAT, questionKey, validId, validateCatalog, validateDraft, stdinLines, errorAdvice } from './core.mjs';
+import { LIMITS, APP, FORMAT, questionKey, validId, validateCatalog, validateDraft, stdinLines, errorAdvice } from './core.mjs?v=20261015-toolbar';
 import { demoCatalog } from './demo.mjs';
 import { DraftStore, exportDraft } from './storage.mjs';
 import { PythonRunner } from './runner.mjs';
 import { renderPrompt } from './prompt.mjs';
-import { CloudPanel } from './cloud-ui.mjs';
+import { CloudPanel } from './cloud-ui.mjs?v=20261015-toolbar';
 import { cloudConfig } from './cloud-config.mjs';
 const $ = id => document.getElementById(id);
 const entries = new Map(), outputs = new Map(), docs = new Map();
@@ -17,10 +17,14 @@ const params = new URLSearchParams(location.search);
 const requested = { set: params.get('set'), question: params.get('question') || params.get('practice'), version: params.get('version') };
 for (const value of Object.values(requested)) if (value && !validId(value)) showNotice('URLのIDが不正です。問題一覧から選んでください。', true);
 pendingRequested=cloudConfig.enabled&&!!(requested.set||requested.question);
-function showNotice(message, danger = false) { $('notice').textContent = message; $('notice').classList.toggle('danger', danger); }
+function showNotice(message, danger = false, reveal = false) {
+  $('notice').textContent = message; $('notice').classList.toggle('danger', danger);
+  $('status-menu').classList.toggle('has-alert', danger);
+  if (danger || reveal) { closeMenus(); $('status-menu').open = true; }
+}
 function closeMenus(restoreFocus=false) {
   const focused=document.activeElement?.closest('.menu');
-  for (const id of ['file-menu', 'settings-menu']) $(id).open = false;
+  for (const id of ['file-menu', 'status-menu', 'settings-menu']) $(id).open = false;
   if(restoreFocus && focused) focused.querySelector('summary').focus();
 }
 function currentEntry(q = question) {
@@ -122,11 +126,14 @@ function selectSet(set, selected, preserveCurrent=false) {
 function renderOutput() {
   const result = outputs.get(questionKey(question));
   $('output').textContent = result?.text || '';
+  const prepared = stdinLines(currentEntry().stdin).length;
+  $('stdin-indicator').textContent = prepared ? `（${prepared}行）` : '';
+  $('input-settings').title = prepared ? `この問題には確認用の入力値が${prepared}行あります` : '通常は出力欄へ入力します';
   $('stderr-section').hidden = !result?.stderr; $('stderr').textContent = result?.stderr || '';
   $('error').hidden = !result?.error; $('error').textContent = result?.error || '';
   $('advice').hidden = !result?.error; $('advice').textContent = result?.error ? errorAdvice(result.error) : '';
   const changed = result && (result.code !== effectiveCode(question) || result.stdin !== currentEntry().stdin);
-  $('output-status').textContent = changed ? 'コードまたは入力を変更しました。下は変更前の実行結果です。' : result?.status || 'ここに実行結果が表示されます。';
+  $('output-status').textContent = changed ? 'コードまたは入力を変更しました。下は変更前の実行結果です。' : result?.status || (prepared ? '確認用の入力値を使用します（設定から変更できます）。' : 'ここに実行結果が表示されます。');
   $('run-status').textContent = result?.status || '未実行';
   $('run').disabled = !question;
   $('run').dataset.state = runner.active ? 'stop' : 'run';
@@ -161,7 +168,7 @@ const runner = new PythonRunner(event => {
   if (event.type === 'figure') result.files.push({ kind: 'figure', name: `graph-${result.files.length + 1}.png`, data: event.data });
   if (event.type === 'file') result.files.push({ kind: 'file', name: String(event.name).replace(/[^\p{L}\p{N}_.-]/gu, '_'), data: event.data });
   if (event.type === 'input') {
-    result.status = '入力を待っています'; $('interactive-input').hidden = false; $('input-line').value = ''; $('input-line').focus();
+    result.status = '入力を待っています'; $('interactive-input').hidden = false; $('input-line').value = '';
   }
   if (event.type === 'done') {
     result.outcome='success';
@@ -172,7 +179,10 @@ const runner = new PythonRunner(event => {
   if (event.type === 'error') { result.error = event.error; result.status = 'エラーで終了しました';result.outcome='error';result.truncated=event.error.includes('出力が上限'); }
   if (event.type === 'stopped') {result.status = event.text;result.outcome='stopped';}
   if (['done', 'error', 'stopped'].includes(event.type)) $('interactive-input').hidden = true;
-  if (questionKey(question) === runSnapshot.key) { renderOutput(); updateProgress();cloudPanel?.render(); }
+  if (questionKey(question) === runSnapshot.key) {
+    renderOutput(); updateProgress(); cloudPanel?.render();
+    if (event.type === 'input') { $('input-line').focus(); $('input-line').scrollIntoView({block:'nearest'}); }
+  }
 });
 function run() {
   if (!question || runner.active) return;
@@ -290,14 +300,20 @@ async function init() {
   }
   $('code').addEventListener('input', dirty); $('stdin').addEventListener('input', dirty);
   cloudPanel=new CloudPanel({question:()=>question,entry:q=>({...currentEntry(q)}),run:q=>outputs.get(questionKey(q)),running:()=>!!runner.active,
-    notice:showNotice,closeMenus:()=>closeMenus(true),addCatalog:addCloudCatalog,importDraft:importCloudDraft,
+    notice:(message,danger)=>showNotice(message,danger,true),closeMenus:()=>closeMenus(true),addCatalog:addCloudCatalog,importDraft:importCloudDraft,
     archive:(e,reason)=>{if(!store)throw new Error('ローカルの控えを保存できません。コードをファイルに保存してください。');store.archive(e,reason);}});
   try { JohoUI.theme({storageKey:'joho.pythoneditor.view.v1',themeSelect:$('theme'),sizeSelect:$('text-size')}); JohoUI.tooltip(); } catch {}
   let help;
+  $('help-button').addEventListener('click', () => closeMenus());
   try { help = JohoToolHelp.create({root:$('operation-help'),opener:$('help-button'),title:'Pythonエディタの使い方',storageKey:'joho.pythoneditor.help.v1',returnToEditor:()=>cm ? cm.focus() : $('code').focus(),bounds:()=>({top:$('topbar')?.getBoundingClientRect().bottom || 50,bottom:innerHeight-10})}); } catch { $('help-button').disabled = true; }
   const interactive = typeof WebAssembly.Suspending === 'function' || (crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined');
   $('input-mode').textContent = interactive ? '空欄のまま実行すると、出力欄からその都度入力できます。まとめて渡す場合は1回分ずつ改行してください。' : 'このブラウザでは、値を1回分ずつ改行して指定してください。出力欄での逐次入力にはGoogle Chromeを使用できます。';
   $('run').addEventListener('click', () => runner.active ? runner.stop() : run());
+  $('input-settings').addEventListener('click', () => { closeMenus(); openDialog($('stdin-dialog')); });
+  $('clear-stdin').addEventListener('click', () => { $('stdin').value = ''; dirty(); $('stdin').focus(); });
+  for (const menu of document.querySelectorAll('.topbar .menu')) menu.querySelector(':scope > summary').addEventListener('click', () => {
+    if (!menu.open) for (const other of document.querySelectorAll('.topbar .menu')) if (other !== menu) other.open = false;
+  });
   $('save-browser').addEventListener('click', saveBrowser); $('save-file').addEventListener('click', saveFile);
   $('restore-browser').addEventListener('click', restoreDialog);
   $('open-file').addEventListener('click', () => {closeMenus(true); $('file-input').click();});
@@ -317,7 +333,7 @@ async function init() {
   $('set-select').addEventListener('change', () => {pendingRequested=false;selectSet(catalog.sets.find(s => s.setId === $('set-select').value));});
   $('previous').addEventListener('click', () => selectQuestion(selectedSet.questions[selectedSet.questions.indexOf(question)-1]));
   $('next').addEventListener('click', () => selectQuestion(selectedSet.questions[selectedSet.questions.indexOf(question)+1]));
-  $('list-toggle').addEventListener('click', () => { const hidden = !$('question-nav').hidden; $('question-nav').hidden = hidden; document.querySelector('.layout').classList.toggle('nav-hidden',hidden); $('list-toggle').setAttribute('aria-expanded',String(!hidden)); });
+  $('list-toggle').addEventListener('click', () => { const hidden = !$('question-nav').hidden; $('question-nav').hidden = hidden; document.querySelector('.layout').classList.toggle('nav-hidden',hidden); $('list-toggle').setAttribute('aria-expanded',String(!hidden)); closeMenus(); });
   document.addEventListener('keydown', e => {
     if (e.isComposing || help?.root.contains(e.target) || document.querySelector('dialog[open]')) return;
     if (e.key === 'Enter' && !e.altKey && (e.metaKey || e.ctrlKey || e.shiftKey) && !e.target.closest('#interactive-input')) {e.preventDefault();run();}

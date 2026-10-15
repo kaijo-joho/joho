@@ -30,3 +30,34 @@
 #input-line{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .execution-cell>#stdin-section{border-radius:0;border-top:1px solid var(--line);padding:10px 16px}
 @media(max-width:620px){#code-cell>.cell-heading{padding-inline:12px}.output-body{padding-right:12px}.execution-cell>#stdin-section{padding-inline:12px}}
+
+/* Keep classroom actions in one toolbar; reports and optional input stay in menus. */
+.toolbar-group{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.topbar .toolbar-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;flex-shrink:0}
+.topbar .toolbar-action svg{flex-shrink:0}
+.topbar .toolbar-icon,.topbar #status-menu>summary,.topbar #settings-menu>summary{display:flex;align-items:center;justify-content:center;width:calc(32px * var(--ui-k));min-width:calc(32px * var(--ui-k));padding:0}
+.topbar .menu{flex-shrink:0}
+.topbar #status-menu .menu-body{right:0;width:min(480px,calc(100vw - 24px));max-height:calc(100dvh - 70px);overflow:auto;padding:16px;white-space:normal;line-height:1.65}
+.status-body>h2{font-size:1.05em;margin-bottom:12px}
+.status-body .notice{margin-bottom:12px}
+.status-body .cloud-state,.status-body .formal-state{margin:12px 0 0;padding:12px}
+.status-body .formal-state span{margin-left:0}
+.status-body .cell-heading{align-items:flex-start}
+.status-body .formal-state .cell-heading{display:block}
+.status-body .cell-heading h3{margin-bottom:6px}
+.status-body .cloud-controls span,.status-body p{overflow-wrap:anywhere}
+#status-menu.has-alert>summary{color:var(--danger);border-color:var(--danger)}
+#settings-menu .menu-body{max-height:calc(100dvh - 70px);overflow:auto}
+.output-transcript{max-height:480px;overflow:auto;padding:8px 0;line-height:2;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.output-cell .output-transcript #output{display:inline;white-space:pre-wrap;padding:0;margin:0;max-height:none;overflow:visible;min-height:0;font:inherit}
+.output-cell .output-transcript #output:empty{display:none}
+.output-transcript #interactive-input{display:inline;padding:0;margin:0;white-space:normal}
+.output-transcript #input-line{display:inline-block;width:22ch;max-width:calc(100% - 7ch);min-width:6ch;vertical-align:middle;margin:2px 5px;padding:6px 8px;font:inherit;line-height:1.5}
+.output-transcript #interactive-input button{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;margin:2px 3px 2px 0;vertical-align:middle}
+#stdin-dialog>label{display:block;margin:16px 0 6px;font-weight:600}
+#stdin-dialog #stdin{display:block;margin:0 0 12px}
+#stdin-indicator{font-size:.85em;color:var(--muted)}
+@media(max-width:1200px){.topbar .wide,.topbar .beta{display:none}.topbar h1{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.topbar .toolbar-action{width:calc(32px * var(--ui-k));min-width:calc(32px * var(--ui-k));padding-inline:0}}
+@media(max-width:620px){.topbar{gap:3px;padding-inline:6px;height:auto;min-height:54px}.toolbar-group{gap:3px}.topbar .toolbar-action,.topbar .toolbar-icon,.topbar .menu>summary{width:44px;min-width:44px;height:44px;min-height:44px;display:flex;align-items:center;justify-content:center;padding:0}.topbar .menu-body{min-width:220px}.topbar #status-menu .menu-body{position:fixed;left:12px;right:12px;top:64px;width:auto}}
+
+@media(pointer:coarse){.topbar .toolbar-icon,.topbar .toolbar-action,.topbar .menu>summary{min-width:44px;min-height:44px}.topbar{height:auto;min-height:54px}}
