@@ -136,6 +136,13 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
       editor.render();
     });
     await expect(page.locator('.logic-editor-diagnostic')).toHaveCount(5);
+    await expect(page.locator('.logic-editor-port.logic-editor-diagnostic')).toHaveCount(5);
+    await expect(page.locator('.logic-editor-diagnostic__ring, .logic-editor-diagnostic__mark')).toHaveCount(0);
+    assert.ok(await page.locator('.logic-editor-diagnostic').evaluateAll(ports => ports.every(port =>
+      port.children.length === 2 && port.querySelector('.logic-editor-port__dot').getAttribute('r') === '6')),
+    '警告は既存端子の点だけを少し拡大し、外側に図形を追加しない');
+    const inputPort = page.locator('.logic-editor-port[data-node-id="input-A"][data-kind="output"]');
+    const warningFill = await inputPort.locator('.logic-editor-port__dot').evaluate(dot => getComputedStyle(dot).fill);
     await page.locator('#zoom').selectOption('2');
     await page.locator('.logic-editor__canvas-wrap').evaluate(wrap => { wrap.scrollLeft = 0; wrap.scrollTop = 0; });
     await page.locator('#circuit-status').click();
@@ -147,8 +154,15 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     await outputIssue.click();
     assert.equal(await page.evaluate(() => logicWorkbenchEditor.diagnosticFocusId), 'port:output-F:0');
     await expect(page.locator('.logic-editor-diagnostic.is-focused')).toHaveCount(1);
+    await expect(page.locator('.logic-editor-diagnostic.is-focused .logic-editor-port__dot')).toHaveAttribute('r', '6.5');
     assert.ok(await page.locator('.logic-editor__canvas-wrap').evaluate(wrap => wrap.scrollLeft > 0),
       '診断項目から画面外の端子を選ぶとキャンバスをスクロールして表示する');
+    await inputPort.press('Enter');
+    await page.locator('.logic-editor-port[data-node-id="gate-test"][data-kind="input"][data-port="0"]').press('Enter');
+    await expect(page.locator('.logic-editor-diagnostic')).toHaveCount(3);
+    await expect(inputPort.locator('.logic-editor-port__dot')).toHaveAttribute('r', '4.5');
+    assert.notEqual(await inputPort.locator('.logic-editor-port__dot').evaluate(dot => getComputedStyle(dot).fill), warningFill,
+      '端子を接続すると通常の色と大きさに戻る');
     console.log(`${name}: diagnostics`);
 
     // タッチでは複数選択モード時だけ、連続タップで選択を追加できる。

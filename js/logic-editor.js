@@ -2670,25 +2670,19 @@
 
     drawDiagnosticMarkers(issues) {
       if (!this.options.enableDiagnostics || !issues.length) return;
+      const ports = Array.from(this.svg.querySelectorAll('.logic-editor-port'));
       const marked = new Set();
       issues.forEach(issue => {
-        const key = `${issue.nodeId}:${issue.port ?? ''}`;
-        if (marked.has(key)) return;
-        marked.add(key);
-        const node = this.findNode(issue.nodeId);
-        if (!node) return;
-        const point = Number.isInteger(issue.port) ? this.inputPoint(node, issue.port)
-          : issue.kind === 'input-unconnected' ? this.outputPoint(node) : { x: node.x + 34, y: node.y - 30 };
+        const kind = Number.isInteger(issue.port) ? 'input' : 'output';
+        const port = ports.find(candidate => candidate.dataset.nodeId === issue.nodeId
+          && candidate.dataset.kind === kind && Number(candidate.dataset.port) === (issue.port ?? 0));
+        if (!port || marked.has(port)) return;
+        marked.add(port);
         const focused = this.diagnosticFocusId === issue.id;
-        const marker = Renderer.svgElement('g', {
-          class: `logic-editor-diagnostic logic-editor-diagnostic--${issue.kind}${focused ? ' is-focused' : ''}`,
-          transform: `translate(${point.x} ${point.y})`, 'aria-hidden': 'true', 'pointer-events': 'none'
-        });
-        marker.append(
-          Renderer.svgElement('circle', { class: 'logic-editor-diagnostic__ring', cx: 0, cy: 0, r: 15 }),
-          Renderer.svgElement('text', { class: 'logic-editor-diagnostic__mark', x: 0, y: 5, 'text-anchor': 'middle' }, '!')
-        );
-        this.svg.appendChild(marker);
+        port.classList.add('logic-editor-diagnostic', `logic-editor-diagnostic--${issue.kind}`);
+        port.classList.toggle('is-focused', focused);
+        port.querySelector('.logic-editor-port__dot').setAttribute('r', focused ? 6.5 : 6);
+        port.setAttribute('aria-label', `${port.getAttribute('aria-label')}。${issue.message}`);
       });
     }
 

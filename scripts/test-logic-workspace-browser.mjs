@@ -77,6 +77,27 @@ async function mainChecks(browser, name) {
   await truth(page);
   await page.locator('#truth-practice').click();
   await expect(page.locator('[data-practice-answer]')).toHaveCount(12);
+  await expect(page.locator('#logic-workbench-table select')).toHaveCount(0);
+  const firstCell = page.locator('[data-answer-cell]').first();
+  const firstAnswer = firstCell.locator('[data-practice-answer]');
+  await expect(firstAnswer).toHaveText('−');
+  await firstAnswer.press('Enter');
+  await firstCell.locator('.logic-answer-control__quick [data-answer-value="0"]').click();
+  await expect(firstAnswer).toHaveText('0');
+  await firstAnswer.click(); await expect(firstAnswer).toHaveText('1');
+  await firstAnswer.press('Backspace'); await expect(firstAnswer).toHaveText('−');
+  await firstAnswer.press('1'); await expect(firstAnswer).toHaveText('1');
+  const answerBox = await firstAnswer.boundingBox();
+  await page.mouse.move(answerBox.x + answerBox.width / 2, answerBox.y + answerBox.height / 2);
+  await page.mouse.down();
+  await expect(firstCell.locator('[role="menu"]')).toBeVisible();
+  await page.mouse.up();
+  await firstCell.locator('[role="menuitem"][data-answer-value="empty"]').click();
+  await expect(firstAnswer).toHaveText('−');
+  await expect(firstAnswer).toBeFocused();
+  await page.locator('#practice-judge').click();
+  await expect(page.locator('#practice-score')).toContainText('未入力 12欄');
+  await expect(page.locator('.practice-answer:visible')).toHaveCount(0);
   await expect(page.locator('.logic-editor-node__bit, .logic-editor-node__gate-value, .logic-editor-value')).toHaveCount(0);
   await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async text => { window.copiedTable = text; } } }));
   await page.locator('#truth-copy').click();
@@ -87,14 +108,14 @@ async function mainChecks(browser, name) {
   });
   const beforePractice = await current(page);
   for (const [index, [id, answer]] of solution.entries()) {
-    await page.locator('[data-practice-answer="' + id + '"]').selectOption(index === 0 ? String(1 - Number(answer)) : answer);
+    await page.locator('[data-practice-answer="' + id + '"]').press(index === 0 ? String(1 - Number(answer)) : answer);
   }
   await page.locator('#practice-judge').click();
   await expect(page.locator('#practice-score')).toContainText('今回：11 / 12点');
   await expect(page.locator('#practice-score')).toContainText('初回：11 / 12点');
   await expect(page.locator('[data-result="wrong"]')).toHaveCount(1);
   await expect(page.locator('.practice-answer:visible')).toHaveCount(0);
-  await page.locator('[data-practice-answer="' + solution[0][0] + '"]').selectOption(solution[0][1]);
+  await page.locator('[data-practice-answer="' + solution[0][0] + '"]').click();
   await page.locator('#practice-judge').click();
   await expect(page.locator('#practice-score')).toContainText('今回：12 / 12点');
   await expect(page.locator('#practice-score')).toContainText('初回：11 / 12点');
@@ -102,6 +123,13 @@ async function mainChecks(browser, name) {
   assert.deepEqual((await current(page)).history, beforePractice.history, '演習をUndo履歴へ混ぜない');
   await page.locator('#practice-reveal').click(); await expect(page.locator('.practice-answer:visible')).toHaveCount(12);
   await page.locator('#practice-reveal').click();
+  const solvedPractice = (await current(page)).view;
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem(LogicDocuments.KEY)).documents
+    .some(doc => doc.id === logicDocuments.activeId && doc.view.practice.hadAnswer && !doc.view.practice.revealed));
+  await page.reload(); await page.locator('body.logic-tool-ready').waitFor(); await truth(page);
+  assert.deepEqual((await current(page)).view, solvedPractice, '再読み込みで演習の回答と初回得点を保持する');
+  assert.deepEqual(await page.locator('[data-practice-answer]').allTextContents(), solution.map(([, value]) => value),
+    '復元した回答を共通ボタンへ表示する');
   await action(page, 'browserSave');
   await page.getByLabel('回路の名前', { exact: true }).fill('中間点の回路');
   await page.locator('#logic-file-dialog').getByRole('button', { name: '保存', exact: true }).click();
@@ -229,6 +257,7 @@ async function mainChecks(browser, name) {
 }
 async function layoutChecks(browser, name) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } }); await ready(page);
+  await truth(page); await page.locator('#truth-practice').click();
   for (const width of [1440, 720, 390]) for (const theme of ['auto', 'light', 'dark']) for (const size of ['standard', 'large', 'largest']) {
     await page.setViewportSize({ width, height: 900 }); await setToolPreferences(page, theme, size);
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -240,6 +269,12 @@ async function layoutChecks(browser, name) {
     await page.locator('#file-menu > summary').press('Enter');
     const menu = await page.locator('.joho-file-menu__items').boundingBox();
     assert.ok(menu && menu.x >= 0 && menu.x + menu.width <= width + 1);
+    await page.keyboard.press('Escape');
+    const answer = page.locator('[data-answer-cell]').first();
+    await answer.locator('[data-practice-answer]').press('Enter');
+    const choices = await answer.locator('.logic-answer-control__quick').boundingBox();
+    assert.ok(choices && choices.x >= 0 && choices.x + choices.width <= width + 1,
+      name + ': answer choices fit ' + [width, theme, size].join('/'));
     await page.keyboard.press('Escape');
     if (width === 390 && theme === 'dark' && size === 'largest') await page.screenshot({ path: join(artifacts, name + '-390-dark-largest.png') });
   }
@@ -253,6 +288,14 @@ async function layoutChecks(browser, name) {
   await expect(touch.locator('.logic-editor-node--probe')).toHaveCount(1);
   await touch.locator('#palette-toggle').tap();
   await expect(touch.locator('#component-tools')).toBeHidden();
+  await touch.evaluate(() => logicWorkbenchEditor.loadExpression('A-B'));
+  await truth(touch); await touch.locator('#truth-practice').tap();
+  const touchCell = touch.locator('[data-answer-cell]').first(), touchAnswer = touchCell.locator('[data-practice-answer]');
+  await touchAnswer.tap();
+  await touchCell.locator('.logic-answer-control__quick [data-answer-value="0"]').tap();
+  await expect(touchAnswer).toHaveText('0');
+  await touchAnswer.tap(); await expect(touchAnswer).toHaveText('1');
+  await touch.screenshot({ path: join(artifacts, name + '-390-practice-touch.png') });
   assert.ok(await touch.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await touch.close();
   const broken = await browser.newContext();
@@ -331,8 +374,13 @@ async function failureChecks(browser, name) {
   await expect(separator).toHaveAttribute('aria-valuenow', '220');
   await separator.press('End'); await expect(separator).toHaveAttribute('aria-valuenow', '560');
   await separator.press('Enter'); await expect(separator).toHaveAttribute('aria-valuenow', '300');
-  await page.getByRole('button', { name: '中間点を追加', exact: true }).focus();
+  // 幅変更とフォーカス移動のスクロールはツールチップを閉じるため、先に完了させる。
+  const probeButton = page.getByRole('button', { name: '中間点を追加', exact: true });
+  await page.mouse.move(0, 0); await probeButton.scrollIntoViewIfNeeded();
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await probeButton.focus();
   await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab');
+  await expect(probeButton).toBeFocused();
   await expect(page.locator('#logic-tooltip')).toBeVisible();
   await page.keyboard.press('Escape'); await expect(page.locator('#logic-tooltip')).toBeHidden();
   await context.close();

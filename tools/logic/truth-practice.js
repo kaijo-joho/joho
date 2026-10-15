@@ -97,7 +97,7 @@
       const practice = this.state.mode === 'practice';
       this.viewButton.setAttribute('aria-pressed', String(!practice)); this.practiceButton.setAttribute('aria-pressed', String(practice));
       this.practiceButton.disabled = !analysis.valid; this.controls.hidden = !practice || !analysis.valid;
-      if (this.note) this.note.textContent = practice ? '入力は問題の条件です。中間点・出力の欄を埋め、判定してください。'
+      if (this.note) this.note.textContent = practice ? '−から0/1を選び、入力後はクリックで反転します。長押しで未入力に戻せます。中間点・出力の欄を埋め、判定してください。'
         : '行を選ぶと入力が切り替わります。中間点、最終出力の順に表示します。';
       if (!analysis.valid) {
         root.LogicRenderer.renderMessage(this.table, analysis.errors[0] || '回路を完成させてください。');
@@ -124,20 +124,22 @@
         const tr = element('tr');
         analysis.inputs.forEach(name => { const th = element('th', String(row.inputs[name])); th.scope = 'row'; tr.appendChild(th); });
         columns(analysis).forEach(column => {
-          const id = key(row, column), td = element('td'); td.dataset.answerCell = id;
-          const select = element('select'); select.dataset.practiceAnswer = id;
+          const id = key(row, column), td = element('td', null, 'logic-answer-cell'); td.dataset.answerCell = id;
           const label = analysis.inputs.map(name => name + '=' + row.inputs[name]).join('、') + '、' + column.name + 'の値';
-          select.setAttribute('aria-label', label);
-          select.dataset.promptLabel = label;
-          for (const [value, text] of [['', '—'], ['0', '0'], ['1', '1']]) { const option = element('option', text); option.value = value; select.appendChild(option); }
-          select.value = this.state.answers[id] || '';
+          const control = root.LogicWidgets.createTruthAnswerControl({
+            value: ['0', '1'].includes(this.state.answers[id]) ? Number(this.state.answers[id]) : null,
+            ariaLabel: value => label + '、' + (value == null ? '未入力' : '現在' + value),
+            attributes: { 'data-practice-answer': id },
+            onChange: value => {
+              this.state.answers[id] = value == null ? '' : String(value); this.state.judged = false;
+              control.button.dataset.promptLabel = control.button.getAttribute('aria-label');
+              this.feedback(); this.onChange?.();
+            }
+          });
+          control.button.dataset.promptLabel = control.button.getAttribute('aria-label');
           const mark = element('span', '', 'practice-mark'); mark.setAttribute('aria-hidden', 'true');
           const answer = element('span', '', 'practice-answer'); answer.hidden = true;
-          select.onchange = () => {
-            this.state.answers[id] = select.value; this.state.judged = false;
-            this.feedback(); this.onChange?.();
-          };
-          td.append(select, mark, answer); tr.appendChild(td);
+          td.append(control.element, mark, answer); tr.appendChild(td);
         });
         body.appendChild(tr);
       });
@@ -151,8 +153,8 @@
         if (!td) return;
         const state = this.state.judged ? result.cells[id] : '';
         td.dataset.result = state;
-        const select = td.querySelector('select'); select.setAttribute('aria-invalid', String(state === 'wrong'));
-        select.setAttribute('aria-label', select.dataset.promptLabel + (state ? '、' + ({ correct: '正解', wrong: '不正解', empty: '未入力' })[state] : '')
+        const button = td.querySelector('[data-practice-answer]'); button.setAttribute('aria-invalid', String(state === 'wrong'));
+        button.setAttribute('aria-label', button.dataset.promptLabel + (state ? '、' + ({ correct: '正解', wrong: '不正解', empty: '未入力' })[state] : '')
           + (this.state.revealed ? '、正解 ' + row.outputs[column.id] : ''));
         const mark = td.querySelector('.practice-mark'); mark.textContent = state === 'correct' ? '○' : state === 'wrong' ? '×' : state === 'empty' ? '—' : '';
         const answer = td.querySelector('.practice-answer'); answer.hidden = !this.state.revealed;

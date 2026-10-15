@@ -94,10 +94,7 @@ summary:hover { background: var(--hover); }
 .logic-editor-selection-marquee { fill: var(--accent-soft); fill-opacity: .4; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 3; pointer-events: none; }
 .logic-editor-node.is-multi-selected .logic-editor-node__box,
 .logic-editor-node.is-multi-selected .logic-gate__body { stroke-dasharray: 5 2; }
-.logic-editor-diagnostic { pointer-events: none; }
-.logic-editor-diagnostic__ring { fill: none; stroke: var(--logic-error); stroke-width: 2; stroke-dasharray: 3 2; }
-.logic-editor-diagnostic__mark { fill: var(--logic-error); font: bold 16px sans-serif; transform: translate(-19px, -14px); stroke: var(--logic-canvas-bg); stroke-width: 4px; paint-order: stroke; }
-.logic-editor-diagnostic.is-focused .logic-editor-diagnostic__ring { stroke-width: 4; stroke-dasharray: none; }
+.logic-editor-port.logic-editor-diagnostic:not(.is-pending):not(.is-dragging) .logic-editor-port__dot { fill: var(--logic-error); }
 #insert-not { white-space: nowrap; flex: none; }
 .operation-hint { flex: none; min-width: 0; height: calc(2.436rem + 14px); padding: 7px 12px; border-top: 1px solid var(--line); background: var(--panel); }
 #app .logic-editor__status, #app .logic-editor__status.is-complete { position: static; transform: none; width: auto; max-width: none; min-height: 0; max-height: 2.9em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; padding: 0; margin: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--muted); text-align: left; font-size: .84rem; font-weight: 400; pointer-events: auto; }
@@ -259,14 +256,16 @@ noscript { position: fixed; inset: 65px 15px auto; padding: 15px; background: va
 .practice-table { table-layout: auto !important; min-width: max-content !important; }
 .practice-table caption { text-align: left; padding-block: 6px; color: var(--muted); }
 .practice-table th { min-width: 36px; }
-.practice-table td { position: relative; min-width: 60px; }
-.practice-table select { min-width: 46px; width: 100%; padding: 5px 2px; }
+.practice-table td { position: relative; min-width: 128px; }
 .practice-mark { display: block; font-weight: bold; height: 1.3em; }
 .practice-answer { display: block; white-space: nowrap; font-size: .8rem; font-weight: bold; }
 .practice-table [data-result="correct"] { outline: 2px solid var(--accent); outline-offset: -2px; }
 .practice-table [data-result="wrong"] { outline: 2px dashed var(--logic-error); outline-offset: -2px; }
 .practice-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
 .practice-score { line-height: 1.7; }
+@media (pointer: coarse) {
+  .practice-table td { min-width: 144px; }
+}
 @media (max-width: 560px) {
   .top { gap: 3px; padding-inline: 3px; }
   .top .brand { display: flex; }

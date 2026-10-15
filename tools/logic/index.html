@@ -6,7 +6,7 @@
   <title>論理回路エディタ — 海城 情報科</title>
   <link rel="icon" type="image/svg+xml" href="./icon.svg?v=20260915-a">
   <link rel="stylesheet" href="../../css/logic-circuits.css">
-  <link rel="stylesheet" href="./editor.css?v=20261015-06">
+  <link rel="stylesheet" href="./editor.css?v=20261015-06c">
   <link rel="stylesheet" href="../shared/help-panel.css">
   <link rel="stylesheet" href="../shared/file-menu.css?v=20261015-06">
   <link rel="stylesheet" href="./assignment.css">
@@ -14,7 +14,7 @@
   <script defer src="../../js/logic-renderer.js?v=20261015-06"></script>
   <script defer src="../../js/logic-widgets.js"></script>
   <script defer src="../../js/logic-layout.js"></script>
-  <script defer src="../../js/logic-editor.js?v=20261015-06"></script>
+  <script defer src="../../js/logic-editor.js?v=20261015-06c"></script>
   <script defer src="../../js/logic-storage.js?v=20261015-06"></script>
   <script defer src="../../js/logic-workbench-files.js?v=20261015-06"></script>
   <script defer src="./recovery.js"></script>
@@ -22,7 +22,7 @@
   <script defer src="../shared/help-panel.js"></script>
   <script defer src="../shared/file-menu.js?v=20261015-06b"></script>
   <script defer src="./documents.js?v=20261015-06"></script>
-  <script defer src="./truth-practice.js?v=20261015-06"></script>
+  <script defer src="./truth-practice.js?v=20261015-06c"></script>
   <script defer src="../shared/assignment-lite.js"></script>
   <script defer src="../shared/assignment-lite-store.js"></script>
   <script defer src="../shared/assignment-lite-bridge.js"></script>
@@ -173,6 +173,7 @@
     <section data-help-topic="probe-practice" data-help-title="中間点・真理値表の演習">
       <h3>中間点・真理値表の演習</h3>
       <ol><li>左の「＋ 中間点」でP1、P2…を配置して端子へ接続します。または配線を選び、「中間点を挿入」を押します。中間点は信号を変えず、観測する場所を真理値表へ追加します。</li><li>右の真理値表で「演習」を選び、中間点と出力の各欄へ0か1を入力します。回路上の信号表示は演習中は隠れます。</li><li>「判定・採点」で正誤と得点を確認します。修正して再判定できます。最初の全欄判定の得点は「やり直す」まで保持します。</li></ol>
+      <p>「−」から0/1を選び、入力後はクリック・タップで反転します。長押し・右クリックでは0／未入力／1を選べます。キーボードの0・1で入力、Delete・Backspaceで消去、Escapeで選択肢を閉じられます。</p>
       <p>正解は「解答を見る」で確認します。確認後の判定は練習用です。タブごとに演習状態を保持しますが、回路の論理が変わると解答欄を更新します。位置移動だけでは消しません。正式提出の採点ではなく、端末内で行う自学用の機能です。</p>
     </section>
     <section data-help-topic="export" data-help-title="SVG・PNGの書き出し">
