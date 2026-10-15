@@ -8,6 +8,7 @@ export async function revealToolButton(page, control) {
   if (!await control.isVisible()) {
     const summary = page.locator('#toolbar-menu > summary');
     if (await summary.isVisible() && !await summary.evaluate(node => node.parentElement.open)) await summary.click();
+    if (!await control.isVisible()) await page.locator('#view-menu').evaluate(node => { node.open = true; });
   }
   await control.waitFor({ state: 'visible' });
   return control;
@@ -49,7 +50,7 @@ export async function toolLayoutChecks(page, name, artifacts) {
       await summary.press('Enter');
       const menu = await page.locator('#basic-toolbar').boundingBox();
       assert.ok(menu && menu.x >= 0 && menu.x + menu.width <= width, 'compact toolbar menu stays inside viewport');
-      assert.equal(await page.locator('#basic-toolbar button:visible').count(), 8, 'every basic action is available in the menu');
+      assert.equal(await page.locator('#basic-toolbar button:visible').count(), 3, 'history and selection are available in the compact menu');
       await page.locator('#basic-toolbar button').first().focus();
       await page.keyboard.press('Escape');
       assert.equal(await summary.evaluate(node => document.activeElement === node), true, 'Escape returns focus to toolbar menu');
@@ -62,13 +63,13 @@ export async function toolLayoutChecks(page, name, artifacts) {
   await setToolPreferences(page, 'light', 'standard');
   await page.setViewportSize({ width: 1440, height: 900 });
   if (await page.evaluate(() => document.fullscreenEnabled)) {
-    await page.locator('#fullscreen-button').click();
+    await (await revealToolButton(page, page.locator('#fullscreen-button'))).click();
     await page.waitForFunction(() => !!document.fullscreenElement);
     await page.getByRole('button', { name: '回路エディタの操作方法', exact: true }).click();
     await page.locator('#lc02-operation-dialog').waitFor();
     await page.keyboard.press('Escape');
     await page.locator('#lc02-operation-dialog').waitFor({ state: 'hidden' });
-    if (await page.evaluate(() => !!document.fullscreenElement)) await page.getByRole('button', { name: '全画面表示を終了', exact: true }).click();
+    if (await page.evaluate(() => !!document.fullscreenElement)) await (await revealToolButton(page, page.getByRole('button', { name: '全画面表示を終了', exact: true }))).click();
     await page.waitForFunction(() => !document.fullscreenElement);
   }
 }

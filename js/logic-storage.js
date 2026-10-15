@@ -20,8 +20,8 @@
   const MAX_ID_LENGTH = 120;
   const INPUT_NAMES = Object.freeze(['A', 'B', 'C', 'D']);
   const INPUT_SET = new Set(INPUT_NAMES);
-  const GATE_INPUTS = Object.freeze({ AND: 2, OR: 2, NOT: 1, output: 1 });
-  const TYPES = new Set(['input', 'output', 'AND', 'OR', 'NOT']);
+  const GATE_INPUTS = Object.freeze({ AND: 2, OR: 2, NOT: 1, output: 1, probe: 1 });
+  const TYPES = new Set(['input', 'output', 'probe', 'AND', 'OR', 'NOT']);
   const SUBSCRIPTS = Object.freeze(['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']);
 
   function fail(message) { throw new Error(message); }
@@ -115,6 +115,7 @@
     const outputs = nodes.filter(node => node.type === 'output');
     if (outputs.length < 1) fail('出力を1つ以上配置してください。');
     outputs.forEach((node, index) => { node.name = outputName(index, outputs.length); });
+    nodes.filter(node => node.type === 'probe').forEach((node, index) => { node.name = Core.probeName(index); });
     const nodeMap = new Map(nodes.map(node => [node.id, node]));
     const wireIds = new Set();
     const targetPorts = new Set();

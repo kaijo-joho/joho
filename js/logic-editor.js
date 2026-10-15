@@ -350,6 +350,19 @@
         this.addOutputButton.setAttribute('aria-label', '出力を追加');
         palette.appendChild(this.addOutputButton);
       }
+      if (this.options.allowProbes) {
+        this.addProbeButton = makeButton('＋ 中間点', 'logic-editor__action-button logic-editor__add-probe-button', event => {
+          if (event.detail === 0 || !this.suppressPaletteClick) this.addGate('probe');
+          this.suppressPaletteClick = false;
+        });
+        this.addProbeButton.setAttribute('aria-label', '中間点を追加');
+        this.addProbeButton.title = '中間点を追加。ドラッグで配置、端子への接続、配線への挿入に対応';
+        this.addProbeButton.addEventListener('pointerdown', event => this.beginPaletteDrag(event, 'probe', this.addProbeButton));
+        this.addProbeButton.addEventListener('lostpointercapture', event => {
+          if (this.paletteDrag?.pointerId === event.pointerId) this.finishPaletteDrag(event, true);
+        });
+        palette.appendChild(this.addProbeButton);
+      }
 
       const actions = htmlElement('div', 'logic-editor__actions');
       actions.setAttribute('role', 'group');
@@ -646,8 +659,9 @@
     }
 
     addGate(type, position) {
-      const gate = String(type).toUpperCase();
-      if (!GATES.includes(gate)) return;
+      const gate = String(type).toLowerCase() === 'probe' ? 'probe' : String(type).toUpperCase();
+      if (!GATES.includes(gate) && !(gate === 'probe' && this.options.allowProbes)) return;
+      if (this.graph.nodes.length >= this.maxNodeCount()) { this.notice = '部品の上限に達しました。'; this.render({ notify: false }); return; }
       this.pendingFrom = null;
       this.pendingRewire = null;
       this.connectionDrag = null;
@@ -661,15 +675,16 @@
         y: position ? clamp(position.y, 42, HEIGHT - 42) : 82 + lane * 86
       };
       this.graph.nodes.push(node);
+      this.updateOutputNames();
       this.setNodeSelection([node.id], node.id);
-      this.commit(`${gate}ゲートを追加しました。ドラッグで位置を調整できます。`);
+      this.commit(`${gate === 'probe' ? `中間点${node.name}` : `${gate}ゲート`}を追加しました。ドラッグで位置を調整できます。`);
     }
 
-    notInsertionPosition(wire) {
+    notInsertionPosition(wire, type = 'NOT') {
       const routing = this.computeWireRouting();
       const route = routing.routes.get(wire.id);
       const segments = route?.fullSegments || route?.segments || [];
-      const geometry = Renderer.gateGeometry('NOT');
+      const geometry = Renderer.gateGeometry(type);
       const from = this.outputPoint(this.findNode(wire.from));
       const to = this.inputPoint(this.findNode(wire.to), Number(wire.port));
       const obstacles = this.routingObstacles().map(rect => {
@@ -723,30 +738,41 @@
     }
 
     insertNotInWire(wireId = this.selected?.kind === 'wire' ? this.selected.id : null) {
+      return this.insertNodeInWire('NOT', wireId);
+    }
+
+    insertProbeInWire(wireId = this.selected?.kind === 'wire' ? this.selected.id : null) {
+      if (!this.options.allowProbes) return null;
+      return this.insertNodeInWire('probe', wireId);
+    }
+
+    insertNodeInWire(type, wireId) {
       if (!this.options.allowWireInsertion || this.drag || this.paletteDrag || this.connectionDrag || this.bendDrag || this.pan) return null;
+      if (this.graph.nodes.length >= this.maxNodeCount() || this.graph.wires.length >= 500) { this.notice = '部品または配線の上限に達しました。'; this.render({ notify: false }); return null; }
       const wire = this.graph.wires.find(candidate => candidate.id === wireId);
       if (!wire || !this.findNode(wire.from) || !this.findNode(wire.to)) return null;
-      const position = this.notInsertionPosition(wire);
+      const position = this.notInsertionPosition(wire, type);
       if (!position) {
-        this.notice = 'NOTを置くスペースがありません。配線の両端の部品を左右に離すなどして、もう一度挿入してください。';
+        this.notice = `${type === 'probe' ? '中間点' : 'NOT'}を置くスペースがありません。配線の両端の部品を左右に離すなどして、もう一度挿入してください。`;
         this.render({ notify: false });
         return null;
       }
       let nodeId, wireInId;
       do { nodeId = `gate-${Date.now().toString(36)}-${++this.nodeSerial}`; } while (this.findNode(nodeId));
       do { wireInId = `wire-${Date.now().toString(36)}-${++this.wireSerial}`; } while (this.graph.wires.some(candidate => candidate.id === wireInId));
-      const node = { id: nodeId, type: 'NOT', ...position };
+      const node = { id: nodeId, type, ...position };
       const wireIn = { id: wireInId, from: wire.from, to: node.id, port: 0 };
       const wireOut = { ...wire, from: node.id };
       delete wireOut.bends;
       // 接続先・端子番号・元の配線IDを保つ。分岐した他の配線と部品は変更しない。
       this.checkpoint();
       this.graph.nodes.push(node);
+      this.updateOutputNames();
       this.graph.wires.splice(this.graph.wires.indexOf(wire), 1, wireIn, wireOut);
       this.pendingFrom = null;
       this.pendingRewire = null;
       this.setNodeSelection([node.id], node.id);
-      this.commit('配線の途中にNOTを挿入しました。Undoで元の配線に戻せます。');
+      this.commit(`配線の途中に${type === 'probe' ? `中間点${node.name}` : 'NOT'}を挿入しました。Undoで元の配線に戻せます。`);
       return node;
     }
 
@@ -780,7 +806,15 @@
       this.paletteDrag = null;
       gesture.button.classList.remove('is-dragging');
       if (gesture.button.hasPointerCapture?.(event.pointerId)) gesture.button.releasePointerCapture(event.pointerId);
-      if (!gesture.moved && !cancelled) return; // 通常のクリックで追加する。
+      if (!gesture.moved && !cancelled) {
+        // WebKitはpreventDefaultしたtouchのclickを生成しない。pointerupで1回だけ追加し、
+        // Chrome等が後から送るclickは抑止する。マウス・キーボードは従来のclickを使う。
+        if (event.pointerType === 'touch') {
+          this.suppressPaletteClick = true;
+          this.addGate(gesture.gate);
+        }
+        return;
+      }
       this.suppressPaletteClick = true; // ドロップ直後のclickで二重追加しない。
       const rawPosition = cancelled ? null : this.paletteDropPoint(event);
       const position = rawPosition ? this.snapPosition({ type: gesture.gate }, rawPosition, gesture, event.altKey) : null;
@@ -838,6 +872,7 @@
     updateOutputNames() {
       const outputs = this.graph.nodes.filter(node => node.type === 'output');
       outputs.forEach((node, index) => { node.name = Core.outputName(index, outputs.length); });
+      this.graph.nodes.filter(node => node.type === 'probe').forEach((node, index) => { node.name = Core.probeName(index); });
     }
 
     addOutput() {
@@ -1053,13 +1088,13 @@
       // 検証後にまとめて変更する。失敗やキャンセルでは既存の配線を失わない。
       this.graph.wires = this.graph.wires.filter(candidate => candidate !== displaced || candidate === wire);
       const fromLabel = from.name || from.type;
-      const toLabel = to.type === 'output' ? to.name : `${to.type}の入力${targetPort + 1}`;
+      const toLabel = to.type === 'probe' ? `中間点${to.name}` : to.type === 'output' ? to.name : `${to.type}の入力${targetPort + 1}`;
       this.commit(`配線を${fromLabel}から${toLabel}へ付け替えました。${displaced && displaced !== wire ? 'この端子の古い配線を置き換えました。Undoで戻せます。' : ''}`);
     }
 
     inputCount(node) {
       if (!node) return 0;
-      if (node.type === 'output') return 1;
+      if (node.type === 'output' || node.type === 'probe') return 1;
       return Core.REQUIRED_INPUTS[node.type] || 0;
     }
 
@@ -1077,6 +1112,7 @@
 
     // 配置メニューでは接続端子ではなく、画面に見える部品本体の端を基準にする。
     nodeBodyBounds(node) {
+      if (node.type === 'probe') return { left: node.x - 18, right: node.x + 18, top: node.y - 18, bottom: node.y + 18 };
       if (node.type === 'input') return { left: node.x - 34, right: node.x + 34, top: node.y - 29, bottom: node.y + 29 };
       if (node.type === 'output') return { left: node.x - 31, right: node.x + 31, top: node.y - 29, bottom: node.y + 29 };
       if (node.type === 'NOT') return { left: node.x - 30, right: node.x + 36, top: node.y - 24, bottom: node.y + 24 };
@@ -1547,7 +1583,7 @@
       }
       this.updateOutputNames();
       this.setNodeSelection([]);
-      const label = node.type === 'input' ? `入力${node.name}` : node.type === 'output' ? `出力${node.name}` : `${node.type}ゲート`;
+      const label = node.type === 'probe' ? `中間点${node.name}` : node.type === 'input' ? `入力${node.name}` : node.type === 'output' ? `出力${node.name}` : `${node.type}ゲート`;
       this.commit(`${label}と接続配線を削除しました。Undoで戻せます。`);
     }
 
@@ -1585,7 +1621,7 @@
           return null;
         }
         let value;
-        if (node.type === 'output') value = operands[0];
+        if (node.type === 'output' || node.type === 'probe') value = operands[0];
         else if (node.type === 'NOT') value = operands[0] ? 0 : 1;
         else if (node.type === 'AND') value = operands[0] && operands[1] ? 1 : 0;
         else if (node.type === 'OR') value = operands[0] || operands[1] ? 1 : 0;
@@ -2534,7 +2570,7 @@
         role: 'button',
         'aria-label': node.type === 'input'
           ? `入力${node.name}${this.showSignals === false ? '' : `、現在${this.inputValues[node.name]}`}。クリックで切り替え、ドラッグで移動`
-          : node.type === 'output' ? `出力${node.name}。ドラッグで移動` : `${node.type}ゲート。クリックまたはEnterで選択、ドラッグで移動`
+          : node.type === 'output' ? `出力${node.name}。ドラッグで移動` : node.type === 'probe' ? `中間点${node.name}。クリックまたはEnterで選択、ドラッグで移動` : `${node.type}ゲート。クリックまたはEnterで選択、ドラッグで移動`
       });
       group.addEventListener('pointerdown', event => this.startDrag(event, node));
       group.addEventListener('keydown', event => {
@@ -2568,6 +2604,12 @@
           Renderer.svgElement('text', { class: 'logic-editor-node__label', x: value == null ? 0 : -11, y: 6, 'text-anchor': 'middle' }, node.name)
         );
         if (value != null) group.appendChild(Renderer.svgElement('text', { class: `logic-editor-node__bit${value === 1 ? ' is-one' : ''}`, x: 17, y: 6, 'text-anchor': 'middle' }, String(value)));
+      } else if (node.type === 'probe') {
+        group.append(
+          Renderer.svgElement('circle', { class: 'logic-editor-node__box', cx: 0, cy: 0, r: 18 }),
+          Renderer.svgElement('text', { class: 'logic-editor-node__label', x: 0, y: -27, 'text-anchor': 'middle' }, node.name)
+        );
+        if (value != null) group.appendChild(Renderer.svgElement('text', { class: 'logic-editor-node__bit', x: 0, y: 6, 'text-anchor': 'middle' }, String(value)));
       } else if (node.type === 'output') {
         group.append(
           Renderer.svgElement('rect', {
@@ -2773,7 +2815,7 @@
         const count = this.inputCount(node);
         for (let port = 0; port < count; port += 1) {
           if (this.graph.wires.some(wire => validWire(wire) && wire.to === node.id && Number(wire.port) === port)) continue;
-          const label = node.type === 'output' ? `出力${outputNames.get(node.id) || node.name}` : `${node.type}ゲート`;
+          const label = node.type === 'probe' ? `中間点${node.name}` : node.type === 'output' ? `出力${outputNames.get(node.id) || node.name}` : `${node.type}ゲート`;
           issues.push({ id: `port:${node.id}:${port}`, kind: 'port-unconnected', nodeId: node.id, port,
             message: `${label}の入力端子${count > 1 ? port + 1 : ''}が接続されていません。` });
         }

@@ -78,6 +78,7 @@
     }
 
     isDirty() {
+      if (this.options.isDirty) return this.options.isDirty();
       try {
         const fingerprint = this.fingerprint();
         if (fingerprint !== this.savedFingerprint) return true;
@@ -151,7 +152,12 @@
       finally { link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
     }
 
-    requestReplace(action, label, opener, { initial = false } = {}) {
+    requestReplace(action, label, opener, { initial = false, inPlace = false } = {}) {
+      if (!inPlace && this.options.openDocument) {
+        try { this.options.openDocument(action); this.close(); }
+        catch (error) { if (!this.dialog.open) this.show('回路を開けませんでした', opener); this.showError(error); }
+        return;
+      }
       const replace = () => {
         try {
           // 独立エディタでは下書きの退避が成功してから回路を置き換える。
@@ -184,7 +190,7 @@
         this.currentName = '';
         this.savedFingerprint = this.fingerprint();
         this.refresh();
-      }, '全消去', this.editor.clearButton);
+      }, '全消去', this.editor.clearButton, { inPlace: true });
     }
 
     openSave({ afterSave = null, opener = this.editor.fileSaveButton } = {}) {
@@ -260,9 +266,9 @@
       name.select();
     }
 
-    openLoad({ initial = false, opener = this.editor.loadButton } = {}) {
+    openLoad({ initial = false, opener = this.editor.loadButton, browserOnly = false } = {}) {
       this.show(initial ? 'どの回路から始めますか？' : '回路を読み込む', opener);
-      if (this.options.createNew) {
+      if (!browserOnly && this.options.createNew) {
         const fresh = button('新しい回路から始める', () => this.requestReplace(
           this.options.createNew, '新規作成', opener, { initial }
         ));
@@ -297,6 +303,7 @@
         } catch (error) { this.body.appendChild(element('p', 'logic-file-error', error.message)); }
         this.body.appendChild(element('p', 'logic-file-note', 'このブラウザ内の下書きです。切り替え前の下書きは最大5件残します。長く残す回路は名前付き保存・ファイル保存をご利用ください。'));
       }
+      if (!browserOnly) {
       const fileLabel = element('label', 'logic-file-field', 'ローカルJSONファイルを選択');
       const fileInput = element('input');
       fileInput.type = 'file';
@@ -328,6 +335,7 @@
       });
       fileLabel.appendChild(fileInput);
       this.body.append(fileLabel, element('p', 'logic-file-note', 'この端末から選んだ .logic.json ファイルを読み込みます。'));
+      }
       this.body.appendChild(element('h4', '', '名前付き保存（ブラウザ内）'));
       try {
         const records = this.store().list();
@@ -356,8 +364,10 @@
         });
         this.body.appendChild(records.length ? list : element('p', 'logic-file-note', '保存した回路はまだありません。'));
       } catch (error) { this.showError(error); }
-      this.body.appendChild(element('h4', '', 'テンプレート'));
-      this.body.append(this.createTemplateList(opener, { initial }), element('p', 'logic-file-note', STORAGE_NOTE));
+      if (!browserOnly) {
+        this.body.appendChild(element('h4', '', 'テンプレート'));
+        this.body.append(this.createTemplateList(opener, { initial }), element('p', 'logic-file-note', STORAGE_NOTE));
+      }
       (this.body.querySelector('[data-draft-id="draft-current"]') || this.body.querySelector('button'))?.focus({ preventScroll: true });
     }
 

@@ -18,6 +18,7 @@
 
   function gateGeometry(type) {
     const gate = String(type).toUpperCase();
+    if (gate === 'PROBE') return { inputX: -18, outputX: 18, inputYs: [0] };
     if (!Core.BASIC_GATES.includes(gate)) {
       throw new TypeError(`回路図で使用できるゲートはAND・OR・NOTだけです（指定: ${type}）。`);
     }
@@ -57,6 +58,8 @@
         cy: 0,
         r: 6
       }));
+    } else if (gate === 'PROBE') {
+      group.appendChild(svgElement('circle', { class: 'logic-gate__body', cx: 0, cy: 0, r: 18 }));
     } else {
       throw new TypeError(`未対応のゲート「${type}」です。`);
     }
@@ -366,6 +369,7 @@
     const showSignals = options.showSignals !== false;
     const signals = options.signals || new Map();
     const outputs = graph.nodes.filter(node => node.type === 'output');
+    const probes = graph.nodes.filter(node => node.type === 'probe');
     const outputNames = new Map(outputs.map((node, index) => [node.id, Core.outputName(index, outputs.length)]));
     const extent = graph.nodes.flatMap(node => [
       { x: node.x - 64, y: node.y - 48 }, { x: node.x + 76, y: node.y + 45 }
@@ -384,7 +388,7 @@
     });
     svg.append(
       svgElement('title', {}, title),
-      svgElement('desc', {}, `AND・OR・NOTの回路。出力は${[...outputNames.values()].join('、')}。点は入力・出力の端と配線の分岐だけを示します。`),
+      svgElement('desc', {}, `AND・OR・NOTの回路。出力は${[...outputNames.values()].join('、')}。点は入力・出力の端と配線の分岐を示します。${probes.length ? `中間点${probes.map(node => node.name).join('、')}は信号を変えず、観測する位置を示します。` : ''}`),
       svgElement('style', {}, INTERNAL_STYLE),
       svgElement('rect', { class: 'logic-svg__background', x: left, y: top, width, height })
     );
@@ -425,6 +429,13 @@
           }, name)
         );
         if (value != null) appendValueBadge(svg, x + (isInput ? 14 : -14), node.y - 20, value, `${isInput ? '入力' : '出力'}${name}`);
+      } else if (node.type === 'probe') {
+        svg.append(
+          svgElement('path', { class: 'logic-wire', d: `M ${node.x - 18} ${node.y} H ${node.x + 18}` }),
+          svgElement('circle', { class: 'logic-gate__body', cx: node.x, cy: node.y, r: 7, 'data-probe-id': node.id }),
+          svgElement('text', { class: 'logic-node-label', x: node.x, y: node.y - 16, 'text-anchor': 'middle' }, node.name)
+        );
+        if (value != null) appendValueBadge(svg, node.x, node.y + 27, value, `中間点${node.name}`);
       } else {
         const gate = createGateSymbol(node.type, node.x, node.y);
         gate.setAttribute('data-node-id', node.id);

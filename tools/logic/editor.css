@@ -13,6 +13,10 @@
   --hover: #f4f6f9;
   --shadow: 0 6px 22px #14233724;
   --ui-size: 14px;
+  --top-height: 41px;
+  --top-button-height: 30px;
+  --top-button-width: 32px;
+  --side-tab-width: 26px;
 }
 :root[data-theme="dark"], :root[data-resolved-theme="dark"] {
   color-scheme: dark;
@@ -26,8 +30,8 @@
   --hover: #354154;
   --shadow: 0 6px 22px #0005;
 }
-:root[data-text-size="large"] { --ui-size: 16px; }
-:root[data-text-size="largest"] { --ui-size: 18px; }
+:root[data-text-size="large"] { --ui-size: 16px; --top-height: 45px; --top-button-height: 34px; --top-button-width: 36px; }
+:root[data-text-size="largest"] { --ui-size: 18px; --top-height: 49px; --top-button-height: 38px; --top-button-width: 40px; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font: var(--ui-size)/1.4 -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif; }
@@ -45,8 +49,8 @@ button.primary:hover:not(:disabled) { background: color-mix(in srgb, var(--accen
 h1, h2, h3, p { margin: 0; }
 .muted { color: var(--muted); font-size: .9rem; line-height: 1.65; }
 
-#app { display: grid; grid-template: "top top top" 57px "palette workspace side" minmax(0, 1fr) / 152px minmax(0, 1fr) auto; height: 100dvh; overflow: hidden; }
-.top { grid-area: top; display: flex; gap: 8px; align-items: center; padding: 6px 9px; border-bottom: 1px solid var(--line); background: var(--panel); min-width: 0; z-index: 10; }
+#app { display: grid; grid-template: "top top top" var(--top-height) "palette workspace side" minmax(0, 1fr) / 132px minmax(0, 1fr) auto; height: 100dvh; overflow: hidden; }
+.top { grid-area: top; display: flex; gap: 5px; align-items: center; padding: 5px 7px; border-bottom: 1px solid var(--line); background: var(--panel); min-width: 0; z-index: 10; }
 .brand { display: flex; align-items: center; gap: 7px; font-size: 1.07rem; font-weight: 650; flex: none; white-space: nowrap; }
 .toolbar, .toolbar-end { display: flex; flex-flow: row nowrap; align-items: center; gap: 4px; }
 .toolbar { min-width: 0; }
@@ -117,7 +121,7 @@ summary:hover { background: var(--hover); }
 .side header button { width: 44px; border: 0; font-size: 1.3rem; }
 .panel-actions { display: flex; flex: none; gap: 2px; }
 .side-body { min-height: 0; overflow: auto; padding: 12px 12px 12px 26px; display: flex; flex-direction: column; gap: 14px; }
-.side-tabs { flex: none; width: 44px; display: flex; flex-direction: column; background: var(--hover); box-shadow: inset 1px 0 var(--line); }
+.side-tabs { flex: none; width: var(--side-tab-width); display: flex; flex-direction: column; background: var(--hover); box-shadow: inset 1px 0 var(--line); }
 .side-tabs button { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; color: var(--muted); background: transparent; }
 .side-tabs button[aria-expanded="true"] { color: var(--accent); background: var(--accent-soft); }
 .side-tabs button > span:last-child { writing-mode: vertical-rl; letter-spacing: 2px; font-size: .84rem; }
@@ -190,7 +194,7 @@ noscript { position: fixed; inset: 65px 15px auto; padding: 15px; background: va
 }
 @media (max-width: 850px) {
   #app { grid-template-columns: 106px minmax(0, 1fr) auto; }
-  .side.open .side-main { position: absolute; top: 57px; bottom: 0; right: 44px; background: var(--panel); box-shadow: var(--shadow); z-index: 8; border-left: 1px solid var(--line); }
+  .side.open .side-main { position: absolute; top: var(--top-height); bottom: 0; right: var(--side-tab-width); background: var(--panel); box-shadow: var(--shadow); z-index: 8; border-left: 1px solid var(--line); }
   .side-tabs { z-index: 9; }
   #app .logic-editor__gate-plus { display: none; }
   #app .logic-editor__gate-button svg { width: 42px; }
@@ -214,5 +218,66 @@ noscript { position: fixed; inset: 65px 15px auto; padding: 15px; background: va
   .zoom { margin-inline: auto; }
   .zoom button { width: 40px; }
   .zoom select { width: 94px; }
+}
+.top .brand { display: flex; font-size: .95rem; }
+.brand a { display: flex; flex: none; align-items: center; color: inherit; }
+.brand img { width: 24px; height: 24px; }
+.top button, .top summary, .top select,
+#app .top .logic-editor__action-button, #app .top .logic-editor__help-button {
+  min-height: var(--top-button-height); height: var(--top-button-height); min-width: var(--top-button-width); padding: 2px 5px; font-size: .9rem;
+}
+.top .icon-button, #app .top .logic-editor__history-button, #app .top .logic-editor__help-button { width: var(--top-button-width); }
+.top .toolbar-separator { height: 20px; margin-inline: 1px; }
+.top .joho-file-menu__items button { min-height: 34px; height: auto; padding: 6px 9px; }
+.top .joho-file-menu > summary { font-size: .7rem; }
+.view-menu { position: relative; flex: none; }
+.view-menu > summary { gap: 2px; font-size: .7rem; }
+.view-menu > summary svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.view-menu__items { position: absolute; top: 100%; left: 0; display: flex; flex-direction: column; gap: 5px; min-width: 160px; padding: 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); box-shadow: var(--shadow); z-index: 20; }
+.view-menu:not([open]) > .view-menu__items { display: none; }
+#app .top .view-menu__items button { width: 100%; height: auto; min-height: 34px; justify-content: flex-start; text-align: left; }
+.document-tabs-area { display: flex; flex: 1; min-width: 44px; align-items: center; gap: 2px; }
+#document-tabs { display: flex; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; gap: 3px; }
+.document-tab { display: flex; flex: none; min-width: 0; align-items: center; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.top .document-tab button { border: 0; border-radius: 0; background: transparent; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 28px; }
+.document-tab:has([aria-selected="true"]) { background: var(--accent-soft); border-color: var(--accent); }
+.document-tab [aria-selected="true"] { color: var(--accent); }
+.top .document-tab__close { min-width: 22px; width: 22px; padding: 0; }
+#document-list { flex: none; width: 28px; padding-inline: 1px; font-size: 0; }
+#document-list option { color: var(--text); font-size: var(--ui-size); }
+#palette-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 7px; border: 0; font-size: .84rem; color: var(--muted); }
+#app.palette-closed { grid-template-columns: 40px minmax(0, 1fr) auto; }
+.palette-closed .palette { padding-inline: 2px; }
+.palette-closed #palette-toggle { writing-mode: vertical-rl; padding: 8px 3px; }
+#app .logic-editor__add-probe-button { width: 100%; height: auto; font-size: .9rem; }
+.theme-options { display: flex; gap: 8px; }
+.theme-options button { width: 44px; padding: 0; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+.truth-mode { display: flex; gap: 5px; }
+.truth-mode button { flex: 1; min-width: 0; }
+.practice-table-scroll, .logic-editor-truth-table { min-width: 0; max-width: 100%; overflow-x: auto; }
+.practice-table { table-layout: auto !important; min-width: max-content !important; }
+.practice-table caption { text-align: left; padding-block: 6px; color: var(--muted); }
+.practice-table th { min-width: 36px; }
+.practice-table td { position: relative; min-width: 60px; }
+.practice-table select { min-width: 46px; width: 100%; padding: 5px 2px; }
+.practice-mark { display: block; font-weight: bold; height: 1.3em; }
+.practice-answer { display: block; white-space: nowrap; font-size: .8rem; font-weight: bold; }
+.practice-table [data-result="correct"] { outline: 2px solid var(--accent); outline-offset: -2px; }
+.practice-table [data-result="wrong"] { outline: 2px dashed var(--logic-error); outline-offset: -2px; }
+.practice-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.practice-score { line-height: 1.7; }
+@media (max-width: 560px) {
+  .top { gap: 3px; padding-inline: 3px; }
+  .top .brand { display: flex; }
+  .top .brand img { width: 20px; height: 20px; }
+  #app .logic-editor__add-probe-button { font-size: .72rem; padding-inline: 0; }
+  .document-tab button[role="tab"] { max-width: 90px; }
+}
+@media (pointer: coarse) {
+  :root { --top-height: 55px; --top-button-height: 44px; --top-button-width: 44px; --side-tab-width: 44px; }
+  :root[data-text-size="largest"] { --top-height: 59px; --top-button-height: 48px; --top-button-width: 48px; }
+  .top .joho-file-menu__items button, #app .top .view-menu__items button { min-height: 44px; }
+  .top .document-tab__close { min-width: 44px; width: 44px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }

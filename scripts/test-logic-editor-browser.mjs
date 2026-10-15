@@ -32,7 +32,7 @@ const port = (page, node, kind, index = 0) => page.locator(`.logic-editor-port[d
 const exportButton = page => page.getByRole('button', { name: '回路図を出力', exact: true });
 
 async function prepareExport(page, format, showSignals) {
-  const toggle = page.getByRole('button', { name: '0/1の表示を切り替える', exact: true });
+  const toggle = page.getByRole('button', { name: '0/1の表示を切り替える', exact: true, includeHidden: true });
   if (await toggle.getAttribute('aria-pressed') !== String(showSignals)) await (await revealToolButton(page, toggle)).click();
   if (await exportButton(page).getAttribute('aria-expanded') !== 'true') await exportButton(page).click();
   const dialog = page.locator('#export-panel');
@@ -137,8 +137,9 @@ async function editChecks(page, name) {
   await page.keyboard.press('Escape');
   await expect(summary).toBeFocused();
   await expect(page.locator('#lc02-operation-dialog')).toBeHidden();
-  const loadButton = page.getByRole('button', { name: '回路を読み込む', exact: true });
-  await loadButton.click();
+  const loadButton = page.locator('#file-menu > summary');
+  await loadButton.press('Enter');
+  await page.getByRole('menuitem', { name: 'ブラウザから開く…', exact: true }).click();
   await expect(page.locator('#logic-file-dialog')).toBeVisible();
   await page.mouse.click(5, 100);
   await expect(page.locator('#logic-file-dialog')).toBeHidden();
@@ -318,12 +319,12 @@ async function multiOutputChecks(page, name) {
   assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), ['0', '1']);
   await page.screenshot({ path: join(artifacts, `${name}-multiple-editor.png`) });
   const modeBefore = await state(page);
-  const exportPreference = page.getByRole('button', { name: '0/1の表示を切り替える', exact: true });
-  await exportPreference.press('Space');
+  const exportPreference = page.getByRole('button', { name: '0/1の表示を切り替える', exact: true, includeHidden: true });
+  await (await revealToolButton(page, exportPreference)).press('Space');
   await expect(exportPreference).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('.logic-editor-node__bit, .logic-editor-node__gate-value, .logic-editor-value')).toHaveCount(0);
   assert.deepEqual(await state(page), modeBefore, 'display toggle leaves circuit values and history unchanged');
-  await exportPreference.press('Space');
+  await (await revealToolButton(page, exportPreference)).press('Space');
   await expect(exportPreference).toHaveAttribute('aria-pressed', 'true');
   await prepareExport(page, 'svg', true);
   await page.keyboard.press('Escape');
@@ -331,7 +332,7 @@ async function multiOutputChecks(page, name) {
   await exportChecks(page, `${name}-multiple-visible`, { resetCircuit: false, showSignals: true });
   await exportChecks(page, `${name}-multiple-hidden`, { resetCircuit: false, showSignals: false });
   assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), [], 'export and editor use the same hidden-value mode');
-  await exportPreference.click();
+  await (await revealToolButton(page, exportPreference)).click();
   assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), ['0', '1'], 'showing values again preserves actual outputs');
   await reset(page);
   console.log(`${name}: multiple outputs, shared branch, renaming/deletion/Undo, truth table and both export value modes`);

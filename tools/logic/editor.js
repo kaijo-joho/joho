@@ -25,10 +25,10 @@
   const app = $('app'), side = $('side-panel');
   const panes = [...document.querySelectorAll('[data-pane]')];
   const tabs = [...document.querySelectorAll('[data-pane-button]')];
-  let files, editor, helpPanel, activePane = null, previewUrl = null;
+  let files, editor, helpPanel, documents, truthPanel, fileMenu, activePane = null, previewUrl = null;
   let zoomMode = 'fit', zoom = 1, pendingFit = false;
-  let copyingTable = false, exporting = false, preserveBeforeEdit = false;
-  let resizing = false, panelResize, draftStore, draftReady = false, draftTimer, pendingDraft, draftFingerprint, normalSuspended = false;
+  let copyingTable = false, exporting = false;
+  let resizing = false, panelResize, normalSuspended = false;
   const busy = () => resizing || helpPanel?.interacting || Boolean(editor && (editor.drag || editor.paletteDrag || editor.connectionDrag || editor.bendDrag || editor.pan || editor.marquee));
   const preferencesKey = 'joho.logic.ui.v1';
   let preferences = {};
@@ -40,10 +40,6 @@
     try { localStorage.setItem(preferencesKey, JSON.stringify(preferences)); } catch (_) { /* 回路のファイル保存は利用可能。 */ }
   }
 
-  function draftValue() {
-    return { snapshot: editor.snapshot(), file: { id: files.currentId, name: files.currentName,
-      savedSnapshot: files.savedFingerprint ? JSON.parse(files.savedFingerprint) : null } };
-  }
   function draftStatus(state, detail) {
     const control = $('draft-status');
     control.dataset.state = state;
@@ -53,118 +49,36 @@
     control.setAttribute('aria-label', `自動保存の下書きを選ぶ：${detail}`);
     $('draft-detail').textContent = detail;
   }
-  function draftErrorMessage(error) {
-    return /下書き|別のタブ/.test(error.message) ? error.message
-      : '下書きを自動保存できません。保存領域の空き容量や設定を確認し、ファイルに保存してください。';
-  }
-  function draftError(error) {
-    draftStatus('error', draftErrorMessage(error));
-  }
+  function queueDraft() { if (!normalSuspended && !busy()) documents?.changed(); }
   function flushDraft(strict = false) {
-    clearTimeout(draftTimer);
     if (normalSuspended) return;
-    if (!pendingDraft || !draftStore) return;
-    const data = pendingDraft;
-    try {
-      draftStore.save(data);
-      pendingDraft = null;
-      draftStatus('saved', '自動復元用の下書きを保存しました。複数の回路を残すには名前を付けて保存してください。');
-    } catch (error) { draftError(error); if (strict === true) throw error; }
+    if (strict && typeof strict === 'object') return documents?.flushImmediate();
+    return documents?.flush(strict === true);
   }
-  function queueDraft() {
-    if (normalSuspended || !draftReady || !draftStore || draftStore.blocked || busy()) return;
-    const value = draftValue(), fingerprint = JSON.stringify(value);
-    if (fingerprint === draftFingerprint) return;
-    // 開始時の選択を閉じて新規編集を始めても、前回の下書きを失わない。
-    if (preserveBeforeEdit) {
-      try { draftStore.preserve(); preserveBeforeEdit = false; }
-      catch (error) { draftError(error); return; }
-    }
-    draftFingerprint = fingerprint; pendingDraft = value;
-    draftStatus('waiting', '確定した編集を下書きへ保存しています。ドラッグ途中の状態は保存しません。');
-    clearTimeout(draftTimer); draftTimer = setTimeout(flushDraft, 250);
+  function replaceCircuit(action) {
+    if (normalSuspended || busy()) throw new Error('現在の操作を終了してから、回路を変更してください。');
+    action(); queueDraft();
   }
-  function initializeDrafts() {
-    let hasDrafts = false;
-    try {
-      draftStore = new window.LogicDraft.Store(localStorage);
-      const current = draftStore.load();
-      const drafts = draftStore.list();
-      hasDrafts = drafts.length > 0;
-      preserveBeforeEdit = Boolean(current);
-      draftStatus('ready', hasDrafts ? '読み込み画面で、前回の下書き・保存済み回路・新規作成から選んでください。'
-        : '確定した編集を下書きへ自動保存します。次に開いたときに復元する回路を選べます。');
-      if (drafts.archiveError) draftError(new Error(drafts.archiveError));
-    } catch (error) {
-      const detail = error.message.includes('下書き') ? error.message : 'このブラウザでは自動復元を利用できません。ファイルに保存してください。';
-      draftStatus('error', detail); editor.notice = detail;
-    }
-    draftFingerprint = JSON.stringify(draftValue()); draftReady = true;
-    editor.render({ notify: false });
-    return hasDrafts;
-  }
-  function replaceCircuit(action, { initial = false } = {}) {
-    if (normalSuspended) throw new Error('課題の読み込み画面から操作してください。');
-    if (busy()) throw new Error('ドラッグ中の操作を終了してから、回路を切り替えてください。');
-    if (draftStore && !draftStore.blocked) {
-      // 通常の編集の保存を完了してから、切り替え前の回路を退避する。
-      try {
-        flushDraft(true);
-        draftStore.preserve();
-        preserveBeforeEdit = false;
-      } catch (error) {
-        if (error.name !== 'SecurityError') throw new Error(draftErrorMessage(error));
-        // 保存領域そのものが禁止された場合も、手動のファイル読み込みは使える。
-        // 自動保存を停止し、読めないブラウザ内データには一切書き込まない。
-        draftStore.blocked = true; pendingDraft = null; clearTimeout(draftTimer); draftError(error);
-      }
-    }
-    draftReady = false;
-    try { action(); if (initial) editor.resetHistory(); }
-    finally { draftReady = true; }
-    draftFingerprint = null;
-    queueDraft();
-  }
-  function listDrafts() {
-    if (!draftStore) throw new Error('自動保存を利用できません。名前付き保存やファイル保存をご利用ください。');
-    try { flushDraft(true); return draftStore.list(); }
-    catch (error) { throw new Error(draftErrorMessage(error)); }
-  }
+  function listDrafts() { return documents?.drafts() || []; }
   function loadDraft(draft) {
     editor.loadSnapshot(draft.snapshot);
     files.currentId = draft.file.id; files.currentName = draft.file.name;
     files.savedFingerprint = draft.file.savedSnapshot ? JSON.stringify(draft.file.savedSnapshot) : null;
-    editor.notice = '選んだ下書きを復元しました。続きから編集できます。';
-    draftStatus('restored', '選んだ下書きを復元しました。残したい回路は名前付き保存・ファイル保存をご利用ください。');
-    editor.render({ notify: false });
+    editor.notice = '選んだ下書きを新しい文書タブで開きました。';
   }
   window.addEventListener('pagehide', flushDraft);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) flushDraft(); });
-  window.addEventListener('storage', event => {
-    if (!draftReady || !draftStore || draftStore.blocked || (event.key !== null && event.key !== window.LogicDraft.KEY)) return;
-    try { draftStore.assertUnchanged(); }
-    catch (error) { clearTimeout(draftTimer); pendingDraft = null; draftError(error); }
-  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && !normalSuspended) documents?.flushImmediate(); });
 
   function updateTable(state) {
-    if (!editor) return;
-    if (!state.analysis.valid) {
-      window.LogicRenderer.renderMessage($('logic-workbench-table'), state.analysis.errors[0] || '部品をつないで回路を完成させてください。');
-      return;
-    }
-    window.LogicWidgets.renderTruthTable($('logic-workbench-table'), {
-      inputNames: state.analysis.inputs, outputs: state.analysis.outputs,
-      rows: state.analysis.truthTable, activeInputs: state.inputValues, caption: '作成した回路の真理値表',
-      onRowSelect: inputs => editor.setInputValues(inputs)
-    });
+    truthPanel?.update(state.analysis, state.inputValues);
   }
   editor = new window.LogicEditor($('logic-editor'), {
     inputNames: ['A', 'B'], availableInputNames: ['A', 'B', 'C', 'D'],
     allowInputDeletion: true, allowMultipleOutputs: true, enableAlignment: true,
     allowSignalToggle: true, enableWireEditing: true, allowMousePan: true, allowWireInsertion: true,
-    allowMultipleSelection: true, enableDiagnostics: true,
+    allowMultipleSelection: true, enableDiagnostics: true, allowProbes: true,
     initialExpression: 'A-B', helpDialogId: 'lc02-operation-dialog', keyboardRoot: app,
-    onSave: () => files.openSave(), onLoad: () => files.openLoad(), onClearRequest: () => files.requestClear(),
+    onSave: () => documents?.save(), onLoad: () => documents?.openFile(), onClearRequest: () => files.requestClear(),
     onExport: () => setPane('export'), onChange: updateTable
   });
   const initialSnapshot = editor.snapshot();
@@ -179,8 +93,8 @@
   }
   // 同じ部品を移設し、ドラッグ・タッチ・キー操作のハンドラーを保つ。
   $('component-tools').appendChild(editor.editor.querySelector('.logic-editor__palette'));
-  $('basic-toolbar').append(editor.fileSaveButton, editor.loadButton, editor.clearButton, selectionModeButton,
-    editor.undoButton, editor.redoButton, separator(), editor.alignButton, separator(), editor.signalButton);
+  $('basic-toolbar').append(editor.undoButton, editor.redoButton, separator(), selectionModeButton);
+  $('view-toolbar').append(editor.alignButton, editor.signalButton, $('fullscreen-button'));
   editor.clearButton.replaceChildren(icon('clear'));
   editor.clearButton.classList.add('icon-button');
   editor.clearButton.setAttribute('aria-label', '全消去');
@@ -190,6 +104,7 @@
   editor.alignButton.appendChild(document.createTextNode('整列'));
   $('selection-tools').append(editor.swapButton, editor.deleteButton);
   $('insert-not').addEventListener('click', () => editor.insertNotInWire());
+  $('insert-probe').addEventListener('click', () => editor.insertProbeInWire());
   $('duplicate-selection').addEventListener('click', () => editor.duplicateSelection());
   document.querySelectorAll('[data-align]').forEach(button => button.addEventListener('click', () => {
     editor.alignSelection(button.dataset.align); $('selection-layout').open = false;
@@ -200,6 +115,7 @@
   editor.exportButton.hidden = true;
   files = new window.LogicWorkbenchFiles(editor, {
     replace: replaceCircuit,
+    openDocument: action => documents.openAction(action),
     restoreFocus: restoreControlFocus,
     drafts: { list: listDrafts, load: loadDraft },
     createNew: () => {
@@ -207,13 +123,40 @@
       editor.notice = '新しい回路から始めました。'; editor.render({ notify: false });
     },
     onStatusChange: ({ name, dirty }) => {
-      $('save-status').textContent = `${name || '新しい回路'} · ${dirty ? '未保存' : '保存済み'}`;
+      $('save-status').textContent = `${name || '新しい回路'} · ${files?.savedFingerprint ? (dirty ? '未保存' : '保存済み') : '未保存'}`;
       queueDraft();
     }
   });
   $('template-list').appendChild(files.createTemplateList());
-  $('open-saved').addEventListener('click', () => files.openLoad());
+  $('open-saved').addEventListener('click', () => files.openLoad({ browserOnly: true, opener: fileMenu.summary }));
   window.logicWorkbenchEditor = editor;
+  truthPanel = new window.LogicTruthPractice.Panel({
+    table: $('logic-workbench-table'), controls: $('practice-controls'), note: $('truth-mode-note'),
+    viewButton: $('truth-view'), practiceButton: $('truth-practice'),
+    onRow: inputs => editor.setInputValues(inputs), onChange: queueDraft,
+    onMode: (mode, state) => {
+      if (mode === 'practice') { state.diagramSignals = editor.showSignals !== false; editor.showSignals = false; }
+      else editor.showSignals = state.diagramSignals;
+      editor.render({ notify: false });
+    }
+  });
+  fileMenu = window.JohoFileMenu.mount($('file-menu'), { busy: () => busy() || normalSuspended,
+    onAction: action => {
+      const actions = {
+        new: () => documents.newDocument(), rename: () => documents.rename(), save: () => documents.save(),
+        browserSave: () => documents.saveBrowser(), fileSave: () => documents.saveFile(),
+        browserOpen: () => files.openLoad({ browserOnly: true, opener: fileMenu.summary }),
+        fileOpen: () => documents.openFile(), auto: () => documents.toggleAuto()
+      };
+      try { const result = actions[action]?.(); result?.catch?.(error => documents.showError(error)); }
+      catch (error) { documents.showError(error); }
+    }
+  });
+  $('palette-toggle').addEventListener('click', () => {
+    const closed = app.classList.toggle('palette-closed');
+    $('component-tools').hidden = closed;
+    $('palette-toggle').setAttribute('aria-expanded', String(!closed));
+  });
 
   function setPane(name, restoreFocus = false, remember = true) {
     if (busy()) return;
@@ -289,6 +232,7 @@
     const hadFocus = selection.contains(focusedAction);
     selection.hidden = !instance.selected;
     $('insert-not').hidden = instance.selected?.kind !== 'wire';
+    $('insert-probe').hidden = instance.selected?.kind !== 'wire';
     $('duplicate-selection').hidden = nodes.length === 0;
     $('selection-layout').hidden = nodes.length < 2;
     if (nodes.length < 2) $('selection-layout').open = false;
@@ -310,6 +254,8 @@
     $('truth-copy').title = analysis.valid
       ? '真理値表をコピー（スプレッドシートへ貼り付け）'
       : '回路が完成すると真理値表をコピーできます。';
+    truthPanel?.update(analysis, instance.inputValues);
+    instance.signalButton.disabled = truthPanel?.state.mode === 'practice';
     refreshExport(analysis);
     document.querySelectorAll('button:not([tabindex])').forEach(button => { button.tabIndex = 0; });
     if (pendingFit && !busy()) { pendingFit = false; applyZoom(); }
@@ -369,7 +315,7 @@
 
   const dialogOpeners = new Map();
   function restoreControlFocus(opener) {
-    const target = opener?.getClientRects().length ? opener : $('toolbar-menu').querySelector('summary');
+    const target = opener?.getClientRects().length ? opener : fileMenu.summary;
     target?.focus({ preventScroll: true });
   }
   function closeDialog(dialog, restore = true) {
@@ -411,7 +357,7 @@
     editor.helpButton.title = 'ヘルプを読み込めませんでした。ページを再読み込みしてください。';
   }
   $('settings-button').addEventListener('click', () => openDialog($('settings-dialog'), $('settings-button')));
-  $('draft-status').addEventListener('click', () => files.openLoad({ opener: $('draft-status') }));
+  $('draft-status').addEventListener('click', () => files.openLoad({ opener: $('draft-status'), browserOnly: true }));
   $('circuit-status').addEventListener('click', () => {
     const list = $('diagnostics-list'); list.replaceChildren();
     const issues = editor.getDiagnostics();
@@ -438,20 +384,29 @@
   function fitToolbar() {
     const wasOpen = toolbarMenu.open;
     top.classList.remove('is-compact'); toolbarMenu.open = true;
-    const occupied = [...top.children].reduce((total, child) => total + child.getBoundingClientRect().width, 0) + 36;
+    const fixed = [top.querySelector('.brand'), $('file-menu'), $('view-menu'), $('display-toolbar')];
+    const occupied = fixed.reduce((total, child) => total + child.getBoundingClientRect().width, 0) + $('basic-toolbar').scrollWidth + 140;
     const compact = occupied > top.clientWidth;
     top.classList.toggle('is-compact', compact);
     toolbarMenu.open = compact ? (compactToolbar && wasOpen) : true;
     compactToolbar = compact;
   }
-  [toolbarMenu, $('selection-layout')].forEach(menu => {
+  [toolbarMenu, $('selection-layout'), $('view-menu')].forEach(menu => {
+    let openedByHover = false;
+    menu.addEventListener('pointerenter', event => {
+      if (event.pointerType === 'mouse' && (menu !== toolbarMenu || compactToolbar) && !busy()) { openedByHover = !menu.open; menu.open = true; }
+    });
+    menu.querySelector('summary').addEventListener('click', event => {
+      if (openedByHover && event.detail > 0) { event.preventDefault(); openedByHover = false; }
+    });
+    menu.addEventListener('pointerleave', () => setTimeout(() => { if ((menu !== toolbarMenu || compactToolbar) && !menu.matches(':hover') && !menu.contains(document.activeElement)) menu.open = false; }, 160));
     menu.addEventListener('keydown', event => {
       if (event.key === 'Escape' && menu.open && (menu !== toolbarMenu || compactToolbar)) {
         event.preventDefault(); event.stopPropagation(); menu.open = false; menu.querySelector('summary').focus();
       }
     });
     menu.addEventListener('click', event => {
-      if (event.target.closest('button') && menu === toolbarMenu && compactToolbar) {
+      if (event.target.closest('button') && (menu === $('view-menu') || (menu === toolbarMenu && compactToolbar))) {
         menu.open = false;
         if (!document.querySelector('dialog[open]')) menu.querySelector('summary').focus({ preventScroll: true });
       }
@@ -493,14 +448,7 @@
     const analysis = editor.getAnalysis();
     if (!analysis.valid || copyingTable || busy()) return;
     // 表示中の表と同じ解析結果・列順を使う。強調行や0/1表示設定には依存しない。
-    const rows = [
-      [...analysis.inputs, ...analysis.outputs.map(output => output.name)],
-      ...analysis.truthTable.map(row => [
-        ...analysis.inputs.map(name => row.inputs[name]),
-        ...analysis.outputs.map(output => row.outputs[output.id])
-      ])
-    ];
-    const text = rows.map(row => row.join('\t')).join('\n');
+    const text = truthPanel.textForCopy();
     const hadFocus = document.activeElement === $('truth-copy');
     copyingTable = true;
     $('truth-copy').disabled = true;
@@ -531,11 +479,13 @@
     document.documentElement.dataset.resolvedTheme = $('theme').value === 'auto' ? (colorQuery.matches ? 'dark' : 'light') : $('theme').value;
     document.documentElement.dataset.textSize = $('text-size').value;
     preferences.theme = $('theme').value; preferences.textSize = $('text-size').value; savePreferences();
+    document.querySelectorAll('[data-theme-choice]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.themeChoice === preferences.theme)));
     fitToolbar();
   }
   if (['auto', 'light', 'dark'].includes(preferences.theme)) $('theme').value = preferences.theme;
   if (['standard', 'large', 'largest'].includes(preferences.textSize)) $('text-size').value = preferences.textSize;
   $('theme').addEventListener('change', applyPreferences); $('text-size').addEventListener('change', applyPreferences);
+  document.querySelectorAll('[data-theme-choice]').forEach(button => button.addEventListener('click', () => { $('theme').value = button.dataset.themeChoice; applyPreferences(); }));
   colorQuery.addEventListener('change', applyPreferences); applyPreferences();
 
   $('fullscreen-button').hidden = !document.fullscreenEnabled;
@@ -565,21 +515,38 @@
     onCommit: width => { preferences.panelWidth = width; savePreferences(); },
     onDragging: value => { resizing = value; if (!value) refresh(); }
   });
-  const chooseDraft = initializeDrafts();
+  documents = new window.LogicDocuments.Workspace({
+    editor, files, initialSnapshot, tabs: $('document-tabs'), list: $('document-list'),
+    busy: () => busy() || normalSuspended, status: draftStatus,
+    captureView: () => ({ zoomMode, zoom, showSignals: editor.showSignals !== false,
+      scrollLeft: editor.canvasWrap.scrollLeft, scrollTop: editor.canvasWrap.scrollTop, practice: truthPanel.exportState() }),
+    applyView: view => {
+      truthPanel.restore(view.practice);
+      editor.showSignals = truthPanel.state.mode === 'practice' ? false : view.showSignals !== false;
+      const value = view.zoomMode === 'fit' ? 'fit' : Number(view.zoomMode);
+      applyZoom(value === 'fit' || (Number.isFinite(value) && value >= .15 && value <= 4) ? value : 'fit');
+      editor.canvasWrap.scrollLeft = Number.isFinite(view.scrollLeft) ? view.scrollLeft : 0;
+      editor.canvasWrap.scrollTop = Number.isFinite(view.scrollTop) ? view.scrollTop : 0;
+    },
+    onTabs: doc => fileMenu.update({ autosaving: doc.autoEnabled, disabled: normalSuspended })
+  });
+  documents.opener = fileMenu.summary;
+  files.options.isDirty = () => documents.dirty({ ...documents.current, snapshot: editor.snapshot(),
+    name: files.currentName, browserId: files.currentId, savedFingerprint: files.savedFingerprint });
+  files.refresh();
+  window.logicDocuments = documents;
+  window.logicTruthPractice = truthPanel;
   updateTable(editor.getState());
   const initialPane = [null, 'truth', 'templates', 'export'].includes(preferences.pane) ? preferences.pane
     : matchMedia('(min-width: 1101px)').matches ? 'truth' : null;
   setPane(initialPane, false, false);
-  applyZoom(matchMedia('(max-width: 850px)').matches ? .85 : 'fit');
-  editor.canvasWrap.scrollLeft = 0;
-  editor.canvasWrap.scrollTop = 0;
+  fitToolbar();
   window.LogicToolUI.tooltips({ busy });
   document.body.classList.add('logic-tool-ready');
-  if (chooseDraft) files.openLoad({ initial: true });
   if (window.JohoLogicAssignment && window.JohoAssignmentLite && window.JohoAssignmentLiteClient && window.JohoAssignmentLiteBridge && window.JohoAssignmentLiteStore) {
     window.logicAssignment = window.JohoLogicAssignment.mount({ editor, files, busy,
-      suspendNormal: () => { flushDraft(true); clearTimeout(draftTimer); normalSuspended = true; },
-      resumeNormal: () => { normalSuspended = false; draftFingerprint = JSON.stringify(draftValue()); }
+      suspendNormal: () => { documents.flushImmediate(); clearTimeout(documents.timer); normalSuspended = true; fileMenu.update({ disabled: true }); },
+      resumeNormal: () => { normalSuspended = false; fileMenu.update({ autosaving: documents.current.autoEnabled }); }
     });
   }
 })();

@@ -6,42 +6,52 @@
   <title>論理回路エディタ — 海城 情報科</title>
   <link rel="icon" type="image/svg+xml" href="./icon.svg?v=20260915-a">
   <link rel="stylesheet" href="../../css/logic-circuits.css">
-  <link rel="stylesheet" href="./editor.css">
+  <link rel="stylesheet" href="./editor.css?v=20261015-06">
   <link rel="stylesheet" href="../shared/help-panel.css">
+  <link rel="stylesheet" href="../shared/file-menu.css?v=20261015-06">
   <link rel="stylesheet" href="./assignment.css">
-  <script defer src="../../js/logic-core.js"></script>
-  <script defer src="../../js/logic-renderer.js"></script>
+  <script defer src="../../js/logic-core.js?v=20261015-06"></script>
+  <script defer src="../../js/logic-renderer.js?v=20261015-06"></script>
   <script defer src="../../js/logic-widgets.js"></script>
   <script defer src="../../js/logic-layout.js"></script>
-  <script defer src="../../js/logic-editor.js"></script>
-  <script defer src="../../js/logic-storage.js"></script>
-  <script defer src="../../js/logic-workbench-files.js"></script>
+  <script defer src="../../js/logic-editor.js?v=20261015-06"></script>
+  <script defer src="../../js/logic-storage.js?v=20261015-06"></script>
+  <script defer src="../../js/logic-workbench-files.js?v=20261015-06"></script>
   <script defer src="./recovery.js"></script>
   <script defer src="./ui.js"></script>
   <script defer src="../shared/help-panel.js"></script>
+  <script defer src="../shared/file-menu.js?v=20261015-06"></script>
+  <script defer src="./documents.js?v=20261015-06"></script>
+  <script defer src="./truth-practice.js?v=20261015-06"></script>
   <script defer src="../shared/assignment-lite.js"></script>
   <script defer src="../shared/assignment-lite-store.js"></script>
   <script defer src="../shared/assignment-lite-bridge.js"></script>
   <script defer src="../shared/assignment-lite-client.js"></script>
   <script defer src="./assignment-config.js"></script>
   <script defer src="./assignment.js"></script>
-  <script defer src="./editor.js"></script>
+  <script defer src="./editor.js?v=20261015-06"></script>
 </head>
 <body>
   <div id="app">
     <header class="top">
-      <h1 class="brand"><img src="./icon.svg?v=20260915-a" width="26" height="26" alt=""><span>論理回路エディタ</span></h1>
+      <h1 class="brand"><a href="../" aria-label="ウェブアプリ一覧へ戻る"><img src="./icon.svg?v=20260915-a" width="26" height="26" alt=""></a><span>論理回路エディタ</span></h1>
+      <details id="file-menu"></details>
       <details id="toolbar-menu" class="toolbar-menu" open>
         <summary aria-label="基本ツールを開閉">ツール <span aria-hidden="true">▾</span></summary>
         <div id="basic-toolbar" class="toolbar" role="group" aria-label="基本ツールバー"></div>
       </details>
+      <details id="view-menu" class="view-menu">
+        <summary aria-label="表示・整列"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span aria-hidden="true">▾</span></summary>
+        <div id="view-toolbar" class="view-menu__items"></div>
+      </details>
+      <div class="document-tabs-area"><div id="document-tabs" role="tablist" aria-label="開いている回路"></div><select id="document-list" aria-label="開いている回路の一覧"></select></div>
       <div id="display-toolbar" class="toolbar-end" role="group" aria-label="表示オプション">
         <button id="settings-button" type="button" class="icon-button" aria-label="表示設定" title="テーマ・文字サイズ" aria-haspopup="dialog" aria-controls="settings-dialog"><span data-icon="settings"></span></button>
         <button id="fullscreen-button" type="button" class="icon-button" aria-label="全画面表示" title="全画面表示"><span data-icon="fullscreen"></span></button>
       </div>
     </header>
     <aside class="palette" aria-label="回路の編集ツール">
-      <h2>部品</h2><div id="component-tools"></div>
+      <button id="palette-toggle" type="button" aria-label="部品パレットを開閉" aria-expanded="true" aria-controls="component-tools">部品 <span aria-hidden="true">▾</span></button><div id="component-tools"></div>
     </aside>
     <main class="workspace" aria-label="論理回路の編集">
       <div id="stage">
@@ -49,6 +59,7 @@
         <div id="selection-tools" class="selection-tools" role="group" aria-label="選択したオブジェクトの操作" hidden>
           <span id="selection-name"></span>
           <button id="insert-not" type="button" title="選択した配線の途中にNOTを挿入" hidden>NOTを挿入</button>
+          <button id="insert-probe" type="button" title="配線の信号を変えずに中間点を挿入" hidden>中間点を挿入</button>
           <button id="duplicate-selection" type="button" class="icon-button" aria-label="選択した部品を複製" title="選択した部品を複製"><span data-icon="copy"></span></button>
           <details id="selection-layout" class="selection-layout">
             <summary>配置 <span aria-hidden="true">▾</span></summary>
@@ -77,7 +88,7 @@
         <div id="side-resizer" role="separator" tabindex="0" aria-label="右パネルの幅" aria-orientation="vertical" aria-controls="side-main" data-tip="ドラッグ・左右キーで幅を調整。Shiftで大きく調整、Homeで最小、Endで最大、Enterで標準幅。ドラッグ中はEscapeで取り消し。"></div>
         <section id="logic-workbench-table-panel" data-pane="truth" aria-labelledby="truth-title" hidden>
           <header><h2 id="truth-title">真理値表</h2><div class="panel-actions"><button id="truth-copy" type="button" class="icon-button" aria-label="真理値表をコピー" title="真理値表をコピー（スプレッドシートへ貼り付け）" disabled><span data-icon="copy"></span></button><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></div></header>
-          <div class="side-body"><div id="logic-workbench-table" class="logic-editor-truth-table"></div><p class="muted">行を選ぶと入力が切り替わります。現在の入力の行を強調しています。</p></div>
+          <div class="side-body"><div class="truth-mode" role="group" aria-label="真理値表のモード"><button id="truth-view" type="button" aria-pressed="true">表示</button><button id="truth-practice" type="button" aria-pressed="false">演習</button></div><p id="truth-mode-note" class="muted"></p><div id="logic-workbench-table" class="logic-editor-truth-table"></div><div id="practice-controls" hidden></div></div>
         </section>
         <section id="templates-panel" data-pane="templates" aria-labelledby="templates-title" hidden>
           <header><h2 id="templates-title">テンプレート</h2><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></header>
@@ -98,7 +109,7 @@
               <button id="export-copy" type="button"><span data-icon="copy"></span> PNG画像をコピー</button>
               <p id="export-error" role="alert" hidden></p>
             </form>
-            <p class="muted">画像から回路の再編集はできません。編集を続ける場合は、上部の保存アイコンから .logic.json を保存してください。</p>
+            <p class="muted">画像から回路の再編集はできません。編集を続ける場合は、上部のファイルメニューから .logic.json を保存してください。</p>
           </div>
         </section>
       </div>
@@ -124,7 +135,7 @@
   </dialog>
   <dialog id="settings-dialog" aria-labelledby="settings-title">
     <header><h2 id="settings-title">表示設定</h2><button type="button" data-close-dialog aria-label="表示設定を閉じる">×</button></header>
-    <div class="dialog-body"><label class="stack">テーマ<select id="theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label class="stack">文字サイズ<select id="text-size"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label></div>
+    <div class="dialog-body"><div class="stack"><span>テーマ</span><div class="theme-options" role="group" aria-label="テーマ"><button type="button" data-theme-choice="auto" aria-label="テーマ：自動" title="自動"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor"/></svg></button><button type="button" data-theme-choice="light" aria-label="テーマ：ライト" title="ライト"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2"/></svg></button><button type="button" data-theme-choice="dark" aria-label="テーマ：ダーク" title="ダーク"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15a9 9 0 0 1-11-11A9 9 0 1 0 20 15Z"/></svg></button></div><select id="theme" class="visually-hidden" aria-label="テーマ設定" tabindex="-1"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></div><label class="stack">文字サイズ<select id="text-size"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label></div>
   </dialog>
   <aside id="lc02-operation-dialog" aria-label="論理回路エディタの使い方" hidden>
     <section data-help-topic="parts" data-help-title="部品を置く・変更する">
@@ -140,24 +151,29 @@
     </section>
     <section data-help-topic="align" data-help-title="整列・複数選択">
       <h3>整列・複数選択</h3>
-      <ol><li>上部の<strong>整列</strong>で回路全体を並べます。配線がなるべく直線になる位置を優先します。</li><li>空白からの範囲ドラッグ、または<strong>Shift＋部品クリック</strong>で複数選択します。</li><li>選択時の操作バーからまとめて複製・削除できます。「配置」で端・中央・等間隔を揃えます。</li></ol>
-      <details><summary>吸着・キーボード・タッチの操作</summary><p>移動中は中心・等間隔・配線が直線になる位置に吸着します。<strong>Alt（Option）で一時解除</strong>します。キーボードの複数選択は部品でShift＋Enter／Space。タッチでは上部の<strong>複数選択</strong>をオンにします。</p><p>揃えるには2個以上、等間隔には3個以上を選びます。複製は選択内の配線も引き継ぎますが、選択外への配線は複製しません。</p></details>
+      <ol><li>上部の<strong>表示・整列</strong>メニューから回路全体を並べます。配線がなるべく直線になる位置を優先します。</li><li>空白からの範囲ドラッグ、または<strong>Shift＋部品クリック</strong>で複数選択します。</li><li>選択時の操作バーからまとめて複製・削除できます。「配置」で端・中央・等間隔を揃えます。</li></ol>
+      <details><summary>吸着・キーボード・タッチの操作</summary><p>移動中は中心・等間隔・配線が直線になる位置に吸着します。<strong>Alt（Option）で一時解除</strong>します。キーボードの複数選択は部品でShift＋Enter／Space。タッチでは上部の<strong>複数選択</strong>（狭い画面では「ツール」内）をオンにします。</p><p>揃えるには2個以上、等間隔には3個以上を選びます。複製は選択内の配線も引き継ぎますが、選択外への配線は複製しません。</p></details>
     </section>
     <section data-help-topic="display" data-help-title="真理値表・表示・接続の確認">
       <h3>真理値表・表示・接続の確認</h3>
-      <ol><li>右端の<strong>真理値表</strong>を開き、行を選ぶと入力値が切り替わります。入力の箱でも切り替えられます。</li><li>整列の右の<strong>0/1</strong>で値・信号色の表示を切り替えます。実際の値は変わりません。</li><li>未接続などの「!」が出たら、下部の<strong>接続状況</strong>を開きます。項目を選ぶと該当箇所へ移動します。</li></ol>
+      <ol><li>右端の<strong>真理値表</strong>を開き、行を選ぶと入力値が切り替わります。入力の箱でも切り替えられます。</li><li>上部の<strong>表示・整列</strong>メニューの「0/1」で値・信号色の表示を切り替えます。実際の値は変わりません。</li><li>未接続などの「!」が出たら、下部の<strong>接続状況</strong>を開きます。項目を選ぶと該当箇所へ移動します。</li></ol>
       <details><summary>画面の移動・倍率・右パネル</summary><p>右下で拡大縮小・全体表示。<strong>Space＋空白ドラッグ</strong>で画面を移動します。タッチでは複数選択をオフにして空白をドラッグします。</p><p>右端のタブで真理値表・テンプレート・書き出しを開閉します。右パネルの境界はドラッグ・左右キーで幅を調整できます。Shiftで大きく、Homeで最小、Endで最大、Enterで標準幅。開閉状態と幅は次回も引き継ぎます。</p></details>
       <details><summary>真理値表をコピーする</summary><p>見出し横の<strong>コピーアイコン</strong>で、全行・全出力を見出し付きでコピーします。スプレッドシートへ貼り付けると行・列に分かれます。上部の0/1表示設定には影響されません。</p></details>
     </section>
     <section data-help-topic="save" data-help-title="保存・読み込み・自動復元">
       <h3>保存・読み込み</h3>
-      <ol><li>上部の保存アイコンで、名前を付けて<strong>ブラウザ（最大30件）</strong>または<strong>ローカルファイル（.logic.json）</strong>へ保存します。作りかけでも保存できます。</li><li>読み込みアイコンで、下書き・保存済み回路・ローカルファイル・テンプレートを選びます。</li><li>全消去や別回路へ切り替える前は、未保存の変更を保存するか確認します。ファイル保存はダウンロードを確認してから続けてください。</li></ol>
-      <details><summary id="recovery-help">自動保存と復元について</summary>
-      <p>確定した編集を、このブラウザの下書きへ自動保存します。次に開いたときは、前回の下書き・名前付き保存・新規作成から選べます。ドラッグ途中の位置やUndoの履歴は復元しません。</p>
-      <p><strong>名前付き保存とは別の一時的な下書きです。</strong>別回路への切り替え・全消去前の下書きは最大5件残します。読み込み画面で名前と日時を確認して選べます。長く残すには名前付き保存やファイル保存を使ってください。閲覧データを消すと下書きも消え、別端末とは同期されません。</p>
+      <ol><li>上部の<strong>ファイルメニュー</strong>から、ブラウザまたはローカルファイル（.logic.json）へ保存します。⌘Sは文書ごとの前回の保存先を使い、初回は保存先を選びます。</li><li>「新規作成」「ブラウザから開く…」「ファイルから開く…」は新しい文書タブで開きます。⌘Oはファイル選択です。</li><li>タブを閉じるときは未保存の変更を確認します。ファイルのダウンロードは、完了を確認してから保存済みにしてください。</li></ol>
+      <details><summary id="recovery-help">自動保存と再開について</summary>
+      <p>文書ごとの下書きをブラウザ内へ自動保存し、次回は直前の文書から再開します。保存候補は「ブラウザから開く…」で選べます。Undoの履歴やローカルファイルの権限は再起動後に引き継ぎません。</p>
+      <p>「ファイルへの自動保存を開始…」では、対応するChrome等で保存先を選べます。最後の明示保存を残すため、自動保存には別のファイルを指定します。ブラウザ内への自動保存は同時に続けます。自動保存は明示保存とは別で、閲覧データを消すとブラウザの下書きも消えます。</p>
       <p id="draft-detail" class="muted"></p>
-      </details><details><summary>ブラウザ保存の注意</summary><p>ブラウザ保存は端末間で同期されず、閲覧データを削除すると失われます。旧lc02と<strong>同じサイト・同じブラウザ</strong>なら、保存済みの回路を引き続き読み込めます。</p></details>
+      </details><details><summary>保存データの互換性</summary><p>旧lc02の名前付き保存と .logic.json を引き続き読み込めます。旧下書き・切替前アーカイブも読み込み候補として保持します。中間点を含むファイルは、この機能に対応したエディタで開いてください。</p></details>
       <details><summary>課題モードの保存と提出（連携準備中）</summary><p>課題モードは現在、本番では有効になっていません。有効化後は、提出フォームから開いて開始を確認すると、作品と確定した編集・Undo/Redo・持込みの履歴を通常保存と分けて暗号保存します。選択・倍率・ドラッグ途中・キー入力は記録しません。</p><p>「提出フォームへ途中保存」「提出へ進む」で作品・履歴・課題ID・登録鍵IDを提出フォームへ送信します。途中保存は正式提出ではなく、最後は提出フォームで確認・確定します。送信先と保管方針は開始画面で確認してください。端末内だけの未送信変更は、鍵を失うと復旧できません。教員に相談すると、最後に提出フォームへ保存した作品から復旧します。</p><p>履歴は不正検知の参考情報であり、本人制作の証明ではありません。Macの製造番号や他サイトの閲覧履歴は取得しません。通常の作品を課題へ持ち込めるかは、課題ごとの設定に従います。画像出力はできますが、課題の提出は専用の手順を使ってください。</p></details>
+    </section>
+    <section data-help-topic="probe-practice" data-help-title="中間点・真理値表の演習">
+      <h3>中間点・真理値表の演習</h3>
+      <ol><li>左の「＋ 中間点」でP1、P2…を配置して端子へ接続します。または配線を選び、「中間点を挿入」を押します。中間点は信号を変えず、観測する場所を真理値表へ追加します。</li><li>右の真理値表で「演習」を選び、中間点と出力の各欄へ0か1を入力します。回路上の信号表示は演習中は隠れます。</li><li>「判定・採点」で正誤と得点を確認します。修正して再判定できます。最初の全欄判定の得点は「やり直す」まで保持します。</li></ol>
+      <p>正解は「解答を見る」で確認します。確認後の判定は練習用です。タブごとに演習状態を保持しますが、回路の論理が変わると解答欄を更新します。位置移動だけでは消しません。正式提出の採点ではなく、端末内で行う自学用の機能です。</p>
     </section>
     <section data-help-topic="export" data-help-title="SVG・PNGの書き出し">
       <h3>SVG・PNGの書き出し</h3>
@@ -166,7 +182,7 @@
     </section>
     <section data-help-topic="shortcuts" data-help-title="ショートカット・ヘルプの操作">
       <h3>ショートカット・ヘルプの操作</h3>
-      <table class="shortcut-table"><caption>Windowsは⌘をCtrlに読み替え</caption><tbody><tr><th scope="row">⌘S / ⌘O</th><td>保存 / 読み込み</td></tr><tr><th scope="row">⌘Z / ⌘Shift Z</th><td>元に戻す / やり直し</td></tr><tr><th scope="row">Delete</th><td>選択した部品・配線を削除</td></tr><tr><th scope="row">Escape</th><td>ドラッグを取り消す・選択解除</td></tr><tr><th scope="row">?</th><td>ヘルプを開閉（最小化中は展開）</td></tr></tbody></table>
+      <table class="shortcut-table"><caption>Windowsは⌘をCtrlに読み替え</caption><tbody><tr><th scope="row">⌘S / ⌘O</th><td>保存 / ファイルから開く</td></tr><tr><th scope="row">⌘Z / ⌘Shift Z</th><td>元に戻す / やり直し</td></tr><tr><th scope="row">Delete</th><td>選択した部品・配線を削除</td></tr><tr><th scope="row">Escape</th><td>ドラッグを取り消す・選択解除</td></tr><tr><th scope="row">?</th><td>ヘルプを開閉（最小化中は展開）</td></tr></tbody></table>
       <details><summary>ヘルプを移動・縮小する</summary><p>見出しをドラッグ・矢印キーで移動します。右下の角、右端、下端でサイズを変更できます。Shiftで大きく変更、Enterで標準位置。「−」で最小化、「×」で閉じます。狭い画面では下部に表示され、見出しの上下ドラッグ・上下キーで高さを変更します。</p><p>「編集へ戻る」でヘルプを開いたまま回路へ移れます。ヘルプ内では回路用ショートカットを動かしません。Escapeは開いた補足を閉じ、補足外ならヘルプを閉じます。回路操作中のEscapeは操作の取消を優先します。ボタンの説明はホバー・Tabで表示されます。</p></details>
     </section>
     <section data-help-topic="about" data-help-title="このアプリについて">
@@ -180,7 +196,7 @@
         </dd></div>
       </dl>
       <footer class="help-credit" aria-label="バージョン情報と著作権">
-        <p>論理回路エディタ　バージョン 0.5 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+        <p>論理回路エディタ　バージョン 0.6 BETA（試作版。2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
       </footer>
     </section>
   </aside>

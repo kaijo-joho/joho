@@ -289,6 +289,8 @@
     return `F${String(index + 1).split('').map(digit => SUBSCRIPT_DIGITS[Number(digit)]).join('')}`;
   }
 
+  function probeName(index) { return `P${index + 1}`; }
+
   function graphToAst(graph, options = {}) {
     const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
     const wires = Array.isArray(graph?.wires) ? graph.wires : [];
@@ -300,7 +302,7 @@
 
     function requiredInputs(node) {
       if (!node) return 0;
-      if (node.type === 'output') return 1;
+      if (node.type === 'output' || node.type === 'probe') return 1;
       return REQUIRED_INPUTS[String(node.type || '').toUpperCase()] || 0;
     }
 
@@ -360,7 +362,7 @@
       for (let port = 0; port < count; port += 1) {
         const wire = incoming.get(`${node.id}:${port}`);
         if (!wire) {
-          errors.push(node.type === 'output'
+          errors.push(node.type === 'probe' ? '中間点' + name + 'が接続されていません。' : node.type === 'output'
             ? `出力${name}が接続されていません。`
             : `${String(node.type).toUpperCase()}ゲートの入力が不足しています。`);
           children.push(null);
@@ -370,7 +372,7 @@
       }
       visiting.delete(nodeId);
       if (children.some(child => !child)) return null;
-      if (node.type === 'output') return children[0];
+      if (node.type === 'output' || node.type === 'probe') return children[0];
       const gate = String(node.type || '').toUpperCase();
       if (!BASIC_GATE_SET.has(gate)) {
         errors.push('回路図で使用できるゲートはAND・OR・NOTだけです。');
@@ -384,6 +386,11 @@
       const ast = build(node.id, name);
       return { id: node.id, name, ast, structureExpr: ast ? toStructureExpr(ast) : '', truthCode: '' };
     });
+    const probes = nodes.filter(node => node.type === 'probe').map((node, index) => {
+      const name = probeName(index);
+      const ast = build(node.id, name);
+      return { id: node.id, name, ast, structureExpr: ast ? toStructureExpr(ast) : '', truthCode: '' };
+    });
     const ast = outputs[0]?.ast || null;
 
     const detached = nodes.filter(node => node.type !== 'input' && node.type !== 'output' && !reachable.has(node.id));
@@ -393,7 +400,7 @@
     if (detachedWires.length) errors.push(`${outputLabel}つながっていない配線があります。`);
 
     const uniqueErrors = dedupeMessages(errors);
-    return { valid: outputs.length > 0 && outputs.every(output => output.ast) && uniqueErrors.length === 0, ast, outputs, errors: uniqueErrors, reachable };
+    return { valid: outputs.length > 0 && [...outputs, ...probes].every(output => output.ast) && uniqueErrors.length === 0, ast, outputs, probes, errors: uniqueErrors, reachable };
   }
 
   function normalizeGraphInputNames(asts, inputNames) {
@@ -406,10 +413,11 @@
   function graphAnalysis(graph, inputNames, options = {}) {
     const compiled = graphToAst(graph, options);
     if (!compiled.valid) return { ...compiled, structureExpr: '', truthCode: '', truthTable: [], inputs: [] };
-    const inputs = normalizeGraphInputNames(compiled.outputs.map(output => output.ast), inputNames);
+    const columns = [...compiled.probes, ...compiled.outputs];
+    const inputs = normalizeGraphInputNames(columns.map(output => output.ast), inputNames);
     const table = generateInputRows(inputs).map((rowInputs, index) => {
       const outputBits = Object.create(null);
-      compiled.outputs.forEach(output => {
+      columns.forEach(output => {
         outputBits[output.id] = evaluate(output.ast, rowInputs);
       });
       return { index, inputs: rowInputs, output: outputBits[compiled.outputs[0].id], outputs: outputBits };
@@ -418,9 +426,12 @@
       ...output,
       truthCode: table.map(row => row.outputs[output.id]).join('')
     }));
+    const probes = compiled.probes.map(probe => ({ ...probe, truthCode: table.map(row => row.outputs[probe.id]).join('') }));
     return {
       ...compiled,
       outputs,
+      probes,
+      columns: [...probes, ...outputs],
       inputs,
       structureExpr: outputs[0].structureExpr,
       truthTable: table,
@@ -470,6 +481,7 @@
     parseAndAnalyze,
     toBasicGateAst,
     outputName,
+    probeName,
     graphToAst,
     graphAnalysis,
     wouldCreateCycle,
