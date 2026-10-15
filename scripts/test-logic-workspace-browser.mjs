@@ -31,6 +31,50 @@ async function chooseFile(page, raw, name = 'import.logic.json') {
   const chooser = page.waitForEvent('filechooser'); await action(page, 'fileOpen');
   await (await chooser).setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(raw) });
 }
+async function tabRenameChecks(browser, name) {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage(); await ready(page);
+  const original = await current(page), saved = await page.evaluate(() => localStorage.getItem(LogicStorage.STORAGE_KEY));
+  const tab = page.locator('[role="tab"][data-document-id="' + original.id + '"]');
+  const rename = page.locator('.document-tab__rename:visible');
+  await rename.click(); await page.getByLabel('回路の名前', { exact: true }).fill('回路A');
+  await page.locator('#logic-file-dialog').getByRole('button', { name: '変更', exact: true }).click();
+  await expect(tab).toHaveText('回路A *'); await expect(rename).toBeFocused();
+  assert.deepEqual((await current(page)).snapshot, original.snapshot);
+  assert.deepEqual((await current(page)).history, original.history, '名前変更を回路のUndoへ加えない');
+  await tab.press('F2'); await page.getByLabel('回路の名前', { exact: true }).fill('キャンセルする名前');
+  await page.keyboard.press('Escape'); await expect(tab).toBeFocused(); await expect(tab).toHaveText('回路A *');
+  await action(page, 'new'); const second = await current(page);
+  await tab.dblclick();
+  await expect(page.getByLabel('回路の名前', { exact: true })).toHaveValue('回路A');
+  assert.equal((await current(page)).id, original.id, '非選択タブをダブルクリックして切替と名前変更を行える');
+  await page.getByLabel('回路の名前', { exact: true }).fill('   ');
+  await page.locator('#logic-file-dialog').getByRole('button', { name: '変更', exact: true }).click();
+  await expect(page.locator('.logic-file-error')).toContainText('回路の名前を入力');
+  await expect(tab).toHaveText('回路A *');
+  await page.getByLabel('回路の名前', { exact: true }).fill('回路A・改'); await page.keyboard.press('Enter');
+  await expect(tab).toHaveText('回路A・改 *'); await expect(tab).toBeFocused();
+  await expect(page.locator('#document-list option[value="' + original.id + '"]')).toHaveText('回路A・改 *');
+  assert.deepEqual((await current(page)).snapshot, original.snapshot);
+  assert.deepEqual(await page.evaluate(id => logicDocuments.docs.find(doc => doc.id === id).snapshot, second.id), second.snapshot);
+  assert.equal(await page.evaluate(() => localStorage.getItem(LogicStorage.STORAGE_KEY)), saved, '名前変更だけでは明示保存済みデータを書き換えない');
+  await page.waitForFunction(id => JSON.parse(localStorage.getItem(LogicDocuments.KEY))?.documents
+    .some(doc => doc.id === id && doc.name === '回路A・改'), original.id);
+  await page.reload(); await page.locator('body.logic-tool-ready').waitFor();
+  await expect(tab).toHaveText('回路A・改 *');
+  await tab.press('ArrowRight'); assert.equal((await current(page)).id, second.id);
+  await page.locator('[role="tab"][aria-selected="true"]').press('ArrowLeft'); assert.equal((await current(page)).id, original.id);
+  await page.locator('#document-list').selectOption('');
+  await expect(page.getByLabel('回路の名前', { exact: true })).toHaveValue('回路A・改');
+  await page.getByRole('button', { name: 'キャンセル', exact: true }).click();
+  await expect(page.locator('#document-list')).toBeFocused();
+  await expect(page.locator('#document-list')).toHaveValue(original.id);
+  await action(page, 'rename'); await expect(page.getByLabel('回路の名前', { exact: true })).toHaveValue('回路A・改');
+  await page.getByRole('button', { name: 'キャンセル', exact: true }).click();
+  await page.screenshot({ path: join(artifacts, name + '-tab-rename.png') });
+  await context.close();
+  console.log(name + ': tab pencil/double-click/F2, invalid/cancel handling, focus, isolated contents/history, saved-data preservation and resumed names passed');
+}
 async function mainChecks(browser, name) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
   const page = await context.newPage(); await ready(page);
@@ -243,6 +287,9 @@ async function mainChecks(browser, name) {
 
   await page.evaluate(() => logicDocuments.flushImmediate());
   const other = await context.newPage(); await ready(other);
+  // 起動時の保存を完了し、最初に編集する側が最新記録を読んだ状態から競合を検査する。
+  await other.evaluate(() => logicDocuments.flush());
+  await page.reload(); await page.locator('body.logic-tool-ready').waitFor();
   await page.getByRole('button', { name: 'ORゲートを追加', exact: true }).click();
   await page.evaluate(() => logicDocuments.flushImmediate());
   await expect(other.locator('#draft-status')).toHaveAttribute('data-state', 'error');
@@ -284,6 +331,16 @@ async function layoutChecks(browser, name) {
   await touch.locator('#file-menu > summary').tap();
   await touch.locator('[data-file-action="new"]').tap();
   await expect(touch.locator('[role="tab"]')).toHaveCount(2);
+  const rename = touch.locator('.document-tab__rename:visible');
+  await rename.tap(); await touch.getByLabel('回路の名前', { exact: true }).fill('タップで変更');
+  await touch.locator('#logic-file-dialog').getByRole('button', { name: '変更', exact: true }).tap();
+  await expect(touch.locator('[role="tab"][aria-selected="true"]')).toContainText('タップで変更');
+  await expect(rename).toBeFocused();
+  assert.ok((await rename.boundingBox()).width >= 44, 'タッチ向けの名前変更ボタンは44px以上');
+  await touch.locator('#document-list').selectOption('');
+  await expect(touch.getByLabel('回路の名前', { exact: true })).toHaveValue('タップで変更');
+  await touch.getByRole('button', { name: 'キャンセル', exact: true }).tap();
+  await expect(touch.locator('#document-list')).toBeFocused();
   await touch.getByRole('button', { name: '中間点を追加', exact: true }).tap();
   await expect(touch.locator('.logic-editor-node--probe')).toHaveCount(1);
   await touch.locator('#palette-toggle').tap();
@@ -391,8 +448,9 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
   if (process.env.LOGIC_TEST_ENGINE && process.env.LOGIC_TEST_ENGINE !== name) continue;
   const browser = await engine.launch(name === 'chrome' ? { channel: 'chrome' } : {});
   try {
-    if (scope !== 'layout') { await mainChecks(browser, name); await failureChecks(browser, name); }
-    if (scope !== 'documents') await layoutChecks(browser, name);
+    if (scope !== 'layout') await tabRenameChecks(browser, name);
+    if (!['layout', 'rename'].includes(scope)) { await mainChecks(browser, name); await failureChecks(browser, name); }
+    if (!['documents', 'rename'].includes(scope)) await layoutChecks(browser, name);
   }
   finally { await browser.close(); }
 }

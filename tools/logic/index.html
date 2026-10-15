@@ -6,7 +6,7 @@
   <title>論理回路エディタ — 海城 情報科</title>
   <link rel="icon" type="image/svg+xml" href="./icon.svg?v=20260915-a">
   <link rel="stylesheet" href="../../css/logic-circuits.css">
-  <link rel="stylesheet" href="./editor.css?v=20261015-06c">
+  <link rel="stylesheet" href="./editor.css?v=20261015-061">
   <link rel="stylesheet" href="../shared/help-panel.css">
   <link rel="stylesheet" href="../shared/file-menu.css?v=20261015-06">
   <link rel="stylesheet" href="./assignment.css">
@@ -21,7 +21,7 @@
   <script defer src="./ui.js"></script>
   <script defer src="../shared/help-panel.js"></script>
   <script defer src="../shared/file-menu.js?v=20261015-06b"></script>
-  <script defer src="./documents.js?v=20261015-06"></script>
+  <script defer src="./documents.js?v=20261015-061"></script>
   <script defer src="./truth-practice.js?v=20261015-06c"></script>
   <script defer src="../shared/assignment-lite.js"></script>
   <script defer src="../shared/assignment-lite-store.js"></script>
@@ -156,12 +156,13 @@
     </section>
     <section data-help-topic="display" data-help-title="真理値表・表示・接続の確認">
       <h3>真理値表・表示・接続の確認</h3>
-      <ol><li>右端の<strong>真理値表</strong>を開き、行を選ぶと入力値が切り替わります。入力の箱でも切り替えられます。</li><li>上部の<strong>表示・整列</strong>メニューの「0/1」で値・信号色の表示を切り替えます。実際の値は変わりません。</li><li>未接続などの「!」が出たら、下部の<strong>接続状況</strong>を開きます。項目を選ぶと該当箇所へ移動します。</li></ol>
+      <ol><li>右端の<strong>真理値表</strong>を開き、行を選ぶと入力値が切り替わります。入力の箱でも切り替えられます。</li><li>上部の<strong>表示・整列</strong>メニューの「0/1」で値・信号色の表示を切り替えます。実際の値は変わりません。</li><li>端子が警告色になったら、下部の<strong>接続状況</strong>を開きます。項目を選ぶと該当箇所へ移動します。</li></ol>
       <details><summary>画面の移動・倍率・右パネル</summary><p>右下で拡大縮小・全体表示。<strong>Space＋空白ドラッグ</strong>で画面を移動します。タッチでは複数選択をオフにして空白をドラッグします。</p><p>右端のタブで真理値表・テンプレート・書き出しを開閉します。右パネルの境界はドラッグ・左右キーで幅を調整できます。Shiftで大きく、Homeで最小、Endで最大、Enterで標準幅。開閉状態と幅は次回も引き継ぎます。</p></details>
       <details><summary>真理値表をコピーする</summary><p>見出し横の<strong>コピーアイコン</strong>で、全行・全出力を見出し付きでコピーします。スプレッドシートへ貼り付けると行・列に分かれます。上部の0/1表示設定には影響されません。</p></details>
     </section>
     <section data-help-topic="save" data-help-title="保存・読み込み・自動復元">
       <h3>保存・読み込み</h3>
+      <p>タブの名前は、選択中のタブの鉛筆ボタン、タブ一覧の「名前を変更…」から変更できます。タブ名のダブルクリック、またはタブにフォーカスしてF2でも同じ画面を開けます。</p>
       <ol><li>上部の<strong>ファイルメニュー</strong>から、ブラウザまたはローカルファイル（.logic.json）へ保存します。⌘Sは文書ごとの前回の保存先を使い、初回は保存先を選びます。</li><li>「新規作成」「ブラウザから開く…」「ファイルから開く…」は新しい文書タブで開きます。⌘Oはファイル選択です。</li><li>タブを閉じるときは未保存の変更を確認します。ファイルのダウンロードは、完了を確認してから保存済みにしてください。</li></ol>
       <details><summary id="recovery-help">自動保存と再開について</summary>
       <p>文書ごとの下書きをブラウザ内へ自動保存し、次回は直前の文書から再開します。保存候補は「ブラウザから開く…」で選べます。Undoの履歴やローカルファイルの権限は再起動後に引き継ぎません。</p>
@@ -197,7 +198,7 @@
         </dd></div>
       </dl>
       <footer class="help-credit" aria-label="バージョン情報と著作権">
-        <p>論理回路エディタ　バージョン 0.6 BETA（試作版。2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+        <p>論理回路エディタ　バージョン 0.6.1 BETA（試作版。2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
       </footer>
     </section>
   </aside>

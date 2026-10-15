@@ -239,6 +239,8 @@ noscript { position: fixed; inset: 65px 15px auto; padding: 15px; background: va
 .top .document-tab button { border: 0; border-radius: 0; background: transparent; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 28px; }
 .document-tab:has([aria-selected="true"]) { background: var(--accent-soft); border-color: var(--accent); }
 .document-tab [aria-selected="true"] { color: var(--accent); }
+.top .document-tab__rename { min-width: 28px; width: 28px; padding: 0; }
+.document-tab__rename svg { width: 16px; height: 16px; }
 .top .document-tab__close { min-width: 22px; width: 22px; padding: 0; }
 #document-list { flex: none; width: 28px; padding-inline: 1px; font-size: 0; }
 #document-list option { color: var(--text); font-size: var(--ui-size); }
@@ -277,6 +279,6 @@ noscript { position: fixed; inset: 65px 15px auto; padding: 15px; background: va
   :root { --top-height: 55px; --top-button-height: 44px; --top-button-width: 44px; --side-tab-width: 44px; }
   :root[data-text-size="largest"] { --top-height: 59px; --top-button-height: 48px; --top-button-width: 48px; }
   .top .joho-file-menu__items button, #app .top .view-menu__items button { min-height: 44px; }
-  .top .document-tab__close { min-width: 44px; width: 44px; }
+  .top .document-tab__rename, .top .document-tab__close { min-width: 44px; width: 44px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }

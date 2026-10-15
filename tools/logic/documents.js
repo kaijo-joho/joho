@@ -208,37 +208,62 @@
       ...this.legacyDrafts.map(item => copy(item))];
     }
     renderTabs() {
-      this.tabs.replaceChildren(); this.list.replaceChildren();
+      // 切替・名前変更でも既存のタブを保ち、ダブルクリックとフォーカス復帰を途切れさせない。
+      const entries = new Map(Array.from(this.tabs.children, entry => [entry.dataset.tabId, entry]));
+      entries.forEach((entry, id) => { if (!this.docs.some(doc => doc.id === id)) entry.remove(); });
+      this.list.replaceChildren();
       this.docs.forEach((doc, index) => {
         const label = doc.name || '新しい回路';
         const dirty = this.dirty(doc);
-        const entry = element('div', null, 'document-tab');
-        const tab = element('button', label + (dirty ? ' *' : '')); tab.type = 'button'; tab.dataset.documentId = doc.id;
-        tab.setAttribute('role', 'tab'); tab.setAttribute('aria-selected', String(doc.id === this.activeId));
+        let entry = entries.get(doc.id);
+        if (!entry) {
+          entry = element('div', null, 'document-tab'); entry.dataset.tabId = doc.id;
+          const tab = element('button'); tab.type = 'button'; tab.dataset.documentId = doc.id;
+          tab.setAttribute('role', 'tab'); tab.setAttribute('aria-keyshortcuts', 'F2');
+          tab.addEventListener('click', () => this.switchTo(doc.id));
+          tab.addEventListener('dblclick', () => this.rename(doc, tab));
+          tab.addEventListener('keydown', event => {
+            if (event.key === 'F2') { event.preventDefault(); this.rename(doc, tab); return; }
+            const currentIndex = this.docs.indexOf(doc);
+            const next = event.key === 'Home' ? 0 : event.key === 'End' ? this.docs.length - 1 :
+              event.key === 'ArrowRight' ? (currentIndex + 1) % this.docs.length : event.key === 'ArrowLeft' ? (currentIndex - 1 + this.docs.length) % this.docs.length : null;
+            if (next !== null) { event.preventDefault(); this.switchTo(this.docs[next].id, true); }
+          });
+          const rename = element('button', null, 'document-tab__rename'); rename.type = 'button';
+          rename.appendChild(root.JohoFileMenu.icon('rename'));
+          rename.addEventListener('click', () => this.rename(doc, rename));
+          const close = element('button', '×', 'document-tab__close'); close.type = 'button';
+          close.addEventListener('click', () => this.requestClose(doc));
+          entry.append(tab, rename, close);
+        }
+        const tab = entry.querySelector('[role="tab"]');
+        tab.textContent = label + (dirty ? ' *' : '');
+        tab.setAttribute('aria-selected', String(doc.id === this.activeId));
         tab.setAttribute('aria-controls', 'stage'); tab.setAttribute('aria-label', label + (dirty ? '、未保存の変更あり' : ''));
+        tab.dataset.tip = label + '。ダブルクリックまたはF2で名前を変更';
         tab.tabIndex = doc.id === this.activeId ? 0 : -1;
-        tab.addEventListener('click', () => this.switchTo(doc.id));
-        tab.addEventListener('keydown', event => {
-          const next = event.key === 'Home' ? 0 : event.key === 'End' ? this.docs.length - 1 :
-            event.key === 'ArrowRight' ? (index + 1) % this.docs.length : event.key === 'ArrowLeft' ? (index - 1 + this.docs.length) % this.docs.length : null;
-          if (next !== null) { event.preventDefault(); this.switchTo(this.docs[next].id, true); }
-        });
-        const close = element('button', '×', 'document-tab__close'); close.type = 'button'; close.setAttribute('aria-label', label + 'のタブを閉じる');
-        close.addEventListener('click', () => this.requestClose(doc));
-        entry.append(tab, close); this.tabs.appendChild(entry);
+        const rename = entry.querySelector('.document-tab__rename'); rename.hidden = doc.id !== this.activeId;
+        rename.setAttribute('aria-label', label + 'の名前を変更'); rename.dataset.tip = 'このタブの名前を変更…';
+        entry.querySelector('.document-tab__close').setAttribute('aria-label', label + 'のタブを閉じる');
+        if (this.tabs.children[index] !== entry) this.tabs.insertBefore(entry, this.tabs.children[index] || null);
         const option = element('option', label + (dirty ? ' *' : '')); option.value = doc.id; option.selected = doc.id === this.activeId; this.list.appendChild(option);
       });
-      this.list.onchange = () => this.switchTo(this.list.value);
+      const renameOption = element('option', '名前を変更…'); renameOption.value = ''; this.list.appendChild(renameOption);
+      this.list.onchange = () => {
+        const id = this.list.value;
+        if (id) this.switchTo(id);
+        else { this.list.value = this.activeId; this.rename(this.current, this.list); }
+      };
       const selected = this.tabs.querySelector('[aria-selected="true"]');
       if (selected) this.tabs.scrollLeft += selected.getBoundingClientRect().left < this.tabs.getBoundingClientRect().left ? -selected.offsetWidth :
         selected.getBoundingClientRect().right > this.tabs.getBoundingClientRect().right ? selected.offsetWidth : 0;
       this.onTabs?.(this.current);
     }
-    askName(title, doc, accept) {
-      this.files.show(title, this.opener);
+    askName(title, doc, accept, { opener = this.opener, submitLabel = '保存' } = {}) {
+      this.files.show(title, opener);
       const form = element('form'); const label = element('label', '回路の名前', 'stack');
       const input = element('input'); input.type = 'text'; input.required = true; input.maxLength = 60; input.value = doc.name || 'マイ回路'; label.appendChild(input);
-      const submit = element('button', '保存'); submit.type = 'submit';
+      const submit = element('button', submitLabel); submit.type = 'submit';
       const cancel = element('button', 'キャンセル'); cancel.type = 'button'; cancel.onclick = () => this.files.close();
       form.append(label, submit, cancel); this.files.body.appendChild(form);
       form.onsubmit = async event => {
@@ -249,13 +274,14 @@
       };
       input.focus(); input.select();
     }
-    rename() {
-      const doc = this.current;
+    rename(doc = this.current, opener = this.opener) {
+      if (!doc || !this.docs.includes(doc) || this.busy?.()) return;
       this.askName('名前を変更', doc, name => {
+        if (name === doc.name) return;
         doc.name = name; doc.pristineFingerprint = null;
         if (doc.id === this.activeId) this.files.currentName = name;
         this.changed();
-      });
+      }, { opener, submitLabel: '変更' });
     }
     markSaved(doc, name, snapshot, destination, browserId = null, expectedName = doc.name) {
       if (doc.name === expectedName) doc.name = name;
