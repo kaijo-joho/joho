@@ -54,4 +54,4 @@ Workerのerrorイベントにdiagnostics（例外名・本文・code/setupの行
 
 ## 同日の見出し・コンソール整理
 
-タイトルのDOM位置と入力欄/ボタンの大きさ、通常の実行状態文の視覚表示だけを変更した。questionId/version、下書き、stdout/inputEcho/outputText/errorText、採点・提出契約は保持する。古い出力の注意はコード欄上へ移し、読み上げ用の状態は保持する。実行時間上限の案内をⓘへ表示する。本番接続・GAS/GSS・今年度Colab・教材リンクの変更はない。
+タイトルのDOM位置と入力欄/ボタンの大きさ、通常の実行状態文の視覚表示だけを変更した。questionId/version、下書き、stdout/inputEcho/outputText/errorText、採点・提出契約は保持する。保存状態・古い出力の注意・エラー確認操作はコードと出力の下へまとめ、通常のコード入力は上余白なしで1行目から開始する。読み上げ用の状態は保持する。実行時間上限の案内をⓘへ表示する。本番接続・GAS/GSS・今年度Colab・教材リンクの変更はない。
