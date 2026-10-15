@@ -187,7 +187,8 @@ var PythonEditorStore = (function () {
             snapshotHash: receipt.snapshotHash, payloadHash: receipt.payloadHash, body: result });
         });
       },
-      results: function (groupKey) { return group('results', groupKey); }
+      results: function (groupKey) { return group('results', groupKey); },
+      resultsForActor: function (actorKey) { return readRows('results', matches('results', 3, actorKey)); }
     };
   }
   return { create: create, names: NAMES, headers: HEADERS.slice() };

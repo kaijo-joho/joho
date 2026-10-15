@@ -1,0 +1,82 @@
+import { questionKey, validId } from './core.mjs';
+
+const plainHeading = line => line.replace(/^#{1,6}\s*/, '').replace(/\*\*|__/g, '').trim();
+const majorPattern = /^問\s*([0-9０-９]+)(?:[.．、:：]\s*|\s*).*/;
+export function questionGroups(questions) {
+  const groups = new Map();
+  for (const question of questions) {
+    const headings = question.prompt.split('\n').filter(line => /^#{1,6}/.test(line)).map(plainHeading);
+    const titleMajor = question.title.match(majorPattern)?.[1]?.normalize('NFKC');
+    const heading = headings.find(text => {
+      const number = text.match(majorPattern)?.[1]?.normalize('NFKC');
+      return number && (!titleMajor || number === titleMajor);
+    });
+    const number = titleMajor || heading?.match(majorPattern)?.[1]?.normalize('NFKC');
+    const key = number || 'ungrouped';
+    if (!groups.has(key)) groups.set(key, { title: heading || (number ? `問${number}` : ''), items: [] });
+    const short = question.title.replace(/^問\s*[0-9０-９]+[.．、:：]?\s*/, '').trim();
+    const minor = short.match(/^[（(]\s*([0-9０-９]+)\s*[）)]\s*/)
+      || headings.map(text => text.match(/^[（(]\s*([0-9０-９]+)\s*[）)]\s*/)).find(Boolean);
+    const body = short.replace(/^[（(]\s*[0-9０-９]+\s*[）)]\s*/, '') || question.title;
+    groups.get(key).items.push({ question, body, minor: minor?.[1]?.normalize('NFKC') });
+  }
+  for (const group of groups.values()) {
+    const multiple = new Set(group.items.map(item => item.question.questionId)).size > 1;
+    for (const item of group.items) {
+      const duplicate = questions.filter(q => q.questionId === item.question.questionId).length > 1;
+      item.title = `${multiple && item.minor ? `(${item.minor}) ` : ''}${item.body}${duplicate ? `（${item.question.version}）` : ''}`;
+    }
+  }
+  return [...groups.values()];
+}
+
+export function validateRating(raw) {
+  if (!raw || !Number.isInteger(raw.total) || raw.total < 0 || raw.total > 10000
+    || !(raw.earned === null || Number.isInteger(raw.earned) && raw.earned >= 0 && raw.earned <= raw.total)
+    || raw.version && !validId(raw.version)) throw new Error('評価の形式を確認できません。');
+  return { earned: raw.earned, total: raw.total, version: raw.version || '', example: raw.example === true };
+}
+
+export function setRating(set, ratingFor) {
+  const unique = new Map();
+  for (const q of set.questions) {
+    if (q.kind === 'observation') continue;
+    const rating = ratingFor(q);
+    const prior=unique.get(q.questionId);
+    if (!unique.has(q.questionId) || rating && (!prior || prior.total === 0 && rating.total > 0 || prior.earned === null && rating.earned !== null)) unique.set(q.questionId,rating);
+  }
+  const ratings = [...unique.values()];
+  if (!ratings.length) return { earned: 0, total: 0, example: false };
+  if (ratings.some(r => !r)) return null;
+  return { earned: ratings.reduce((sum, r) => sum + (r.earned ?? 0), 0), total: ratings.reduce((sum, r) => sum + r.total, 0), example: ratings.some(r => r.example) };
+}
+
+export function renderRating(element, rating, compact = false) {
+  element.replaceChildren();
+  element.classList.toggle('rating-example', !!rating?.example);
+  const prefix = rating?.example ? '表示例：' : '正式：';
+  if (!rating) {
+    element.textContent = '★—/—';
+    element.setAttribute('aria-label', '採点結果は未取得');
+    return;
+  }
+  if (!rating.total) {
+    element.textContent = '★対象なし';
+    element.setAttribute('aria-label', prefix + 'コードのチェック項目なし');
+    return;
+  }
+  const earned = rating.earned ?? 0;
+  if (compact || rating.total > 48) element.textContent = `★${earned}/${rating.total}${rating.example ? '（表示例）' : ''}`;
+  else {
+    const filled = document.createElement('span'), empty = document.createElement('span');
+    filled.textContent = '★'.repeat(earned); empty.textContent = '☆'.repeat(rating.total - earned); empty.className = 'rating-empty';
+    element.append(filled, empty);
+    if (rating.earned === null) element.append(document.createTextNode(' 未採点'));
+  }
+  element.setAttribute('aria-label', `${prefix}${rating.total}項目中${earned}項目${rating.earned === null ? '、未採点' : 'を達成'}${rating.version ? `、採点版 ${rating.version}` : ''}`);
+}
+
+export function ratingKey(raw) {
+  if (!validId(raw?.questionId) || !validId(raw?.version)) throw new Error('評価の問題・版を確認できません。');
+  return questionKey(raw);
+}

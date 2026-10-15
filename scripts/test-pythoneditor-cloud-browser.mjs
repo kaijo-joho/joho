@@ -67,13 +67,15 @@ try {
   releaseCatalog();await catalogDone;await delayed.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
   assert.equal(await delayed.locator('#question-id').textContent(),'q2');assert.equal(await code(delayed),'authenticated draft must stay');await delayed.close();check('late initial catalog response cannot replace authenticated selection or edited code');
   await edit(page,'print("接続待ちの編集中")');await connect(page);assert.match(await code(page),/接続待ちの編集中/);check('nested cross-origin bridge connects without replacing current edited code');
-  await page.locator('#set-select').selectOption('exercise');
+  await page.locator('#set-trigger').click();await page.locator('#set-menu [data-set="exercise"]').click();
+  assert.match(await page.locator('#set-current-rating').textContent(),/★0\/2/);assert.match(await page.locator('#question-list [data-question="q1"] .question-item-rating').textContent(),/未採点/);check('authenticated session loads all question ratings before any question is submitted');
   await edit(page,'# start\nx = 2\nprint("value:", x)\n# end');
   await page.locator('#run').click();await page.waitForFunction(()=>document.querySelector('#run').dataset.state==='run',null,{timeout:120000});assert.equal(await page.locator('#output').textContent(),'value: 2\n');
   await save(page);assert.match(await page.locator('#notice').textContent(),/GSSに保存/);assert.equal(f.sheets.Python下書き履歴.values.length,2);assert.match(await page.locator('#formal-status').textContent(),/未提出/);check('real execution and GSS draft save remain separate from submission');
   const statusReady=new Promise(r=>readyStatus=r),statusDone=new Promise(r=>doneStatus=r);holdStatusQuestion='q1';
   await page.locator('#question-list button').nth(1).click();await page.locator('#question-list button').nth(0).click();await statusReady;
   await submit(page);assert.match(await page.locator('#formal-status').textContent(),/提出済み/);assert.match(await page.locator('#formal-score').textContent(),/100 点/);check('full-code text submission, server grading, persisted result/history and official display');
+  assert.match(await page.locator('#set-current-rating').textContent(),/★1\/2/);assert.equal(await page.locator('#question-list [data-question="q1"] .question-item-rating').textContent(),'★');assert.doesNotMatch(await page.locator('#rating-note').textContent(),/表示例/);check('server-persisted best result updates subquestion stars and set total without demo values');
   releaseStatus();await statusDone;await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));assert.match(await page.locator('#formal-status').textContent(),/提出済み/);check('late status lookup cannot downgrade a completed submission');
   await edit(page,'# start\nx = 3\nprint("value:", x)\n# end');await page.waitForFunction(()=>document.querySelector('#formal-edited').textContent.includes('変更'));check('editing after submission keeps official result and identifies changed code');
   let latest=f.dispatch('getDraft',{questionId:'q1',version:'v1'}).draft;

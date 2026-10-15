@@ -33,9 +33,9 @@ try{
   }
   const all=current.sets.flatMap(s=>s.questions);assert.equal(new Set(all.map(questionKey)).size,all.length);check('new set validates and every previous demo ID/version/prompt/template remains unchanged');
   await page.goto(server.url+'?set=demo-subquestions&question=demo-temperature-01&version=demo-subquestions-v1');await page.waitForSelector('#question-list button');
-  assert.equal(await page.locator('#set-select').inputValue(),'demo-subquestions');assert.equal(await page.locator('#question-list button').count(),5);
+  assert.equal(await page.locator('#set-trigger').getAttribute('data-set'),'demo-subquestions');assert.equal(await page.locator('#question-list button').count(),5);
   assert.equal(await page.locator('#progress').textContent(),'実行済み 0 / 4 問');
-  assert.deepEqual(await page.locator('#question-list .question-item-title').allTextContents(),['問1 (1) 気温を2つの場合に分ける','問1 (2) 気温を3つの場合に分ける','問2 (1) 表の作成と表示','問3 (1) 必要な箱の数','問3 (2) 入力を変えて確認']);
+  assert.deepEqual(await page.locator('#question-list .question-item-title').allTextContents(),['(1) 気温を2つの場合に分ける','(2) 気温を3つの場合に分ける','表の作成と表示','(1) 必要な箱の数','(2) 入力を変えて確認']);
   assert.match(await page.locator('#prompt').textContent(),/問1 気温の判定/);assert.match(await page.locator('#prompt').textContent(),/\(1\) 2つ/);check('direct URL opens 3 parent questions / 5 entries, with parent and subquestion labels');
   await input('24\n');assert.equal(await run(),'気温（℃）: 24\n低い\n');
   const first=(await code()).replace('print("低い")','print("低い（編集済み）")');await edit(first);

@@ -19,7 +19,7 @@ var PythonEditorService = (function () {
     env.authorize(r, null, env.now(), false); return r;
   }
   function session(env) {
-    var sets = {}, policies = [], seen = {};
+    var sets = {}, policies = [], seen = {}, frozenByKey = {};
     env.config.assignments.forEach(function (p) {
       if (!p.enabled || env.now() < p.startsAt || !env.actor.teacher && p.grades.indexOf(env.actor.grade) < 0) return;
       var rows = env.store.snapshots(p.setId, p.version);
@@ -27,13 +27,25 @@ var PythonEditorService = (function () {
       if (!sets[p.setId]) sets[p.setId] = { setId: p.setId, title: p.setId, questions: [] };
       rows.sort(function (a, b) { return a.body.question.order - b.body.question.order; }).forEach(function (r) {
         PythonEditor.assert(r.payloadHash === env.hash(PythonEditor.canonical(r.body)), 'snapshot_invalid');
-        var q = r.body.question, key = PythonEditor.key(q);
+        var q = r.body.question, key = PythonEditor.key(q); frozenByKey[key] = r;
         if (!seen[key]) { sets[p.setId].questions.push(PythonEditorMaster.publicQuestion(r)); seen[key] = true; }
         policies.push({ questionId: q.questionId, version: q.version, assignmentId: p.assignmentId, dueAt: p.dueAt,
           startsAt: p.startsAt, closesAt: p.closesAt, canSubmit: !env.actor.teacher && p.official && r.body.graded && env.now() >= p.startsAt && env.now() <= p.closesAt });
       });
     });
-    return { actorKey: env.actor.key, account: env.actor.email, teacher: env.actor.teacher, limits: PythonEditor.LIMITS,
+    // Read this learner's result rows once, rather than once for every question.
+    var results = env.store.resultsForActor(env.actor.key), ratings = [];
+    Object.keys(frozenByKey).forEach(function (key) {
+      var frozen = frozenByKey[key], q = frozen.body.question;
+      var matches = policies.filter(function (p) { return PythonEditor.key(p) === key; });
+      if (matches.length !== 1) return;
+      var policy = env.config.assignments.filter(function (p) { return p.assignmentId === matches[0].assignmentId && p.version === q.version; })[0];
+      var group = PythonEditor.gradeGroup(env.actor.key, policy, q.questionId);
+      var best = bestResult(results.filter(function (r) { return r.groupKey === group; }), env.actor.key);
+      ratings.push({ questionId: q.questionId, version: q.version, assignmentId: policy.assignmentId,
+        rating: publicRating(frozen, best, env, frozenByKey) });
+    });
+    return { actorKey: env.actor.key, account: env.actor.email, teacher: env.actor.teacher, limits: PythonEditor.LIMITS, ratings: ratings,
       catalog: { schema: 'python-editor-catalog-v1', label: '学校アカウント・採用版', sets: Object.keys(sets).map(function (k) { return sets[k]; }) }, policies: policies };
   }
   function saveDraft(input, env, at) {
@@ -57,15 +69,48 @@ var PythonEditorService = (function () {
       try { env.authorize(frozen, null, env.now(), false); return true; } catch (e) { if (e.pythonEditorCode === 'not_allowed') return false; throw e; }
     }).map(function (r) { return { questionId: r.questionId, version: r.version, revision: r.revision, updatedAt: r.at, seq: r.seq }; });
   }
+  function bestResult(rows, actorKey) {
+    return rows.filter(function (r) { return r.actorKey === actorKey && r.eligible === true && r.receivedAt <= r.policy.dueAt; })
+      .sort(function (a, b) { return b.body.score - a.body.score || b.receivedAt.localeCompare(a.receivedAt) || b.seq - a.seq; })[0] || null;
+  }
+  function codeStarTotal(body) {
+    if (!body.graded || body.question.kind === 'observation') return 0;
+    return body.ranges.reduce(function (sum, range) {
+      var rule = body.rules[range.scoringId];
+      if (rule.schemaVersion !== 2) return sum + new Set(rule.keywordsArr || []).size;
+      var groups = Object.create(null);
+      (rule.rules || []).forEach(function (r, i) {
+        if (r.enabled === false || r.target === 'output' || !String(r.keyword || '').trim()) return;
+        var id = String(r.ruleId || 'rule-' + (i + 1)).trim();
+        groups[id] = groups[id] || Number(r.points) > 0;
+      });
+      return sum + Object.keys(groups).filter(function (id) { return groups[id]; }).length;
+    }, 0);
+  }
+  function publicRating(frozen, best, env, cache) {
+    PythonEditor.assert(frozen && frozen.body, 'snapshot_missing');
+    if (best && PythonEditor.key(best) !== PythonEditor.key(frozen.body.question)) {
+      var key = PythonEditor.key(best);
+      frozen = cache && cache[key] || env.store.findSnapshot(best);
+      if (cache) cache[key] = frozen;
+    }
+    PythonEditor.assert(frozen && frozen.payloadHash === env.hash(PythonEditor.canonical(frozen.body)), 'snapshot_invalid');
+    var total = codeStarTotal(frozen.body), earned = best ? (best.body.checks || []).filter(function (check) {
+      return /(?:^|・)コード条件[0-9]+$/.test(check.label) && check.passed === true;
+    }).length : null;
+    PythonEditor.assert(earned === null || earned <= total, 'grading_failed');
+    return { earned: earned, total: total, version: frozen.body.question.version };
+  }
   function response(receipt, env) {
     PythonEditor.assert(receipt && receipt.actorKey === env.actor.key, 'not_allowed');
     var result = env.store.findResult(env.actor.key, receipt.requestId), all = env.store.results(receipt.groupKey);
     var eligible = all.filter(function (r) { return r.actorKey === env.actor.key && r.eligible === true && r.receivedAt <= r.policy.dueAt; });
-    var best = eligible.length ? Math.max.apply(null, eligible.map(function (r) { return r.body.score; })) : null;
+    var bestRow = bestResult(eligible, env.actor.key), best = bestRow ? bestRow.body.score : null;
+    var frozen = env.store.findSnapshot(receipt), rating = publicRating(frozen, bestRow, env);
     var completed = {}; all.forEach(function (r) { completed[r.requestId] = true; });
     var pending = env.store.requests(receipt.groupKey).filter(function (r) { return !completed[r.requestId]; }).sort(function (a, b) { return a.at.localeCompare(b.at) || a.seq - b.seq; })
       .map(function (r) { return { requestId: r.requestId, questionId: r.questionId, version: r.version, receivedAt: r.at }; });
-    return { receipt: PythonEditor.receipt(receipt, result), bestScore: best, pending: pending, history: all.sort(function (a, b) { return b.receivedAt.localeCompare(a.receivedAt) || b.seq - a.seq; }).slice(0, 20).map(function (r) {
+    return { receipt: PythonEditor.receipt(receipt, result), bestScore: best, rating: rating, pending: pending, history: all.sort(function (a, b) { return b.receivedAt.localeCompare(a.receivedAt) || b.seq - a.seq; }).slice(0, 20).map(function (r) {
       return { requestId: r.requestId, version: r.version, receivedAt: r.receivedAt, gradedAt: r.at, score: r.body.score, late: !r.eligible };
     }) };
   }

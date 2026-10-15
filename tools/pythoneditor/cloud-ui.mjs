@@ -1,12 +1,13 @@
 import { questionKey, validateCatalog } from './core.mjs';
 import { cloudConfig } from './cloud-config.mjs';
+import { validateRating, ratingKey } from './navigation.mjs';
 import { GoogleBridge, CloudWorkspace, submissionText, codeHash, bridgeURL } from './cloud.mjs';
 const $ = id => document.getElementById(id);
 const score = n => n === null || n === undefined ? 'なし' : `${Math.round(n*1000)/10} 点`;
 const date = value => new Date(value).toLocaleString('ja-JP');
 export class CloudPanel {
   constructor(host) {
-    this.host=host;this.bridge=new GoogleBridge(cloudConfig);this.states=new Map();this.readRevisions=new Map();this.generation=0;this.working=false;this.opener=null;
+    this.host=host;this.bridge=new GoogleBridge(cloudConfig);this.states=new Map();this.ratings=new Map();this.schoolKeys=new Set();this.readRevisions=new Map();this.generation=0;this.working=false;this.opener=null;
     $('cloud-connect').addEventListener('click',()=>{host.closeMenus();this.connect();});
     $('save-cloud').addEventListener('click',()=>{host.closeMenus();this.save();});
     $('open-cloud').addEventListener('click',()=>{host.closeMenus();this.restore();});
@@ -44,12 +45,25 @@ export class CloudPanel {
       const session=await this.bridge.connect(), catalog=validateCatalog(session.catalog);
       if(!Array.isArray(session.policies))throw new Error('受付設定の形式を確認できません。');
       this.cloud=new CloudWorkspace((...args)=>this.bridge.call(...args),session,localStorage);
+      this.states.clear();this.ratings.clear();this.readRevisions.clear();
+      for (const q of catalog.sets.flatMap(set=>set.questions)) this.schoolKeys.add(questionKey(q));
+      for (const item of session.ratings || []) {
+        const key=ratingKey(item),policy=session.policies.filter(p=>questionKey(p)===key);
+        if(policy.length!==1||policy[0].assignmentId!==item.assignmentId||!this.schoolKeys.has(key))throw new Error('評価の対象を確認できません。');
+        this.ratings.set(key,validateRating(item.rating));
+      }
       this.host.addCatalog(catalog);
-      this.connected=true;this.states.clear();this.readRevisions.clear();
+      this.connected=true;
       $('cloud-account').textContent=`${session.account}${session.teacher?'（教員閲覧）':''}`;
       this.host.notice(catalog.sets.length ? '学校の採用版を問題一覧へ追加しました。GSS保存と正式提出はそれぞれの操作で行います。' : '学校アカウントに接続しました。現在、採用・受付設定された問題はありません。');
       await this.refreshCurrent();
     });
+  }
+  hasSchoolQuestion(q) {return this.schoolKeys.has(questionKey(q));}
+  rating(q) {return this.connected ? this.ratings.get(questionKey(q)) || null : null;}
+  acceptState(q,result) {
+    this.states.set(questionKey(q),result);
+    if(result.rating)this.ratings.set(questionKey(q),validateRating(result.rating));
   }
   revision(q) {const n=(this.readRevisions.get(q.questionId)||0)+1;this.readRevisions.set(q.questionId,n);return n;}
   render() {
@@ -87,6 +101,7 @@ export class CloudPanel {
       const formal=this.states.get(button.dataset.key)?.receipt;
       label.textContent=formal?.state==='submitted'?'正式：前回提出済み':formal?.state==='pending'?'正式：処理待ち':'';
     }
+    this.host.renderRatings?.();
     const generation=++this.generation;
     $('formal-edited').textContent='';
     if(q&&receipt?.state==='submitted') {
@@ -103,7 +118,7 @@ export class CloudPanel {
     const cloud=this.cloud,revision=this.revision(q);let result;
     try{result=await cloud.recover(q,policy.assignmentId);}catch(e){if(cloud!==this.cloud)return;throw e;}
     if(cloud!==this.cloud||revision!==this.readRevisions.get(q.questionId))return;
-    this.states.set(questionKey(q),result);this.render();
+    this.acceptState(q,result);this.render();
   }
   async save() {
     const q=this.host.question();if(!q||!this.connected)return;
@@ -173,7 +188,7 @@ export class CloudPanel {
     if(!this.submission)return;
     const {q,input}=this.submission;$('submit-dialog').close();
     await this.withWork(async()=>{
-      const result=await this.cloud.submit(input);this.revision(q);this.states.set(questionKey(q),result);
+      const result=await this.cloud.submit(input);this.revision(q);this.acceptState(q,result);
       this.host.notice(result.receipt?.state==='submitted'?`${q.title}の採点と結果・履歴の保存が完了しました。`:'受付記録を保持しています。結果保存を確認してください。');
     });
   }
@@ -185,7 +200,7 @@ export class CloudPanel {
       if(resume&&result.receipt?.state==='pending')result=await this.cloud.call('resumeSubmission',{requestId:result.receipt.requestId});
       else if(resume&&result.pending?.length)result=await this.cloud.call('resumeSubmission',{requestId:result.pending[0].requestId});
       if(resume)this.revision(q);else if(revision!==this.readRevisions.get(q.questionId))return;
-      this.states.set(questionKey(q),result);
+      this.acceptState(q,result);
       this.host.notice(result.unreceived?'サーバーに受付記録が見つかりません。送信控えを保持しています。「正式提出」から同じ要求を再送できます。':result.receipt?.state==='submitted'?'提出済みの結果を確認しました。':result.receipt?.state==='pending'?'受付済みですが、採点・結果保存は未完了です。':'この問題の提出記録はありません。');
     });
   }

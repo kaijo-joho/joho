@@ -4,8 +4,10 @@ import { DraftStore, exportDraft } from './storage.mjs';
 import { PythonRunner } from './runner.mjs?v=20261015-errors';
 import { errorHints } from './diagnostics.mjs?v=20261015-errors';
 import { renderPrompt } from './prompt.mjs';
-import { CloudPanel } from './cloud-ui.mjs?v=20261015-errors';
+import { CloudPanel } from './cloud-ui.mjs?v=20261015-navigation';
 import { cloudConfig } from './cloud-config.mjs';
+import { questionGroups, setRating, renderRating } from './navigation.mjs';
+import { demoRatings } from './demo-ratings.mjs';
 const $ = id => document.getElementById(id);
 const entries = new Map(), outputs = new Map(), docs = new Map();
 let catalog, selectedSet, question, cm, store, runSnapshot, busy = false, pendingImport;
@@ -15,6 +17,7 @@ let markedErrors = false;
 let pendingRequested=false;
 let editGeneration=0;
 let catalogGeneration=0;
+let showDemoRatings=false;
 const params = new URLSearchParams(location.search);
 const requested = { set: params.get('set'), question: params.get('question') || params.get('practice'), version: params.get('version') };
 for (const value of Object.values(requested)) if (value && !validId(value)) showNotice('URLのIDが不正です。問題一覧から選んでください。', true);
@@ -124,20 +127,79 @@ function selectQuestion(q, updateURL = true) {
   cloudPanel?.render();
   cloudPanel?.refreshCurrent().catch(e=>cloudPanel.fail(e));
 }
-function selectSet(set, selected, preserveCurrent=false) {
-  selectedSet = set; $('set-select').value = set.setId;
-  $('question-list').replaceChildren();
-  for (const [index, q] of set.questions.entries()) {
-    const li = document.createElement('li'), button = document.createElement('button');
-    button.type = 'button'; button.dataset.question = q.questionId;button.dataset.key=questionKey(q);
-    const num = document.createElement('span'); num.className = 'question-number'; num.textContent = index + 1;
-    const labels = document.createElement('span'), title = document.createElement('span'), state = document.createElement('span');
-    title.className = 'question-item-title'; title.textContent = q.title+(set.questions.filter(p=>p.questionId===q.questionId).length>1?`（${q.version}）`:'');
-    state.className = 'question-item-state'; state.textContent = stateLabel(q);
-    labels.append(title, state); button.append(num, labels); li.append(button); $('question-list').append(li);
-    button.addEventListener('click', () => {pendingRequested=false;selectQuestion(q);});
+function ratingFor(q) {
+  if (q.kind === 'observation') return {earned:0,total:0};
+  if (cloudPanel?.hasSchoolQuestion(q)) return cloudPanel.rating(q);
+  return showDemoRatings ? demoRatings.get(questionKey(q)) || null : null;
+}
+function updateNavigationRatings() {
+  if (!catalog) return;
+  for (const button of $('question-list').querySelectorAll('button[data-key]')) {
+    const q=selectedSet?.questions.find(q=>questionKey(q)===button.dataset.key);
+    if (q) renderRating(button.querySelector('.question-item-rating'),ratingFor(q));
   }
-  if(preserveCurrent){updateProgress();cloudPanel?.render();}else selectQuestion(selected || set.questions[0]);
+  for (const button of $('set-menu').querySelectorAll('button[data-set]')) {
+    const set=catalog.sets.find(set=>set.setId===button.dataset.set);
+    button.setAttribute('aria-selected',String(set===selectedSet));
+    if(set)renderRating(button.querySelector('.set-rating'),setRating(set,ratingFor),true);
+  }
+  if(selectedSet) {
+    $('set-current-title').textContent=selectedSet.title;
+    $('set-trigger').dataset.set=selectedSet.setId;
+    $('set-trigger').setAttribute('aria-label',`問題セットを選択：${selectedSet.title}`);
+    const rating=setRating(selectedSet,ratingFor);
+    renderRating($('set-current-rating'),rating,true);
+    $('rating-note').textContent=rating?.example?'★は表示例です。実行・編集では変わりません。':'★は締切内最高点の提出で満たしたコードのチェック数です。';
+  }
+}
+function buildSetPicker() {
+  $('set-menu').replaceChildren();
+  for(const set of catalog.sets) {
+    const button=document.createElement('button'),title=document.createElement('span'),rating=document.createElement('span');
+    button.type='button';button.role='option';button.tabIndex=-1;button.dataset.set=set.setId;
+    title.className='set-option-title';title.textContent=set.title;rating.className='set-rating';
+    button.append(title,rating);button.addEventListener('click',()=>{pendingRequested=false;selectSet(set);closeSetPicker(true);});
+    $('set-menu').append(button);
+  }
+  updateNavigationRatings();
+}
+function closeSetPicker(focus=false) {
+  const open=!$('set-menu').hidden;
+  $('set-menu').hidden=true;$('set-trigger').setAttribute('aria-expanded','false');
+  if(focus&&open)$('set-trigger').focus();
+}
+function placeSetPicker() {
+  if($('set-menu').hidden)return;
+  const box=$('set-trigger').getBoundingClientRect(),menu=$('set-menu');
+  const width=Math.min(Math.max(box.width,300),innerWidth-24),below=innerHeight-box.bottom-12,above=box.top-12;
+  const up=below<150&&above>below,height=Math.min(360,Math.max(80,up?above:below));
+  menu.style.width=`${width}px`;menu.style.maxHeight=`${height}px`;
+  menu.style.left=`${Math.max(12,Math.min(box.left,innerWidth-width-12))}px`;
+  menu.style.top=up?'auto':`${box.bottom+4}px`;menu.style.bottom=up?`${innerHeight-box.top+4}px`:'auto';
+}
+function openSetPicker() {
+  closeMenus();$('set-menu').hidden=false;$('set-trigger').setAttribute('aria-expanded','true');placeSetPicker();
+  ($('set-menu').querySelector('[aria-selected="true"]')||$('set-menu').querySelector('button'))?.focus();
+}
+function selectSet(set, selected, preserveCurrent=false) {
+  selectedSet=set;$('question-list').replaceChildren();
+  for (const group of questionGroups(set.questions)) {
+    const li=document.createElement('li'),list=document.createElement('ul');
+    li.className=group.title?'question-group':'question-group ungrouped';
+    if(group.title){const heading=document.createElement('h3');heading.textContent=group.title;li.append(heading);}
+    for (const item of group.items) {
+      const q=item.question,row=document.createElement('li'),button=document.createElement('button');
+      button.type='button';button.className='question-button';button.dataset.question=q.questionId;button.dataset.key=questionKey(q);
+      const labels=document.createElement('span'),title=document.createElement('span'),state=document.createElement('span'),rating=document.createElement('span');
+      labels.className='question-labels';title.className='question-item-title';title.textContent=item.title;
+      state.className='question-item-state';state.textContent=stateLabel(q);rating.className='question-item-rating';
+      labels.append(title,state,rating);button.append(labels);row.append(button);list.append(row);
+      button.addEventListener('click',()=>{pendingRequested=false;selectQuestion(q);});
+    }
+    li.append(list);$('question-list').append(li);
+  }
+  if(preserveCurrent){updateProgress();cloudPanel?.render();}else selectQuestion(selected||set.questions[0]);
+  updateNavigationRatings();
 }
 function renderOutput() {
   const result = outputs.get(questionKey(question));
@@ -285,8 +347,7 @@ function addCloudCatalog(incoming) {
     if(prior){for(const q of set.questions)if(!prior.questions.some(p=>questionKey(p)===questionKey(q)))prior.questions.push(q);}
     else catalog.sets.push(set);
   }
-  $('set-select').replaceChildren();
-  for(const set of catalog.sets){const option=document.createElement('option');option.value=set.setId;option.textContent=set.title;$('set-select').append(option);}
+  buildSetPicker();
   const wanted=pendingRequested&&catalog.sets.find(s=>(!requested.set||s.setId===requested.set)&&s.questions.some(q=>(!requested.question||q.questionId===requested.question)&&(!requested.version||q.version===requested.version)));
   if(wanted&&!runner.active&&editGeneration===0) {
     pendingRequested=false;selectSet(wanted,wanted.questions.find(q=>(!requested.question||q.questionId===requested.question)&&(!requested.version||q.version===requested.version)));
@@ -382,7 +443,7 @@ async function init() {
     });
   }
   $('code').addEventListener('input', dirty); $('stdin').addEventListener('input', dirty);
-  cloudPanel=new CloudPanel({question:()=>question,entry:q=>({...currentEntry(q)}),run:q=>outputs.get(questionKey(q)),running:()=>!!runner.active,
+  cloudPanel=new CloudPanel({catalog:()=>catalog,renderRatings:updateNavigationRatings,question:()=>question,entry:q=>({...currentEntry(q)}),run:q=>outputs.get(questionKey(q)),running:()=>!!runner.active,
     notice:(message,danger)=>showNotice(message,danger,true),closeMenus:()=>closeMenus(true),addCatalog:addCloudCatalog,importDraft:importCloudDraft,
     archive:(e,reason)=>{if(!store)throw new Error('ローカルの控えを保存できません。コードをファイルに保存してください。');store.archive(e,reason);}});
   try { JohoUI.theme({storageKey:'joho.pythoneditor.view.v1',themeSelect:$('theme'),sizeSelect:$('text-size')}); JohoUI.tooltip(); } catch {}
@@ -419,18 +480,26 @@ async function init() {
   $('confirm-import').addEventListener('click', applyImport);
   $('interactive-input').addEventListener('submit', e => { e.preventDefault(); try { if (runner.input($('input-line').value)) $('interactive-input').hidden = true; } catch (error) { showNotice(error.message, true); } });
   $('input-eof').addEventListener('click', () => { runner.input('',true); $('interactive-input').hidden = true; });
-  $('set-select').addEventListener('change', () => {pendingRequested=false;selectSet(catalog.sets.find(s => s.setId === $('set-select').value));});
+  $('set-trigger').addEventListener('click',()=>{if($('set-menu').hidden)openSetPicker();else closeSetPicker();});
+  $('set-trigger').addEventListener('keydown',e=>{if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();openSetPicker();}});
+  $('set-menu').addEventListener('keydown',e=>{
+    const options=[...$('set-menu').querySelectorAll('button')],index=options.indexOf(document.activeElement);
+    if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){
+      e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?options.length-1:(index+(e.key==='ArrowDown'?1:-1)+options.length)%options.length;options[next]?.focus();
+    }else if(e.key==='Escape'){e.preventDefault();closeSetPicker(true);}else if(e.key==='Tab')closeSetPicker(true);
+  });
+  addEventListener('resize',placeSetPicker);addEventListener('scroll',placeSetPicker,true);
   $('previous').addEventListener('click', () => selectQuestion(selectedSet.questions[selectedSet.questions.indexOf(question)-1]));
   $('next').addEventListener('click', () => selectQuestion(selectedSet.questions[selectedSet.questions.indexOf(question)+1]));
-  $('list-toggle').addEventListener('click', () => { const hidden = !$('question-nav').hidden; $('question-nav').hidden = hidden; document.querySelector('.layout').classList.toggle('nav-hidden',hidden); $('list-toggle').setAttribute('aria-expanded',String(!hidden)); closeMenus(); });
+  $('list-toggle').addEventListener('click', () => { closeSetPicker();const hidden = !$('question-nav').hidden; $('question-nav').hidden = hidden; document.querySelector('.layout').classList.toggle('nav-hidden',hidden); $('list-toggle').setAttribute('aria-expanded',String(!hidden)); closeMenus(); });
   document.addEventListener('keydown', e => {
     if (e.isComposing || help?.root.contains(e.target) || document.querySelector('dialog[open]')) return;
     if (e.key === 'Enter' && !e.altKey && (e.metaKey || e.ctrlKey || e.shiftKey) && !e.target.closest('#interactive-input')) {e.preventDefault();run();}
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {e.preventDefault();saveBrowser();}
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'o') {e.preventDefault();$('file-input').click();}
-    if (e.key === 'Escape') closeMenus(true);
+    if (e.key === 'Escape') {closeMenus(true);closeSetPicker(true);}
   });
-  document.addEventListener('click', e => {if (!e.target.closest('.menu')) closeMenus();});
+  document.addEventListener('click', e => {if (!e.target.closest('.menu')) closeMenus();if(!e.target.closest('.set-picker'))closeSetPicker();});
   addEventListener('beforeunload', e => {if (saveFailed) {e.preventDefault();e.returnValue='';}});
   addEventListener('pagehide', () => runner.dispose());
   // 固定した同一originの読取経路だけ。401/403や不正応答では別経路へ取得しない。
@@ -438,7 +507,7 @@ async function init() {
   try {
     const response = await fetch('/__pythoneditor/catalog', {cache:'no-store',credentials:'same-origin',signal:AbortSignal.timeout(60000)});
     if(initialGeneration!==catalogGeneration)return;
-    if (response.status === 404) { catalog = validateCatalog(demoCatalog); showNotice('独立試作・動作確認サンプル。正式採点とクラウド保存は接続前です。'); }
+    if (response.status === 404) { showDemoRatings=true;catalog = validateCatalog(demoCatalog); showNotice('独立試作・動作確認サンプル。正式採点とクラウド保存は接続前です。'); }
     else {
       if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? '問題の取得には認証・権限の確認が必要です。' : '問題データを取得できませんでした。再読み込みしてください。');
       const raw=await response.json();if(initialGeneration!==catalogGeneration)return;
@@ -446,7 +515,7 @@ async function init() {
     }
     if (!catalog.sets.length || !catalog.sets[0].questions.length) throw new Error('表示できる問題がありません。');
     $('catalog-label').textContent = catalog.label;
-    for (const set of catalog.sets) { const option = document.createElement('option'); option.value = set.setId; option.textContent = set.title; $('set-select').append(option); }
+    buildSetPicker();
     let last; try { last = store?.last(); } catch {}
     const selection = requested.set || requested.question ? requested : last || {};
     const matchesSelection = q => q.questionId === selection.question && (!selection.version || q.version === selection.version);

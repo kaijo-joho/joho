@@ -149,10 +149,10 @@ try{
   const fallback=await context.newPage();await fallback.route('**/shared/*.js',route=>route.abort());await fallback.route('**/htmleditor/vendor/*.js',route=>route.abort());
   await fallback.goto(demo.url);await fallback.waitForSelector('#question-list button');await fallback.locator('#code').fill('print("fallback")');await fallback.locator('#run').click();await fallback.waitForFunction(()=>document.querySelector('#run').dataset.state==='run',null,{timeout:120000});assert.equal(await fallback.locator('#output').textContent(),'fallback\n');await fallback.close();check('shared-help/CodeMirror download failure retains textarea editor');
   if(privateServer){
-    const qp=await context.newPage();await qp.goto(privateServer.url);await qp.waitForSelector('#question-list button');assert.equal(await qp.locator('#set-select option').count(),22);
+    const qp=await context.newPage();await qp.goto(privateServer.url);await qp.waitForSelector('#question-list button');assert.equal(await qp.locator('#set-menu [data-set]').count(),22);
     let visited=0;
     for(const setId of privateServer.catalog.sets.map(s=>s.setId)){
-      await qp.locator('#set-select').selectOption(setId);
+      await qp.locator('#set-trigger').click();await qp.locator('#set-menu [data-set="'+setId+'"]').click();
       for(let i=0;i<await qp.locator('#question-list button').count();i++){await qp.locator('#question-list button').nth(i).click();assert.ok(await qp.locator('#prompt').textContent());visited++;}
     }
     assert.equal(visited,125);check('all 22 master sets / 125 question displays and drafts');

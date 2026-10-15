@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex">
   <title>Pythonエディタ｜海城情報科</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="editor.css?v=20261015-indent-guides">
+  <link rel="stylesheet" href="editor.css?v=20261015-navigation">
   <link rel="stylesheet" href="../shared/ui-kit.css">
   <link rel="stylesheet" href="../shared/help-panel.css">
   <link rel="stylesheet" href="../htmleditor/vendor/codemirror.min.css">
@@ -19,7 +19,7 @@
   <script defer src="vendor/purify.min.js"></script>
   <script defer src="vendor/katex.min.js"></script>
   <script defer src="vendor/auto-render.min.js"></script>
-  <script type="module" src="editor.mjs?v=20261015-indent-guides"></script>
+  <script type="module" src="editor.mjs?v=20261015-navigation"></script>
 </head>
 <body>
   <header class="topbar" id="topbar">
@@ -64,10 +64,12 @@
   </header>
   <div class="layout">
     <nav id="question-nav" aria-label="問題一覧">
-      <label class="set-label" for="set-select">問題セット</label><select id="set-select"></select>
+      <span id="set-label" class="set-label">問題セット</span>
+      <div class="set-picker"><button id="set-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="set-menu" aria-describedby="set-current-rating" aria-label="問題セットを選択"><span class="set-current"><span id="set-current-title">問題セットを選択</span><span id="set-current-rating" class="set-rating">★—/—</span></span><span class="set-chevron" aria-hidden="true">⌄</span></button><div id="set-menu" role="listbox" aria-labelledby="set-label" hidden></div></div>
+      <p id="rating-note" class="muted"></p>
       <p id="catalog-label" class="muted"></p>
       <p id="progress" class="progress"></p>
-      <ol id="question-list"></ol>
+      <ul id="question-list"></ul>
       <p class="nav-note">進捗はこのブラウザでの作業状況です。</p>
     </nav>
     <main id="workspace">
