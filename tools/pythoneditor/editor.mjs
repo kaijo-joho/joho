@@ -1,5 +1,5 @@
 import { LIMITS, APP, FORMAT, questionKey, validId, validateCatalog, validateDraft, stdinLines } from './core.mjs?v=20261015-errors';
-import { demoCatalog } from './demo.mjs';
+import { demoCatalog } from './demo.mjs?v=20261015-subquestions';
 import { DraftStore, exportDraft } from './storage.mjs';
 import { PythonRunner } from './runner.mjs?v=20261015-errors';
 import { errorHints } from './diagnostics.mjs?v=20261015-errors';
