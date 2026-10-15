@@ -26,8 +26,15 @@ test('到着時刻はUserLock・認証待ちの前に固定し、失敗しても
   const lock = f.dependencies.lock;
   f.dependencies.lock = () => { f.advance(120000); return lock(); };
   f.dependencies.studentGrading = { prepareIntake(_input, ctx) { assert.equal(ctx.receivedAt, expected); return 'signed-first-arrival'; }, call(_a, _i, ctx) { assert.equal(ctx.receivedAt, expected); throw new Error('synthetic failure'); } };
-  assert.throws(() => f.call('submit', {}), /synthetic failure/);
+  assert.throws(() => f.call('submit', {}), e => e.toolsStoreCode === 'service_unavailable' && e.intakeTicket === 'signed-first-arrival' && !e.message.includes('synthetic failure'));
   assert.equal(f.locks.acquisitions, 1); assert.equal(f.locks.releases, 1);
+});
+
+test('到着証明発行後のSheets例外でも、内部文面を隠して元時刻の証明を保持する', () => {
+  const f = setup({ config: { studentGrading: { enabled: true } } });
+  f.dependencies.studentGrading = { prepareIntake() { return 'verified-proof'; }, call() { throw new Error('private source and account'); } };
+  assert.throws(() => f.call('submit', {}), e => e.toolsStoreCode === 'service_unavailable' && e.intakeTicket === 'verified-proof' && !e.message.includes('private'));
+  assert.equal(f.locks.releases, 1);
 });
 
 test('outer UserLock混雑でも本人/構成検証後の到着証明を返し、書込は開始しない', () => {

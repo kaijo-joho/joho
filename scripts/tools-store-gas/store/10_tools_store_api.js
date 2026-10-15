@@ -130,6 +130,11 @@ var ToolsStoreService = (function () {
         var value = repository[action](normalized);
         recheck(); return value;
       } catch (error) {
+        if (intakeTicket && !error.toolsStoreCode) {
+          // 本文や内部例外を返さず、検証済みの到着証明だけは通信/Sheets例外でも保護する。
+          var safeError = new Error('クラウドの処理結果を確認できません。同じ送信番号で結果を照会・再試行してください。');
+          safeError.toolsStoreCode = 'service_unavailable'; safeError.intakeTicket = intakeTicket; throw safeError;
+        }
         if (intakeTicket && !error.intakeTicket) error.intakeTicket = intakeTicket;
         throw error;
       } finally { if (held) lock.releaseLock(); }
