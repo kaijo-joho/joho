@@ -1,6 +1,6 @@
 # Pythonエディタ 0.1 BETA
 
-独立したエディタの試作。問題 → コード → 出力の縦並び、問題一覧・進捗、Python実行、停止・再実行、入力、エラー案内、グラフ、ブラウザ自動保存と復元を実装した。
+独立したエディタの試作。問題 → コード → 出力の縦並び、問題一覧・進捗、Python実行、停止・再実行、入力、エラー行の警告と任意ヒント、グラフ、ブラウザ自動保存と復元を実装した。
 
 今年度のColab、旧grade、原本、教材サイトのリンクを継続する。GSS下書き保存・正式採点/提出・学校認証ブリッジのソースと合成検証を追加した。gradeのHEADへの専用コード配置と提出ログGSSの4シート追加まで実施し、接続設定は無効。配置確認と有効化前の課題は[PLACEMENT.md](PLACEMENT.md)に記録した。エディタ単体を公開する。教材への埋込みや、他ページからのリンク追加・切替は行わない。
 
@@ -31,6 +31,7 @@ URLは`?set=<setId>&question=<questionId>&version=<version>`。将来の写経�
 
 - `editor.mjs` / `editor.css` / `index.html`: 縦並びの問題・コード・出力、選択、進捗、復元、表示。
 - `runner.mjs` / `worker.mjs` / `runtime.mjs`: PyodideのWorker実行、世代照合、停止、入力、ライブラリ準備、Colab互換処理。
+- `diagnostics.mjs`: Python標準の例外整形と、端末内だけの行別ヒント。
 - `storage.mjs` / `core.mjs`: 問題・版ごとの保存、競合検知、形式・上限の検査。
 - `cloud.mjs` / `cloud-ui.mjs`: 学校アカウント接続、GSS保存/復元/競合、送信控え、正式提出と結果照会。
 - `scripts/pythoneditor-gas/`: gradeへ追加する専用8ファイル。版固定、GSSの追記保存、現行Python判定コードの独立コピー。配置・保存契約は[CLOUD.md](CLOUD.md)。
@@ -69,6 +70,16 @@ input("名前: ")の出力に余分な改行を加えず、同じ行に入力ボ
 
 狭い画面は上部操作をアイコンで表示し、使い方・問題一覧表示・補助入力は設定から開く。状態メニューも画面内に収める。UIのHTML/CSS/JavaScriptへ版のクエリを付け、古いキャッシュと新しい操作部品が混ざるのを避ける。
 
+## エラー表示と調べ方（2026-10-15）
+
+Python標準のtracebackで、例外の種類・本文・ソース・行番号・矢印を表示する。学生コードの関数呼び出し、ライブラリ内の履歴、例外の連鎖・補足・ExceptionGroupは残し、エディタの実行ブリッジとPyodideの評価用フレームだけを除く。Python内で捕捉するため、標準エラー欄にも内部トレースを重複出力しない。学生がstderrへ出した文字列やライブラリの警告はそのまま保持する。
+
+常設の日本語アドバイスは置かない。現在のコード・入力による実行エラーに行番号がある場合だけ、コード見出しの「エラーを探す」を表示する。押すと該当行の番号を⚠付きのボタンへ替え、クリックまたはEnterでローカルのヒントを開く。Escapeで閉じ、警告へフォーカスを戻す。編集・入力変更・再実行・問題切替で印を消す。構文の静的検査を別に走らせる機能ではなく、直前の実行結果を調べる。準備コードのエラーは準備欄を開き、準備コードの行番号付きボタンで案内する。CodeMirrorの読込失敗時もtextareaで行を選びヒントを開ける。
+
+int()の変換で「aaa」などを渡したValueErrorには、input()の戻り値を一度変数へ受け、print(repr(value), type(value))で値の中身と型を確認する例を示す。input()がstrを返すこと自体を誤りとせず、整数として読める中身かを考える。一般のValueErrorへint()専用の説明を流用しない。自動修正やAI送信は行わない。ヒントを開いたことは正式得点・提出内容へ追加しない。
+
+整形には[Pythonのtraceback](https://docs.python.org/3.14/library/traceback.html)と[Pyodideのfilename指定](https://pyodide.org/en/stable/usage/api/js-api.html#pyodide.runPythonAsync)を使用する。
+
 ## 保存
 
 自動保存と明示保存は別キー。問題ID・版をキーにしてコード全文、事前入力、更新日時、端末内の実行済み表示だけを保存する。問題文、解答、採点基準、正式得点、氏名、認証情報を保存形式へ入れない。実行済みは学習上の進捗であり、正答・提出済みの証明ではない。
@@ -84,6 +95,7 @@ GSSの下書きと貸出機からの復元、競合時の両内容保護、正�
 ```sh
 node --test tools/pythoneditor/tests/*.test.mjs
 node scripts/test-pythoneditor-browser.mjs
+node scripts/test-pythoneditor-errors-browser.mjs
 node scripts/test-pythoneditor-cloud-browser.mjs
 ```
 

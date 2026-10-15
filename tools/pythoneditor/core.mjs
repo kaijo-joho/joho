@@ -58,15 +58,3 @@ export function validateDraft(raw) {
   });
   return { app: APP, version: FORMAT, entries, savedAt: typeof raw.savedAt === 'string' ? raw.savedAt : '' };
 }
-export function errorAdvice(error) {
-  const message = String(error);
-  if (/EOFError/.test(message)) return 'input()の入力が終了しました。もう一度実行して出力欄へ入力するか、設定の「確認用の入力値」に1回分ずつ改行して指定してください。';
-  if (/IndentationError|TabError/.test(message)) return '字下げを確認してください。ブロック内は半角スペース4個にそろえると確認しやすくなります。';
-  if (/SyntaxError/.test(message)) return '表示された行の記号、括弧、引用符、行末のコロンを確認してください。';
-  if (/NameError/.test(message)) return '変数名の綴りと、その変数に値を入れる順序を確認してください。';
-  if (/ValueError/.test(message)) return '入力した値や型を確認してください。int()には整数の文字列が必要です。';
-  if (/IndexError/.test(message)) return 'リストの添字と要素数を確認してください。先頭は0番です。';
-  if (/ZeroDivisionError/.test(message)) return '割る数が0になっていないか確認してください。';
-  if (/ModuleNotFoundError/.test(message)) return 'ブラウザで利用できるライブラリか確認してください。準備処理の通信失敗なら再実行してください。';
-  return 'エラー末尾の種類と、表示された行を確認してください。実行結果は正式採点とは別です。';
-}

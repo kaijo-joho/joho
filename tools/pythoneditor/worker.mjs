@@ -1,5 +1,6 @@
 import { LIMITS, PYODIDE_URL } from './core.mjs';
 import { adaptColab, PYTHON_BRIDGE } from './runtime.mjs';
+import { PYTHON_DIAGNOSTICS } from './diagnostics.mjs?v=20261015-errors';
 let pyodide, generation, count, figures, current;
 let inputSequence = 0, pendingInput;
 let pending = { stdout: '', stderr: '' };
@@ -54,7 +55,8 @@ async function prepare(code) {
       }
     }
   }
-  pyodide.runPython(PYTHON_BRIDGE);
+  pyodide.runPython(PYTHON_DIAGNOSTICS, { filename: '<エディタ内部>' });
+  pyodide.runPython(PYTHON_BRIDGE, { filename: '<エディタ内部>' });
   pyodide.runPython('_editor_reset_files()');
   if (plot) pyodide.runPython('_editor_plot_setup()');
   return plot;
@@ -114,30 +116,45 @@ self.onmessage = async ({ data }) => {
     pyodide.globals.set('_editor_code', code);
     if (Number.isInteger(data.seed)) pyodide.runPython(`import random; random.seed(${data.seed})`);
     send('status', { text: '実行中' });
-    await pyodide.runPythonAsync(`
+    // Catch in Python before the JS bridge logs an uncaught exception to stderr.
+    const errorJSON = await pyodide.runPythonAsync(`
 from pyodide.code import eval_code_async as _editor_eval
 from pyodide.ffi import can_run_sync as _editor_can_run_sync
-if _editor_can_run_sync():
-    _sys.stdin = _EditorInputStream()
-exec(compile(_editor_setup, '<準備コード>', 'exec'), _editor_namespace)
-_editor_result = await _editor_eval(_editor_code, globals=_editor_namespace, filename='<コード>', dedent=False)
-if _editor_result is not None:
-    print(repr(_editor_result))
-`);
-    if (plot) pyodide.runPython('import matplotlib.pyplot as _plt; _plt.show()');
-    flush(); send('done', { figures });
+_editor_error_json = None
+try:
+    _editor_cache_source('<コード>', _editor_code)
+    _editor_cache_source('<準備コード>', _editor_setup)
+    if _editor_can_run_sync():
+        _sys.stdin = _EditorInputStream()
+    exec(compile(_editor_setup, '<準備コード>', 'exec'), _editor_namespace)
+    _editor_result = await _editor_eval(_editor_code, globals=_editor_namespace, filename='<コード>', dedent=False)
+    if _editor_result is not None:
+        print(repr(_editor_result))
+    if ${plot ? 'True' : 'False'}:
+        import matplotlib.pyplot as _plt
+        _plt.show()
+except BaseException as _editor_exception:
+    _editor_error_json = _editor_exception_json(_editor_exception)
+_editor_error_json
+`, { filename: '<エディタ実行>' });
+    flush();
+    if (errorJSON) send('error', JSON.parse(errorJSON));
+    else send('done', { figures });
   } catch (e) {
     flush();
-    let error = String(e.message || e);
+    let error = String(e.message || e), diagnostics;
     if (pyodide && e.type) {
-      try { error = pyodide.runPython("import sys, traceback; ''.join(traceback.format_exception(sys.last_exc))") || error; } catch {}
+      try {
+        const formatted = JSON.parse(pyodide.runPython('_editor_exception_json(_sys.last_exc)'));
+        if (formatted) ({ error, diagnostics } = formatted);
+      } catch { /* Keep the original error if the diagnostic formatter itself fails. */ }
     }
-    send('error', { error });
+    send('error', { error, diagnostics });
   }
   finally {
     globals?.destroy();
     if (pyodide) {
-      for (const name of ['_editor_namespace', '_editor_setup', '_editor_code', '_editor_result']) if (pyodide.globals.has(name)) pyodide.globals.delete(name);
+      for (const name of ['_editor_namespace', '_editor_setup', '_editor_code', '_editor_result', '_editor_error_json']) if (pyodide.globals.has(name)) pyodide.globals.delete(name);
       pyodide.runPython('import sys; sys.last_exc = None');
     }
     pendingInput = null;

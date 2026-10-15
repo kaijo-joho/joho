@@ -61,3 +61,17 @@
 @media(max-width:620px){.topbar{gap:3px;padding-inline:6px;height:auto;min-height:54px}.toolbar-group{gap:3px}.topbar .toolbar-action,.topbar .toolbar-icon,.topbar .menu>summary{width:44px;min-width:44px;height:44px;min-height:44px;display:flex;align-items:center;justify-content:center;padding:0}.topbar .menu-body{min-width:220px}.topbar #status-menu .menu-body{position:fixed;left:12px;right:12px;top:64px;width:auto}}
 
 @media(pointer:coarse){.topbar .toolbar-icon,.topbar .toolbar-action,.topbar .menu>summary{min-width:44px;min-height:44px}.topbar{height:auto;min-height:54px}}
+
+/* Warning buttons replace line numbers only after the learner asks for locations. */
+#code-cell .error-hint-marker{display:flex;align-items:center;justify-content:flex-end;gap:3px;width:100%;min-height:1.7em;padding:0 6px 0 1px;border:0;border-radius:3px;background:var(--accent-soft);color:var(--danger);font:inherit;font-size:.9em;line-height:1.7}
+#code-cell .error-hint-marker svg{width:1em;height:1em;flex:none}
+#code-cell .error-hint-marker:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+#code-cell .error-hint-marker:hover{background:var(--hover)}
+#find-errors{margin-left:auto}
+#find-errors:not([hidden])~#save-status{width:100%;text-align:right;font-size:.8em}
+#error-hint-dialog{width:min(650px,calc(100vw - 24px));overflow-wrap:anywhere}
+#error-hint-dialog pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;background:var(--bg);padding:12px;margin:12px 0}
+#error-hint-dialog ol{padding-left:1.5em}
+#error-hint-dialog li+li{margin-top:10px}
+#error{white-space:pre-wrap;overflow-wrap:anywhere}
+@media(pointer:coarse){#code-cell .CodeMirror{line-height:max(1.7em,44px)}#code-cell .error-hint-marker{min-height:44px}}

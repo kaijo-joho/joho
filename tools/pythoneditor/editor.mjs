@@ -1,15 +1,17 @@
-import { LIMITS, APP, FORMAT, questionKey, validId, validateCatalog, validateDraft, stdinLines, errorAdvice } from './core.mjs?v=20261015-toolbar';
+import { LIMITS, APP, FORMAT, questionKey, validId, validateCatalog, validateDraft, stdinLines } from './core.mjs?v=20261015-errors';
 import { demoCatalog } from './demo.mjs';
 import { DraftStore, exportDraft } from './storage.mjs';
-import { PythonRunner } from './runner.mjs';
+import { PythonRunner } from './runner.mjs?v=20261015-errors';
+import { errorHints } from './diagnostics.mjs?v=20261015-errors';
 import { renderPrompt } from './prompt.mjs';
-import { CloudPanel } from './cloud-ui.mjs?v=20261015-toolbar';
+import { CloudPanel } from './cloud-ui.mjs?v=20261015-errors';
 import { cloudConfig } from './cloud-config.mjs';
 const $ = id => document.getElementById(id);
 const entries = new Map(), outputs = new Map(), docs = new Map();
 let catalog, selectedSet, question, cm, store, runSnapshot, busy = false, pendingImport;
 let saveFailed = false;
 let cloudPanel;
+let markedErrors = false;
 let pendingRequested=false;
 let editGeneration=0;
 let catalogGeneration=0;
@@ -50,6 +52,7 @@ function setCode(value, q) {
 function dirty() {
   if (busy || !question) return;
   editGeneration++;
+  clearErrorMarkers();
   const e = currentEntry();
   e.code = codeValue(); e.stdin = $('stdin').value;
   e.updatedAt = new Date().toISOString(); e.practiced = false;
@@ -82,6 +85,7 @@ function updateProgress() {
 }
 function selectQuestion(q, updateURL = true) {
   if (runner.active) runner.stop('問題を切り替えたため停止しました。');
+  clearErrorMarkers();
   busy = true; question = q;
   const e = currentEntry();
   $('question-id').textContent = q.questionId; $('question-title').textContent = q.title;
@@ -131,8 +135,8 @@ function renderOutput() {
   $('input-settings').title = prepared ? `この問題には確認用の入力値が${prepared}行あります` : '通常は出力欄へ入力します';
   $('stderr-section').hidden = !result?.stderr; $('stderr').textContent = result?.stderr || '';
   $('error').hidden = !result?.error; $('error').textContent = result?.error || '';
-  $('advice').hidden = !result?.error; $('advice').textContent = result?.error ? errorAdvice(result.error) : '';
   const changed = result && (result.code !== effectiveCode(question) || result.stdin !== currentEntry().stdin);
+  $('find-errors').hidden = !result?.diagnostics?.locations?.length || !!changed || runner.active;
   $('output-status').textContent = changed ? 'コードまたは入力を変更しました。下は変更前の実行結果です。' : result?.status || (prepared ? '確認用の入力値を使用します（設定から変更できます）。' : 'ここに実行結果が表示されます。');
   $('run-status').textContent = result?.status || '未実行';
   $('run').disabled = !question;
@@ -150,6 +154,65 @@ function renderOutput() {
       download(new Blob([bytes], { type: file.kind === 'figure' ? 'image/png' : 'application/octet-stream' }), file.name);
     });
     caption.append(label, button); figure.append(caption); $('figures').append(figure);
+  }
+}
+function clearErrorMarkers() {
+  if (markedErrors) cm?.clearGutter('CodeMirror-linenumbers');
+  markedErrors = false;
+  $('error-line-hint').hidden = true;
+}
+function currentErrorLocations() {
+  const result = question && outputs.get(questionKey(question));
+  if (!result || runner.active || result.code !== effectiveCode(question) || result.stdin !== currentEntry().stdin) return [];
+  return (result.diagnostics?.locations || []).filter(item => Number.isInteger(item.line) && item.line > 0 &&
+    item.line <= (item.source === 'setup' ? question.setupCode : effectiveCode(question)).split('\n').length);
+}
+function showErrorHint(location) {
+  if (!currentErrorLocations().includes(location)) return;
+  const hint = errorHints(location);
+  $('error-hint-title').textContent = `${location.source === 'setup' ? '共通の準備コード ' : ''}${location.line}行目のヒント`;
+  $('error-hint-type').textContent = `${location.name}: ${location.message}`;
+  $('error-hint-summary').textContent = hint.summary;
+  $('error-hint-steps').replaceChildren(...hint.steps.map(text => { const li = document.createElement('li'); li.textContent = text; return li; }));
+  $('error-hint-example').hidden = !hint.example; $('error-hint-example').textContent = hint.example;
+  openDialog($('error-hint-dialog'));
+}
+function findErrors() {
+  const locations = currentErrorLocations();
+  if (!locations.length) return;
+  clearErrorMarkers();
+  const byLine = new Map();
+  for (const item of locations) if (item.source === 'code' && !byLine.has(item.line)) byLine.set(item.line, item);
+  if (cm && byLine.size) {
+    for (const [line, location] of byLine) {
+      const marker = document.createElement('button');
+      marker.type = 'button'; marker.className = 'error-hint-marker';
+      marker.setAttribute('aria-label', `${line}行目のエラーのヒントを表示`);
+      marker.setAttribute('aria-haspopup', 'dialog'); marker.setAttribute('aria-controls', 'error-hint-dialog');
+      marker.title = `${line}行目のヒントを表示`;
+      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      icon.setAttribute('viewBox', '0 0 24 24'); icon.setAttribute('aria-hidden', 'true');
+      const shape = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      shape.setAttribute('d', 'M12 3 2 21h20L12 3Zm0 6v5m0 3v1');
+      shape.setAttribute('fill', 'none'); shape.setAttribute('stroke', 'currentColor'); shape.setAttribute('stroke-width', '2');
+      shape.setAttribute('stroke-linejoin', 'round'); icon.append(shape);
+      const number = document.createElement('span'); number.textContent = line;
+      marker.append(icon, number); marker.addEventListener('click', () => showErrorHint(location));
+      cm.setGutterMarker(line - 1, 'CodeMirror-linenumbers', marker);
+    }
+    markedErrors = true;
+    const first = [...byLine.keys()][0] - 1;
+    cm.scrollIntoView({line: first, ch: 0}, 60);
+    cm.getWrapperElement().querySelector('.error-hint-marker')?.focus();
+  } else {
+    const location = locations[0];
+    if (location.source === 'setup') { $('setup').open = true; $('setup-code').focus(); $('setup').scrollIntoView({block: 'nearest'}); }
+    else {
+      const start = codeValue().split('\n').slice(0, location.line - 1).reduce((sum, line) => sum + line.length + 1, 0);
+      $('code').focus(); $('code').setSelectionRange(start, start + codeValue().split('\n')[location.line - 1].length);
+    }
+    $('error-line-hint').textContent = `⚠ ${location.source === 'setup' ? '準備コード ' : ''}${location.line}行目のヒント`;
+    $('error-line-hint').hidden = false; $('error-line-hint').focus();
   }
 }
 function effectiveCode(q) {
@@ -176,7 +239,7 @@ const runner = new PythonRunner(event => {
     const e = entries.get(runSnapshot.key);
     if (e && runSnapshot.code === effectiveCode(question) && e.stdin === runSnapshot.stdin) { e.practiced = true; saveAuto(e); }
   }
-  if (event.type === 'error') { result.error = event.error; result.status = 'エラーで終了しました';result.outcome='error';result.truncated=event.error.includes('出力が上限'); }
+  if (event.type === 'error') { result.error = event.error; result.diagnostics = event.diagnostics; result.status = 'エラーで終了しました';result.outcome='error';result.truncated=event.error.includes('出力が上限'); }
   if (event.type === 'stopped') {result.status = event.text;result.outcome='stopped';}
   if (['done', 'error', 'stopped'].includes(event.type)) $('interactive-input').hidden = true;
   if (questionKey(question) === runSnapshot.key) {
@@ -188,6 +251,7 @@ function run() {
   if (!question || runner.active) return;
   const e = currentEntry(), code = effectiveCode(question);
   if (code.length > LIMITS.code || e.stdin.length > LIMITS.code) return showNotice('コードまたは入力値が長すぎます。', true);
+  clearErrorMarkers();
   runSnapshot = { key: questionKey(question), code, stdin: e.stdin };
   outputs.set(runSnapshot.key, { code, stdin: e.stdin, text: '', stdout:'',inputEcho:'',stderr: '', error: '', outcome:'not_run',truncated:false,status: '準備中', files: [] });
   runner.run({ code, setupCode: question.setupCode, stdin: stdinLines(e.stdin) });
@@ -297,6 +361,10 @@ async function init() {
     cm.getWrapperElement().setAttribute('aria-label', 'Pythonコード');
     cm.getInputField().setAttribute('aria-label', 'Pythonコード');
     cm.on('change', dirty);
+    cm.on('update', () => {
+      // CodeMirror hides decorative gutters from assistive technology; warning buttons are interactive.
+      for (const marker of cm.getWrapperElement().querySelectorAll('.error-hint-marker')) marker.closest('.CodeMirror-gutter-wrapper')?.removeAttribute('aria-hidden');
+    });
   }
   $('code').addEventListener('input', dirty); $('stdin').addEventListener('input', dirty);
   cloudPanel=new CloudPanel({question:()=>question,entry:q=>({...currentEntry(q)}),run:q=>outputs.get(questionKey(q)),running:()=>!!runner.active,
@@ -309,6 +377,8 @@ async function init() {
   const interactive = typeof WebAssembly.Suspending === 'function' || (crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined');
   $('input-mode').textContent = interactive ? '空欄のまま実行すると、出力欄からその都度入力できます。まとめて渡す場合は1回分ずつ改行してください。' : 'このブラウザでは、値を1回分ずつ改行して指定してください。出力欄での逐次入力にはGoogle Chromeを使用できます。';
   $('run').addEventListener('click', () => runner.active ? runner.stop() : run());
+  $('find-errors').addEventListener('click', findErrors);
+  $('error-line-hint').addEventListener('click', () => { const locations = currentErrorLocations(); if (locations.length) showErrorHint(locations[0]); });
   $('input-settings').addEventListener('click', () => { closeMenus(); openDialog($('stdin-dialog')); });
   $('clear-stdin').addEventListener('click', () => { $('stdin').value = ''; dirty(); $('stdin').focus(); });
   for (const menu of document.querySelectorAll('.topbar .menu')) menu.querySelector(':scope > summary').addEventListener('click', () => {

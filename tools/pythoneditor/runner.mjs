@@ -4,7 +4,7 @@ import { LIMITS } from './core.mjs';
 export class PythonRunner {
   constructor(onEvent, options = {}) {
     this.onEvent = onEvent;
-    this.makeWorker = options.makeWorker || (() => new Worker(new URL('./worker.mjs', import.meta.url), { type: 'module' }));
+    this.makeWorker = options.makeWorker || (() => new Worker(new URL('./worker.mjs?v=20261015-errors', import.meta.url), { type: 'module' }));
     this.runMs = options.runMs || LIMITS.runMs;
     this.generation = 0;
     this.worker = null;
