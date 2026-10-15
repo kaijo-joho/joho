@@ -42,6 +42,8 @@ async function mainChecks(browser, name) {
   await expect(page.locator('[data-file-action="new"]')).toBeVisible();
   await page.keyboard.press('ArrowDown'); await expect(page.locator('[data-file-action="new"]')).toBeFocused();
   await page.keyboard.press('Escape'); await expect(page.locator('#file-menu > summary')).toBeFocused();
+  await page.keyboard.press('ArrowUp'); await expect(page.locator('[data-file-action="auto"]')).toBeFocused();
+  await page.keyboard.press('Escape');
   await page.locator('#file-menu > summary').hover();
   await expect(page.locator('[data-file-action="new"]')).toBeVisible();
   await page.locator('#file-menu > summary').click();

@@ -65,7 +65,8 @@
         const enabled = [...controls.values()].map(item => item.button).filter(button => !button.disabled);
         const index = enabled.indexOf(document.activeElement);
         enabled[event.key === 'Home' ? 0 : event.key === 'End' ? enabled.length - 1 :
-          (index + (event.key === 'ArrowUp' ? -1 : 1) + enabled.length) % enabled.length]?.focus();
+          index < 0 ? (event.key === 'ArrowUp' ? enabled.length - 1 : 0) :
+            (index + (event.key === 'ArrowUp' ? -1 : 1) + enabled.length) % enabled.length]?.focus();
       }
     });
     host.addEventListener('focusout', () => setTimeout(() => {
