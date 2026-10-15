@@ -161,7 +161,7 @@ function updateNavigationRatings() {
     $('set-trigger').setAttribute('aria-label',`問題セットを選択：${selectedSet.title}`);
     const rating=setRating(selectedSet,ratingFor);
     renderRating($('set-current-rating'),rating,true);
-    $('rating-note').textContent=teacherPreviewMode?'教員用の問題配布検証です。今回の接続では★評価を取得しません。':rating?.example?'★は表示例です。実行・編集では変わりません。':'★は締切内最高点の提出で満たしたコードのチェック数です。';
+    $('rating-note').textContent=teacherPreviewMode?'問題配布検証です。今回の接続では★評価を取得しません。':rating?.example?'★は表示例です。実行・編集では変わりません。':'★は締切内最高点の提出で満たしたコードのチェック数です。';
   }
 }
 function buildSetPicker() {
@@ -522,11 +522,11 @@ async function init() {
   addEventListener('beforeunload', e => {if (saveFailed||cloudPanel?.unsaved()) {e.preventDefault();e.returnValue='';}});
   addEventListener('pagehide', () => runner.dispose());
   if (teacherPreviewMode) {
-    catalog = validateCatalog({ schema: 'python-editor-catalog-v1', label: '教員用・問題配布検証', sets: [] });
+    catalog = validateCatalog({ schema: 'python-editor-catalog-v1', label: '問題配布検証', sets: [] });
     $('catalog-label').textContent = catalog.label;
-    $('set-current-title').textContent = '教員アカウントに接続してください';
+    $('set-current-title').textContent = '指定の学校アカウントに接続してください';
     $('set-trigger').disabled = true;
-    showNotice('教員用の問題配布検証です。学校アカウントに接続して問題を取得してください。');
+    showNotice('問題配布検証です。指定の教員・デモ用アカウントに接続して問題を取得してください。');
     return;
   }
   // 固定した同一originの読取経路だけ。401/403や不正応答では別経路へ取得しない。

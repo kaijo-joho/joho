@@ -1,11 +1,11 @@
-// 教員限定の問題配布検証用。既存dist/grade、生徒保存先、採用状態には作用しない。
+// 明示した教員・デモ用アカウントの配布検証。管理操作は所有教員だけ。
 var ToolsTeacherPreview = (function () {
   'use strict';
   var CONFIG = 'TOOLS_TEACHER_PREVIEW_CONFIG', INDEX = 'TOOLS_TEACHER_PREVIEW_INDEX_V1';
   function assert(ok, code) {
     if (!ok) {
       var error = new Error(code === 'preview_disabled' ? '教員用の問題配布検証は停止中です。' :
-        code === 'preview_not_allowed' ? 'この教員アカウントでは検証できません。学校アカウントを確認してください。' :
+        code === 'preview_not_allowed' ? 'このアカウントでは配布検証できません。指定された学校アカウントを確認してください。' :
         code === 'preview_expired' ? '検証用の問題データの有効期限が切れました。教員側で再配信してください。' :
         '問題配布の検証設定を確認できません。編集中のコードは保持しています。');
       error.previewCode = code || 'preview_invalid'; error.toolsStoreCode = error.previewCode; throw error;
@@ -18,21 +18,25 @@ var ToolsTeacherPreview = (function () {
     var T = ToolsStoreContract;
     function configuration() {
       var c = parse(env.properties.getProperty(CONFIG));
-      assert(plain(c) && Object.keys(c).every(function (k) { return ['schema', 'enabled', 'editorOrigin', 'sourceFileListId', 'teacherAccounts', 'gradingSheet'].indexOf(k) >= 0; }) &&
+      assert(plain(c) && Object.keys(c).every(function (k) { return ['schema', 'enabled', 'editorOrigin', 'sourceFileListId', 'teacherAccounts', 'demoAccounts', 'gradingSheet'].indexOf(k) >= 0; }) &&
         c.schema === 1 && typeof c.enabled === 'boolean' && /^https:\/\/[A-Za-z0-9.-]+(?::\d+)?$/.test(c.editorOrigin) &&
         /^[A-Za-z0-9_-]{20,160}$/.test(c.sourceFileListId) && /^採点設定py(?:_[A-Za-z0-9_-]+)?$/.test(c.gradingSheet) &&
         Array.isArray(c.teacherAccounts) && c.teacherAccounts.length === 1 &&
-        c.teacherAccounts.every(function (v) { return typeof v === 'string' && /^[a-z0-9._+-]+@gfe\.kaijo\.ed\.jp$/.test(v); }));
+        c.teacherAccounts.every(function (v) { return typeof v === 'string' && /^[a-z0-9._+-]+@gfe\.kaijo\.ed\.jp$/.test(v); }) &&
+        Array.isArray(c.demoAccounts) && c.demoAccounts.length <= 1 && c.demoAccounts.every(function (v) {
+          return typeof v === 'string' && /^[a-z0-9._+-]+@gfe\.kaijo\.ed\.jp$/.test(v) && c.teacherAccounts.indexOf(v) < 0;
+        }));
       return c;
     }
-    function identity(c) {
+    function identity(c, teacherOnly) {
       var who = env.identity(), active = account(who.active), effective = account(who.effective);
-      assert(active && active === effective && c.teacherAccounts.indexOf(active) >= 0, 'preview_not_allowed');
-      return { email: active, key: T.actorKey(active) };
+      var teacher = c.teacherAccounts.indexOf(active) >= 0;
+      assert(active && active === effective && (teacher || !teacherOnly && c.demoAccounts.indexOf(active) >= 0), 'preview_not_allowed');
+      return { email: active, key: T.actorKey(active), teacher: teacher };
     }
     function current(c, actor) {
       assert(T.canonical(configuration()) === T.canonical(c), 'preview_changed');
-      assert(identity(c).key === actor.key, 'preview_not_allowed');
+      assert(identity(c, actor.teacher).key === actor.key, 'preview_not_allowed');
     }
     function index() {
       var raw = env.properties.getProperty(INDEX), value = parse(raw);
@@ -47,14 +51,14 @@ var ToolsTeacherPreview = (function () {
       return { raw: raw, value: value };
     }
     function preview() {
-      var c = configuration(), actor = identity(c), source = env.readSource(c);
+      var c = configuration(), actor = identity(c, true), source = env.readSource(c);
       current(c, actor);
       assert(source && /^[a-f0-9]{64}$/.test(source.digest) && Array.isArray(source.groups) && source.groups.length > 0 && source.groups.length <= 100);
       return { digest: source.digest, sets: source.groups.map(function (g) { return { setId: g.setId, version: g.version, questions: g.records.length }; }),
         questions: source.groups.reduce(function (sum, g) { return sum + g.records.length; }, 0), enabled: c.enabled };
     }
     function publish(input) {
-      var c = configuration(), actor = identity(c);
+      var c = configuration(), actor = identity(c, true);
       assert(plain(input) && Object.keys(input).length === 2 && input.confirmation === 'PUBLISH_TEACHER_CATALOG_PREVIEW_V1' && /^[a-f0-9]{64}$/.test(input.expectedDigest));
       var source = env.readSource(c); assert(source.digest === input.expectedDigest, 'preview_changed');
       var snapshots = [], groups = [], at = new Date(env.now()).toISOString();
@@ -82,7 +86,7 @@ var ToolsTeacherPreview = (function () {
       return { generation: meta.generation, sourceDigest: source.digest, questions: snapshots.length, sets: groups.length, expiresAt: new Date(meta.expiresAt).toISOString() };
     }
     function setEnabled(enabled, expectedGeneration) {
-      var c = configuration(), actor = identity(c);
+      var c = configuration(), actor = identity(c, true);
       if (enabled) {
         var i = index(), opened = env.packages().open({ expectedGeneration: i.value.generation });
         assert(expectedGeneration === opened.meta.generation, 'preview_changed');
@@ -98,7 +102,8 @@ var ToolsTeacherPreview = (function () {
       var i = index(), packages = env.packages(), opened;
       try { opened = packages.open({ expectedGeneration: i.value.generation }); }
       catch (e) { if (e.toolsStoreCode === 'packages_expired') assert(false, 'preview_expired'); throw e; }
-      assert(opened.actors[actor.key] && opened.actors[actor.key].teacher === true);
+      var publisherKey = T.actorKey(c.teacherAccounts[0]);
+      assert(opened.actors[publisherKey] && opened.actors[publisherKey].teacher === true);
       var sets = {};
       i.value.groups.forEach(function (g) {
         var rows = opened.snapshots(g.setId, g.version); assert(rows.length > 0);
@@ -108,9 +113,9 @@ var ToolsTeacherPreview = (function () {
         });
       });
       current(c, actor); assert(index().raw === i.raw && packages.head().generation === opened.meta.generation, 'preview_changed');
-      return { actorKey: actor.key, account: actor.email, teacher: true, policies: [], ratings: [],
-        preview: { readOnly: true, generation: opened.meta.generation, sourceDigest: i.value.sourceDigest, expiresAt: new Date(opened.meta.expiresAt).toISOString() },
-        catalog: { schema: 'python-editor-catalog-v1', label: '教員用・問題配布検証（採用前を含む）', sets: Object.keys(sets).map(function (k) { return sets[k]; }) } };
+      return { actorKey: actor.key, account: actor.email, teacher: actor.teacher, policies: [], ratings: [],
+        preview: { readOnly: true, viewerRole: actor.teacher ? 'teacher' : 'demo', generation: opened.meta.generation, sourceDigest: i.value.sourceDigest, expiresAt: new Date(opened.meta.expiresAt).toISOString() },
+        catalog: { schema: 'python-editor-catalog-v1', label: '問題配布検証（採用前を含む）', sets: Object.keys(sets).map(function (k) { return sets[k]; }) } };
     }
     function rpc(action, input, origin) {
       var c = configuration(); identity(c);

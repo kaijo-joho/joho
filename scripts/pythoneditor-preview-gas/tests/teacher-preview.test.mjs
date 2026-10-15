@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, writeFile, readdir, rm } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
-import { teacherPreviewFixture as fixture, TEACHER } from './fixture.mjs';
+import vm from 'node:vm';
+import { teacherPreviewFixture as fixture, TEACHER, DEMO } from './fixture.mjs';
 const plain = value => JSON.parse(JSON.stringify(value));
 const code = expected => error => error.previewCode === expected;
 
@@ -22,6 +23,19 @@ test('圧縮配信は教員だけに問題を投影し、解答・基準や保�
   assert.deepEqual(result.policies, []); assert.deepEqual(result.ratings, []); assert.equal(f.state.reads, reads);
   assert.doesNotMatch(JSON.stringify(result), /PRIVATE_RULE_SENTINEL|"rules"|"ranges"|"answerCode"|"explanation"|"registry"|"sourceHash"|"adoptedBy"/);
   assert.ok(Object.keys(f.properties.values).some(k => /_P_000$/.test(k)));
+});
+test('明示したデモ用アカウントは配布だけ利用でき、管理者や教員として扱わない', () => {
+  const f = fixture(), meta = f.enable(), reads = f.state.reads, writes = f.properties.writes.length;
+  Object.assign(f.identity, { active: DEMO, effective: DEMO });
+  const result = plain(f.service.rpc('session', {}, f.config.editorOrigin));
+  assert.equal(result.account, DEMO); assert.equal(result.actorKey, f.T.actorKey(DEMO));
+  assert.equal(result.teacher, false); assert.equal(result.preview.viewerRole, 'demo');
+  assert.equal(result.catalog.sets[0].questions.length, 1); assert.deepEqual(result.policies, []);
+  assert.throws(() => f.service.preview(), code('preview_not_allowed'));
+  assert.throws(() => f.service.publish({ expectedDigest: meta.sourceDigest, confirmation: 'PUBLISH_TEACHER_CATALOG_PREVIEW_V1' }), code('preview_not_allowed'));
+  assert.throws(() => f.service.setEnabled(false), code('preview_not_allowed'));
+  assert.equal(f.state.reads, reads); assert.equal(f.properties.writes.length, writes);
+  assert.doesNotMatch(JSON.stringify(result), /PRIVATE_RULE_SENTINEL|"rules"|"answerCode"/);
 });
 test('無効状態、非教員、別の教員、実行主体の不一致、空の本人を拒否する', () => {
   const f = fixture(); f.publish();
@@ -89,7 +103,7 @@ test('配備コピーは私有領域へ生成し、新旧のGASや設定を操�
   const root = await mkdtemp('/private/tmp/pythoneditor-preview-prepare-test-');
   try {
     const settings = join(root, 'settings.json'), out = join(root, 'gas');
-    await writeFile(settings, JSON.stringify({ editorOrigin: 'https://example.invalid', sourceFileListId: 'synthetic_filelist_identifier_0001', teacherAccount: TEACHER, gradingSheet: '採点設定py' }));
+    await writeFile(settings, JSON.stringify({ editorOrigin: 'https://example.invalid', sourceFileListId: 'synthetic_filelist_identifier_0001', teacherAccount: TEACHER, demoAccount: DEMO, gradingSheet: '採点設定py' }));
     const command = [new URL('../../prepare-pythoneditor-preview-gas.mjs', import.meta.url).pathname, '--settings', settings, '--out', out];
     const result = JSON.parse(execFileSync(process.execPath, command, { encoding: 'utf8' }));
     assert.equal(result.remoteChanged, false); assert.equal(result.settingsEnabled, false);
@@ -100,7 +114,25 @@ test('配備コピーは私有領域へ生成し、新旧のGASや設定を操�
     const bridge = await readFile(join(out, '21_python_editor_bridge.html'), 'utf8');
     assert.match(bridge, /new Set\(\['session'\]\)/); assert.match(bridge, /teacherPythonPreviewRpc\(data.action,data.input \|\| \{\},data.actorKey,boot.origin\)/);
     const review = JSON.parse(await readFile(join(out, 'DEPLOYMENT_REVIEW.json')));
+    assert.equal(review.teacherAccounts, 1); assert.equal(review.demoAccounts, 1);
     assert.equal(review.deployed, false); assert.equal(review.permissionsChanged, false); assert.equal(review.adoptsProblems, false);
+    const f = fixture();
+    f.context.Session = { getActiveUser: () => ({ getEmail: () => f.identity.active }), getEffectiveUser: () => ({ getEmail: () => f.identity.effective }) };
+    f.context.PropertiesService = { getScriptProperties: () => f.properties };
+    f.context.console = { log() {} };
+    f.context.toolsTeacherPreviewEnvironment_ = () => f.env;
+    vm.runInContext(await readFile(join(out, '99_private_setup.js'), 'utf8'), f.context);
+    f.context.run_setupTeacherPreview();
+    f.enable();
+    const protectedState = JSON.stringify(f.properties.values), reads = f.state.reads;
+    for (const viewer of [DEMO, 'other+fixture@gfe.kaijo.ed.jp']) {
+      Object.assign(f.identity, { active: viewer, effective: viewer });
+      for (const name of ['run_setupTeacherPreview', 'run_inspectTeacherCatalog', 'run_publishTeacherCatalog', 'run_enableTeacherPreview', 'run_stopTeacherPreview']) {
+        assert.equal(typeof f.context[name], 'function');
+        assert.throws(() => f.context[name](), undefined, `${viewer}: ${name}`);
+      }
+    }
+    assert.equal(JSON.stringify(f.properties.values), protectedState); assert.equal(f.state.reads, reads);
     const originalManifest = await readFile(join(out, 'appsscript.json'), 'utf8');
     assert.throws(() => execFileSync(process.execPath, command, { encoding: 'utf8', stdio: 'pipe' }));
     assert.equal(await readFile(join(out, 'appsscript.json'), 'utf8'), originalManifest);
