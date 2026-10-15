@@ -23,6 +23,8 @@ const cases=[
  {name:'background-squares',paper:'b5',side:'F',photo:true,decoys:true},
  {name:'shadow-and-jpeg',paper:'a4',side:'F',photo:true,shadow:true,jpeg:true},
  {name:'rotated-photo',paper:'b5',side:'B',photo:true,rotate:true},
+ {name:'phone-24mp-front',paper:'b5',side:'F',photo:true,jpeg:true,inputSize:[4284,5712]},
+ {name:'phone-48mp-back',paper:'b5',side:'B',photo:true,jpeg:true,inputSize:[6048,8064]},
  {name:'clipped-bottom-left',paper:'b5',side:'B',photo:true,clip:'bottomLeft'},
  {name:'clipped-bottom-right-a4',paper:'a4',side:'F',photo:true,clip:'bottomRight'},
  {name:'clipped-top-left',paper:'b5',side:'F',photo:true,clip:'topLeft'},
@@ -98,12 +100,13 @@ for(const mode of baseline?['baseline','candidate']:['candidate'])for(const spec
     if(spec.crossed){const points=v.detectMarkers(image);options.corners=[points[0],points[2],points[1],points[3]];}
     if(spec.precise)options.preciseCorners=true;
     if(spec.rotate){const rotated=v.canvas(image.height,image.width),rc=rotated.getContext('2d');rc.translate(rotated.width,0);rc.rotate(Math.PI/2);rc.drawImage(image,0,0);image=rotated;}
+    if(spec.inputSize){const large=v.canvas(...spec.inputSize);large.getContext('2d').drawImage(image,0,0,large.width,large.height);image=large;}
     const blob=await new Promise(resolve=>image.toBlob(resolve,spec.jpeg?'image/jpeg':'image/png',.76));
     const result=await v.processImage(blob,options),reading=result.reading;
     const bytes=result.correctedBlob?Array.from(new Uint8Array(await result.correctedBlob.arrayBuffer())):null;
-    return {status:reading.status,reason:reading.reason||null,message:reading.message,worksheetId:reading.qr?.worksheetId,side:reading.qr?.side,pageSize:reading.pageSize,marksMatch:reading.classNumber===(spec.marks||[3,0,7])[0]&&reading.number===(spec.marks||[3,0,7])[1]*10+(spec.marks||[3,0,7])[2],restoredMarkers:reading.restoredMarkers||0,autoTone:reading.autoTone,elapsedMs:reading.elapsedMs||0,bytes:bytes&&(spec.name==='inset-on-dark-desk'||spec.name==='off-centre-perspective'||spec.clip&&!spec.blank)?bytes:null};
+    return {status:reading.status,reason:reading.reason||null,message:reading.message,worksheetId:reading.qr?.worksheetId,side:reading.qr?.side,pageSize:reading.pageSize,marksMatch:reading.classNumber===(spec.marks||[3,0,7])[0]&&reading.number===(spec.marks||[3,0,7])[1]*10+(spec.marks||[3,0,7])[2],restoredMarkers:reading.restoredMarkers||0,autoTone:reading.autoTone,elapsedMs:reading.elapsedMs||0,sourceWidth:result.source.width,sourceHeight:result.source.height,inputPixels:spec.inputSize?spec.inputSize[0]*spec.inputSize[1]:null,bytes:bytes&&(spec.name==='inset-on-dark-desk'||spec.name==='off-centre-perspective'||spec.clip&&!spec.blank)?bytes:null};
   },{spec,mode});
-  const pass=spec.review?result.status==='REVIEW':result.status==='OK'&&result.worksheetId==='dr41'&&result.side===spec.side&&result.pageSize===spec.paper&&result.marksMatch&&(!spec.clip||result.restoredMarkers===1)&&result.autoTone!==!!spec.manualTone;
+  const pass=(spec.review?result.status==='REVIEW':result.status==='OK'&&result.worksheetId==='dr41'&&result.side===spec.side&&result.pageSize===spec.paper&&result.marksMatch&&(!spec.clip||result.restoredMarkers===1)&&result.autoTone!==!!spec.manualTone)&&Math.max(result.sourceWidth,result.sourceHeight)<=3000;
   if(result.bytes&&output){fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(path.join(path.dirname(output),mode+'-'+(spec.clip?spec.name:spec.side)+'.png'),Buffer.from(result.bytes));}delete result.bytes;
   results.push({mode,name:spec.name,pass,...result});console.log(JSON.stringify(results.at(-1)));
 }

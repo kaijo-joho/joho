@@ -1,5 +1,5 @@
-import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob} from './10_model.mjs?v=20261015-4';
-import {processImage, loadImage, detectMarkers, snapMarker, layouts} from './11_vision.mjs?v=20261015-3';
+import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob} from './10_model.mjs?v=20261015-5';
+import {processImage, loadImage, detectMarkers, snapMarker, layouts} from './11_vision.mjs?v=20261015-5';
 import {getDraft, listDrafts, saveDraft, discardDraft, probeStorage, deviceId} from './12_store.mjs';
 import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs';
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
@@ -15,8 +15,8 @@ const reasonText = {
 };
 function element(tag, text, className) {const e = document.createElement(tag); if (text) e.textContent = text; if (className) e.className = className; return e;}
 function imageError(code) {
-  return {INPUT_TOO_LARGE:'入力画像は1枚10MiBまでです。画像を小さくして選び直してください。',
-    INPUT_TOO_MANY_PIXELS:'入力画像は2400万画素までです。',
+  return {INPUT_TOO_LARGE:'写真は1枚32MiBまで取り込めます。これより大きい場合はJPEG形式で保存して選び直してください。',
+    INPUT_TOO_MANY_PIXELS:'写真が大きすぎます。8000万画素以下の写真を選んでください。2400万・4800万画素の写真は自動で縮小して読み取れます。',
     INPUT_FORMAT_UNSUPPORTED:'JPEG・PNGに対応しています。HEIC等はJPEGへ変換してから選び直してください。',
     HEIC_BROWSER_UNSUPPORTED:'このブラウザーではHEIC写真を開けません。JPEG形式に変換してから選び直してください。元の写真は保存できます。',
     INVALID_CORNERS:'四隅の位置を確認できません。左上→右上→右下→左下の順に指定してください。',

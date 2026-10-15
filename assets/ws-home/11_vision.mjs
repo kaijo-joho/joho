@@ -1,4 +1,4 @@
-import {parseWorksheetQr, provisionalLimits, hashBlob} from './10_model.mjs';
+import {parseWorksheetQr, provisionalLimits, hashBlob} from './10_model.mjs?v=20261015-5';
 const layoutCache = new Map();
 const rowNames = ['class', 'tens', 'ones'];
 export async function layouts() {
@@ -31,13 +31,14 @@ export async function loadImage(blob, turns = 0) {
     try {await image.decode();} catch {throw Error(heic?'HEIC_BROWSER_UNSUPPORTED':'INPUT_DECODE_FAILED');}
     if (image.naturalWidth * image.naturalHeight > provisionalLimits.maxPixels) throw Error('INPUT_TOO_MANY_PIXELS');
     // Modern Image decoding applies EXIF orientation; output PNG has no orientation dependency.
-    const scale = Math.min(1, 3000 / Math.max(image.naturalWidth, image.naturalHeight));
+    // Accept phone originals (including 24/48 MP), then bound all pixel processing.
+    const scale = Math.min(1, provisionalLimits.maxSourceEdge / Math.max(image.naturalWidth, image.naturalHeight));
     const w = Math.round(image.naturalWidth * scale), h = Math.round(image.naturalHeight * scale), odd = turns % 2;
     const c = canvas(odd ? h : w, odd ? w : h), ctx = c.getContext('2d', {willReadFrequently: true});
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
     ctx.translate(c.width / 2, c.height / 2); ctx.rotate(turns * Math.PI / 2); ctx.drawImage(image, -w / 2, -h / 2, w, h);
     return c;
-  } finally {URL.revokeObjectURL(url);}
+  } finally {image.removeAttribute('src');URL.revokeObjectURL(url);}
 }
 function grayscale(c) {
   const rgba = c.getContext('2d', {willReadFrequently: true}).getImageData(0, 0, c.width, c.height).data;

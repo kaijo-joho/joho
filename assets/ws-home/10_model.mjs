@@ -8,7 +8,8 @@ export const states = Object.freeze({
 export const dashboardUrl = 'https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbzypkAyvoQEHOEvtl3wSob3H6pcheKQQTWGygKP539w1NqNO8lsInO9aQ0uypx3QyVS/exec';
 export const worksheetUrl = 'https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec';
 export const legacyWorksheetIds = Object.freeze(['dr31', 'dr32', 'dr41', 'dr42', 'dr43']);
-export const provisionalLimits = Object.freeze({maxInputBytes: 10 * 1024 * 1024, maxPixels: 24000000,
+// Original photos stay on the device. Only the corrected images use the upload limits.
+export const provisionalLimits = Object.freeze({maxInputBytes: 32 * 1024 * 1024, maxPixels: 80000000, maxSourceEdge: 3000,
   maxImageBytes: 5 * 1024 * 1024, maxTotalBytes: 10 * 1024 * 1024, normalizedWidth: 1600});
 export function randomId() {
   if (crypto.randomUUID) return crypto.randomUUID();
