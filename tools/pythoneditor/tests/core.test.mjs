@@ -46,6 +46,17 @@ runner.dispose();assert.equal(events.filter(e=>e.type==='done').length,1);
 const timed=[];
 const timerRunner=new PythonRunner(e=>timed.push(e),{makeWorker:()=>({postMessage(){},terminate(){}}),runMs:20});
 timerRunner.run({});await new Promise(r=>setTimeout(r,40));assert.equal(timerRunner.active,false);assert.match(timed.at(-1).text,/上限/);
+// Input pauses the execution budget, and each response is bound to one run/request.
+const sent=[],inputEvents=[];
+const inputWorker={postMessage(data){sent.push(data);},terminate(){this.terminated=true;}};
+const inputRunner=new PythonRunner(e=>inputEvents.push(e),{makeWorker:()=>inputWorker,runMs:60});
+const inputRun=inputRunner.run({code:'input()'});
+inputWorker.onmessage({data:{type:'input',generation:inputRun,inputId:7}});
+await new Promise(r=>setTimeout(r,90));assert.ok(inputRunner.active,'thinking time is not execution time');
+assert.ok(inputRunner.input('日本語'));assert.equal(inputRunner.input('duplicate'),false);
+assert.deepEqual(sent.at(-1),{type:'input',generation:inputRun,inputId:7,value:'日本語',eof:false});
+await new Promise(r=>setTimeout(r,90));assert.equal(inputRunner.active,false);assert.ok(inputWorker.terminated);
+assert.equal(inputRunner.input('late'),false);
 if(process.env.PYTHONEDITOR_MASTER){
   const projected=studentCatalog(JSON.parse(await readFile(process.env.PYTHONEDITOR_MASTER,'utf8')));
   const all=projected.sets.flatMap(s=>s.questions);

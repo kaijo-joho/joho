@@ -1,8 +1,8 @@
 {
-  "date": "2026-10-14",
-  "baseline": "0d06fd3",
+  "date": "2026-10-15",
+  "baseline": "0c5f697",
   "chrome": {
-    "checks": 25,
+    "checks": 33,
     "curriculumCases": 205,
     "unexpectedFailures": 0,
     "expectedExceptions": 2,
@@ -35,14 +35,30 @@
       "py34": 15,
       "py46": 3
     },
-    "finalInteractionChecks": 25,
+    "finalInteractionChecks": 33,
     "finalInteractionFailure": null
   },
   "webkit": {
-    "checks": 22,
+    "checks": 30,
     "curriculumCases": 0
   },
   "schoolDeviceVerified": false,
   "fortySchoolDevicesVerified": false,
-  "productionGasChanged": false
+  "productionGasChanged": false,
+  "colabOperation": {
+    "joinedCells": true,
+    "iconRunStop": true,
+    "commandEnter": true,
+    "interactiveWithoutSharedMemory": [
+      "Chrome",
+      "Playwright WebKit"
+    ],
+    "noCodeReplay": true,
+    "oldGraphVersionRetained": true,
+    "inputWaitingExcludedFromExecutionBudget": true,
+    "layoutCasesPerEngine": 27,
+    "nodeTests": 34,
+    "syntheticCloudChecksPerEngine": 18,
+    "schoolSafariAppVerified": false
+  }
 }

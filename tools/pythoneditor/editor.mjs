@@ -128,7 +128,10 @@ function renderOutput() {
   const changed = result && (result.code !== effectiveCode(question) || result.stdin !== currentEntry().stdin);
   $('output-status').textContent = changed ? 'コードまたは入力を変更しました。下は変更前の実行結果です。' : result?.status || 'ここに実行結果が表示されます。';
   $('run-status').textContent = result?.status || '未実行';
-  $('run').disabled = runner.active; $('stop').disabled = !runner.active;
+  $('run').disabled = !question;
+  $('run').dataset.state = runner.active ? 'stop' : 'run';
+  const action = runner.active ? '実行を停止' : 'コードを実行（⌘Enter）';
+  $('run').setAttribute('aria-label', action); $('run').title = action;
   $('figures').replaceChildren();
   for (const [index, file] of (result?.files || []).entries()) {
     const figure = document.createElement('figure'), caption = document.createElement('figcaption');
@@ -280,7 +283,7 @@ async function init() {
   $('code').readOnly=true;$('run').disabled=true;
   try { store = new DraftStore(); } catch { showNotice('ブラウザ保存を利用できません。ファイルに保存してください。', true); }
   if (globalThis.CodeMirror) {
-    cm = CodeMirror.fromTextArea($('code'), {mode:'python', readOnly:true, lineNumbers:true, indentUnit:4, tabSize:4, viewportMargin:20, lineWrapping:true, extraKeys:{Tab: cm => cm.somethingSelected() ? cm.indentSelection('add') : cm.replaceSelection(' '.repeat(4),'end'), 'Shift-Enter':run}});
+    cm = CodeMirror.fromTextArea($('code'), {mode:'python', readOnly:true, lineNumbers:true, indentUnit:4, tabSize:4, viewportMargin:20, lineWrapping:true, extraKeys:{Tab: cm => cm.somethingSelected() ? cm.indentSelection('add') : cm.replaceSelection(' '.repeat(4),'end'), 'Cmd-Enter':run, 'Ctrl-Enter':run, 'Shift-Enter':run}});
     cm.getWrapperElement().setAttribute('aria-label', 'Pythonコード');
     cm.getInputField().setAttribute('aria-label', 'Pythonコード');
     cm.on('change', dirty);
@@ -292,8 +295,9 @@ async function init() {
   try { JohoUI.theme({storageKey:'joho.pythoneditor.view.v1',themeSelect:$('theme'),sizeSelect:$('text-size')}); JohoUI.tooltip(); } catch {}
   let help;
   try { help = JohoToolHelp.create({root:$('operation-help'),opener:$('help-button'),title:'Pythonエディタの使い方',storageKey:'joho.pythoneditor.help.v1',returnToEditor:()=>cm ? cm.focus() : $('code').focus(),bounds:()=>({top:$('topbar')?.getBoundingClientRect().bottom || 50,bottom:innerHeight-10})}); } catch { $('help-button').disabled = true; }
-  $('input-mode').textContent = crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined' ? '値が足りない場合は、出力欄から続けて入力できます。' : '必要な値をすべて指定してから実行してください。値が足りない場合はEOFErrorになります。';
-  $('run').addEventListener('click', run); $('stop').addEventListener('click', () => runner.stop());
+  const interactive = typeof WebAssembly.Suspending === 'function' || (crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined');
+  $('input-mode').textContent = interactive ? '空欄のまま実行すると、出力欄からその都度入力できます。まとめて渡す場合は1回分ずつ改行してください。' : 'このブラウザでは、値を1回分ずつ改行して指定してください。出力欄での逐次入力にはGoogle Chromeを使用できます。';
+  $('run').addEventListener('click', () => runner.active ? runner.stop() : run());
   $('save-browser').addEventListener('click', saveBrowser); $('save-file').addEventListener('click', saveFile);
   $('restore-browser').addEventListener('click', restoreDialog);
   $('open-file').addEventListener('click', () => {closeMenus(true); $('file-input').click();});
@@ -316,7 +320,7 @@ async function init() {
   $('list-toggle').addEventListener('click', () => { const hidden = !$('question-nav').hidden; $('question-nav').hidden = hidden; document.querySelector('.layout').classList.toggle('nav-hidden',hidden); $('list-toggle').setAttribute('aria-expanded',String(!hidden)); });
   document.addEventListener('keydown', e => {
     if (e.isComposing || help?.root.contains(e.target) || document.querySelector('dialog[open]')) return;
-    if (e.key === 'Enter' && e.shiftKey && !e.ctrlKey && !e.metaKey) {e.preventDefault();run();}
+    if (e.key === 'Enter' && !e.altKey && (e.metaKey || e.ctrlKey || e.shiftKey) && !e.target.closest('#interactive-input')) {e.preventDefault();run();}
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {e.preventDefault();saveBrowser();}
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'o') {e.preventDefault();$('file-input').click();}
     if (e.key === 'Escape') closeMenus(true);
@@ -340,7 +344,9 @@ async function init() {
     for (const set of catalog.sets) { const option = document.createElement('option'); option.value = set.setId; option.textContent = set.title; $('set-select').append(option); }
     let last; try { last = store?.last(); } catch {}
     const selection = requested.set || requested.question ? requested : last || {};
-    const set = catalog.sets.find(s => s.setId === selection.set) || catalog.sets.find(s => s.questions.some(q => q.questionId === selection.question)) || catalog.sets[0];
+    const matchesSelection = q => q.questionId === selection.question && (!selection.version || q.version === selection.version);
+    const set = catalog.sets.find(s => s.setId === selection.set && (!selection.question || s.questions.some(matchesSelection)))
+      || catalog.sets.find(s => s.questions.some(matchesSelection)) || catalog.sets.find(s => s.setId === selection.set) || catalog.sets[0];
     const selected = set.questions.find(q => q.questionId === selection.question && (!selection.version || q.version === selection.version));
     pendingRequested=cloudConfig.enabled&&!!(requested.set||requested.question)&&(!catalog.sets.some(s=>(!requested.set||s.setId===requested.set)&&s.questions.some(q=>(!requested.question||q.questionId===requested.question)&&(!requested.version||q.version===requested.version))));
     if ((selection.version || selection.question) && !selected) showNotice('指定した問題・版がありません。別版の下書きを上書きせず、一覧を表示します。',true);

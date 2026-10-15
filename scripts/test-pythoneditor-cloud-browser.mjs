@@ -65,7 +65,7 @@ try {
   await edit(page,'print("接続待ちの編集中")');await connect(page);assert.match(await code(page),/接続待ちの編集中/);check('nested cross-origin bridge connects without replacing current edited code');
   await page.locator('#set-select').selectOption('exercise');
   await edit(page,'# start\nx = 2\nprint("value:", x)\n# end');
-  await page.locator('#run').click();await page.waitForFunction(()=>document.querySelector('#stop').disabled,null,{timeout:120000});assert.equal(await page.locator('#output').textContent(),'value: 2\n');
+  await page.locator('#run').click();await page.waitForFunction(()=>document.querySelector('#run').dataset.state==='run',null,{timeout:120000});assert.equal(await page.locator('#output').textContent(),'value: 2\n');
   await save(page);assert.match(await page.locator('#notice').textContent(),/GSSに保存/);assert.equal(f.sheets.Python下書き履歴.values.length,2);assert.match(await page.locator('#formal-status').textContent(),/未提出/);check('real execution and GSS draft save remain separate from submission');
   const statusReady=new Promise(r=>readyStatus=r),statusDone=new Promise(r=>doneStatus=r);holdStatusQuestion='q1';
   await page.locator('#question-list button').nth(1).click();await page.locator('#question-list button').nth(0).click();await statusReady;

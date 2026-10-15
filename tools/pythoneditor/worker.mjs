@@ -1,6 +1,7 @@
 import { LIMITS, PYODIDE_URL } from './core.mjs';
 import { adaptColab, PYTHON_BRIDGE } from './runtime.mjs';
 let pyodide, generation, count, figures, current;
+let inputSequence = 0, pendingInput;
 let pending = { stdout: '', stderr: '' };
 function send(type, details = {}) { postMessage({ type, generation, ...details }); }
 function flush() {
@@ -59,6 +60,13 @@ async function prepare(code) {
   return plot;
 }
 self.onmessage = async ({ data }) => {
+  if (data.type === 'input') {
+    if (pendingInput && data.generation === generation && data.inputId === pendingInput.id) {
+      const { resolve } = pendingInput; pendingInput = null;
+      resolve(data.eof ? null : data.value);
+    }
+    return;
+  }
   if (data.type !== 'run' || current) return;
   current = true; generation = data.generation; count = 0; figures = 0;
   pending = { stdout: '', stderr: '' };
@@ -68,6 +76,20 @@ self.onmessage = async ({ data }) => {
     const plot = await prepare(setup + '\n' + code);
     const lines = [...(data.stdin || [])];
     const control = data.inputBuffer ? new Int32Array(data.inputBuffer, 0, 2) : null;
+    globalThis._pythonEditorInput = async () => {
+      flush();
+      let value;
+      if (lines.length) value = lines.shift();
+      else {
+        value = await new Promise(resolve => {
+          const id = ++inputSequence; pendingInput = { id, resolve };
+          send('input', { inputId: id });
+        });
+        send('status', { text: '実行中' });
+      }
+      if (value !== null) send('text', { stream: 'input', text: value + '\n' });
+      return { eof: value === null, value: value ?? '' };
+    };
     pyodide.setStdin({ stdin: () => {
       if (lines.length) {
         const value = lines.shift();
@@ -82,6 +104,7 @@ self.onmessage = async ({ data }) => {
       // TextDecoderには共有メモリのviewを直接渡せないブラウザがある。
       const value = new TextDecoder().decode(new Uint8Array(data.inputBuffer, 8, Atomics.load(control, 1)).slice());
       send('text', { stream: 'input', text: value + '\n' });
+      send('status', { text: '実行中' });
       return value;
     } });
     // 前問の変数を次の結果へ混ぜない。必要な前問コードは明示的に渡す。
@@ -93,6 +116,9 @@ self.onmessage = async ({ data }) => {
     send('status', { text: '実行中' });
     await pyodide.runPythonAsync(`
 from pyodide.code import eval_code_async as _editor_eval
+from pyodide.ffi import can_run_sync as _editor_can_run_sync
+if _editor_can_run_sync():
+    _sys.stdin = _EditorInputStream()
 exec(compile(_editor_setup, '<準備コード>', 'exec'), _editor_namespace)
 _editor_result = await _editor_eval(_editor_code, globals=_editor_namespace, filename='<コード>', dedent=False)
 if _editor_result is not None:
@@ -114,6 +140,7 @@ if _editor_result is not None:
       for (const name of ['_editor_namespace', '_editor_setup', '_editor_code', '_editor_result']) if (pyodide.globals.has(name)) pyodide.globals.delete(name);
       pyodide.runPython('import sys; sys.last_exc = None');
     }
+    pendingInput = null;
     current = false;
   }
 };

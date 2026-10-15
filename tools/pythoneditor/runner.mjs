@@ -16,7 +16,7 @@ export class PythonRunner {
     const generation = ++this.generation;
     try {
       this.worker ||= this.makeWorker();
-      this.inputBuffer = globalThis.crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined' ? new SharedArrayBuffer(65536) : null;
+      this.inputBuffer = typeof WebAssembly.Suspending !== 'function' && globalThis.crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined' ? new SharedArrayBuffer(65536) : null;
       this.worker.onmessage = ({ data }) => {
         if (!this.active || generation !== this.generation || data.generation !== generation) return;
         if (['done', 'error'].includes(data.type)) {
@@ -24,22 +24,38 @@ export class PythonRunner {
           clearTimeout(this.timer);
           this.waiting = false;
         }
-        if (data.type === 'input') this.waiting = true;
+        if (data.type === 'input') { this.waiting = true; this.inputId = data.inputId; this.pauseClock(); }
         this.onEvent(data);
       };
       this.worker.onerror = () => this.fail('Pythonの実行環境を読み込めませんでした。通信を確認して再実行してください。', generation);
-      this.timer = setTimeout(() => this.stop('実行時間の上限で停止しました。'), this.runMs);
+      this.remainingMs = this.runMs;
+      this.resumeClock();
       this.worker.postMessage({ ...request, type: 'run', generation, inputBuffer: this.inputBuffer });
       this.onEvent({ type: 'status', generation, text: 'Pythonを準備しています…' });
     } catch (e) { this.fail(String(e.message || e), generation); }
     return generation;
+  }
+  pauseClock() {
+    clearTimeout(this.timer);
+    this.remainingMs = Math.max(0, this.remainingMs - (performance.now() - this.startedAt));
+  }
+  resumeClock() {
+    this.startedAt = performance.now();
+    this.timer = setTimeout(() => this.stop('実行時間の上限で停止しました。'), this.remainingMs);
   }
   fail(message, generation) {
     this.dispose();
     this.onEvent({ type: 'error', generation, error: message });
   }
   input(value, eof = false) {
-    if (!this.active || !this.waiting || !this.inputBuffer) return false;
+    if (!this.active || !this.waiting) return false;
+    if (typeof value !== 'string' || value.length > LIMITS.code) throw new Error('入力が長すぎます。');
+    if (!this.inputBuffer) {
+      this.worker.postMessage({ type: 'input', generation: this.generation, inputId: this.inputId, value, eof });
+      this.waiting = false;
+      this.resumeClock();
+      return true;
+    }
     const bytes = new TextEncoder().encode(value);
     if (bytes.length > this.inputBuffer.byteLength - 8) throw new Error('入力が長すぎます。');
     const control = new Int32Array(this.inputBuffer, 0, 2);
@@ -48,6 +64,7 @@ export class PythonRunner {
     Atomics.store(control, 0, eof ? 2 : 1);
     Atomics.notify(control, 0);
     this.waiting = false;
+    this.resumeClock();
     return true;
   }
   stop(reason = '実行を停止しました。') {
@@ -63,5 +80,6 @@ export class PythonRunner {
     this.active = false;
     this.waiting = false;
     this.inputBuffer = null;
+    this.inputId = null;
   }
 }

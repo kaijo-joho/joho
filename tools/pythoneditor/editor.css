@@ -7,3 +7,26 @@
 @media(max-width:620px){.layout{display:block;padding:12px}#question-nav{position:static;max-height:340px;margin-bottom:18px}main{width:100%}.topbar .wide,.beta{display:none}.topbar h1{font-size:12px}.cell{padding:12px}.question-heading{flex-wrap:wrap}.cell-heading .muted{font-size:.8em}.formal-state span{display:block;margin-left:0}.menu-body{min-width:200px}.prompt pre{font-size:.9em}}
 @media(pointer:coarse){.topbar{height:auto;min-height:54px}.topbar button,.topbar summary{min-height:44px;min-width:44px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+
+/* Code and output share one border; the execution icon occupies the line-number column. */
+.execution-cell{--execution-gutter:calc(52px * var(--ui-k));margin:18px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.execution-cell #code-cell,.execution-cell .output-cell{margin:0;border:0;border-radius:0;padding:0}
+#code-cell>.cell-heading{padding:16px 20px 12px;margin:0;border:0}
+#code-cell>#observation-note,#code-cell>#setup{margin:0 20px 12px}
+#code-cell .CodeMirror{border:0;border-radius:0}
+#code-cell .CodeMirror-gutters{min-width:var(--execution-gutter);border-right:0}
+#code-cell .CodeMirror-linenumber{min-width:calc(var(--execution-gutter) - 12px);padding:0 8px 0 4px}
+#code-cell>textarea{display:block;border:0;border-radius:0;min-height:260px}
+.execution-cell .output-cell{display:grid;grid-template-columns:var(--execution-gutter) minmax(0,1fr);border-top:1px solid var(--line)}
+.output-gutter{display:flex;justify-content:center;align-items:flex-start;background:var(--bg);padding-top:8px}
+.run-icon{display:flex;align-items:center;justify-content:center;padding:0;width:44px;height:44px;min-width:44px}
+.run-icon[data-state="run"] .stop-icon,.run-icon[data-state="stop"] .play-icon{display:none}
+.output-body{min-width:0;padding:12px 16px 16px 8px}
+.output-meta{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.key-hint{white-space:nowrap}
+.output-cell #output{padding:0;margin:8px 0;background:transparent;border-radius:0;min-height:40px}
+#output:empty{display:none}
+#interactive-input{padding:0;background:transparent;margin:8px 0}
+#input-line{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.execution-cell>#stdin-section{border-radius:0;border-top:1px solid var(--line);padding:10px 16px}
+@media(max-width:620px){#code-cell>.cell-heading{padding-inline:12px}.output-body{padding-right:12px}.execution-cell>#stdin-section{padding-inline:12px}}

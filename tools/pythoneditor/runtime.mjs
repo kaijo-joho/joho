@@ -19,6 +19,33 @@ class _EditorStream:
     def isatty(self): return False
 _sys.stdout = _EditorStream('stdout')
 _sys.stderr = _EditorStream('stderr')
+# JSPI suspends the actual Python stack while the output cell receives input.
+# Code, random values, file writes and earlier print calls are not replayed.
+class _EditorInputStream(_io.TextIOBase):
+    def __init__(self):
+        self.pending = ''
+        self.eof = False
+    def readable(self): return True
+    def readline(self, size=-1):
+        if size == 0: return ''
+        if not self.pending and not self.eof:
+            from pyodide.ffi import run_sync
+            from js import _pythonEditorInput
+            value = run_sync(_pythonEditorInput())
+            if value.eof: self.eof = True
+            else: self.pending = str(value.value) + '\n'
+        count = len(self.pending) if size < 0 else min(size, len(self.pending))
+        value, self.pending = self.pending[:count], self.pending[count:]
+        return value
+    def read(self, size=-1):
+        parts = []
+        while size != 0:
+            value = self.readline(size)
+            if not value: break
+            parts.append(value)
+            if size > 0: size -= len(value)
+        return ''.join(parts)
+
 def _editor_reset_files():
     directory = '/home/pyodide/editor-work'
     _os.chdir('/home/pyodide')
