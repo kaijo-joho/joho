@@ -2,12 +2,15 @@ import { questionKey, validateCatalog } from './core.mjs';
 import { cloudConfig } from './cloud-config.mjs';
 import { validateRating, ratingKey } from './navigation.mjs';
 import { GoogleBridge, CloudWorkspace, submissionText, codeHash, bridgeURL } from './cloud.mjs';
+import { toolsStoreConfig } from './tools-store-config.mjs';
+import { ToolsDraftPanel } from './tools-store-ui.mjs';
 const $ = id => document.getElementById(id);
 const score = n => n === null || n === undefined ? 'なし' : `${Math.round(n*1000)/10} 点`;
 const date = value => new Date(value).toLocaleString('ja-JP');
 export class CloudPanel {
   constructor(host) {
     this.host=host;this.bridge=new GoogleBridge(cloudConfig);this.states=new Map();this.ratings=new Map();this.schoolKeys=new Set();this.readRevisions=new Map();this.codeComparisons=new Map();this.working=false;this.opener=null;
+    if(toolsStoreConfig.enabled)this.drafts=new ToolsDraftPanel(host,()=>this.render());
     $('cloud-connect').addEventListener('click',()=>{host.closeMenus();this.connect();});
     $('save-cloud').addEventListener('click',()=>{host.closeMenus();this.save();});
     $('open-cloud').addEventListener('click',()=>{host.closeMenus();this.restore();});
@@ -28,6 +31,7 @@ export class CloudPanel {
   open(dialog) {this.opener=document.activeElement;dialog.showModal();}
   fail(e) {
     this.host.notice(e.message||'通信を完了できませんでした。コードは保持しています。',true);
+    if(this.drafts){this.drafts.fail(e);return;}
     if(['login_required','not_allowed','unavailable','maintenance','transport','disconnected'].includes(e.code)) {
       this.connected=false;$('cloud-account').textContent='接続を確認してください（コードと送信番号は保持）';
     }
@@ -40,9 +44,11 @@ export class CloudPanel {
   }
   async connect() {
     await this.withWork(async()=>{
+      if(this.drafts){await this.drafts.connect();if(!cloudConfig.enabled)return;}
       this.connected=false;
       $('cloud-account').textContent='学校アカウントを確認しています…';
       const session=await this.bridge.connect(), catalog=validateCatalog(session.catalog);
+      if(this.drafts?.connected&&session.account!==this.drafts.client.session.account)throw new Error('保存用と提出用の学校アカウントが一致しません。再接続してください。');
       if(!Array.isArray(session.policies))throw new Error('受付設定の形式を確認できません。');
       this.cloud=new CloudWorkspace((...args)=>this.bridge.call(...args),session,localStorage);
       this.states.clear();this.ratings.clear();this.readRevisions.clear();this.codeComparisons.clear();
@@ -91,18 +97,19 @@ export class CloudPanel {
   }
   render() {
     const q=this.host.question(), policy=q&&this.cloud?.policy(q), enabled=this.connected&&!!policy;
-    $('cloud-connect').disabled=this.working||!cloudConfig.enabled;
-    const connectionLabel=this.connected?'学校アカウントに再接続':'学校アカウントに接続';
+    $('cloud-connect').disabled=this.working||!(cloudConfig.enabled||toolsStoreConfig.enabled);
+    const connectionLabel=this.connected||this.drafts?.connected?'学校アカウントに再接続':'学校アカウントに接続';
     $('cloud-connect-label').textContent=connectionLabel;
     $('cloud-connect').setAttribute('aria-label',connectionLabel);
-    $('cloud-connect').title=cloudConfig.enabled?connectionLabel:'学校アカウント接続は準備中です';
-    $('save-cloud').disabled=this.working||!enabled;
-    $('open-cloud').disabled=this.working||!this.connected;
+    $('cloud-connect').title=cloudConfig.enabled||toolsStoreConfig.enabled?connectionLabel:'学校アカウント接続は準備中です';
+    $('save-cloud').disabled=this.working||!(this.drafts?this.drafts.connected:enabled);
+    $('open-cloud').disabled=this.working||!(this.drafts?this.drafts.connected:this.connected);
     $('formal-submit').disabled=this.working||!enabled||!policy?.canSubmit||this.host.running();
     $('formal-query').disabled=this.working||!enabled;
     $('formal-resume').disabled=this.working||!enabled;
     if(!this.connected)$('cloud-account').textContent ||= cloudConfig.enabled?'未接続':'接続前・本番設定待ち';
     $('cloud-save-status').textContent=this.connected?'GSSへの保存・復元は「ファイル」メニューから行います。':'GSS下書きは別途保存';
+    if(this.drafts)this.drafts.render();
     const state=q&&this.states.get(questionKey(q)), receipt=state?.receipt;
     let pending;
     try{pending=q&&this.cloud?.journal.pending({...q,assignmentId:policy?.assignmentId},'submit');}catch(e){$('formal-status').textContent=e.message;return;}
@@ -130,6 +137,7 @@ export class CloudPanel {
   }
   async refreshCurrent() {
     const q=this.host.question(),policy=q&&this.cloud?.policy(q);
+    if(q)await this.drafts?.selected(q);
     if(!this.connected||!policy)return;
     const cloud=this.cloud,revision=this.revision(q);let result;
     try{result=await cloud.recover(q,policy.assignmentId);}catch(e){if(cloud!==this.cloud)return;throw e;}
@@ -137,6 +145,7 @@ export class CloudPanel {
     this.acceptState(q,result);this.render();
   }
   async save() {
+    if(this.drafts)return this.withWork(()=>this.drafts.save());
     const q=this.host.question();if(!q||!this.connected)return;
     const entry={...this.host.entry(q)};
     await this.withWork(async()=>{
@@ -148,6 +157,7 @@ export class CloudPanel {
     });
   }
   async resolveConflict(choice) {
+    if(this.drafts)return this.withWork(()=>this.drafts.resolveConflict(choice));
     const conflict=this.conflict;if(!conflict)return;
     await this.withWork(async()=>{
       const {q,draft}=conflict;
@@ -168,6 +178,7 @@ export class CloudPanel {
     else this.host.notice('両方の内容を保護し、ローカルの続きをGSSに保存しました。');
   }
   async restore() {
+    if(this.drafts)return this.withWork(()=>this.drafts.restore());
     if(!this.connected)return;
     await this.withWork(async()=>{
       const {drafts}=await this.cloud.call('listDrafts',{});$('cloud-options').replaceChildren();
@@ -220,4 +231,8 @@ export class CloudPanel {
       this.host.notice(result.unreceived?'サーバーに受付記録が見つかりません。送信控えを保持しています。「正式提出」から同じ要求を再送できます。':result.receipt?.state==='submitted'?'提出済みの結果を確認しました。':result.receipt?.state==='pending'?'受付済みですが、採点・結果保存は未完了です。':'この問題の提出記録はありません。');
     });
   }
+  edited(entry){this.drafts?.edited(entry);}
+  draftBadge(q){return this.drafts?.badge(q);}
+  resume(){return this.drafts?.resume();}
+  unsaved(){return this.drafts?.auto?.unsaved()||false;}
 }

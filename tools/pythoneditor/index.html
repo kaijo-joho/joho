@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex">
   <title>Pythonエディタ｜海城情報科</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="editor.css?v=20261015-menu-polish">
+  <link rel="stylesheet" href="editor.css?v=20261015-tools-store">
   <link rel="stylesheet" href="../shared/ui-kit.css">
   <link rel="stylesheet" href="../shared/help-panel.css">
   <link rel="stylesheet" href="../htmleditor/vendor/codemirror.min.css">
@@ -19,7 +19,7 @@
   <script defer src="vendor/purify.min.js"></script>
   <script defer src="vendor/katex.min.js"></script>
   <script defer src="vendor/auto-render.min.js"></script>
-  <script type="module" src="editor.mjs?v=20261015-menu-polish"></script>
+  <script type="module" src="editor.mjs?v=20261015-tools-store"></script>
 </head>
 <body>
   <header class="topbar" id="topbar">
@@ -47,7 +47,7 @@
     <details id="status-menu" class="menu"><summary aria-label="接続・採点結果とお知らせ" title="接続・採点結果とお知らせ"><span aria-hidden="true">ⓘ</span></summary><div class="menu-body status-body">
       <h2>接続・採点結果とお知らせ</h2>
       <div class="notice" id="notice" role="status">エディタを準備しています…</div>
-      <section class="cloud-state" aria-label="学校アカウントとGSS保存"><div class="cloud-controls"><span id="cloud-account" role="status"></span><a id="cloud-login" hidden target="_blank" rel="noopener noreferrer">ログインを確認</a></div><p id="cloud-save-status" class="muted">GSS下書きは別途保存</p><p class="muted">GSSへの下書き保存と正式提出は別の操作です。下書きを保存しても提出済みにはなりません。</p></section>
+      <section class="cloud-state" aria-label="学校アカウントとGSS保存"><div class="cloud-controls"><span id="cloud-account" role="status"></span><a id="cloud-login" hidden target="_blank" rel="noopener noreferrer">ログインを確認</a></div><p id="cloud-save-status" class="muted">GSS下書きは別途保存</p><p id="cloud-storage-warning" class="danger" hidden>ブラウザに送信控えを保存できません。クラウド保存は試みています。保存済みを確認するまで画面を閉じないでください。</p><p id="cloud-pending" class="muted"></p><p class="muted">クラウドへの下書き保存と正式提出は別の操作です。下書きを保存しても提出済みにはなりません。</p></section>
       <section class="formal-state" aria-label="正式採点と提出"><div class="cell-heading"><h3>正式採点・提出</h3><span id="formal-status" role="status">接続前</span></div><p id="formal-note">今年度は従来のColabで提出してください。</p>
         <div class="cloud-controls"><button id="formal-query" type="button" disabled>結果を照会</button><button id="formal-resume" type="button" disabled>採点・保存を再試行</button></div>
         <p id="formal-score"></p><p id="formal-best"></p><p id="formal-time"></p><p id="formal-edited"></p><ul id="formal-checks"></ul><p id="formal-diagnostics"></p>
@@ -92,7 +92,7 @@
         <pre id="error" class="error" tabindex="0" hidden></pre><div id="figures"></div>
         </div>
       </section>
-        <div class="code-tools"><span id="result-note" class="muted" hidden></span><button id="find-errors" type="button" hidden>エラーを探す</button><button id="error-line-hint" type="button" aria-haspopup="dialog" aria-controls="error-hint-dialog" hidden></button><span id="save-status" role="status" class="muted"></span></div>
+        <div class="code-tools"><span id="result-note" class="muted" hidden></span><button id="find-errors" type="button" hidden>エラーを探す</button><button id="error-line-hint" type="button" aria-haspopup="dialog" aria-controls="error-hint-dialog" hidden></button><span id="save-status" role="status" class="muted"></span><span id="cloud-inline-status" class="muted" hidden></span></div>
       </div>
     </main>
   </div>
@@ -101,12 +101,13 @@
   <dialog id="stdin-dialog"><h2>確認用の入力値</h2><p>同じ値で繰り返し確認する場合だけ指定します。実行するとinput()へ1行ずつ自動で渡し、出力欄にも表示します。空欄なら、実行中に出力欄へ入力します。</p><label for="stdin">この問題の入力値（1回のinput()につき1行）</label><textarea id="stdin" rows="5" spellcheck="false" placeholder="通常は空欄のまま使用します"></textarea><p id="input-mode" class="muted"></p><button id="clear-stdin" type="button">入力値を空にする</button><button type="button" data-close>閉じる</button></dialog>
   <dialog id="restore-dialog"><h2>保存内容を選ぶ</h2><p>取り込み前のコードはブラウザの控えに残します。</p><div id="restore-options"></div><button type="button" data-close>キャンセル</button></dialog>
   <dialog id="import-dialog"><h2>コードを取り込む</h2><p id="import-description"></p><pre id="import-preview"></pre><button id="confirm-import" type="button" class="primary">控えを残して取り込む</button><button type="button" data-close>キャンセル</button></dialog>
-  <dialog id="cloud-dialog"><h2>GSSの下書きを取り込む</h2><p>内容を選んで確認してください。取り込み前のローカル内容を控えに残します。</p><div id="cloud-options"></div><label for="cloud-revisions">保存履歴（最近20件）</label><select id="cloud-revisions" disabled></select><pre id="cloud-preview"></pre><button id="cloud-import" type="button" class="primary" disabled>控えを残して取り込む</button><button type="button" data-close>キャンセル</button></dialog>
+  <dialog id="cloud-dialog"><h2>クラウドの下書きを取り込む</h2><p>内容を選んで確認してください。取り込み前のローカル内容を控えに残します。</p><div id="cloud-options"></div><label for="cloud-revisions">保存履歴</label><select id="cloud-revisions" disabled></select><pre id="cloud-preview"></pre><button id="cloud-import" type="button" class="primary" disabled>控えを残して取り込む</button><button type="button" data-close>キャンセル</button></dialog>
+  <dialog id="tools-connect-dialog"><h2>学校アカウントに接続</h2><p id="tools-connect-status" role="status">学校アカウントとクラウドの保存先を確認します。</p><div id="tools-connect-frame"></div><p>初回は学校アカウントで利用を許可する必要がある場合があります。</p><p><a id="tools-login" target="_blank" rel="noopener noreferrer">別タブで学校アカウントにログイン</a></p><p><a id="tools-store-login" hidden target="_blank" rel="noopener noreferrer">別タブでクラウド保存の利用を確認</a></p><button id="tools-connect-retry" type="button">再接続</button><button type="button" data-close>閉じる</button></dialog>
   <dialog id="cloud-conflict"><h2 id="conflict-title">GSS保存の競合</h2><p>別の端末などで保存された内容と異なります。下はGSSの最新の内容です。GSSの履歴とローカルの控えで両方を保護してから選択を反映します。</p><pre id="conflict-preview"></pre><button id="conflict-cloud" type="button">GSSの続きを取り込む</button><button id="conflict-local" type="button">ローカルの続きをGSSに保存</button><button type="button" data-close>保留</button></dialog>
   <dialog id="submit-dialog"><h2>正式提出の確認</h2><p id="submit-description"></p><p id="submit-run-note" class="advice"></p><pre id="submit-preview"></pre><button id="submit-confirm" type="button" class="primary">この全文を正式提出</button><button type="button" data-close>キャンセル</button></dialog>
   <aside id="operation-help" hidden>
     <section data-help-topic="run" data-help-title="実行する"><h3>実行する</h3><ol><li>問題を選び、コードを入力します。</li><li>出力セル左の▶または⌘Enterで実行します。</li><li>input()で止まったら出力欄へ入力し、Enterで続けます。</li></ol><details><summary>停止と再実行</summary><p>実行中は同じ位置の■で計算を終了します。コードは残ります。再実行は共通の準備コードと現在の問題を新しい変数で実行します。</p></details><details><summary>入力を待っているとき</summary><p>Google Chromeでは、出力欄から1回ずつ入力を続けられます。⏏は入力終了（EOF）を渡します。逐次入力が使えない環境や、同じ値で繰り返し確認する場合は、設定の「確認用の入力値」を使用できます。</p></details></section>
-    <section data-help-topic="save" data-help-title="保存と復元"><h3>保存と復元</h3><p>入力したコードを問題・版ごとにブラウザへ自動保存します。問題を切り替えても保持します。</p><p>ファイルメニューから明示保存と復元ができます。接続・提出・前後移動は上部ツールバー、正式採点結果と提出履歴はⓘで確認します。自動保存と明示保存を別に保持します。ファイルにはコードと入力値を保存します。</p><details><summary>別の端末で続ける</summary><p>学校アカウントに接続後、ファイルメニューの「クラウドに下書き保存」「クラウドから開く」を使用します。貸出機へ移る前・作業終了時にGSSへ保存し、自端末へ戻ったら続きを選んで取り込みます。競合時は両方を保護してから選択します。本番接続の設定が済むまではファイル保存を使えます。</p></details><details><summary>正式提出と結果照会</summary><p>コード全文・入力値・実行の表示テキスト・標準エラーを送ります。採点と結果・履歴の保存が完了してから提出済みになります。応答を確認できない場合は「結果を照会」し、必要なら同じ送信を再試行します。締切はサーバー受付時刻で判定し、問題ごとの締切内最高点を採用します。</p></details></section>
+    <section data-help-topic="save" data-help-title="保存と復元"><h3>保存と復元</h3><p>入力したコードを問題・版ごとにブラウザへ自動保存します。問題を切り替えても保持します。</p><p>ファイルメニューから明示保存と復元ができます。接続・提出・前後移動は上部ツールバー、正式採点結果と提出履歴はⓘで確認します。自動保存と明示保存を別に保持します。ファイルにはコードと入力値を保存します。</p><details><summary>別の端末で続ける</summary><p>クラウド接続が有効な環境では、学校アカウントに接続するとコードと入力値を自動保存します。作業終了時は下部の「クラウドに保存済み」を確認してください。貸出機や自端末に別の続きがあれば、両方を保護してから選択します。ファイルメニューから保存と履歴の復元もできます。本番接続の設定が済むまではファイル保存を使えます。</p></details><details><summary>正式提出と結果照会</summary><p>コード全文・入力値・実行の表示テキスト・標準エラーを送ります。採点と結果・履歴の保存が完了してから提出済みになります。応答を確認できない場合は「結果を照会」し、必要なら同じ送信を再試行します。締切はサーバー受付時刻で判定し、問題ごとの締切内最高点を採用します。</p></details></section>
     <section data-help-topic="errors" data-help-title="エラーを調べる"><h3>エラーを調べる</h3><p>まずエラー末尾の種類・説明と行番号を読んで見直します。必要なときにコード・出力欄の下にある「エラーを探す」を押すと、該当行の行番号に⚠が付きます。⚠をクリックすると修正を考えるヒントを開きます。編集すると印は消えます。</p><p>エラーの種類・本文・コードの呼び出し履歴をPython標準の形式で表示し、エディタとPyodideの内部実行行は省きます。ヒントは端末内で表示します。AI相談へのコード・エラー送信は接続前です。</p></section>
     <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>Pythonエディタ 0.1 BETA・独立試作。海城中学高等学校 情報科 © 2026。</p><p>推奨環境：学校MacのGoogle Chrome。PythonはPyodideによりブラウザ内で実行します。GSS下書き保存・正式提出で明示したテキストを学校のGASへ送ります。Pythonと数値計算のライブラリはjsDelivrから取得し、日本語化パッケージとフォントは同梱しています。</p><p>ブラウザ保存は同じ端末・同じブラウザ内の控えです。正式提出・GSS保存とは別です。今年度のColab・従来の提出方法は引き続き使用できます。</p></section>
   </aside>

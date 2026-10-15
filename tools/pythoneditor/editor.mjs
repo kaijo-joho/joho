@@ -4,7 +4,7 @@ import { DraftStore, exportDraft } from './storage.mjs';
 import { PythonRunner } from './runner.mjs?v=20261015-errors';
 import { errorHints } from './diagnostics.mjs?v=20261015-errors';
 import { renderPrompt } from './prompt.mjs';
-import { CloudPanel } from './cloud-ui.mjs?v=20261015-menu-polish';
+import { CloudPanel } from './cloud-ui.mjs?v=20261015-tools-store';
 import { cloudConfig } from './cloud-config.mjs';
 import { questionGroups, setRating, renderRating } from './navigation.mjs';
 import { demoRatings } from './demo-ratings.mjs';
@@ -79,6 +79,7 @@ function saveAuto(e) {
     store.write(e, 'auto'); saveFailed = false;
     $('save-status').textContent = 'ブラウザに自動保存済み';
   } catch (error) { saveFailed = true; $('save-status').textContent = '自動保存に失敗（コードは保持）'; showNotice(error.message, true); }
+  cloudPanel?.edited(e);
 }
 function stateLabel(q) {
   const e = currentEntry(q);
@@ -142,6 +143,8 @@ function updateNavigationRatings() {
     button.querySelector('.question-item-state').hidden=q.kind!=='observation'&&rating?.earned!=null&&rating.total>0;
     const hint=button.querySelector('.question-item-formal');
     hint.textContent=cloudPanel?.navigationStatus(q)||'';hint.hidden=!hint.textContent;
+    const badge=cloudPanel?.draftBadge(q),marker=button.querySelector('.question-item-cloud');
+    if(marker){marker.textContent=badge?.text||'';marker.hidden=!badge;marker.setAttribute('aria-label',badge?.label||'');marker.title=badge?.label||'';}
   }
   for (const button of $('set-menu').querySelectorAll('button[data-set]')) {
     const set=catalog.sets.find(set=>set.setId===button.dataset.set);
@@ -199,7 +202,8 @@ function selectSet(set, selected, preserveCurrent=false) {
       labels.className='question-labels';title.className='question-item-title';title.textContent=item.title;
       state.className='question-item-state';state.textContent=stateLabel(q);rating.className='question-item-rating';
       hint.className='question-item-state question-item-formal';hint.hidden=true;
-      labels.append(title,state,rating,hint);button.append(labels);row.append(button);list.append(row);
+      const marker=document.createElement('span');marker.className='question-item-cloud';marker.hidden=true;
+      labels.append(title,marker,state,rating,hint);button.append(labels);row.append(button);list.append(row);
       button.addEventListener('click',()=>{pendingRequested=false;selectQuestion(q);});
     }
     li.append(list);$('question-list').append(li);
@@ -451,7 +455,10 @@ async function init() {
   $('code').addEventListener('input', dirty); $('stdin').addEventListener('input', dirty);
   cloudPanel=new CloudPanel({catalog:()=>catalog,renderRatings:updateNavigationRatings,question:()=>question,entry:q=>({...currentEntry(q)}),run:q=>outputs.get(questionKey(q)),running:()=>!!runner.active,
     notice:(message,danger)=>showNotice(message,danger,true),closeMenus:()=>closeMenus(true),addCatalog:addCloudCatalog,importDraft:importCloudDraft,
-    archive:(e,reason)=>{if(!store)throw new Error('ローカルの控えを保存できません。コードをファイルに保存してください。');store.archive(e,reason);}});
+    archive:(e,reason)=>{if(!store)throw new Error('ローカルの控えを保存できません。コードをファイルに保存してください。');store.archive(e,reason);},
+    archiveEntries:reason=>{if(!store)throw new Error('切り替え前の控えを保存できません。ファイルに保存してください。');for(const e of entries.values())store.archive(e,reason);},
+    findQuestion:e=>catalog?.sets.flatMap(s=>s.questions).find(q=>questionKey(q)===questionKey(e)),
+    draftEntries:()=>catalog?.sets.flatMap(s=>s.questions).map(q=>({q,entry:{...currentEntry(q)}}))||[]});
   try { JohoUI.theme({storageKey:'joho.pythoneditor.view.v1',themeSelect:$('theme'),sizeSelect:$('text-size')}); JohoUI.tooltip(); } catch {}
   if (cm) {
     $('text-size').addEventListener('change', () => cm.refresh());
@@ -506,7 +513,7 @@ async function init() {
     if (e.key === 'Escape') {closeMenus(true);closeSetPicker(true);}
   });
   document.addEventListener('click', e => {if (!e.target.closest('.menu')) closeMenus();if(!e.target.closest('.set-picker'))closeSetPicker();});
-  addEventListener('beforeunload', e => {if (saveFailed) {e.preventDefault();e.returnValue='';}});
+  addEventListener('beforeunload', e => {if (saveFailed||cloudPanel?.unsaved()) {e.preventDefault();e.returnValue='';}});
   addEventListener('pagehide', () => runner.dispose());
   // 固定した同一originの読取経路だけ。401/403や不正応答では別経路へ取得しない。
   const initialGeneration=catalogGeneration;
@@ -531,6 +538,7 @@ async function init() {
     pendingRequested=cloudConfig.enabled&&!!(requested.set||requested.question)&&(!catalog.sets.some(s=>(!requested.set||s.setId===requested.set)&&s.questions.some(q=>(!requested.question||q.questionId===requested.question)&&(!requested.version||q.version===requested.version))));
     if ((selection.version || selection.question) && !selected) showNotice('指定した問題・版がありません。別版の下書きを上書きせず、一覧を表示します。',true);
     selectSet(set,selected);
+    await cloudPanel.resume();
   } catch (e) {if(initialGeneration!==catalogGeneration)return;showNotice(e.message || 'エディタを開始できませんでした。',true);$('run').disabled=true;}
 }
 init().catch(e => showNotice('エディタの初期化に失敗しました: ' + e.message,true));

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>クラウド保存</title></head>
+<body><p id="status">学校アカウントの接続を確認しています。</p>
+<script>
+(function () {
+  'use strict';
+  var boot = <?!= bootJson ?>;
+  var actions = ['session', 'listDrafts', 'getDraft', 'saveDraft', 'lookupSave'];
+  // HtmlServiceの二重iframeでも、エディタのtopだけと通信する。
+  var peer = window.top;
+  function send(message) { peer.postMessage(Object.assign({ protocol: boot.protocol, channel: boot.channel }, message), boot.origin); }
+  window.addEventListener('message', function (event) {
+    var data = event.data;
+    if (event.origin !== boot.origin || event.source !== peer || !data || data.protocol !== boot.protocol || data.channel !== boot.channel || data.type !== 'request' || typeof data.id !== 'string' || !/^[a-f0-9]{32}$/.test(data.id) || actions.indexOf(data.action) < 0 || typeof data.binding !== 'string' || data.binding.length > 4096 || !data.input || typeof data.input !== 'object') return;
+    var requestId = data.id;
+    google.script.run.withSuccessHandler(function (result) {
+      send({ type: 'response', id: requestId, result: result });
+    }).withFailureHandler(function () {
+      send({ type: 'response', id: requestId, result: { ok: false, error: { code: 'transport_failed', message: '通信結果を確認できません。同じ要求を再照会してください。' } } });
+    }).toolsStoreRpc(data.action, data.input, data.binding, boot.origin);
+  });
+  document.getElementById('status').textContent = '学校アカウントの接続を確認できます。';
+  send({ type: 'ready' });
+}());
+</script></body></html>

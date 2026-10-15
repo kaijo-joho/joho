@@ -1,0 +1,24 @@
+{
+  "schema": "python-editor-tools-store-verification-v1",
+  "date": "2026-10-15",
+  "nodeTests": {
+    "passed": 129,
+    "scope": "store GAS VM/fake Drive+GSS, dist provisioning, browser client, existing grade contract and packaging"
+  },
+  "newStoreBrowsers": {
+    "Chrome": 10,
+    "WebKit": 10,
+    "realGAS": false,
+    "schoolIdentity": "synthetic",
+    "GSS": "synthetic"
+  },
+  "legacyGradeChrome": 20,
+  "legacyRuntimeChrome": 32,
+  "searchPages": 74,
+  "schoolOAuthVerified": false,
+  "real40StudentLoadVerified": false,
+  "productionGASChanged": false,
+  "permissionsChanged": false,
+  "connectionEnabled": false,
+  "ColabAndHtmlRoutesChanged": false
+}

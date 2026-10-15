@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>tools クラウド接続</title></head>
+<body>
+<p id="message">学校アカウントを確認しています。</p>
+<script>
+(function () {
+  'use strict';
+  // origin/channelはdist側のallowlistと照合済み。GSSIDや保存先URLを親から受け取らない。
+  var boot = <?!= toolsStoreBootJson ?>;
+  var busy = false;
+  var seen = Object.create(null);
+  function send(value) {
+    window.top.postMessage(Object.assign({ protocol: boot.protocol, channel: boot.channel }, value), boot.origin);
+  }
+  function respond(id, result) { send({ type: 'response', id: id, result: result }); }
+  function validInput(input) {
+    return input && typeof input === 'object' && !Array.isArray(input) &&
+      input.tool === 'python' && Object.keys(input).every(function (key) { return key === 'tool'; });
+  }
+  window.addEventListener('message', function (event) {
+    var data = event.data;
+    if (event.source !== window.top || event.origin !== boot.origin || !data || data.protocol !== boot.protocol ||
+        data.channel !== boot.channel || data.type !== 'request' || !/^[a-f0-9]{32}$/.test(data.id)) return;
+    if (data.action !== 'session' || !validInput(data.input) || data.binding) {
+      respond(data.id, { ok: false, error: { code: 'invalid_request', message: '接続要求を確認できません。' } });
+      return;
+    }
+    if (seen[data.id] || busy) {
+      respond(data.id, { ok: false, error: { code: 'store_busy', message: '学校アカウントを確認しています。少し待ってください。' } });
+      return;
+    }
+    seen[data.id] = true;
+    busy = true;
+    google.script.run.withSuccessHandler(function (result) {
+      busy = false;
+      document.getElementById('message').textContent = result && result.ok ? '学校アカウントを確認しました。エディタへ戻ってください。' : '接続を確認できません。エディタの案内を確認してください。';
+      respond(data.id, result);
+    }).withFailureHandler(function () {
+      busy = false;
+      // Google側例外・メール・内部ID・秘密設定をそのまま返さない。
+      respond(data.id, { ok: false, error: { code: 'transport', message: '学校アカウントの接続を確認できません。接続し直してください。' } });
+    }).getToolsStoreConnectionV1({ tool: 'python', origin: boot.origin });
+  });
+  // GASの外側iframeを含むため、親はsourceをこのreadyで固定しchannelとGoogle originも検査する。
+  send({ type: 'ready' });
+}());
+</script>
+</body>
+</html>
