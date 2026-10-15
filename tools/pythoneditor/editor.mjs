@@ -136,6 +136,8 @@ function renderOutput() {
   $('stderr-section').hidden = !result?.stderr; $('stderr').textContent = result?.stderr || '';
   $('error').hidden = !result?.error; $('error').textContent = result?.error || '';
   const changed = result && (result.code !== effectiveCode(question) || result.stdin !== currentEntry().stdin);
+  $('result-note').hidden = !changed;
+  $('result-note').textContent = changed ? '表示中の出力は変更前の結果です。' : '';
   $('find-errors').hidden = !result?.diagnostics?.locations?.length || !!changed || runner.active;
   $('output-status').textContent = changed ? 'コードまたは入力を変更しました。下は変更前の実行結果です。' : result?.status || (prepared ? '確認用の入力値を使用します（設定から変更できます）。' : 'ここに実行結果が表示されます。');
   $('run-status').textContent = result?.status || '未実行';
@@ -240,7 +242,7 @@ const runner = new PythonRunner(event => {
     if (e && runSnapshot.code === effectiveCode(question) && e.stdin === runSnapshot.stdin) { e.practiced = true; saveAuto(e); }
   }
   if (event.type === 'error') { result.error = event.error; result.diagnostics = event.diagnostics; result.status = 'エラーで終了しました';result.outcome='error';result.truncated=event.error.includes('出力が上限'); }
-  if (event.type === 'stopped') {result.status = event.text;result.outcome='stopped';}
+  if (event.type === 'stopped') {result.status = event.text;result.outcome='stopped';if(event.text.includes('上限'))showNotice(event.text,true);}
   if (['done', 'error', 'stopped'].includes(event.type)) $('interactive-input').hidden = true;
   if (questionKey(question) === runSnapshot.key) {
     renderOutput(); updateProgress(); cloudPanel?.render();

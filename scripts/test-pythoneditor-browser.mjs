@@ -49,14 +49,15 @@ try{
     workspaceChildren:[...document.querySelector('#workspace').children].map(el=>el.id||el.className),
     outsidePanels:['stdin','notice','formal-status','cloud-account'].every(id=>!document.querySelector('#workspace').contains(document.getElementById(id)))
   }));
-  assert.equal(structure.controls,true);assert.equal(structure.outsidePanels,true);assert.deepEqual(structure.workspaceChildren,['question-heading','problem-cell','execution-cell']);
+  assert.equal(structure.controls,true);assert.equal(structure.outsidePanels,true);assert.deepEqual(structure.workspaceChildren,['problem-cell','execution-cell']);
   check('toolbar owns school connection/submission/navigation; workspace contains title/problem/code/output only');
+  assert.equal(await page.locator('#problem-cell .cell-heading #question-title').count(),1);assert.equal(await page.locator('#code-heading,#problem-heading,.question-heading').count(),0);
   const geometry=await page.evaluate(()=>{
     const code=document.querySelector('#code-cell').getBoundingClientRect(),output=document.querySelector('#output-cell').getBoundingClientRect();
     const gutter=document.querySelector('.CodeMirror-gutters').getBoundingClientRect(),button=document.querySelector('#run').getBoundingClientRect();
-    return {gap:output.top-code.bottom,alignment:Math.abs(button.x+button.width/2-gutter.x-gutter.width/2),buttonText:document.querySelector('#run').textContent,buttonWidth:button.width};
+    return {gap:output.top-code.bottom,alignment:Math.abs(button.x+button.width/2-gutter.x-gutter.width/2),buttonText:document.querySelector('#run').textContent,buttonWidth:button.width,buttonHeight:button.height,radius:getComputedStyle(document.querySelector('#run')).borderRadius};
   });
-  assert.ok(Math.abs(geometry.gap)<1);assert.ok(geometry.alignment<2,JSON.stringify(geometry));assert.equal(geometry.buttonText,'');assert.ok(geometry.buttonWidth>=44);check('joined code/output cells, icon-only run aligned with line-number gutter');
+  assert.ok(Math.abs(geometry.gap)<1);assert.ok(geometry.alignment<2,JSON.stringify(geometry));assert.equal(geometry.buttonText,'');assert.equal(geometry.buttonWidth,32);assert.equal(geometry.buttonHeight,32);assert.equal(geometry.radius,'50%');check('joined cells with compact circular run icon aligned with the line-number gutter');
   await edit('print("shortcut")');await page.locator('.CodeMirror textarea').press('Meta+Enter');
   await page.waitForFunction(()=>document.querySelector('#run').dataset.state==='run',null,{timeout:125000});
   assert.equal(await page.locator('#output').textContent(),'shortcut\n');check('Command+Enter runs from the code editor');
@@ -71,9 +72,9 @@ try{
     const output=document.querySelector('#output'),node=output.firstChild,range=document.createRange();
     range.setStart(node,output.textContent.lastIndexOf('\n')+1);range.setEnd(node,node.length);
     const prompt=range.getBoundingClientRect(),input=document.querySelector('#input-line').getBoundingClientRect();
-    return {overlap:input.top<prompt.bottom&&input.bottom>prompt.top,after:input.left>=prompt.right-1};
+    return {overlap:input.top<prompt.bottom&&input.bottom>prompt.top,after:input.left>=prompt.right-1,height:input.height,lineHeight:parseFloat(getComputedStyle(output).lineHeight),margin:parseFloat(getComputedStyle(document.querySelector('#input-line')).marginTop),statusClass:document.querySelector('#output-status').className};
   });
-  assert.equal(inline.overlap,true);assert.equal(inline.after,true);check('input box follows the prompt on the same output line');
+  assert.equal(inline.overlap,true);assert.equal(inline.after,true);assert.ok(inline.height<=inline.lineHeight+1);assert.equal(inline.margin,0);assert.equal(inline.statusClass,'sr-only');check('input box follows the prompt on the same output line');
   await page.locator('#input-line').fill('対話');await page.locator('#interactive-input button[type=submit]').click();
   await page.waitForSelector('#interactive-input:not([hidden])');await page.locator('#input-line').fill('9');await page.locator('#interactive-input button[type=submit]').click();
   await page.waitForFunction(()=>document.querySelector('#run').dataset.state==='run');assert.match(await page.locator('#output').textContent(),/対話 10/);check('interactive input in isolated worker');

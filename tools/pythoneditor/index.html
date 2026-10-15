@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex">
   <title>Pythonエディタ｜海城情報科</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="editor.css?v=20261015-errors">
+  <link rel="stylesheet" href="editor.css?v=20261015-compact">
   <link rel="stylesheet" href="../shared/ui-kit.css">
   <link rel="stylesheet" href="../shared/help-panel.css">
   <link rel="stylesheet" href="../htmleditor/vendor/codemirror.min.css">
@@ -19,7 +19,7 @@
   <script defer src="vendor/purify.min.js"></script>
   <script defer src="vendor/katex.min.js"></script>
   <script defer src="vendor/auto-render.min.js"></script>
-  <script type="module" src="editor.mjs?v=20261015-subquestions"></script>
+  <script type="module" src="editor.mjs?v=20261015-compact"></script>
 </head>
 <body>
   <header class="topbar" id="topbar">
@@ -71,22 +71,21 @@
       <p class="nav-note">進捗はこのブラウザでの作業状況です。</p>
     </nav>
     <main id="workspace">
-      <div class="question-heading"><div><p class="eyebrow" id="question-id"></p><h2 id="question-title">Pythonエディタ</h2></div><span id="work-status" class="badge"></span></div>
-      <section class="cell" id="problem-cell" aria-labelledby="problem-heading">
-        <div class="cell-heading"><h3 id="problem-heading"><span>01</span> 問題</h3><span id="version" class="muted"></span></div>
+      <section class="cell" id="problem-cell" aria-labelledby="question-title">
+        <div class="cell-heading"><h2 id="question-title">Pythonエディタ</h2><span class="sr-only" id="question-id"></span><div class="problem-meta"><span id="work-status" class="badge"></span><span id="version" class="muted"></span></div></div>
         <div id="prompt" class="prompt"></div>
       </section>
       <div class="execution-cell">
-      <section class="cell" id="code-cell" aria-labelledby="code-heading">
-        <div class="cell-heading"><h3 id="code-heading"><span>02</span> コード</h3><button id="find-errors" type="button" hidden>エラーを探す</button><button id="error-line-hint" type="button" aria-haspopup="dialog" aria-controls="error-hint-dialog" hidden></button><span id="save-status" role="status" class="muted"></span></div>
+      <section class="cell" id="code-cell" aria-label="Pythonコード">
+        <div class="cell-heading"><span id="result-note" class="muted" hidden></span><button id="find-errors" type="button" hidden>エラーを探す</button><button id="error-line-hint" type="button" aria-haspopup="dialog" aria-controls="error-hint-dialog" hidden></button><span id="save-status" role="status" class="muted"></span></div>
         <div id="observation-note" class="notice" hidden></div>
         <details id="setup"><summary>共通の準備コード</summary><pre id="setup-code" tabindex="0"></pre></details>
         <label class="sr-only" for="code">Pythonコード</label><textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
       </section>
       <section class="cell output-cell" id="output-cell" aria-labelledby="output-heading">
-        <div class="output-gutter"><button id="run" class="primary run-icon" type="button" data-state="run" aria-label="コードを実行（⌘Enter）" title="コードを実行（⌘Enter）"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path class="play-icon" d="M7 4.5v15l12-7.5z" fill="currentColor"/><rect class="stop-icon" x="5" y="5" width="14" height="14" rx="1" fill="currentColor"/></svg></button></div>
+        <div class="output-gutter"><button id="run" class="primary run-icon" type="button" data-state="run" aria-label="コードを実行（⌘Enter）" title="コードを実行（⌘Enter）"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path class="play-icon" d="M7 4.5v15l12-7.5z" fill="currentColor"/><rect class="stop-icon" x="5" y="5" width="14" height="14" rx="1" fill="currentColor"/></svg></button></div>
         <div class="output-body">
-        <div class="output-meta"><h3 id="output-heading" class="sr-only">出力</h3><span id="run-status" class="sr-only" role="status">未実行</span><p id="output-status" class="muted">ここに実行結果が表示されます。</p><span class="key-hint">⌘Enter</span></div>
+        <div class="output-meta"><h3 id="output-heading" class="sr-only">出力</h3><span id="run-status" class="sr-only" role="status">未実行</span><p id="output-status" class="sr-only">ここに実行結果が表示されます。</p><span class="key-hint sr-only">⌘Enter</span></div>
         <div class="output-transcript"><pre id="output" tabindex="0" aria-label="実行出力"></pre><form id="interactive-input" hidden><label class="sr-only" for="input-line">実行中の入力</label><input id="input-line" autocomplete="off" spellcheck="false" placeholder="値を入力してEnter"><button type="submit" aria-label="入力を送る" title="入力を送る（Enter）">↵</button><button id="input-eof" type="button" aria-label="入力を終了（EOF）" title="入力を終了（EOF）"><span aria-hidden="true">⏏</span></button></form></div>
         <details id="stderr-section" hidden><summary>標準エラー・ライブラリの警告</summary><pre id="stderr" tabindex="0"></pre></details>
         <pre id="error" class="error" tabindex="0" hidden></pre><div id="figures"></div>

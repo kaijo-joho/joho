@@ -11,17 +11,18 @@
 /* Code and output share one border; the execution icon occupies the line-number column. */
 .execution-cell{--execution-gutter:calc(52px * var(--ui-k));margin:18px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
 .execution-cell #code-cell,.execution-cell .output-cell{margin:0;border:0;border-radius:0;padding:0}
-#code-cell>.cell-heading{padding:16px 20px 12px;margin:0;border:0}
+#code-cell>.cell-heading{padding:6px 12px;min-height:32px;margin:0;border:0}
 #code-cell>#observation-note,#code-cell>#setup{margin:0 20px 12px}
 #code-cell .CodeMirror{border:0;border-radius:0}
 #code-cell .CodeMirror-gutters{min-width:var(--execution-gutter);border-right:0}
 #code-cell .CodeMirror-linenumber{min-width:calc(var(--execution-gutter) - 12px);padding:0 8px 0 4px}
 #code-cell>textarea{display:block;border:0;border-radius:0;min-height:260px}
 .execution-cell .output-cell{display:grid;grid-template-columns:var(--execution-gutter) minmax(0,1fr);border-top:1px solid var(--line)}
-.output-gutter{display:flex;justify-content:center;align-items:flex-start;background:var(--bg);padding-top:8px}
-.run-icon{display:flex;align-items:center;justify-content:center;padding:0;width:44px;height:44px;min-width:44px}
+.output-gutter{display:flex;justify-content:center;align-items:flex-start;background:var(--bg);padding-top:6px}
+.run-icon{position:relative;display:flex;align-items:center;justify-content:center;padding:0;width:32px;height:32px;min-width:32px;min-height:32px;border-radius:50%}
+.run-icon::before{content:"";position:absolute;inset:-6px;border-radius:50%}
 .run-icon[data-state="run"] .stop-icon,.run-icon[data-state="stop"] .play-icon{display:none}
-.output-body{min-width:0;padding:12px 16px 16px 8px}
+.output-body{min-width:0;padding:8px 16px 10px 8px}
 .output-meta{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
 .key-hint{white-space:nowrap}
 .output-cell #output{padding:0;margin:8px 0;background:transparent;border-radius:0;min-height:40px}
@@ -48,12 +49,12 @@
 .status-body .cloud-controls span,.status-body p{overflow-wrap:anywhere}
 #status-menu.has-alert>summary{color:var(--danger);border-color:var(--danger)}
 #settings-menu .menu-body{max-height:calc(100dvh - 70px);overflow:auto}
-.output-transcript{max-height:480px;overflow:auto;padding:8px 0;line-height:2;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.output-transcript{max-height:480px;overflow:auto;padding:0;line-height:1.7;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .output-cell .output-transcript #output{display:inline;white-space:pre-wrap;padding:0;margin:0;max-height:none;overflow:visible;min-height:0;font:inherit}
 .output-cell .output-transcript #output:empty{display:none}
 .output-transcript #interactive-input{display:inline;padding:0;margin:0;white-space:normal}
-.output-transcript #input-line{display:inline-block;width:22ch;max-width:calc(100% - 7ch);min-width:6ch;vertical-align:middle;margin:2px 5px;padding:6px 8px;font:inherit;line-height:1.5}
-.output-transcript #interactive-input button{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;margin:2px 3px 2px 0;vertical-align:middle}
+.output-transcript #input-line{display:inline-block;width:clamp(6ch,20vw,18ch);max-width:calc(100% - 5ch);min-width:6ch;min-height:0;height:1.6em;vertical-align:middle;margin:0 3px;padding:0 5px;font:inherit;line-height:1.35}
+.output-transcript #interactive-input button{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;min-width:0;min-height:0;padding:0;margin:0 2px 0 0;vertical-align:middle;line-height:1}
 #stdin-dialog>label{display:block;margin:16px 0 6px;font-weight:600}
 #stdin-dialog #stdin{display:block;margin:0 0 12px}
 #stdin-indicator{font-size:.85em;color:var(--muted)}
@@ -75,3 +76,11 @@
 #error-hint-dialog li+li{margin-top:10px}
 #error{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(pointer:coarse){#code-cell .CodeMirror{line-height:max(1.7em,44px)}#code-cell .error-hint-marker{min-height:44px}}
+
+/* Keep the lesson title in the problem frame and the console on its text baseline. */
+#problem-cell>.cell-heading{align-items:flex-start}
+#problem-cell #question-title{flex:1 1 18ch;min-width:0;font-size:1.2em;overflow-wrap:anywhere}
+.problem-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto}
+#save-status{margin-left:auto}
+#result-note{font-size:.8em}
+@media(pointer:coarse){.run-icon{width:44px;height:44px;min-width:44px;min-height:44px}.run-icon::before{inset:0}.output-transcript #interactive-input button{width:44px;height:44px;min-width:44px;min-height:44px}.output-transcript #input-line{height:36px}}

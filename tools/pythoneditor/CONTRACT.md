@@ -51,3 +51,7 @@ GSSのanswerCode、explanation、gradingVersion、scoringIds、sourceFileId、so
 Workerのerrorイベントにdiagnostics（例外名・本文・code/setupの行番号）を付ける。実行スナップショットにだけ保持し、下書き・GSS・正式得点へ入れない。編集したコードや別の問題に古い行警告を付けない。errorTextの項目は維持し、Python標準形式へ整形した例外全文を送信対象とする。stdout/inputEcho/outputTextと学生自身のstderrは変えない。
 
 「エラーを探す」で実行結果の行を示し、警告のクリックで初めて修正を考えるヒントを表示する。ヒントは端末内で完結し、HTMLエディタのヒント利用記録・同意・採点仕様をPython版へ自動で移植しない。AI相談・GSS接続・正式提出の有効化は今回行わない。
+
+## 同日の見出し・コンソール整理
+
+タイトルのDOM位置と入力欄/ボタンの大きさ、通常の実行状態文の視覚表示だけを変更した。questionId/version、下書き、stdout/inputEcho/outputText/errorText、採点・提出契約は保持する。古い出力の注意はコード欄上へ移し、読み上げ用の状態は保持する。実行時間上限の案内をⓘへ表示する。本番接続・GAS/GSS・今年度Colab・教材リンクの変更はない。
