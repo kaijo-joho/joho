@@ -259,7 +259,8 @@
 | `dr22` | `dcl-question-4`・`5`・`7` | RGBの階調・bit数・色数、16進各成分の値 |
 
 - `digital-radix-formulas.js`・`digital-number-formulas.js`・`digital-content-formulas.js`は問題固有の数量と式だけを定義し、既存コアから正解を導く。`digital-basics-lessons.js`は`data-db-formula-question`の`radix`・`number`・`content`で接続先を選ぶ。空欄または`basics`は従来の`dr01`用とする。式の編集、単位・出自・途中計算・答えの判定は既存の共通基盤へ委ね、各ページへ複製しない。
-- 2進数・16進数の文字列を答える変換、補数・浮動小数点のビット列、文字コード・色名、切り捨て自体を操作する有効数字の模型は従来の入力を保つ。`dr02`以降の問題選択は今回の縦並び指定の対象に含めない。既存44問の採点と段階解説を維持する。
+- 2進数・16進数の文字列を答える変換、補数・浮動小数点のビット列、文字コード・色名、切り捨て自体を操作する有効数字の模型は従来の入力を保つ。既存44問の採点と段階解説を維持する。
+- 続くユーザー指定により、`dr02`（9〜11枚目）・`dr11`（10・11枚目）・`dr12`（12枚目）・`dr13`・`dr21`・`dr22`（それぞれ11枚目）の計9か所に残っていた問題選択プルダウンを取り除いた。全66問を共通の`stacked`設定で番号順に縦に並べる。`dr01`の全13問と合わせ、前半7ページは同じ表示方針に統一する。`dr31`以降の音・画像・動画・圧縮教材には同形式のプルダウンはない。解答用の色名選択欄、条件設定とスライド移動の選択欄は用途を保つ。
 - 4,096色の問題は比較式に全体のbit数を手入力し、その結論を後の式へ参照する。導出値12は数量カードにも与条件sourceにも置かない。負の値、0項の省略、分数と負の指数、RGBの8＋8＋8や階調数の積は、数量の出自を保つ別式として受け付ける。答えだけの数値式は立式正解にしない。
 - 対象の計算問題の解説は「解答を見る」で全手順を開き、判定では開かない。スライド移動と式操作、印刷時とJavaScript無効時の本文順は既存基盤を利用する。
 - 検証は`test-digital-radix-formulas.mjs`・`test-digital-number-formulas.mjs`・`test-digital-content-formulas.mjs`と`test-digital-formula-integration.mjs`で行う。ブラウザの指定は`PLAYWRIGHT_MODULE`・`JOHO_TEST_URL`・`JOHO_TEST_BROWSER`を使い、公開内容の一致確認には`--public`を付ける。`dr01`は`test-digital-basics-pages-browser.mjs`を用いる。

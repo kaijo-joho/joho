@@ -175,11 +175,13 @@ try {
       await plain.goto(new URL('dr01.html', base).href); assert.equal(await plain.locator('[data-db-question]:visible').count(), 13); assert.equal(await plain.locator('section[data-lesson-slide]:visible').count(), 10); await noJS.close();
       await page.goto(new URL('dr02.html#headline_11', base).href); await page.locator('body.lesson-slide-ready').waitFor();
       assert.equal(await page.locator('[data-db-question]').count(), 22);
+      assert.equal(await page.locator('[data-db-question-select]').count(), 0);
       for (const group of await page.locator('[data-db-question-group]').all()) {
         const heading = await group.evaluate(el => el.closest('section').querySelector('h2').id);
         await page.evaluate(id => { location.hash = id; }, heading); await group.waitFor({ state: 'visible' });
+        assert.equal(await group.locator('[data-db-question]:visible').count(), await group.locator('[data-db-question]').count());
         for (let i = 0; i < await group.locator('[data-db-question]').count(); i++) {
-          await group.locator('[data-db-question-select]').selectOption(String(i)); const form = group.locator('[data-db-question]').nth(i);
+          const form = group.locator('[data-db-question]').nth(i);
           if (await form.getAttribute('data-db-formula-question') !== null) {
             await correctDraft(await form.getAttribute('data-db-question'));
             await form.locator('[data-formula-judge]').click();

@@ -40,8 +40,6 @@ async function choose(id) {
   await page.evaluate(id => {
     const form = document.querySelector(`[data-db-question="${id}"]`);
     location.hash = form.closest('section[data-lesson-slide]').querySelector('h2').id;
-    const group = form.closest('[data-db-question-group]'), select = group.querySelector('[data-db-question-select]');
-    if (select) { select.value = String([...group.querySelectorAll('[data-db-question]')].indexOf(form)); select.dispatchEvent(new Event('change', { bubbles: true })); }
   }, id);
   await page.locator(`[data-db-question="${id}"]`).waitFor({ state: 'visible' });
 }
@@ -95,6 +93,15 @@ try {
     await page.locator('body.lesson-slide-ready').waitFor();
     assert.equal(await page.locator('section[data-lesson-slide]:not(.lesson-slide--cover)').count(), slides, `${file}: 本文枚数`);
     assert.equal(await page.locator('[data-db-question]').count(), questions, `${file}: 問題数`);
+    assert.equal(await page.locator('[data-db-question-select]').count(), 0, `${file}: 問題選択プルダウンを置かない`);
+    for (const group of await page.locator('[data-db-question-group]').all()) {
+      const heading = await group.evaluate(el => el.closest('section[data-lesson-slide]').querySelector('h2').id);
+      await page.evaluate(id => { location.hash = id; }, heading);
+      await group.waitFor({ state: 'visible' });
+      assert.equal(await group.locator('[data-db-question]:visible').count(), await group.locator('[data-db-question]').count(), `${file}/${heading}: 全問が縦に並ぶ`);
+      const boxes = await group.locator('[data-db-question]').evaluateAll(forms => forms.map(form => { const r = form.getBoundingClientRect(); return { top: r.top, bottom: r.bottom }; }));
+      assert.ok(boxes.every((box, i) => !i || box.top >= boxes[i - 1].bottom), `${file}/${heading}: 問題の順序と間隔`);
+    }
     assert.equal(await page.locator('[data-formula-builder]').count(), builders, `${file}: 共通部品を初期化`);
     const ids = await page.locator('[data-db-formula-question]').evaluateAll(forms => forms.map(form => form.dataset.dbQuestion));
     for (const id of ids) {
@@ -192,5 +199,5 @@ try {
   }
   assert.equal(formulaCount, 22); assert.equal(taskCount, 32); assert.equal(nativeCount, 44);
   assert.deepEqual(errors, []); assert.deepEqual(missing, []);
-  console.log(`digital-formula-integration: ${engine} ${publicCheck ? 'public' : 'local'} OK（式22問32小問、既存44問）`);
+  console.log(`digital-formula-integration: ${engine} ${publicCheck ? 'public' : 'local'} OK（全66問を縦並び、式22問32小問、既存44問）`);
 } finally { await browser.close(); }
