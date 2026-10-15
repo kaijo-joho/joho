@@ -7,7 +7,7 @@ const score = n => n === null || n === undefined ? 'なし' : `${Math.round(n*10
 const date = value => new Date(value).toLocaleString('ja-JP');
 export class CloudPanel {
   constructor(host) {
-    this.host=host;this.bridge=new GoogleBridge(cloudConfig);this.states=new Map();this.ratings=new Map();this.schoolKeys=new Set();this.readRevisions=new Map();this.generation=0;this.working=false;this.opener=null;
+    this.host=host;this.bridge=new GoogleBridge(cloudConfig);this.states=new Map();this.ratings=new Map();this.schoolKeys=new Set();this.readRevisions=new Map();this.codeComparisons=new Map();this.working=false;this.opener=null;
     $('cloud-connect').addEventListener('click',()=>{host.closeMenus();this.connect();});
     $('save-cloud').addEventListener('click',()=>{host.closeMenus();this.save();});
     $('open-cloud').addEventListener('click',()=>{host.closeMenus();this.restore();});
@@ -45,7 +45,7 @@ export class CloudPanel {
       const session=await this.bridge.connect(), catalog=validateCatalog(session.catalog);
       if(!Array.isArray(session.policies))throw new Error('受付設定の形式を確認できません。');
       this.cloud=new CloudWorkspace((...args)=>this.bridge.call(...args),session,localStorage);
-      this.states.clear();this.ratings.clear();this.readRevisions.clear();
+      this.states.clear();this.ratings.clear();this.readRevisions.clear();this.codeComparisons.clear();
       for (const q of catalog.sets.flatMap(set=>set.questions)) this.schoolKeys.add(questionKey(q));
       for (const item of session.ratings || []) {
         const key=ratingKey(item),policy=session.policies.filter(p=>questionKey(p)===key);
@@ -66,6 +66,29 @@ export class CloudPanel {
     if(result.rating)this.ratings.set(questionKey(q),validateRating(result.rating));
   }
   revision(q) {const n=(this.readRevisions.get(q.questionId)||0)+1;this.readRevisions.set(q.questionId,n);return n;}
+  compareCode(q,receipt) {
+    const key=questionKey(q),code=this.host.entry(q).code,previous=this.codeComparisons.get(key);
+    if(previous?.code===code&&previous.hash===receipt.codeHash)return previous;
+    const comparison={code,hash:receipt.codeHash,changed:null};this.codeComparisons.set(key,comparison);
+    codeHash(code).then(hash=>{
+      // A delayed hash must not describe a later edit or a reconnected account.
+      if(this.codeComparisons.get(key)!==comparison)return;
+      comparison.changed=hash!==receipt.codeHash;this.render();
+    }).catch(()=>{});
+    return comparison;
+  }
+  navigationStatus(q) {
+    const policy=this.cloud?.policy(q);
+    if(!this.connected||!policy)return '';
+    const state=this.states.get(questionKey(q)),receipt=state?.receipt;
+    let pending;
+    try{pending=this.cloud.journal.pending({...q,assignmentId:policy.assignmentId},'submit');}catch{return '送信状態を確認';}
+    if(pending&&pending.input.requestId!==receipt?.requestId)return '送信の完了未確認';
+    if(receipt?.state==='pending'||state?.pending?.length)return '採点・保存待ち';
+    if(receipt?.state!=='submitted')return '';
+    if(questionKey(q)!==questionKey(receipt))return '別の版で提出';
+    return this.compareCode(q,receipt).changed?'提出後に変更':'';
+  }
   render() {
     const q=this.host.question(), policy=q&&this.cloud?.policy(q), enabled=this.connected&&!!policy;
     $('cloud-connect').disabled=this.working||!cloudConfig.enabled;
@@ -95,21 +118,14 @@ export class CloudPanel {
     for(const h of state?.history||[]){const li=document.createElement('li');li.textContent=`${date(h.receivedAt)} ／ ${score(h.score)}${h.late?' ／ 締切後':''} ／ ${h.version}`;$('formal-history').append(li);}
     $('formal-history-details').hidden=!state?.history?.length;
     if(state?.pending?.length)$('formal-note').textContent+=` 未完了の受付が${state.pending.length}件あります。「採点・保存を再試行」で続けられます。`;
-    for(const button of $('question-list').querySelectorAll('button')) {
-      let label=button.querySelector('.question-item-formal');
-      if(!label){label=document.createElement('span');label.className='question-item-state question-item-formal';button.querySelector('.question-item-title').parentElement.append(label);}
-      const formal=this.states.get(button.dataset.key)?.receipt;
-      label.textContent=formal?.state==='submitted'?'正式：前回提出済み':formal?.state==='pending'?'正式：処理待ち':'';
-    }
     this.host.renderRatings?.();
-    const generation=++this.generation;
     $('formal-edited').textContent='';
     if(q&&receipt?.state==='submitted') {
-      const entry=this.host.entry(q);
-      codeHash(entry.code).then(hash=>{
-        if(generation!==this.generation)return;
-        $('formal-edited').textContent=questionKey(q)!==questionKey(receipt)?'この結果は別の版での提出です。':hash!==receipt.codeHash?'現在のコードは提出時から変更されています。再提出するまで得点は変わりません。':'現在のコードと提出時のコードは一致しています。';
-      }).catch(()=>{});
+      if(questionKey(q)!==questionKey(receipt))$('formal-edited').textContent='この結果は別の版での提出です。';
+      else {
+        const comparison=this.compareCode(q,receipt);
+        if(comparison.changed!==null)$('formal-edited').textContent=comparison.changed?'現在のコードは提出時から変更されています。再提出するまで得点は変わりません。':'現在のコードと提出時のコードは一致しています。';
+      }
     }
   }
   async refreshCurrent() {

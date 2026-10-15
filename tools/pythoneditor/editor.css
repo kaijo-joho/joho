@@ -87,7 +87,11 @@
 /* Indentation guides occupy leading whitespace on the first visual row only. */
 #code-cell .CodeMirror pre.cm-indent-guides::before{content:"";position:absolute;left:4px;top:0;width:var(--indent-guide-width);height:1lh;max-height:100%;pointer-events:none;background-image:repeating-linear-gradient(to right,color-mix(in srgb,var(--text) 14%,transparent) 0,color-mix(in srgb,var(--text) 14%,transparent) 1px,transparent 1px,transparent var(--indent-guide-step))}
 
-/* Major questions group their subquestions; ratings remain separate from local work state. */
+/* Keep picker layers above the code editor and within the sidebar width. */
+#question-nav{z-index:1}#workspace{position:relative;z-index:0}
+@media(max-width:620px){#question-nav{position:relative}}
+
+/* Major questions group their subquestions; rated work needs only exceptional status. */
 #question-list .question-group{margin:16px 0 0}#question-list .question-group:first-child{margin-top:0}
 #question-list .question-group>h3{font-size:.95em;margin:0 0 7px;overflow-wrap:anywhere}
 #question-list .question-group>ul{list-style:none;margin:0;padding-left:10px}#question-list .ungrouped>ul{padding-left:0}

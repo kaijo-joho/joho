@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex">
   <title>Pythonエディタ｜海城情報科</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="editor.css?v=20261015-navigation">
+  <link rel="stylesheet" href="editor.css?v=20261015-menu-polish">
   <link rel="stylesheet" href="../shared/ui-kit.css">
   <link rel="stylesheet" href="../shared/help-panel.css">
   <link rel="stylesheet" href="../htmleditor/vendor/codemirror.min.css">
@@ -19,7 +19,7 @@
   <script defer src="vendor/purify.min.js"></script>
   <script defer src="vendor/katex.min.js"></script>
   <script defer src="vendor/auto-render.min.js"></script>
-  <script type="module" src="editor.mjs?v=20261015-navigation"></script>
+  <script type="module" src="editor.mjs?v=20261015-menu-polish"></script>
 </head>
 <body>
   <header class="topbar" id="topbar">
@@ -29,10 +29,10 @@
       <div class="menu-body">
         <button id="save-browser" type="button">ブラウザに保存</button>
         <button id="save-file" type="button">ファイルに保存…</button>
-        <button id="save-cloud" type="button" disabled>GSSに下書き保存</button>
+        <button id="save-cloud" type="button" disabled>クラウドに下書き保存</button>
         <hr><button id="restore-browser" type="button">ブラウザから開く…</button>
         <button id="open-file" type="button">ファイルから開く…</button>
-        <button id="open-cloud" type="button" disabled>GSSから開く…</button>
+        <button id="open-cloud" type="button" disabled>クラウドから開く…</button>
       </div>
     </details>
     <div class="toolbar-group question-actions" aria-label="問題の移動">
@@ -106,7 +106,7 @@
   <dialog id="submit-dialog"><h2>正式提出の確認</h2><p id="submit-description"></p><p id="submit-run-note" class="advice"></p><pre id="submit-preview"></pre><button id="submit-confirm" type="button" class="primary">この全文を正式提出</button><button type="button" data-close>キャンセル</button></dialog>
   <aside id="operation-help" hidden>
     <section data-help-topic="run" data-help-title="実行する"><h3>実行する</h3><ol><li>問題を選び、コードを入力します。</li><li>出力セル左の▶または⌘Enterで実行します。</li><li>input()で止まったら出力欄へ入力し、Enterで続けます。</li></ol><details><summary>停止と再実行</summary><p>実行中は同じ位置の■で計算を終了します。コードは残ります。再実行は共通の準備コードと現在の問題を新しい変数で実行します。</p></details><details><summary>入力を待っているとき</summary><p>Google Chromeでは、出力欄から1回ずつ入力を続けられます。⏏は入力終了（EOF）を渡します。逐次入力が使えない環境や、同じ値で繰り返し確認する場合は、設定の「確認用の入力値」を使用できます。</p></details></section>
-    <section data-help-topic="save" data-help-title="保存と復元"><h3>保存と復元</h3><p>入力したコードを問題・版ごとにブラウザへ自動保存します。問題を切り替えても保持します。</p><p>ファイルメニューから明示保存と復元ができます。接続・提出・前後移動は上部ツールバー、正式採点結果と提出履歴はⓘで確認します。自動保存と明示保存を別に保持します。ファイルにはコードと入力値を保存します。</p><details><summary>別の端末で続ける</summary><p>学校アカウントに接続後、ファイルメニューの「GSSに下書き保存」「GSSから開く」を使用します。貸出機へ移る前・作業終了時にGSSへ保存し、自端末へ戻ったら続きを選んで取り込みます。競合時は両方を保護してから選択します。本番接続の設定が済むまではファイル保存を使えます。</p></details><details><summary>正式提出と結果照会</summary><p>コード全文・入力値・実行の表示テキスト・標準エラーを送ります。採点と結果・履歴の保存が完了してから提出済みになります。応答を確認できない場合は「結果を照会」し、必要なら同じ送信を再試行します。締切はサーバー受付時刻で判定し、問題ごとの締切内最高点を採用します。</p></details></section>
+    <section data-help-topic="save" data-help-title="保存と復元"><h3>保存と復元</h3><p>入力したコードを問題・版ごとにブラウザへ自動保存します。問題を切り替えても保持します。</p><p>ファイルメニューから明示保存と復元ができます。接続・提出・前後移動は上部ツールバー、正式採点結果と提出履歴はⓘで確認します。自動保存と明示保存を別に保持します。ファイルにはコードと入力値を保存します。</p><details><summary>別の端末で続ける</summary><p>学校アカウントに接続後、ファイルメニューの「クラウドに下書き保存」「クラウドから開く」を使用します。貸出機へ移る前・作業終了時にGSSへ保存し、自端末へ戻ったら続きを選んで取り込みます。競合時は両方を保護してから選択します。本番接続の設定が済むまではファイル保存を使えます。</p></details><details><summary>正式提出と結果照会</summary><p>コード全文・入力値・実行の表示テキスト・標準エラーを送ります。採点と結果・履歴の保存が完了してから提出済みになります。応答を確認できない場合は「結果を照会」し、必要なら同じ送信を再試行します。締切はサーバー受付時刻で判定し、問題ごとの締切内最高点を採用します。</p></details></section>
     <section data-help-topic="errors" data-help-title="エラーを調べる"><h3>エラーを調べる</h3><p>まずエラー末尾の種類・説明と行番号を読んで見直します。必要なときにコード・出力欄の下にある「エラーを探す」を押すと、該当行の行番号に⚠が付きます。⚠をクリックすると修正を考えるヒントを開きます。編集すると印は消えます。</p><p>エラーの種類・本文・コードの呼び出し履歴をPython標準の形式で表示し、エディタとPyodideの内部実行行は省きます。ヒントは端末内で表示します。AI相談へのコード・エラー送信は接続前です。</p></section>
     <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>Pythonエディタ 0.1 BETA・独立試作。海城中学高等学校 情報科 © 2026。</p><p>推奨環境：学校MacのGoogle Chrome。PythonはPyodideによりブラウザ内で実行します。GSS下書き保存・正式提出で明示したテキストを学校のGASへ送ります。Pythonと数値計算のライブラリはjsDelivrから取得し、日本語化パッケージとフォントは同梱しています。</p><p>ブラウザ保存は同じ端末・同じブラウザ内の控えです。正式提出・GSS保存とは別です。今年度のColab・従来の提出方法は引き続き使用できます。</p></section>
   </aside>

@@ -77,7 +77,17 @@ try {
   await submit(page);assert.match(await page.locator('#formal-status').textContent(),/提出済み/);assert.match(await page.locator('#formal-score').textContent(),/100 点/);check('full-code text submission, server grading, persisted result/history and official display');
   assert.match(await page.locator('#set-current-rating').textContent(),/★1\/2/);assert.equal(await page.locator('#question-list [data-question="q1"] .question-item-rating').textContent(),'★');assert.doesNotMatch(await page.locator('#rating-note').textContent(),/表示例/);check('server-persisted best result updates subquestion stars and set total without demo values');
   releaseStatus();await statusDone;await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));assert.match(await page.locator('#formal-status').textContent(),/提出済み/);check('late status lookup cannot downgrade a completed submission');
-  await edit(page,'# start\nx = 3\nprint("value:", x)\n# end');await page.waitForFunction(()=>document.querySelector('#formal-edited').textContent.includes('変更'));check('editing after submission keeps official result and identifies changed code');
+  const q1=page.locator('#question-list [data-question="q1"]');
+  await page.waitForFunction(()=>document.querySelector('#formal-edited').textContent.includes('一致'));
+  assert.equal(await q1.locator('.question-item-state:not(.question-item-formal)').isVisible(),false);assert.equal(await q1.locator('.question-item-formal').isVisible(),false);
+  await edit(page,'# start\nx = 3\nprint("value:", x)\n# end');await page.waitForFunction(()=>document.querySelector('#formal-edited').textContent.includes('変更'));
+  assert.equal(await q1.locator('.question-item-formal').textContent(),'提出後に変更');assert.equal(await q1.locator('.question-item-rating').textContent(),'★');
+  await page.locator('#question-list button').nth(1).click();assert.equal(await q1.locator('.question-item-formal').textContent(),'提出後に変更');await page.locator('#question-list button').nth(0).click();
+  // Two immediate edits exercise stale hash completion without changing the official result.
+  await page.evaluate(()=>{const cm=document.querySelector('.CodeMirror').CodeMirror;cm.setValue('rapid changed draft');cm.setValue('# start\nx = 2\nprint("value:", x)\n# end');});
+  await page.waitForFunction(()=>document.querySelector('#formal-edited').textContent.includes('一致'));assert.equal(await q1.locator('.question-item-formal').isVisible(),false);
+  await edit(page,'# start\nx = 3\nprint("value:", x)\n# end');await page.waitForFunction(()=>document.querySelector('#formal-edited').textContent.includes('変更'));
+  check('rated buttons omit redundant states; changed code survives switching and stale hashes cannot label reverted code');
   let latest=f.dispatch('getDraft',{questionId:'q1',version:'v1'}).draft;
   f.dispatch('saveDraft',f.draft('loan continuation',latest.revision));
   await save(page);await page.waitForSelector('#cloud-conflict[open]');assert.equal(await page.locator('#conflict-preview').textContent(),'loan continuation');
@@ -96,10 +106,10 @@ try {
   await edit(page,'edited during disconnect');const callsBefore=backendCalls.filter(c=>c.action==='saveDraft').at(-1).input;
   await save(page);const callsAfter=backendCalls.filter(c=>c.action==='saveDraft').at(-1).input;assert.deepEqual(callsAfter,callsBefore);assert.equal(await code(page),'edited during disconnect');assert.match(await page.locator('#notice').textContent(),/送信開始時/);check('lost draft response retries identical request/code while keeping newer in-browser edits');
   await edit(page,'# start\nx = 2\nprint("value:", x)\n# end');loseAction='submit';const resultsBefore=f.sheets.Python提出結果.values.length;
-  await submit(page);assert.match(await page.locator('#notice').textContent(),/応答/);await statusAction(page,'formal-query');await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);
+  await submit(page);assert.match(await page.locator('#notice').textContent(),/応答/);assert.equal(await q1.locator('.question-item-formal').textContent(),'送信の完了未確認');await statusAction(page,'formal-query');await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);
   assert.match(await page.locator('#formal-status').textContent(),/提出済み/);assert.equal(f.sheets.Python提出結果.values.length,resultsBefore+1);check('lost submission response is recovered by request ID without a duplicate result');
   f.sheets.Python提出結果.beforeWrite=()=>{throw new Error('temporary failure');};await submit(page);
-  await statusAction(page,'formal-query');await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);assert.match(await page.locator('#formal-status').textContent(),/結果保存待ち/);
+  await statusAction(page,'formal-query');await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);assert.match(await page.locator('#formal-status').textContent(),/結果保存待ち/);assert.equal(await q1.locator('.question-item-formal').textContent(),'採点・保存待ち');assert.equal(await q1.locator('.question-item-rating').textContent(),'★');
   f.sheets.Python提出結果.beforeWrite=null;setClock('2026-10-14T02:00:00.000Z');await statusAction(page,'formal-resume');await page.waitForFunction(()=>!document.querySelector('#cloud-connect').disabled);
   assert.match(await page.locator('#formal-status').textContent(),/提出済み/);assert.ok(f.dispatch('questionStatus',{questionId:'q1',version:'v1',assignmentId:'exercise1'}).receipt.receivedAt<T0.slice(0,11)+'01:00:00.000Z');check('result write failure remains pending; retry after deadline uses original server receipt');
   loginExpired=true;await edit(page,'saved after reauthentication');await save(page);assert.match(await page.locator('#notice').textContent(),/再接続/);assert.equal(await code(page),'saved after reauthentication');

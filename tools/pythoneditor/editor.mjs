@@ -4,7 +4,7 @@ import { DraftStore, exportDraft } from './storage.mjs';
 import { PythonRunner } from './runner.mjs?v=20261015-errors';
 import { errorHints } from './diagnostics.mjs?v=20261015-errors';
 import { renderPrompt } from './prompt.mjs';
-import { CloudPanel } from './cloud-ui.mjs?v=20261015-navigation';
+import { CloudPanel } from './cloud-ui.mjs?v=20261015-menu-polish';
 import { cloudConfig } from './cloud-config.mjs';
 import { questionGroups, setRating, renderRating } from './navigation.mjs';
 import { demoRatings } from './demo-ratings.mjs';
@@ -136,7 +136,12 @@ function updateNavigationRatings() {
   if (!catalog) return;
   for (const button of $('question-list').querySelectorAll('button[data-key]')) {
     const q=selectedSet?.questions.find(q=>questionKey(q)===button.dataset.key);
-    if (q) renderRating(button.querySelector('.question-item-rating'),ratingFor(q));
+    if (!q) continue;
+    const rating=ratingFor(q);
+    renderRating(button.querySelector('.question-item-rating'),rating);
+    button.querySelector('.question-item-state').hidden=q.kind!=='observation'&&rating?.earned!=null&&rating.total>0;
+    const hint=button.querySelector('.question-item-formal');
+    hint.textContent=cloudPanel?.navigationStatus(q)||'';hint.hidden=!hint.textContent;
   }
   for (const button of $('set-menu').querySelectorAll('button[data-set]')) {
     const set=catalog.sets.find(set=>set.setId===button.dataset.set);
@@ -171,7 +176,7 @@ function closeSetPicker(focus=false) {
 function placeSetPicker() {
   if($('set-menu').hidden)return;
   const box=$('set-trigger').getBoundingClientRect(),menu=$('set-menu');
-  const width=Math.min(Math.max(box.width,300),innerWidth-24),below=innerHeight-box.bottom-12,above=box.top-12;
+  const width=Math.min(box.width,innerWidth-24),below=innerHeight-box.bottom-12,above=box.top-12;
   const up=below<150&&above>below,height=Math.min(360,Math.max(80,up?above:below));
   menu.style.width=`${width}px`;menu.style.maxHeight=`${height}px`;
   menu.style.left=`${Math.max(12,Math.min(box.left,innerWidth-width-12))}px`;
@@ -190,10 +195,11 @@ function selectSet(set, selected, preserveCurrent=false) {
     for (const item of group.items) {
       const q=item.question,row=document.createElement('li'),button=document.createElement('button');
       button.type='button';button.className='question-button';button.dataset.question=q.questionId;button.dataset.key=questionKey(q);
-      const labels=document.createElement('span'),title=document.createElement('span'),state=document.createElement('span'),rating=document.createElement('span');
+      const labels=document.createElement('span'),title=document.createElement('span'),state=document.createElement('span'),rating=document.createElement('span'),hint=document.createElement('span');
       labels.className='question-labels';title.className='question-item-title';title.textContent=item.title;
       state.className='question-item-state';state.textContent=stateLabel(q);rating.className='question-item-rating';
-      labels.append(title,state,rating);button.append(labels);row.append(button);list.append(row);
+      hint.className='question-item-state question-item-formal';hint.hidden=true;
+      labels.append(title,state,rating,hint);button.append(labels);row.append(button);list.append(row);
       button.addEventListener('click',()=>{pendingRequested=false;selectQuestion(q);});
     }
     li.append(list);$('question-list').append(li);

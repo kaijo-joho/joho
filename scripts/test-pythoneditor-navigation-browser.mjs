@@ -19,7 +19,10 @@ try{
   assert.deepEqual(await page.locator('.question-item-title').allTextContents(),['(1) 気温を2つの場合に分ける','(2) 気温を3つの場合に分ける','表の作成と表示','(1) 必要な箱の数','(2) 入力を変えて確認']);
   assert.equal(await page.locator('.question-item-rating').first().textContent(),'★★★★☆☆☆');
   assert.match(await page.locator('#set-current-rating').textContent(),/★18\/32/);assert.match(await page.locator('#rating-note').textContent(),/表示例/);
-  check('major headings, subquestion buttons without sequence numbers, 4/7 stars and 18/32 set total');
+  assert.equal(await page.locator('#question-list button').first().locator('.question-item-state:not(.question-item-formal)').isVisible(),false);
+  assert.equal(await page.locator('#question-list button').last().locator('.question-item-state:not(.question-item-formal)').textContent(),'確認問題');
+  assert.equal(await page.locator('#save-cloud').textContent(),'クラウドに下書き保存');assert.equal(await page.locator('#open-cloud').textContent(),'クラウドから開く…');
+  check('major headings, star-only rated buttons, confirmation state and cloud file-menu labels');
   await page.locator('#set-trigger').press('ArrowDown');assert.equal(await page.locator('#set-menu').isVisible(),true);assert.equal(await page.locator('#set-menu [aria-selected=true]').evaluate(el=>el===document.activeElement),true);
   await page.keyboard.press('Home');await page.keyboard.press('Enter');assert.equal(await page.locator('#set-trigger').getAttribute('data-set'),'demo');
   assert.equal(await page.locator('#set-trigger').evaluate(el=>el===document.activeElement),true);assert.equal(await page.locator('#set-menu').isVisible(),false);
@@ -35,12 +38,19 @@ try{
   for(const width of [1440,720,390])for(const theme of ['auto','light','dark'])for(const size of ['standard','large','largest']){
     await page.setViewportSize({width,height:1000});await page.evaluate(({theme,size})=>{for(const[id,value]of[['theme',theme],['text-size',size]]){const el=document.getElementById(id);el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));}},{theme,size});
     await page.locator('#set-trigger').click();
-    const row=await page.evaluate(()=>{const b=document.querySelector('#set-menu').getBoundingClientRect();return {overflow:document.documentElement.scrollWidth>innerWidth+1,left:b.left,right:b.right,top:b.top,bottom:b.bottom,width:innerWidth,height:innerHeight};});
+    const row=await page.evaluate(()=>{
+      const menu=document.querySelector('#set-menu'),b=menu.getBoundingClientRect(),trigger=document.querySelector('#set-trigger').getBoundingClientRect(),nav=document.querySelector('#question-nav').getBoundingClientRect(),code=document.querySelector('#code-cell').getBoundingClientRect();
+      const clear=[.05,.5,.95].every(x=>[.05,.5,.95].every(y=>menu.contains(document.elementFromPoint(b.left+b.width*x,b.top+b.height*y))));
+      return {overflow:document.documentElement.scrollWidth>innerWidth+1,left:b.left,right:b.right,top:b.top,bottom:b.bottom,width:innerWidth,height:innerHeight,menuWidth:b.width,triggerWidth:trigger.width,navLeft:nav.left,navRight:nav.right,codeLeft:code.left,clear};
+    });
     assert.equal(row.overflow,false,JSON.stringify(row));assert.ok(row.left>=0&&row.right<=width+1&&row.top>=0&&row.bottom<=1001,JSON.stringify(row));
+    assert.ok(Math.abs(row.menuWidth-row.triggerWidth)<1&&row.left>=row.navLeft&&row.right<=row.navRight,JSON.stringify(row));
+    if(width>620)assert.ok(row.right<row.codeLeft,JSON.stringify(row));
+    assert.equal(row.clear,true,JSON.stringify(row));
     assert.match(await page.locator('#set-menu [data-set="demo-subquestions"] .set-rating').textContent(),/18\/32/);
     await page.keyboard.press('Escape');report.layouts.push({width,theme,size,...row});
   }
-  check('27 viewport/theme/text-size conditions keep ratings and popup inside the viewport');
+  check('27 viewport/theme/text-size conditions keep the picker within the sidebar width and above all editor layers');
   await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>{for(const[id,value]of[['theme','dark'],['text-size','standard']]){const el=document.getElementById(id);el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));}scrollTo(0,0);});
   await page.locator('#question-list button').nth(2).click();await page.screenshot({path:evidence+'/grouped.png',fullPage:true});
   await page.locator('#set-trigger').click();await page.screenshot({path:evidence+'/set-picker.png',fullPage:true});
