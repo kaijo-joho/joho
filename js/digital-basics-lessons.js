@@ -40,6 +40,7 @@
     }
     input.addEventListener('input', render); interval.addEventListener('change', render);
     one(root, '[data-db-length-reset]').addEventListener('click', () => { input.value = '5.3'; interval.value = '1'; render(); });
+    root.closest('details')?.addEventListener('toggle', resize);
     enhance(root); render();
   }
   function setupBits(root) {
@@ -62,8 +63,11 @@
     }
     function build() {
       bits = Array(Number(count.value)).fill(0);
+      const output = one(root, '[data-db-bit-count-output]');
+      if (output) output.textContent = `${bits.length}bit`;
+      count.setAttribute('aria-valuetext', `${bits.length}bit、${Core.combinations(bits.length)}通り`);
       row.replaceChildren(...bits.map((_, i) => {
-        const button = node('button', '0', 'db-bit'); button.type = 'button';
+        const button = node('button', '0', 'db-bit'); button.type = 'button'; button.tabIndex = 0;
         button.addEventListener('click', () => { bits[i] = 1 - bits[i]; update(); }); return button;
       }));
       patterns.replaceChildren(...Core.binaryPatterns(bits.length).map(pattern => {
@@ -82,7 +86,7 @@
       const target = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (index + (['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 1) + buttons.length) % buttons.length;
       buttons[target].click(); buttons[target].focus();
     });
-    count.addEventListener('change', build);
+    count.addEventListener('input', build);
     one(root, '[data-db-bits-reset]').addEventListener('click', () => { bits.fill(0); update(); });
     enhance(root); build();
   }
@@ -142,8 +146,38 @@
     reset.addEventListener('click', () => { count = 1; render(); });
     render();
   }
+  function setupFormulaQuestion(form) {
+    const Formulas = window.DigitalBasicsFormulas, Builder = window.LessonFormulaBuilder;
+    const host = one(form, '[data-db-formula-builder]');
+    if (!host) return;
+    if (!Formulas || !Builder) {
+      host.textContent = '式の編集部品を読み込めませんでした。再読み込みしてください。問題文と解答はそのまま読めます。';
+      host.hidden = false;
+      return;
+    }
+    const definition = Formulas.define(form.dataset.dbQuestion);
+    const feedback = one(form, '[data-db-feedback]');
+    const builder = Builder.mount(host, definition, {
+      onJudge({ rowId, taskId, intermediate, draft }) {
+        const judgment = intermediate
+          ? Formulas.gradeRow(definition, draft, rowId)
+          : Formulas.grade(definition, draft, { taskId });
+        builder.setFeedback(judgment);
+        resize();
+      }
+    });
+    form.addEventListener('submit', event => { event.preventDefault(); });
+    form.addEventListener('reset', event => {
+      event.preventDefault();
+      builder.reset(definition);
+      feedback.textContent = '';
+      resize();
+    });
+    one(form, 'details')?.addEventListener('toggle', resize);
+  }
   function setupQuestionGroup(root) {
     const forms = all(root, '[data-db-question]'), select = one(root, '[data-db-question-select]');
+    const stacked = root.dataset.dbQuestionLayout === 'stacked';
     const Radix = window.DigitalRadixCore, Integer = window.DigitalIntegerCore, Real = window.DigitalRealCore, Text = window.DigitalTextCore, Color = window.DigitalColorCore;
     const bitParser = Real || Integer;
     if (forms.some(form => form.hasAttribute('data-db-answer-base')) && !Radix) return;
@@ -151,9 +185,10 @@
     if (forms.some(form => one(form, '[data-db-answer-part="decimal"]')) && !Real) return;
     if (forms.some(form => one(form, '[data-db-answer-part="bytes"]')) && !Text) return;
     if (forms.some(form => one(form, '[data-db-answer-part="color"]')) && !Color) return;
-    select.replaceChildren(...forms.map((form, index) => { const option = node('option', `${index + 1} / ${forms.length}　${form.dataset.dbQuestionTitle}`); option.value = index; return option; }));
-    function show() { forms.forEach((form, i) => { form.hidden = i !== Number(select.value); }); resize(); }
+    if (select) select.replaceChildren(...forms.map((form, index) => { const option = node('option', `${index + 1} / ${forms.length}　${form.dataset.dbQuestionTitle}`); option.value = index; return option; }));
+    function show() { forms.forEach((form, i) => { form.hidden = !stacked && i !== Number(select?.value || 0); }); resize(); }
     forms.forEach(form => {
+      if (form.hasAttribute('data-db-formula-question')) { setupFormulaQuestion(form); return; }
       const input = one(form, '[data-db-answer]'), feedback = one(form, '[data-db-feedback]');
       const parts = all(form, '[data-db-answer-part]');
       const answerBase = Number(form.dataset.dbAnswerBase);
@@ -204,7 +239,7 @@
       form.addEventListener('input', clear); form.addEventListener('reset', clear);
       all(form, '.db-solution').forEach(setupSolution);
     });
-    select.addEventListener('change', show); enhance(root); show();
+    select?.addEventListener('change', show); enhance(root); show();
   }
   function init() {
     for (const [selector, setup] of [

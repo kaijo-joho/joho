@@ -8,8 +8,13 @@
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
   <link rel="stylesheet" href="./css/digital-basics.css">
+  <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/digital-basics-core.js"></script>
+  <script defer src="./js/lesson-formula-core.js"></script>
+  <script defer src="./js/lesson-formula-grader.js"></script>
+  <script defer src="./js/lesson-formula-builder.js"></script>
+  <script defer src="./js/digital-basics-formulas.js"></script>
   <script defer src="./js/digital-basics-lessons.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -20,7 +25,7 @@
       <p class="db-lead">長さや温度のように連続的に変化する量と、ものの個数のようにとびとびの値をとる量があります。</p>
       <div class="db-two">
         <div class="db-demo"><h3>連続値（連続量）</h3><p>長さ・重さ・体積・温度など。2つの値の間にも、さらに細かな値があります。</p>
-          <figure class="db-figure"><svg class="db-svg" viewBox="0 0 440 145" role="img" aria-labelledby="db-cont-title db-cont-desc"><title id="db-cont-title">長さの連続的な変化</title><desc id="db-cont-desc">5cmと6cmの間には5.3cmや5.35cmなど、さらに細かな値があります。</desc><path class="db-axis" d="M35 90H405 M35 80V100 M405 80V100"/><path class="db-analog" stroke-width="5" d="M35 65H146"/><circle class="db-analog" cx="146" cy="65" r="6"/><text x="35" y="128">5 cm</text><text x="352" y="128">6 cm</text><text x="113" y="36">5.3 cm</text><path class="db-grid-line" d="M146 78V102"/></svg><figcaption class="db-caption">測定では、必要な桁まで読み取って記録します。</figcaption></figure>
+          <figure class="db-figure"><svg class="db-svg db-continuous-svg" viewBox="0 0 440 165" role="img" aria-labelledby="db-cont-title db-cont-desc"><title id="db-cont-title">長さの連続的な変化</title><desc id="db-cont-desc">5cmと6cmの間の長さを、5.36382958…cmのように、さらに細かな小数で表せます。5cmと6cmの表示は、それぞれの目盛りの真下にあります。</desc><path class="db-axis" d="M35 100H405 M35 90V110 M405 90V110"/><path class="db-analog" stroke-width="5" d="M35 70H169.6169446"/><circle class="db-analog" cx="169.6169446" cy="70" r="6"/><text x="35" y="150" text-anchor="middle">5 cm</text><text x="405" y="150" text-anchor="middle">6 cm</text><text x="169.6169446" y="38" text-anchor="middle">5.36382958… cm</text><path class="db-grid-line" d="M169.6169446 86V114"/></svg><figcaption class="db-caption">小数の桁をさらに細かく考えられます。測定では、必要な桁まで読み取って記録します。</figcaption></figure>
         </div>
         <div class="db-demo"><h3>離散値（離散量）</h3><p>ものの個数・サイコロの目など。決まった、とびとびの値をとります。</p>
           <figure class="db-figure"><svg class="db-svg" viewBox="0 0 440 145" role="img" aria-labelledby="db-disc-title db-disc-desc"><title id="db-disc-title">個数のとびとびの変化</title><desc id="db-disc-desc">玉の個数は1個、2個、3個と数えます。玉を分けずに数えるとき、1個と2個の間の個数はありません。</desc><g class="db-digital"><circle cx="60" cy="62" r="12"/><circle cx="176" cy="62" r="12"/><circle cx="206" cy="62" r="12"/><circle cx="316" cy="62" r="12"/><circle cx="346" cy="62" r="12"/><circle cx="376" cy="62" r="12"/></g><text x="40" y="120">1個</text><text x="170" y="120">2個</text><text x="325" y="120">3個</text></svg><figcaption class="db-caption">玉を分けずに、個数を数える例です。</figcaption></figure>
@@ -33,6 +38,28 @@
     <article>
       <h2 id="headline_2">(2) アナログとデジタル</h2>
       <p><strong>アナログ</strong>は連続的な量で情報を表現する方法、<strong>デジタル</strong>はとびとびの値で情報を表現する方法です。連続量をデジタルで扱うときは、一定の間隔で区切った値にそろえます。</p>
+      <div class="db-two db-instrument-comparison">
+        <div class="db-demo"><h3>アナログの表現</h3>
+          <figure class="db-figure"><svg class="db-svg db-instrument-svg" viewBox="0 0 520 210" role="img" aria-labelledby="db-analog-instruments-title db-analog-instruments-desc"><title id="db-analog-instruments-title">針式時計と液柱式体温計</title><desc id="db-analog-instruments-desc">時計は針の角度で10時10分ごろを、体温計は液面の高さで36度と37度の間の温度を表しています。</desc>
+            <circle class="db-neutral" cx="110" cy="82" r="62"/><path class="db-axis" d="M110.00 30.00L110.00 24.00 M136.00 36.97L139.00 31.77 M155.03 56.00L160.23 53.00 M162.00 82.00L168.00 82.00 M155.03 108.00L160.23 111.00 M136.00 127.03L139.00 132.23 M110.00 134.00L110.00 140.00 M84.00 127.03L81.00 132.23 M64.97 108.00L59.77 111.00 M58.00 82.00L52.00 82.00 M64.97 56.00L59.77 53.00 M84.00 36.97L81.00 31.77"/>
+            <g class="db-instrument-scale" text-anchor="middle"><text x="110" y="43">12</text><text x="153" y="88">3</text><text x="110" y="130">6</text><text x="67" y="88">9</text></g>
+            <path class="db-analog db-instrument-hand" d="M110 82L86.25 65.37 M110 82L148.11 60"/><circle class="db-analog" cx="110" cy="82" r="4"/>
+            <rect class="db-neutral" x="334" y="25" width="18" height="108" rx="9"/><circle class="db-neutral" cx="343" cy="137" r="18"/>
+            <path class="db-analog db-instrument-fluid" d="M343 137V102"/><circle class="db-analog" cx="343" cy="137" r="11"/>
+            <path class="db-axis" d="M361 120h14 M361 108h7 M361 96h14 M361 84h7 M361 72h14 M361 60h7 M361 48h14 M361 36h7"/>
+            <g class="db-instrument-scale"><text x="382" y="125">35</text><text x="382" y="101">37</text><text x="382" y="77">39</text><text x="382" y="53">41</text><text x="382" y="24">℃</text></g>
+            <g text-anchor="middle"><text x="110" y="184">時計</text><text x="355" y="184">体温計</text></g>
+          </svg><figcaption class="db-caption">針の角度や液面の高さなど、連続的な量で表します。</figcaption></figure>
+        </div>
+        <div class="db-demo"><h3>デジタルの表現</h3>
+          <figure class="db-figure"><svg class="db-svg db-instrument-svg" viewBox="0 0 520 210" role="img" aria-labelledby="db-digital-instruments-title db-digital-instruments-desc"><title id="db-digital-instruments-title">数字を表示する時計と体温計</title><desc id="db-digital-instruments-desc">時計は10時10分、体温計は36.5度と数字で表示します。時計は1分、体温計は0.1度ごとの値で表す例です。</desc>
+            <rect class="db-neutral" x="20" y="42" width="180" height="80" rx="12"/><text class="db-clock-digits" x="110" y="96" text-anchor="middle">10:10</text>
+            <path class="db-axis db-instrument-probe" d="M233 99H264"/><rect class="db-neutral" x="257" y="43" width="230" height="100" rx="24"/><rect class="db-neutral" x="286" y="65" width="174" height="53" rx="6"/><text class="db-temperature-digits" x="373" y="102" text-anchor="middle">36.5 ℃</text>
+            <g text-anchor="middle"><text x="110" y="184">時計</text><text x="372" y="184">体温計</text></g>
+          </svg><figcaption class="db-caption">時計は1分、体温計は0.1℃ごとなど、一定の間隔に区切った値で表します。</figcaption></figure>
+        </div>
+      </div>
+      <details class="dr-reveal-item db-length-details"><summary>長さをそろえる間隔を変えてみる</summary>
       <div class="db-demo" data-db-length>
         <div class="db-controls db-enhancement" hidden data-lesson-slide-navigation-lock>
           <label class="db-range-label"><span>元の長さ：<output data-db-length-value>5.3 cm</output></span><input type="range" min="0" max="10" step="0.01" value="5.3" data-db-length-input aria-label="元の長さ" tabindex="0"></label>
@@ -48,6 +75,7 @@
         <p class="db-hint">この図では最も近い値にそろえ、ちょうど中間なら大きい側の値にします。間隔を細かくしたときの変化を確かめましょう。</p>
         <p class="db-hint">操作用スライダーは0.01cm刻みです。コンピュータ上の図は、連続量を説明するためのモデルです。</p>
       </div>
+      </details>
     </article>
   </section>
 
@@ -55,6 +83,11 @@
     <article>
       <h2 id="headline_3">(3) デジタル情報の特徴</h2>
       <p class="db-lead">コンピュータでは、電気信号の低い状態・高い状態を<strong>0と1</strong>に対応させて情報を扱います。文字・音・画像なども、0と1の組合せで表せます。</p>
+      <div class="db-two db-wave-comparison">
+        <div class="db-demo"><h3>アナログ波形</h3><figure class="db-figure"><svg class="db-svg db-wave-svg" viewBox="0 0 460 190" role="img" aria-labelledby="db-analog-wave-title db-analog-wave-desc"><title id="db-analog-wave-title">電圧が連続的に変化するアナログ波形</title><desc id="db-analog-wave-desc">横軸は時間、縦軸は電圧です。電圧がなめらかに変化し、途中のさまざまな値をとります。</desc><text x="8" y="20">電圧</text><path class="db-axis" d="M44 30V148H440"/><path class="db-grid-line" d="M44 88H435"/><path class="db-analog" d="M48 98C68 98 76 40 102 40S138 132 168 132S202 58 232 58S270 114 298 114S330 36 358 36S398 103 432 79"/><text x="435" y="178" text-anchor="end">時間</text></svg><figcaption class="db-caption">連続的に変化する電圧で情報を表します。</figcaption></figure></div>
+        <div class="db-demo"><h3>デジタル波形</h3><figure class="db-figure"><svg class="db-svg db-wave-svg" viewBox="0 0 460 190" role="img" aria-labelledby="db-digital-wave-title db-digital-wave-desc"><title id="db-digital-wave-title">低い電圧と高い電圧を使うデジタル波形</title><desc id="db-digital-wave-desc">横軸は時間、縦軸は電圧です。低い状態を0、高い状態を1とし、0・1・0・1・1・0・0・1を表す模式図です。</desc><text x="8" y="20">電圧</text><path class="db-axis" d="M44 30V148H440"/><path class="db-grid-line" d="M44 50H435 M44 126H435"/><text x="16" y="56">1</text><text x="16" y="132">0</text><path class="db-digital" d="M48 126H96V50H144V126H192V50H288V126H384V50H432"/><g class="db-wave-bits" text-anchor="middle"><text x="72" y="171">0</text><text x="120" y="171">1</text><text x="168" y="171">0</text><text x="216" y="171">1</text><text x="264" y="171">1</text><text x="312" y="171">0</text><text x="360" y="171">0</text><text x="408" y="171">1</text></g><text x="435" y="189" text-anchor="end">時間</text></svg><figcaption class="db-caption">低い・高い状態を読み分け、0・1として扱います。</figcaption></figure></div>
+      </div>
+      <p class="db-hint">電気信号の形を簡略化した模式図です。</p>
       <div class="db-two">
         <div><h3>デジタルデータのメリット</h3><ul class="db-properties"><li><strong>ノイズに強く、劣化しにくい。</strong><br>0と1を区別できれば、小さな信号の乱れがあっても値を読み取れます。</li><li><strong>管理しやすい。</strong><br>データを検索・分類・保存できます。</li><li><strong>編集・加工が容易。</strong><br>文字の書き換えや、音・画像の加工ができます。</li><li><strong>異なる情報を統合できる。</strong><br>文章・写真・音声などを一緒に扱えます。</li></ul></div>
         <div><h3>デジタルデータのデメリット</h3><ul class="db-properties"><li><strong>データ量が大きくなることがある。</strong><br>細かく表現したり、たくさん記録したりするほど、必要な容量が増えます。</li><li><strong>デジタル化で細部の情報が失われる。</strong><br>とびとびの値にそろえると、同じ値にまとめられる違いがあります。</li><li><strong>情報流出への注意が必要。</strong><br>複製・共有が容易なため、保存先や共有相手を管理します。</li></ul></div>
@@ -67,8 +100,8 @@
     <article>
       <h2 id="headline_4">(4) ビット数と情報の通り数</h2>
       <p><strong>bit（ビット）</strong>は情報の量を表す最小の単位で、2進数の1桁に相当します。1bitには0と1の<strong>2通り</strong>があります。</p>
-      <div class="db-demo" data-db-bits>
-        <div class="db-controls db-enhancement" hidden><label>ビット数<select data-db-bit-count><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label><button type="button" class="dr-button" data-db-bits-reset>すべて0に戻す</button></div>
+      <div class="db-demo" data-db-bits data-lesson-slide-navigation-lock>
+        <div class="db-controls db-enhancement" hidden><label class="db-range-label" for="db-bit-count"><span>ビット数：<output for="db-bit-count" data-db-bit-count-output>3bit</output></span><input id="db-bit-count" type="range" min="1" max="8" step="1" value="3" data-db-bit-count aria-label="ビット数" tabindex="0"></label><button type="button" class="dr-button" tabindex="0" data-db-bits-reset>すべて0に戻す</button></div>
         <p class="db-hint">各桁を押して、0と1を切り替えます。</p><div class="db-bit-row" data-db-bit-row><span class="db-bit">0</span><span class="db-bit">0</span><span class="db-bit">0</span></div>
         <p class="db-result db-equation" data-db-bits-result>2 × 2 × 2 ＝ 2³ ＝ 8通り</p>
         <h3>すべての組合せ</h3><div class="db-patterns" data-db-patterns><span class="db-pattern">000</span><span class="db-pattern">001</span><span class="db-pattern">010</span><span class="db-pattern">011</span><span class="db-pattern">100</span><span class="db-pattern">101</span><span class="db-pattern">110</span><span class="db-pattern">111</span></div>
@@ -106,7 +139,7 @@
           <div><h3>条件を変えて換算する</h3><div class="db-controls db-enhancement" hidden><label>数値<input type="number" min="0" max="1000000" step="any" value="4" data-db-convert-value></label><label>元の単位<select data-db-from><option>bit</option><option>B</option><option>KB</option><option>MB</option><option selected>GB</option><option>TB</option></select></label><label>換算先<select data-db-to><option>bit</option><option>B</option><option>KB</option><option selected>MB</option><option>GB</option><option>TB</option></select></label></div><p class="db-result" data-db-convert-result>4GB ＝ 4096MB</p><p class="db-equation" data-db-convert-equation>4 × 1024 ＝ 4096</p><p class="db-hint">小さい単位で表すと数値は大きくなり、大きい単位で表すと数値は小さくなります。</p><button type="button" class="dr-button db-enhancement" data-db-convert-reset hidden>4GBの例に戻す</button></div>
         </div>
         <p class="db-hint" data-db-base-note>1024＝2¹⁰なので、1MB＝2²⁰Bです。</p>
-        <button type="button" class="dr-supplement-link" data-lesson-supplement-open="db-unit-dialog">1000倍と1024倍の使い分け</button>
+        <button type="button" class="dr-supplement-link" tabindex="0" data-lesson-supplement-open="db-unit-dialog">補足：KB・MBとKiB・MiB</button>
       </div>
     </article>
   </section>
@@ -129,36 +162,36 @@
   <section data-lesson-slide data-lesson-slide-title="通り数・ビット数の問題" data-lesson-slide-layout="exercise">
     <article>
       <h2 id="headline_9">(9) 通り数・ビット数の問題</h2>
-<div data-db-question-group><label class="db-question-picker db-enhancement" hidden>問題を選ぶ<select data-db-question-select></select></label><form class="db-exercise" data-db-question="count8" data-db-question-title="問題1　8bitの通り数">
+<div data-db-question-group data-db-question-layout="stacked"><form class="db-exercise" data-db-question="count8" data-db-formula-question data-db-question-title="問題1　8bitの通り数">
         <h3>問題1　8bitの通り数</h3><p>8bitで表せる情報は何通りですか？</p>
-        <div class="db-answer-row db-enhancement" hidden><label for="db-count8">解答<input id="db-count8" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-count8"></label><span>通り</span></div>
-        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+        <div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
         <p class="db-feedback" id="db-feedback-count8" data-db-feedback role="status"></p>
-        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>1bitには0と1の2通りがあります。</li><li>8桁の組合せは、2<sup>8</sup>通りです。</li><li>2<sup>8</sup>＝<strong>256通り</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
-      </form><form class="db-exercise" data-db-question="need120" data-db-question-title="問題2　120通りに必要なbit数">
+        <details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>1bitには0と1の2通りがあります。</li><li>8桁の組合せは、2<sup>8</sup>通りです。</li><li>2<sup>8</sup>＝<strong>256通り</strong>です。</li></ol></div></details>
+      </form><form class="db-exercise" data-db-question="need120" data-db-formula-question data-db-question-title="問題2　120通りに必要なbit数">
         <h3>問題2　120通りに必要なbit数</h3><p>120通りの情報を表すには、少なくとも何bit必要ですか？</p>
-        <div class="db-answer-row db-enhancement" hidden><label for="db-need120">解答<input id="db-need120" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-need120"></label><span>bit</span></div>
-        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+        <div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
         <p class="db-feedback" id="db-feedback-need120" data-db-feedback role="status"></p>
-        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>2<sup>6</sup>＝64なので、6bitでは足りません。</li><li>2<sup>7</sup>＝128なので、7bitなら足ります。</li><li>64 ＜ 120 ≦ 128より、少なくとも<strong>7bit</strong>必要です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
-      </form><form class="db-exercise" data-db-question="count2bytes" data-db-question-title="問題3　2Bの通り数">
+        <details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>2<sup>6</sup>＝64なので、6bitでは足りません。</li><li>2<sup>7</sup>＝128なので、7bitなら足ります。</li><li>64 ＜ 120 ≦ 128より、少なくとも<strong>7bit</strong>必要です。</li></ol></div></details>
+      </form><form class="db-exercise" data-db-question="count2bytes" data-db-formula-question data-db-question-title="問題3　2Bの通り数">
         <h3>問題3　2Bの通り数</h3><p>2Bで表せる情報は何通りですか？</p>
-        <div class="db-answer-row db-enhancement" hidden><label for="db-count2bytes">解答<input id="db-count2bytes" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-count2bytes"></label><span>通り</span></div>
-        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+        <div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
         <p class="db-feedback" id="db-feedback-count2bytes" data-db-feedback role="status"></p>
-        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>1B＝8bitなので、2B＝2×8＝16bitです。</li><li>16bitで表せる情報は2<sup>16</sup>通りです。</li><li>2<sup>16</sup>＝<strong>65,536通り</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
-      </form><form class="db-exercise" data-db-question="need500" data-db-question-title="問題4　500通りに必要なbit数">
+        <details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>1B＝8bitなので、2B＝2×8＝16bitです。</li><li>16bitで表せる情報は2<sup>16</sup>通りです。</li><li>2<sup>16</sup>＝<strong>65,536通り</strong>です。</li></ol></div></details>
+      </form><form class="db-exercise" data-db-question="need500" data-db-formula-question data-db-question-title="問題4　500通りに必要なbit数">
         <h3>問題4　500通りに必要なbit数</h3><p>500通りの情報を表すには、少なくとも何bit必要ですか？</p>
-        <div class="db-answer-row db-enhancement" hidden><label for="db-need500">解答<input id="db-need500" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-need500"></label><span>bit</span></div>
-        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+        <div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
         <p class="db-feedback" id="db-feedback-need500" data-db-feedback role="status"></p>
-        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>2<sup>8</sup>＝256なので、8bitでは足りません。</li><li>2<sup>9</sup>＝512なので、9bitなら足ります。</li><li>256 ＜ 500 ≦ 512より、少なくとも<strong>9bit</strong>必要です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
-      </form><form class="db-exercise" data-db-question="ratio" data-db-question-title="問題5　2KBと1KBの通り数">
+        <details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>2<sup>8</sup>＝256なので、8bitでは足りません。</li><li>2<sup>9</sup>＝512なので、9bitなら足ります。</li><li>256 ＜ 500 ≦ 512より、少なくとも<strong>9bit</strong>必要です。</li></ol></div></details>
+      </form><form class="db-exercise" data-db-question="ratio" data-db-formula-question data-db-question-title="問題5　2KBと1KBの通り数">
         <h3>問題5　2KBと1KBの通り数</h3><p>2KBで表せる情報の通り数は、1KBで表せる情報の通り数の何倍ですか？ 1KB＝1024Bとし、答えを2<sup>n</sup>倍で表したときの<strong>指数n</strong>を入力してください。</p>
-        <div class="db-answer-row db-enhancement" hidden><label for="db-ratio">解答<input id="db-ratio" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-ratio"></label><span>（指数n）</span></div>
-        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+        <div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
         <p class="db-feedback" id="db-feedback-ratio" data-db-feedback role="status"></p>
-        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>2KBの通り数は2<sup>2×1024×8</sup>通り、1KBの通り数は2<sup>1×1024×8</sup>通りです。</li><li>通り数の比は、2<sup>2×1024×8</sup> ÷ 2<sup>1×1024×8</sup>です。</li><li>指数を引くと、2<sup>(2−1)×1024×8</sup>＝2<sup>8192</sup>倍。入力する指数nは<strong>8192</strong>です。</li><li>データ量は2倍ですが、表せる情報の通り数は2<sup>8192</sup>倍です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+        <details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>2KBの通り数は2<sup>2×1024×8</sup>通り、1KBの通り数は2<sup>1×1024×8</sup>通りです。</li><li>通り数の比は、2<sup>2×1024×8</sup> ÷ 2<sup>1×1024×8</sup>です。</li><li>指数を引くと、2<sup>(2−1)×1024×8</sup>＝2<sup>8192</sup>倍。入力する指数nは<strong>8192</strong>です。</li><li>データ量は2倍ですが、表せる情報の通り数は2<sup>8192</sup>倍です。</li></ol></div></details>
       </form></div>
     </article>
   </section>
@@ -166,42 +199,48 @@
   <section data-lesson-slide data-lesson-slide-title="単位換算の問題" data-lesson-slide-layout="exercise">
     <article>
       <h2 id="headline_10">(10) 単位換算の問題</h2>
-<div data-db-question-group><label class="db-question-picker db-enhancement" hidden>問題を選ぶ<select data-db-question-select></select></label><form class="db-exercise" data-db-question="gb4" data-db-question-title="問題1　GBからMBへ">
+<div data-db-question-group data-db-question-layout="stacked"><form class="db-exercise" data-db-question="gb4" data-db-formula-question data-db-question-title="問題1　GBからMBへ">
         <h3>問題1　GBからMBへ</h3><p>4GBは何MBですか？ 1GB＝1024MBとします。</p>
-        <div class="db-answer-row db-enhancement" hidden><label for="db-gb4">解答<input id="db-gb4" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-gb4"></label><span>MB</span></div>
-        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+        <div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
         <p class="db-feedback" id="db-feedback-gb4" data-db-feedback role="status"></p>
-        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>GBからMBへは、小さい単位に1段階進みます。</li><li>4［GB］×1024［MB/GB］</li><li>4×1024＝<strong>4096MB</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
-      </form><form class="db-exercise" data-db-question="pixels" data-db-question-title="問題2　bitからMBへ">
+        <details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>GBからMBへは、小さい単位に1段階進みます。</li><li>4［GB］×1024［MB/GB］</li><li>4×1024＝<strong>4096MB</strong>です。</li></ol></div></details>
+      </form><form class="db-exercise" data-db-question="pixels" data-db-formula-question data-db-question-title="問題2　bitからMBへ">
         <h3>問題2　bitからMBへ</h3><p>4096×3072bitは何MBですか？ 1B＝8bit、1KB＝1024B、1MB＝1024KBとします。</p>
-        <div class="db-answer-row db-enhancement" hidden><label for="db-pixels">解答<input id="db-pixels" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-pixels"></label><span>MB</span></div>
-        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+        <div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
         <p class="db-feedback" id="db-feedback-pixels" data-db-feedback role="status"></p>
-        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>元のデータ量は4096×3072［bit］です。</li><li>bitをBへ換算します。<p class="db-equation">4096×3072÷8［B］</p></li><li>BをKB、KBをMBへ換算します。<p class="db-equation">4096×3072÷8÷1024÷1024［MB］</p></li><li>約分してから計算すると、4×3÷8＝<strong>1.5MB</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
-      </form><form class="db-exercise" data-db-question="square" data-db-question-title="問題3　BからMBへ">
+        <details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>元のデータ量は4096×3072［bit］です。</li><li>bitをBへ換算します。<p class="db-equation">4096×3072÷8［B］</p></li><li>BをKB、KBをMBへ換算します。<p class="db-equation">4096×3072÷8÷1024÷1024［MB］</p></li><li>約分してから計算すると、4×3÷8＝<strong>1.5MB</strong>です。</li></ol></div></details>
+      </form><form class="db-exercise" data-db-question="square" data-db-formula-question data-db-question-title="問題3　BからMBへ">
         <h3>問題3　BからMBへ</h3><p>2048×2048Bは何MBですか？ 1KB＝1024B、1MB＝1024KBとします。</p>
-        <div class="db-answer-row db-enhancement" hidden><label for="db-square">解答<input id="db-square" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-square"></label><span>MB</span></div>
-        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+        <div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
         <p class="db-feedback" id="db-feedback-square" data-db-feedback role="status"></p>
-        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>元のデータ量は2048×2048［B］です。</li><li>BをKBへ、KBをMBへ換算します。<p class="db-equation">2048×2048÷1024÷1024［MB］</p></li><li>約分してから計算すると、2×2＝<strong>4MB</strong>です。Bで与えられているので、8では割りません。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
-      </form><form class="db-exercise" data-db-question="power" data-db-question-title="問題4　1MBを2の累乗で表す">
-        <h3>問題4　1MBを2の累乗で表す</h3><p>1MBは2の何乗Bですか？ 1KB＝1024B、1MB＝1024KBとし、指数を入力してください。</p>
-        <div class="db-answer-row db-enhancement" hidden><label for="db-power">解答<input id="db-power" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-power"></label><span>乗</span></div>
-        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>元のデータ量は2048×2048［B］です。</li><li>BをKBへ、KBをMBへ換算します。<p class="db-equation">2048×2048÷1024÷1024［MB］</p></li><li>約分してから計算すると、2×2＝<strong>4MB</strong>です。Bで与えられているので、8では割りません。</li></ol></div></details>
+      </form><form class="db-exercise" data-db-question="power" data-db-formula-question data-db-question-title="問題4　1MBを2の累乗で表す">
+        <h3>問題4　1MBを2の累乗で表す</h3><p>1MBは2の何乗Bですか？ 1KB＝1024B、1MB＝1024KBとし、指数を求める式を作ってください。1024＝2<sup>10</sup>です。</p>
+        <div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+        <div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
         <p class="db-feedback" id="db-feedback-power" data-db-feedback role="status"></p>
-        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>1024＝2<sup>10</sup>です。</li><li>1MB＝1024×1024［B］＝2<sup>10</sup>×2<sup>10</sup>［B］</li><li>指数を足すと2<sup>20</sup>B。答えは<strong>20乗</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
-      </form><form class="db-exercise" data-db-question="decimal" data-db-question-title="問題5　1000倍換算の場合">
+        <details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>1024＝2<sup>10</sup>です。</li><li>1MB＝1024×1024［B］＝2<sup>10</sup>×2<sup>10</sup>［B］</li><li>指数を足すと2<sup>20</sup>B。答えは<strong>20乗</strong>です。</li></ol></div></details>
+      </form><form class="db-exercise" data-db-question="decimal" data-db-formula-question data-db-question-title="問題5　1000倍換算の場合">
         <h3>問題5　1000倍換算の場合</h3><p>4GBは何MBですか？ この問題は<strong>1GB＝1000MB</strong>とします。</p>
-        <div class="db-answer-row db-enhancement" hidden><label for="db-decimal">解答<input id="db-decimal" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-decimal"></label><span>MB</span></div>
-        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <div class="db-formula-host db-enhancement" data-db-formula-builder hidden></div>
+        <div class="db-controls db-enhancement" hidden><button type="reset" class="dr-button" tabindex="0">式と答えを消す</button></div>
         <p class="db-feedback" id="db-feedback-decimal" data-db-feedback role="status"></p>
-        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>この問題の条件は1000倍換算です。</li><li>4［GB］×1000［MB/GB］</li><li>4×1000＝<strong>4000MB</strong>です。換算する前に、問題文の条件を確認します。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+        <details class="dr-reveal-item db-solution"><summary>解答を見る</summary><div class="dr-reveal-item__body"><ol><li>この問題の条件は1000倍換算です。</li><li>4［GB］×1000［MB/GB］</li><li>4×1000＝<strong>4000MB</strong>です。換算する前に、問題文の条件を確認します。</li></ol></div></details>
       </form></div>
     </article>
   </section>
-  <dialog class="dr-supplement-dialog" id="db-unit-dialog" data-lesson-supplement-dialog aria-labelledby="db-unit-dialog-title">
-    <div class="dr-supplement-dialog__surface"><header class="dr-supplement-dialog__header"><h2 id="db-unit-dialog-title" data-skip-numbering>1000倍と1024倍の使い分け</h2><button type="button" class="dr-button" data-lesson-supplement-close aria-label="単位換算の補足を閉じる">閉じる</button></header>
-      <p>データ量の単位は、1000倍で換算する場合と、1024倍で換算する場合があります。この教材の例題では、原則として1024倍換算を使います。</p><p>「1GB＝1000MB」のように条件が指定されている場合は、その条件に従います。計算の途中で、2つの規則を混ぜないようにしましょう。</p><p>どちらの換算でも、<strong>1B＝8bit</strong>という関係は同じです。</p>
+  <dialog class="dr-supplement-dialog db-unit-dialog" id="db-unit-dialog" data-lesson-supplement-dialog aria-labelledby="db-unit-dialog-title">
+    <div class="dr-supplement-dialog__panel"><header class="dr-supplement-dialog__header"><h2 id="db-unit-dialog-title" data-skip-numbering>補足：KB・MBとKiB・MiB</h2><button type="button" class="dr-button" tabindex="0" data-lesson-supplement-close aria-label="単位換算の補足を閉じる">閉じる</button></header>
+      <p><strong>本教材は教科書に合わせ、基本的に1KB＝1024B、1MB＝1024KBで計算します。</strong></p>
+      <p>1024倍であることを明示するために、KiB・MiBという表記もあります。</p>
+      <div class="db-table-scroll" role="region" aria-label="KiBとMiBの読み方と関係" tabindex="0"><table class="db-table"><thead><tr><th scope="col">記号・読み方</th><th scope="col">関係</th></tr></thead><tbody><tr><th scope="row">KiB（キビバイト）</th><td>1KiB＝1024B＝2<sup>10</sup>B</td></tr><tr><th scope="row">MiB（メビバイト）</th><td>1MiB＝1024KiB＝2<sup>20</sup>B</td></tr></tbody></table></div>
+      <p>一方、1000倍の接頭語を使うと、1kB＝1000B、1MB＝1000kBとなります。標準の表記では、kBのkは小文字です。</p>
+      <p>KB・MBを1024倍で使う教材や、1000倍で使う製品の表示などがあるので、<strong>問題文や表示の換算条件を確かめます。</strong>このページで「1GB＝1000MB」と指定された問題は、その条件で計算します。</p>
+      <p>どちらの換算でも、<strong>1B＝8bit</strong>という関係は同じです。</p>
+      <p class="db-hint"><a href="https://physics.nist.gov/cuu/Units/binary.html" target="_blank" rel="noopener">参考：2進数の倍数に用いる接頭語（NIST）</a></p>
     </div>
   </dialog>
 </body>

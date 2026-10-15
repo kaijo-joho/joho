@@ -63,6 +63,24 @@
 .db-exercise legend { font-weight: 700; }
 .db-enhancement[hidden], [data-db-question][hidden], .db-solution li[hidden] { display: none !important; }
 
+.db-instrument-comparison .db-demo, .db-wave-comparison .db-demo { margin-block: .5em; }
+.db-instrument-svg { max-height: 210px; }
+.db-instrument-svg .db-instrument-scale text { font-size: 16px; }
+.db-instrument-svg .db-clock-digits { fill: var(--dr-sample); font: 700 36px ui-monospace, monospace; }
+.db-instrument-svg .db-temperature-digits { fill: var(--dr-sample); font: 700 28px ui-monospace, monospace; }
+.db-instrument-hand, .db-instrument-fluid { fill: none; stroke-linecap: round; }
+.db-instrument-hand { stroke-width: 4; }
+.db-instrument-fluid, .db-instrument-probe { stroke-width: 7; stroke-linecap: round; }
+.db-length-details { margin-block: 1em; }
+.db-wave-svg { max-height: 190px; }
+.db-wave-svg :is(.db-analog, .db-digital) { fill: none; stroke-width: 4; stroke-linejoin: round; }
+.db-wave-bits text { fill: var(--dr-sample); font-weight: 700; }
+[data-db-question-layout="stacked"] > .db-exercise + .db-exercise { margin-top: 2em; padding-top: 2em; border-top: 2px solid var(--dr-border); }
+.db-formula-host { margin-block: 1em; }
+.db-formula-host ~ .db-feedback:empty { display: none; }
+.db-unit-dialog { font-size: var(--font-size-p, 1.1rem); line-height: 1.7; }
+.db-unit-dialog .db-table-scroll:focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+
 @media (max-width: 760px) {
   .db-two { grid-template-columns: minmax(0, 1fr); }
   .db-demo { padding: 14px; }
@@ -75,6 +93,7 @@
 @media (max-width: 520px) {
   .db-svg text { font-size: 24px; }
   [data-db-length] .db-svg text { font-size: 34px; }
+  .db-instrument-svg .db-instrument-scale text { font-size: 22px; }
 }
 @media print {
   .db-enhancement, .db-feedback, .db-question-picker { display: none !important; }
