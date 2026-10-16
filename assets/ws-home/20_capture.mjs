@@ -1,7 +1,7 @@
 import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob, parsePairingQr} from './10_model.mjs?v=20261015-5';
 import {processImage, loadImage, detectMarkers, layouts} from './11_vision.mjs?v=20261016-1';
 import {getDraft, saveDraft, probeStorage, deviceId} from './12_store.mjs';
-import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs?v=20261016-2';
+import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs?v=20261016-4';
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const reasonText = {
   WORKSHEET_MISMATCH:'表裏のWS識別QRが一致しません。', STUDENT_MARK_MISMATCH:'表裏の組・番号が一致しません。',
@@ -57,14 +57,14 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   let stopPairCamera=()=>{},lastPairCheck=0,selectedRoute=null,pairView=null,pairBusy=false,pairMessage='',pollTimer,pollRunning=false,pendingPairClaim=null;
   let saveQueue=Promise.resolve(),activeStep=1,stepBusy=false;
   const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('worksheet-home-drafts-v1') : null;
-  root.innerHTML = '<ol class="capture-steps" aria-label="撮影から提出までの手順"><li data-step="1" aria-current="step">① 写真</li><li data-step="2">② 確認</li><li data-step="3">③ 提出</li></ol><p id="storage-message" class="notice warning" role="status" hidden></p><p id="capture-message" class="muted" role="status"></p>' +
-    '<section id="photo-step" class="card capture-step photo-picker" aria-labelledby="photo-picker-title"><h2 id="photo-picker-title" tabindex="-1">①写真を2枚追加</h2>' +
+  root.innerHTML = '<div id="stage-tabs" class="capture-stage-tabs" role="tablist" aria-label="撮影から提出までの手順"><button id="stage-tab-1" type="button" role="tab" data-step="1" aria-controls="photo-step" aria-selected="true">写真</button><button id="stage-tab-2" type="button" role="tab" data-step="2" aria-controls="review-step" aria-selected="false" tabindex="-1" disabled>確認</button><button id="stage-tab-3" type="button" role="tab" data-step="3" aria-controls="routes" aria-selected="false" tabindex="-1" disabled>提出</button></div><div id="capture-busy" class="capture-busy" role="status"><span class="ws-spinner" aria-hidden="true"></span><span id="busy-label">撮影画面を準備しています…</span></div><p id="storage-message" class="notice warning" role="status" hidden></p><p id="capture-message" class="muted" role="status"></p>' +
+    '<section id="photo-step" class="card capture-step photo-picker" role="tabpanel" aria-labelledby="stage-tab-1"><h2 id="photo-picker-title" tabindex="-1">①写真を2枚追加</h2>' +
     '<p id="pair-connection" class="notice" role="status" hidden></p><div id="initial-photo" class="actions"><label id="capture-photo-label" class="button primary upload-label">写真<input id="capture-photo" type="file" accept="image/*" multiple disabled hidden></label></div>' +
     '<div id="photo-tabs" class="photo-tabs" role="tablist" aria-label="表示する写真" hidden><button id="photo-tab-F" type="button" role="tab" aria-controls="photo-panel-F" aria-selected="true">写真1</button><button id="photo-tab-B" type="button" role="tab" aria-controls="photo-panel-B" aria-selected="false" tabindex="-1">写真2</button></div>' +
     '<div id="pages" hidden></div><p id="photo-progress" role="status"></p><p id="photo-error" class="notice warning" role="status" hidden></p><div id="read-warnings" role="status" hidden></div><div class="step-actions"><button id="photo-next" class="primary" type="button" disabled>読み取り結果を確認</button></div></section>' +
-    '<section id="review-step" class="card capture-step is-locked" aria-labelledby="review-title" aria-disabled="true" hidden><h2 id="review-title" tabindex="-1">②読み取り結果を確認</h2><p id="review-hint" class="muted">①で表面と裏面を読み取ると確認できます。</p><div id="review-content" hidden><div id="checks" role="status"></div>' +
-    '<label class="confirmation"><input id="confirmed" type="checkbox" disabled><span>表示された組・番号が自分のものであり、表裏の画像が自分のワークシートであることを確認しました。</span></label></div><div class="step-actions"><button id="review-back" type="button">写真に戻る</button><button id="review-next" class="primary" type="button" disabled>提出方法を選ぶ</button></div></section>' +
-    '<section id="routes" class="card capture-step is-locked" aria-labelledby="routes-title" aria-disabled="true" hidden><h2 id="routes-title" tabindex="-1">③提出方法を選ぶ</h2><div class="step-actions step-back"><button id="routes-back" type="button">読み取り結果に戻る</button></div><p id="route-hint" class="muted">②で読み取り結果を確認すると選べます。</p><div id="route-content" hidden><div id="route-buttons" class="route-grid"></div><div id="route-selection" hidden><h3 id="selected-route-title"></h3><button id="change-route" type="button">提出方法を選び直す</button></div><div id="route-detail" tabindex="-1"></div>' +
+    '<section id="review-step" class="card capture-step is-locked" role="tabpanel" aria-labelledby="stage-tab-2" aria-disabled="true" hidden><h2 id="review-title" tabindex="-1">②読み取り結果を確認</h2><p id="review-hint" class="muted">①で表面と裏面を読み取ると確認できます。</p><div id="review-content" hidden><div id="checks" role="status"></div>' +
+    '<label class="confirmation"><input id="confirmed" type="checkbox" disabled><span>表示された組・番号が自分のものであり、表裏の画像が自分のワークシートであることを確認しました。</span></label></div><div class="step-actions"><button id="review-next" class="primary" type="button" disabled>提出方法を選ぶ</button></div></section>' +
+    '<section id="routes" class="card capture-step is-locked" role="tabpanel" aria-labelledby="stage-tab-3" aria-disabled="true" hidden><h2 id="routes-title" tabindex="-1">③提出方法を選ぶ</h2><p id="route-hint" class="muted">②で読み取り結果を確認すると選べます。</p><div id="route-content" hidden><div id="route-buttons" class="route-grid"></div><div id="route-selection" hidden><h3 id="selected-route-title"></h3><button id="change-route" type="button">提出方法を選び直す</button></div><div id="route-detail" tabindex="-1"></div>' +
     '<div id="receipt-card" class="receipt-status" tabindex="-1" hidden><h3>処理・受付状況</h3><p id="send-state" class="state" role="status">未送信</p><progress id="send-progress" aria-label="画像の送信・照合処理中" hidden></progress><p id="send-message" role="status"></p><div id="receipt"></div>' +
     '<div class="actions"><button id="lookup" hidden>受付結果を確認して再試行</button><button id="cancel-send" hidden>送信セッションを取り消す</button></div></div></div></section>' +
     '<details id="demo" class="card" hidden><summary>架空用紙で試す（ローカル試作のみ）</summary><label>試験画像のケース <select id="fixture-kind"></select></label><label>用紙 <select id="fixture-paper"><option value="b5">B5</option><option value="a4">A4</option></select></label><div class="actions"><button id="load-fixture">架空の表裏を読み込む</button></div><p>実際に画像内のQRとマークを読み取ります。実物の用紙や本人認証の試験とは区別します。</p></details>';
@@ -74,6 +74,13 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     q('#capture-message').textContent=activeStep===3?'':statusMessage;
     q('#send-message').textContent=activeStep===3?statusMessage:'';
     q('#receipt-card').hidden=!ready||!(draft.requestId||draft.receipt||statusMessage);
+    updateBusyIndicator();
+  }
+  function updateBusyIndicator(){
+    const verifying=['RECEIVED','VERIFYING'].includes(draft.state),working=busy||stepBusy||pairBusy||verifying;
+    q('#capture-busy').hidden=!working;
+    q('#busy-label').textContent=readingSlot?'写真'+photoNumber(readingSlot)+'を補正・読み取り中…':pairBusy?'Macとの接続を確認しています…':stepBusy?'画面を切り替えています…':verifying?'提出内容を検証しています…':statusMessage||'処理しています…';
+    root.setAttribute('aria-busy',String(busy||stepBusy||pairBusy));
   }
   function storageWarning(value) {q('#storage-message').textContent = value;q('#storage-message').hidden=false;}
   function reveal(node){requestAnimationFrame(()=>{if(!node.isConnected||node.closest('[hidden]'))return;node.focus({preventScroll:true});node.scrollIntoView({block:'start',behavior:'auto'});});}
@@ -114,9 +121,13 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     const ready=!readingSlot&&checkPages(draft.pages).ok,blocked=busy||stepBusy||pairBusy||conflict||submissionPending();
     q('#photo-next').disabled=blocked||!ready;
     q('#review-next').disabled=blocked||!ready||!draft.confirmed;
-    q('#review-back').disabled=q('#routes-back').disabled=blocked;
+    for(const tab of root.querySelectorAll('#stage-tabs [role="tab"]')){
+      const step=Number(tab.dataset.step),allowed=step===1||ready&&(step===2||draft.confirmed);
+      tab.disabled=step!==activeStep&&(blocked||!allowed);
+    }
   }
-  async function goToStep(step){
+  async function goToStep(step,focusTab=false){
+    if(step===activeStep)return;
     if(stopped||stepBusy||busy||pairBusy||conflict||submissionPending())return;
     const ready=!readingSlot&&checkPages(draft.pages).ok;
     if(step===2&&!ready||step===3&&(!ready||!draft.confirmed))return;
@@ -127,9 +138,18 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     finally{activeStep=step;stepBusy=false;render();}
     if(stopped)return;
     if(activeStep===3&&!selectedRoute&&(draft.route||pairing))chooseRoute(draft.route||(pairing?'pair':null),false);
-    reveal(q(activeStep===1?'#photo-picker-title':activeStep===2?'#review-title':'#routes-title'));
+    reveal(q(focusTab?'#stage-tab-'+activeStep:activeStep===1?'#photo-picker-title':activeStep===2?'#review-title':'#routes-title'));
   }
-  for(const [id,step] of Object.entries({'photo-next':2,'review-back':1,'review-next':3,'routes-back':2}))q('#'+id).addEventListener('click',()=>goToStep(step));
+  for(const [id,step] of Object.entries({'photo-next':2,'review-next':3}))q('#'+id).addEventListener('click',()=>goToStep(step));
+  for(const tab of root.querySelectorAll('#stage-tabs [role="tab"]')){
+    tab.addEventListener('click',()=>goToStep(Number(tab.dataset.step)));
+    tab.addEventListener('keydown',event=>{
+      if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+      const tabs=[...root.querySelectorAll('#stage-tabs [role="tab"]:not([disabled])')],index=tabs.indexOf(tab);
+      const next=event.key==='Home'?tabs[0]:event.key==='End'?tabs.at(-1):tabs[(index+(event.key==='ArrowLeft'?-1:1)+tabs.length)%tabs.length];
+      event.preventDefault();goToStep(Number(next.dataset.step),true);
+    });
+  }
   if (channel) channel.onmessage = e => {
     if (e.data && e.data.id === draft.id && e.data.sender !== tabId && e.data.revision > draft.revision) {
       conflict = true; message(messageFor('DRAFT_CONFLICT')); render();
@@ -146,7 +166,6 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     if(manuals[side]>=0&&manuals[side]<4&&manualPoints[side]){const p=manualPoints[side],r=source.width/60;ctx.strokeStyle='#d94d00';ctx.lineWidth=Math.max(2,source.width/500);ctx.strokeRect(p.x-r,p.y-r,r*2,r*2);}
   }
   function render() {
-    root.setAttribute('aria-busy',String(busy||stepBusy));
     const check = checkPages(draft.pages);
     const pending=submissionPending();
     const count=slots.filter(slot=>draft.pages[slot]?.originalBlob).length;
@@ -158,7 +177,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     else if(activeStep===3&&!routeReady)activeStep=2;
     draft.captureStep=activeStep;
     for(const [i,id] of ['photo-step','review-step','routes'].entries())q('#'+id).hidden=activeStep!==i+1;
-    for(const item of root.querySelectorAll('.capture-steps li')){if(Number(item.dataset.step)===activeStep)item.setAttribute('aria-current','step');else item.removeAttribute('aria-current');}
+    for(const tab of root.querySelectorAll('#stage-tabs [role="tab"]')){const selected=Number(tab.dataset.step)===activeStep;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;}
     q('#initial-photo').hidden=count>0;
     q('#photo-tabs').hidden=q('#pages').hidden=count===0;
     q('#photo-progress').textContent=readingSlot?'写真'+photoNumber(readingSlot)+'を自動補正・読取中…':count===0?'0/2枚':count===1?'1/2枚 · 写真'+photoNumber(slots.find(s=>!draft.pages[s]?.originalBlob))+'を開いて、もう1枚追加してください。':!readingComplete?'2/2枚 · 自動で読み取っています…':reviewReady?'2/2枚 · ②で組・番号を確認してください。':'2/2枚 · ①の警告を確認してください。';
@@ -402,7 +421,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   q('#capture-photo').addEventListener('change',async event=>{
     const input=event.target;try{await addPhotos(input.files);}catch(e){message(messageFor(e.message));}finally{input.value='';}
   });
-  for(const [id,name] of Object.entries({'capture-photo-label':'image','photo-tab-F':'image','photo-tab-B':'image',lookup:'refresh','cancel-send':'close','load-fixture':'scan','photo-next':'next','review-next':'next','review-back':'back','routes-back':'back'}))setIcon(q('#'+id),name);
+  for(const [id,name] of Object.entries({'capture-photo-label':'image','photo-tab-F':'image','photo-tab-B':'image',lookup:'refresh','cancel-send':'close','load-fixture':'scan','photo-next':'next','review-next':'next','stage-tab-1':'image','stage-tab-2':'check','stage-tab-3':'send'}))setIcon(q('#'+id),name);
   root.querySelectorAll('.upload-label').forEach(label=>{label.tabIndex=0;label.setAttribute('role','button');label.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();const input=label.querySelector('input');if(!input.disabled)input.click();}});});
   q('#confirmed').addEventListener('change', async () => {draft.confirmed=q('#confirmed').checked;message('');await persist();render();});
   function frozenPayload(route) {
@@ -519,6 +538,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   }
   function updatePairControls(){
     updateStepButtons();
+    updateBusyIndicator();
     q('#lookup').disabled=busy||pairBusy||conflict;q('#cancel-send').disabled=busy||pairBusy;q('#change-route').disabled=busy||pairBusy||conflict;
     q('#route-buttons').querySelectorAll('button').forEach(button=>{button.disabled=busy||stepBusy||conflict||!draft.confirmed||(pairBusy&&button.dataset.route!=='pair');});
     if(!pairView?.panel.isConnected)return;
@@ -545,15 +565,15 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   }
   async function startPairScan(){
     if(pairBusy||busy)return;stopPairCamera();
-    const dialog=element('dialog','','pair-camera-dialog'),title=element('h3','MacのQRを読み取る'),hint=element('p','Macに表示したQRをカメラに写してください。'),video=element('video'),stop=element('button','QRの読み取りを中止');title.id='pair-camera-title';dialog.setAttribute('aria-labelledby',title.id);hint.setAttribute('role','status');setIcon(stop,'close');
-    video.autoplay=true;video.muted=true;video.playsInline=true;dialog.append(title,hint,video,stop);root.append(dialog);
+    const dialog=element('dialog','','pair-camera-dialog'),title=element('h3','MacのQRを読み取る'),hint=element('p','カメラを準備しています…'),loading=element('span','','ws-spinner'),video=element('video'),stop=element('button','QRの読み取りを中止');title.id='pair-camera-title';dialog.setAttribute('aria-labelledby',title.id);hint.setAttribute('role','status');loading.setAttribute('aria-hidden','true');setIcon(stop,'close');
+    video.autoplay=true;video.muted=true;video.playsInline=true;dialog.append(title,hint,loading,video,stop);root.append(dialog);
     let stream,active=true,timer;
     stopPairCamera=()=>{if(!active)return;active=false;clearTimeout(timer);stream?.getTracks().forEach(t=>t.stop());video.srcObject=null;dialog.close();dialog.remove();};
     const cancel=()=>{stopPairCamera();pairView?.scan.focus({preventScroll:true});};stop.addEventListener('click',cancel);dialog.addEventListener('cancel',event=>{event.preventDefault();cancel();});dialog.showModal();
     try{
       if(!navigator.mediaDevices?.getUserMedia)throw Error('CAMERA_UNAVAILABLE');
       stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280}},audio:false});
-      if(!active){stream.getTracks().forEach(t=>t.stop());return;}video.srcObject=stream;await video.play();
+      if(!active){stream.getTracks().forEach(t=>t.stop());return;}video.srcObject=stream;await video.play();loading.hidden=true;hint.textContent='Macに表示したQRをカメラに写してください。';
       const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
       const read=async()=>{
         if(!active)return;

@@ -9,13 +9,25 @@ function resetPairConnection(){
 let frame,popup,peer,peerOrigin,channel,readyPromise,readyResolve,readyTimer;const pending=new Map();
 export const isNativeGas=!!globalThis.google?.script?.run;
 const googleOrigin=value=>{try{const u=new URL(value);return u.protocol==='https:'&&(u.hostname==='script.googleusercontent.com'||/^[a-z0-9-]+-script\.googleusercontent\.com$/.test(u.hostname));}catch{return false;}};
+// Google can relay replies through another sandbox window in WebKit. Pin the
+// entire chain to the iframe/popup we opened, as well as origin/channel/request.
+function ownedWindow(source,owner){
+  if(!source||!owner)return false;
+  for(let depth=0;depth<8;depth++){
+    if(source===owner)return true;
+    try{const parent=source.parent;if(!parent||parent===source)return false;source=parent;}catch{return false;}
+  }
+  return false;
+}
+const schoolWindow=source=>ownedWindow(source,frame?.contentWindow)||ownedWindow(source,popup);
+const pairingWindow=source=>ownedWindow(source,pairFrame?.contentWindow);
 export async function config(){return {mode:'LIMITED_HOME_PILOT',productionAdaptersEnabled:true,loginUrl};}
 export function resetConnection(){clearTimeout(readyTimer);frame?.remove();frame=peer=null;readyPromise=readyResolve=null;for(const p of pending.values()){clearTimeout(p.timer);p.reject(Error('NETWORK_RETRYABLE'));}pending.clear();}
 export function openConnection(){resetConnection();channel=crypto.randomUUID();popup=window.open(loginUrl+'&channel='+channel+'&popup=1','ws-home-school-login');return popup;}
 window.addEventListener('message',event=>{
   const v=event.data;if(!v||v.channel!==channel||!googleOrigin(event.origin))return;
-  if(v.type==='WS_HOME_READY'&&(frame||popup)&&!peer){try{if(popup&&event.source.top!==popup)return;}catch{return;}peer=event.source;peerOrigin=event.origin;clearTimeout(readyTimer);readyResolve?.();frame?._ready?.();return;}
-  if(v.type!=='WS_HOME_RESPONSE'||event.source!==peer||event.origin!==peerOrigin||typeof v.id!=='string')return;
+  if(v.type==='WS_HOME_READY'&&(frame||popup)&&!peer){if(!schoolWindow(event.source))return;peer=event.source;peerOrigin=event.origin;clearTimeout(readyTimer);readyResolve?.();frame?._ready?.();return;}
+  if(v.type!=='WS_HOME_RESPONSE'||!schoolWindow(event.source)||event.origin!==peerOrigin||typeof v.id!=='string')return;
   const entry=pending.get(v.id);if(!entry)return;clearTimeout(entry.timer);pending.delete(v.id);
   if(!v.result?.ok){const error=Error(v.result?.code||'HOME_UNAVAILABLE');error.status=error.message==='NOT_FOUND'?404:error.message==='HOME_FORBIDDEN'?403:400;entry.reject(error);}else entry.resolve(v.result.data||v.result);
 });
@@ -40,8 +52,8 @@ export async function api(path,body,pairing=null){
 }
 window.addEventListener('message',event=>{
   const v=event.data;if(!v||v.channel!==pairChannel||!googleOrigin(event.origin))return;
-  if(v.type==='WS_PAIR_READY'&&pairFrame&&!pairPeer){pairPeer=event.source;pairOrigin=event.origin;pairFrame._ready();return;}
-  if(v.type!=='WS_PAIR_RESPONSE'||event.source!==pairPeer||event.origin!==pairOrigin)return;
+  if(v.type==='WS_PAIR_READY'&&pairFrame&&!pairPeer){if(!pairingWindow(event.source))return;pairPeer=event.source;pairOrigin=event.origin;pairFrame._ready();return;}
+  if(v.type!=='WS_PAIR_RESPONSE'||!pairingWindow(event.source)||event.origin!==pairOrigin||typeof v.id!=='string')return;
   const p=pairPending.get(v.id);if(!p)return;clearTimeout(p.timer);pairPending.delete(v.id);
   if(v.result?.ok)p.resolve(v.result.data);else {const e=Error(v.result?.code||'HOME_UNAVAILABLE');e.status=e.message==='NOT_FOUND'?404:400;p.reject(e);}
 });
