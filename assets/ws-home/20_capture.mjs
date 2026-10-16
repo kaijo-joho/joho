@@ -1,7 +1,7 @@
-import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob} from './10_model.mjs?v=20261015-5';
+import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob, parsePairingQr} from './10_model.mjs?v=20261015-5';
 import {processImage, loadImage, detectMarkers, layouts} from './11_vision.mjs?v=20261016-1';
 import {getDraft, saveDraft, probeStorage, deviceId} from './12_store.mjs';
-import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs?v=20261015-9';
+import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs?v=20261016-2';
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const reasonText = {
   WORKSHEET_MISMATCH:'表裏のWS識別QRが一致しません。', STUDENT_MARK_MISMATCH:'表裏の組・番号が一致しません。',
@@ -52,8 +52,8 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   let draft = newDraft(owner), busy = false, conflict = false, storeOk = true, pairing = null, local = false, stopped = false, readingSlot = null, activeSlot = 'F', statusMessage = '';
   // Keep the old draft keys as photo positions; QR determines the actual side.
   const slots = ['F', 'B'], photoNumber = slot => slot === 'F' ? 1 : 2;
-  const sources = {}, urls = {}, manuals = {}, manualPoints = {}, manualSuggestions = {}, cleanup = [];
-  let stopPairCamera=()=>{},lastPairCheck=0;
+  const sources = {}, urls = {}, previewBlobs = {}, manuals = {}, manualPoints = {}, manualSuggestions = {}, cleanup = [];
+  let stopPairCamera=()=>{},lastPairCheck=0,selectedRoute=null,pairView=null,pairBusy=false,pairMessage='',pollTimer,pollRunning=false,pendingPairClaim=null;
   let saveQueue=Promise.resolve();
   const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('worksheet-home-drafts-v1') : null;
   root.innerHTML = '<section id="photo-step" class="card capture-step photo-picker" aria-labelledby="photo-picker-title"><h2 id="photo-picker-title">①写真を2枚追加</h2>' +
@@ -62,8 +62,8 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     '<div id="pages" hidden></div><p id="photo-progress" role="status"></p><p id="photo-error" class="notice warning" role="status" hidden></p><div id="read-warnings" role="status" hidden></div><p id="capture-message" class="muted" role="status"></p><p id="storage-message" class="notice warning" role="status" hidden></p></section>' +
     '<section id="review-step" class="card capture-step is-locked" aria-labelledby="review-title" aria-disabled="true"><h2 id="review-title">②読み取り結果を確認</h2><p id="review-hint" class="muted">①で表面と裏面を読み取ると確認できます。</p><div id="review-content" hidden><div id="checks" role="status"></div>' +
     '<label class="confirmation"><input id="confirmed" type="checkbox" disabled><span>表示された組・番号が自分のものであり、表裏の画像が自分のワークシートであることを確認しました。</span></label></div></section>' +
-    '<section id="routes" class="card capture-step is-locked" aria-labelledby="routes-title" aria-disabled="true"><h2 id="routes-title">③提出方法を選ぶ</h2><p id="route-hint" class="muted">②で読み取り結果を確認すると選べます。</p><div id="route-content" hidden><div id="route-buttons" class="route-grid"></div><div id="route-detail"></div>' +
-    '<div id="receipt-card" class="receipt-status" hidden><h3>処理・受付状況</h3><p id="send-state" class="state">未送信</p><p id="send-message" role="status"></p><div id="receipt"></div>' +
+    '<section id="routes" class="card capture-step is-locked" aria-labelledby="routes-title" aria-disabled="true"><h2 id="routes-title">③提出方法を選ぶ</h2><p id="route-hint" class="muted">②で読み取り結果を確認すると選べます。</p><div id="route-content" hidden><div id="route-buttons" class="route-grid"></div><div id="route-selection" hidden><h3 id="selected-route-title"></h3><button id="change-route" type="button">提出方法を選び直す</button></div><div id="route-detail" tabindex="-1"></div>' +
+    '<div id="receipt-card" class="receipt-status" tabindex="-1" hidden><h3>処理・受付状況</h3><p id="send-state" class="state" role="status">未送信</p><progress id="send-progress" aria-label="画像の送信・照合処理中" hidden></progress><p id="send-message" role="status"></p><div id="receipt"></div>' +
     '<div class="actions"><button id="lookup" hidden>受付結果を確認して再試行</button><button id="cancel-send" hidden>送信セッションを取り消す</button></div></div></div></section>' +
     '<details id="demo" class="card" hidden><summary>架空用紙で試す（ローカル試作のみ）</summary><label>試験画像のケース <select id="fixture-kind"></select></label><label>用紙 <select id="fixture-paper"><option value="b5">B5</option><option value="a4">A4</option></select></label><div class="actions"><button id="load-fixture">架空の表裏を読み込む</button></div><p>実際に画像内のQRとマークを読み取ります。実物の用紙や本人認証の試験とは区別します。</p></details>';
   const q = selector => root.querySelector(selector), message = value => {statusMessage=value;renderMessage();};
@@ -74,6 +74,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     q('#receipt-card').hidden=!ready||!(draft.requestId||draft.receipt||statusMessage);
   }
   function storageWarning(value) {q('#storage-message').textContent = value;q('#storage-message').hidden=false;}
+  function reveal(node){requestAnimationFrame(()=>{if(!node.isConnected||node.hidden)return;node.focus({preventScroll:true});node.scrollIntoView({block:'start',behavior:'auto'});});}
   try {await probeStorage();}
   catch (e) {storeOk = false; storageWarning('端末内に画像を保持できません。この画面を開いたまま進めてください。');}
   try {
@@ -81,6 +82,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     if (saved && saved.owner === owner) draft = saved;
   } catch (e) {storeOk = false; storageWarning('撮影内容を再表示できません。写真を選び直してください。');}
   try {
+    pendingPairClaim=JSON.parse(sessionStorage.getItem('ws-home-pair-claim')||'null');
     const savedPair = JSON.parse(sessionStorage.getItem('ws-home-pair') || 'null');
     if (savedPair && savedPair.deviceId === deviceId() && /^[a-f0-9]{64}$/.test(savedPair.capability||'')) pairing = savedPair;
   } catch (e) {}
@@ -109,7 +111,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       conflict = true; message(messageFor('DRAFT_CONFLICT')); render();
     }
   };
-  function clearPreview(side) {if (urls[side]) URL.revokeObjectURL(urls[side]); delete urls[side];}
+  function clearPreview(side) {if (urls[side]) URL.revokeObjectURL(urls[side]); delete urls[side];delete previewBlobs[side];}
   function drawSource(side) {
     const destination = q('[data-side="' + side + '"] .image-box canvas'), source = sources[side];
     if (!source) return;
@@ -137,7 +139,10 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     q('#review-hint').textContent=readingComplete?'①の警告を確認して、写真を撮り直すか調整してください。':count===2?'①で写真を読み取っています。完了までお待ちください。':'①で表面と裏面を読み取ると確認できます。';
     q('#routes').classList.toggle('is-locked',!routeReady);q('#routes').setAttribute('aria-disabled',String(!routeReady));
     q('#route-content').hidden=!routeReady;q('#route-hint').hidden=routeReady;
-    if(!routeReady){stopPairCamera();q('#route-detail').replaceChildren();}
+    if(!routeReady){stopPairCamera();q('#route-detail').replaceChildren();selectedRoute=null;pairView=null;}
+    q('#route-buttons').hidden=!!selectedRoute;q('#route-selection').hidden=!selectedRoute;
+    q('#selected-route-title').textContent={phone:'スマホでログインして送信',pair:'Macと接続して提出',save:'画像を保存',mac:'このMacから提出'}[selectedRoute]||'';
+    q('#change-route').hidden=!!draft.requestId;q('#change-route').disabled=busy||conflict||pairBusy;
     q('#checks').replaceChildren();
     if (reviewReady) {
       const identity=element('p',check.classNumber+'組 '+String(check.number).padStart(2,'0')+'番','notice read-identity');identity.id='read-identity';
@@ -147,11 +152,12 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       q('#checks').append(element('p', '提出対象かどうかと本人の名簿との照合は、ログイン／Mac接続後に行います。', 'muted'));
     }
     q('#confirmed').disabled = !reviewReady || busy || conflict || pending; q('#confirmed').checked = !!draft.confirmed && reviewReady;
-    q('#send-state').textContent = stateLabel(draft.state);
+    q('#send-state').textContent = draft.state==='RETRYABLE'?(draft.errorCode==='NETWORK_RETRYABLE'?'通信が途切れました・送信結果は未確認':'送信結果を確認してください'):stateLabel(draft.state);
     q('#send-state').className = 'state ' + draft.state;
     q('#lookup').hidden = !draft.requestId; q('#lookup').disabled = busy || conflict;
-    q('#cancel-send').hidden = !draft.receipt && !pairing;
+    q('#cancel-send').hidden = draft.receipt?.state==='ACCEPTED'||!draft.receipt&&!pairing;
     q('#cancel-send').disabled = busy;
+    q('#send-progress').hidden=!busy&&!['RECEIVED','VERIFYING'].includes(draft.state);
     for (const side of ['F', 'B']) {
       const section = q('[data-side="' + side + '"]'), p = draft.pages[side], result = section.querySelector('.result');
       const detected=p?.reading?.qr?.side, title='写真'+photoNumber(side)+(detected==='F'?'（表面）':detected==='B'?'（裏面）':'');
@@ -179,7 +185,8 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       result.classList.toggle('bad', r?.status !== 'OK' && !r?.pending);
       const preview = section.querySelector('.corrected-preview');
       if (p.correctedBlob || p.originalBlob) {
-        clearPreview(side); urls[side] = URL.createObjectURL(p.correctedBlob || p.originalBlob);
+        const blob=p.correctedBlob||p.originalBlob;
+        if(previewBlobs[side]!==blob){clearPreview(side);urls[side]=URL.createObjectURL(blob);previewBlobs[side]=blob;}
         preview.alt=title+(p.correctedBlob?'の補正画像':'の読取前の写真');
         const header=section.querySelector('.header-preview');
         preview.onload=async()=>{
@@ -191,7 +198,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
           header.width=Math.round((right-x)*sx);header.height=Math.round((bottom-y)*sy);
           header.getContext('2d').drawImage(preview,x*sx,y*sy,(right-x)*sx,(bottom-y)*sy,0,0,header.width,header.height);
         };
-        preview.src = urls[side]; preview.hidden = false;section.querySelector('.header-detail').hidden=!p.correctedBlob;
+        if(preview.src!==urls[side])preview.src=urls[side];preview.hidden = false;section.querySelector('.header-detail').hidden=!p.correctedBlob;
       } else {preview.hidden = true;preview.removeAttribute('src');section.querySelector('.header-detail').hidden=true;clearPreview(side);}
       section.querySelector('.metrics').textContent = r?.elapsedMs ? (r.autoTone?'明るさ・影を自動補正。':'')+(r.restoredMarkers?'欠けた■を補正しました。':'')+(r.grayscaleExport?'保存サイズを抑えるため白黒にしました。':'') : '';
     }
@@ -209,6 +216,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     for(const side of ['F','B'])if(draft.pages[side]&&manuals[side]>=0&&manuals[side]<4){const section=sectionFor(side);section.querySelector('.apply').disabled=true;section.querySelectorAll('input[type=range],.auto-tone').forEach(input=>{input.disabled=true;});section.querySelector('.corner-previous').disabled=busy||conflict||pending||manuals[side]===0;root.querySelectorAll('input[type=file]').forEach(input=>{input.disabled=true;});}
     root.querySelectorAll('.upload-label').forEach(label=>{const disabled=label.querySelector('input').disabled;label.setAttribute('aria-disabled',String(disabled));label.tabIndex=disabled?-1:0;});
     renderMessage();
+    updatePairControls();
   }
   function photoError(value){q('#photo-error').textContent=value;q('#photo-error').hidden=!value;if(value)message(value);}
   async function readPendingPages() {
@@ -366,7 +374,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   });
   for(const [id,name] of Object.entries({'capture-photo-label':'image','photo-tab-F':'image','photo-tab-B':'image',lookup:'refresh','cancel-send':'close','load-fixture':'scan'}))setIcon(q('#'+id),name);
   root.querySelectorAll('.upload-label').forEach(label=>{label.tabIndex=0;label.setAttribute('role','button');label.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();const input=label.querySelector('input');if(!input.disabled)input.click();}});});
-  q('#confirmed').addEventListener('change', async () => {draft.confirmed=q('#confirmed').checked;message('');await persist();render();});
+  q('#confirmed').addEventListener('change', async () => {draft.confirmed=q('#confirmed').checked;message('');await persist();render();if(draft.confirmed&&pairing)chooseRoute('pair');});
   function frozenPayload(route) {
     const checked=checkPages(draft.pages);
     if(!checked.ok)throw Error('QR_OMR_REVIEW');
@@ -376,81 +384,93 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
         clientReading:{qr:r.qr,classNumber:r.classNumber,number:r.number}};
     })).then(pages=>({requestId:draft.requestId,route,pages,confirmed:true}));
   }
+  function receiptMessage(receipt){
+    return receipt.state==='ACCEPTED'?'提出を受理しました。Mac側の一覧でも確認できます。':receipt.state==='RESUBMIT_REQUIRED'?'再提出が必要です。下の理由を確認してください。':receipt.state==='CANCELLED'?'提出は取り消されています。':'画像を受信しました。画像の再読取と本人照合を待っています。';
+  }
+  async function receiveReceipt(result){
+    const receipt=result?.receipt||result;if(!receipt?.receiptId)throw Error('NETWORK_RETRYABLE');
+    draft.receipt=receipt;draft.state=receipt.state;draft.errorCode=null;await persist();render();message(receiptMessage(receipt));onSubmitted(receipt);
+  }
+  async function recoverReceipt(){
+    try{await receiveReceipt(await api('/api/submissions/by-request/'+draft.requestId,undefined,draft.route==='pair'?pairing:null));return true;}
+    catch(e){if(e.status===404)return false;throw e;}
+  }
+  let automaticLookups=0,lastRecoveryCheck=0;
   async function submit(route) {
-    if(busy || conflict || !draft.confirmed || !checkPages(draft.pages).ok)return;
-    if(draft.requestId&&draft.route&&draft.route!==route){message('別の提出方法で送信を開始しています。先に「受付結果を確認」で結果を確認してください。');return;}
-    busy=true;draft.route=draft.route || route;draft.requestId=draft.requestId || randomId();draft.state='SENDING';render();
+    if(busy||pairBusy||conflict||!draft.confirmed||!checkPages(draft.pages).ok)return;
+    if(draft.requestId&&draft.route&&draft.route!==route){message('別の提出方法で送信を開始しています。先に受付結果を確認してください。');return;}
+    busy=true;draft.route=draft.route||route;draft.requestId=draft.requestId||randomId();draft.state='SENDING';draft.errorCode=null;automaticLookups=0;render();
+    message('接続と受付状況を確認しています…');reveal(q('#receipt-card'));await nextFrame();
     try {
       let authContext=null;
       if(route!=='pair'){
-        const current=await api('/api/me');
-        if(!current.authenticated)throw Error('AUTH_REQUIRED');
-        const expectedOwner=owner || draft.submissionOwner;
-        if(expectedOwner && current.account.key!==expectedOwner)throw Error('AUTH_CHANGED');
-        draft.submissionOwner=current.account.key;
-        authContext={accountKey:current.account.key,sessionGeneration:current.sessionGeneration};
+        const current=await api('/api/me');if(!current.authenticated)throw Error('AUTH_REQUIRED');
+        const expectedOwner=owner||draft.submissionOwner;if(expectedOwner&&current.account.key!==expectedOwner)throw Error('AUTH_CHANGED');
+        draft.submissionOwner=current.account.key;authContext={accountKey:current.account.key,sessionGeneration:current.sessionGeneration};
       }
-      await persist(); message('同じ提出の受付結果を先に確認しています…');
-      let existing=null;
-      try {existing=await api('/api/submissions/by-request/'+draft.requestId,undefined,route==='pair'?pairing:null);}
-      catch(e){if(e.status!==404)throw e;}
-      const body=await frozenPayload(draft.route);
-      if(authContext)body.expectedAuth=authContext;
-      const result=existing || await api('/api/submissions',body,route==='pair'?pairing:null);
-      draft.receipt=result.receipt || result;draft.state=draft.receipt.state;await persist();render();
-      message('画像を受信しました。画像の再読取と本人照合の結果を確認します。');onSubmitted(draft.receipt);
-    }catch(e){draft.state='RETRYABLE';await persist();message(messageFor(e.message));}
-    finally{busy=false;render();}
+      await persist();
+      if(await recoverReceipt())return;
+      message('提出画像を準備しています…');await nextFrame();
+      const body=await frozenPayload(draft.route);if(authContext)body.expectedAuth=authContext;
+      message('画像を送信しています。この画面を開いたままお待ちください。');await nextFrame();
+      await receiveReceipt(await api('/api/submissions',body,route==='pair'?pairing:null));
+    }catch(e){
+      draft.state='RETRYABLE';draft.errorCode=e.message;await persist();render();message(messageFor(e.message));
+      if(route==='pair'&&['NETWORK_RETRYABLE','BUSY'].includes(e.message)){
+        message('送信の応答が途切れたため、同じ提出の受付結果を確認しています…');
+        try{if(!await recoverReceipt())message('送信結果はまだ確認できません。画像は保持しています。「受付結果を確認して再試行」で同じ提出を確認できます。');}
+        catch{message('受付結果を確認できませんでした。画像は保持しています。通信が戻ったら「受付結果を確認して再試行」を押してください。');}
+      }
+    }finally{busy=false;render();}
   }
   q('#lookup').addEventListener('click',async()=>{
-    if(busy || conflict || !draft.requestId)return;
-    try{
-      const result=await api('/api/submissions/by-request/'+draft.requestId,undefined,draft.route==='pair'?pairing:null);
-      draft.receipt=result;draft.state=result.state;await persist();render();onSubmitted(result);
-      message('既存の受付結果を確認しました。');
-    }catch(error){
-      if(error.status===404)await submit(draft.route || (mode==='mac'?'mac':'phone'));
-      else message(messageFor(error.message));
-    }
+    if(busy||pairBusy||conflict||!draft.requestId)return;
+    let resend=false;busy=true;message('同じ提出の受付結果を確認しています…');render();reveal(q('#receipt-card'));
+    try{resend=!await recoverReceipt();if(resend)message('受付はまだ確認できません。同じ提出番号で再試行します…');}
+    catch(e){message(messageFor(e.message));}
+    finally{busy=false;render();}
+    if(resend)await submit(draft.route||(mode==='mac'?'mac':'phone'));
   });
   q('#cancel-send').addEventListener('click',async()=>{
+    if(busy||pairBusy)return;busy=true;render();
     try {
       if(pairing){
         const cancelled=await api('/api/pairs/'+pairing.pairId+'/device-cancel',{},pairing);
         if(cancelled.receipt){draft.receipt=cancelled.receipt;draft.state=cancelled.receipt.state;}
-        message('接続・送信セッションを取り消しました。撮影内容は保持しています。');
-      } else if(draft.receipt && !['ACCEPTED','CANCELLED'].includes(draft.receipt.state)) {
+        else{draft.requestId=null;draft.route=null;draft.state='UNSENT';}
+      }else if(draft.receipt&&!['ACCEPTED','CANCELLED'].includes(draft.receipt.state)){
         draft.receipt=await api('/api/submissions/'+draft.receipt.receiptId+'/cancel',{},draft.route==='pair'?pairing:null);draft.state=draft.receipt.state;
       }
-      pairing=null;sessionStorage.removeItem('ws-home-pair');updatePairBanner();q('#route-detail').replaceChildren();await persist();render();
+      pairing=null;pendingPairClaim=null;sessionStorage.removeItem('ws-home-pair');sessionStorage.removeItem('ws-home-pair-claim');selectedRoute=null;pairView=null;q('#route-detail').replaceChildren();updatePairBanner();await persist();message('接続・送信セッションを取り消しました。撮影内容は保持しています。');
     }catch(e){message(messageFor(e.message));}
+    finally{busy=false;render();}
   });
-  function addRoute(label,description,handler,iconName='send') {
-    const b=element('button'),title=element('strong',label);setIcon(title,iconName);b.append(title,element('span',description));b.addEventListener('click',event=>{stopPairCamera();handler(event);});q('#route-buttons').append(b);
+  const routeHandlers=new Map();
+  function chooseRoute(kind,focus=true){
+    if(busy||(pairBusy&&kind!=='pair')||conflict||!draft.confirmed||!checkPages(draft.pages).ok)return;
+    stopPairCamera();selectedRoute=kind;pairView=null;q('#route-detail').replaceChildren();message('');render();routeHandlers.get(kind)?.();
+    if(focus)reveal(q('#route-detail'));
   }
-  if(mode==='mac') addRoute('このMacから提出','ログイン済みの本人と画像の組・番号を照合して受け付けます。',()=>submit('mac'),'laptop');
+  q('#change-route').addEventListener('click',()=>{
+    if(busy||pairBusy||draft.requestId)return;
+    stopPairCamera();const previous=selectedRoute;selectedRoute=null;pairView=null;q('#route-detail').replaceChildren();message('');render();
+    q('#route-buttons [data-route="'+previous+'"]')?.focus();q('#route-buttons').scrollIntoView({block:'start'});
+  });setIcon(q('#change-route'),'back');
+  function addRoute(kind,label,description,handler,iconName='send') {
+    routeHandlers.set(kind,handler);const b=element('button'),title=element('strong',label);b.dataset.route=kind;setIcon(title,iconName);b.append(title,element('span',description));b.addEventListener('click',()=>chooseRoute(kind));q('#route-buttons').append(b);
+  }
+  if(mode==='mac')addRoute('mac','このMacから提出','ログイン済みの本人と画像の組・番号を照合して受け付けます。',()=>submit('mac'),'laptop');
   else {
-    addRoute('スマホでログインして送信','撮影内容を保持したまま学校アカウントでログインします。',async()=>{
+    addRoute('phone','スマホでログインして送信','撮影内容を保持したまま学校アカウントでログインします。',async()=>{
       if(isNativeGas){await submit('phone');return;}
       const detail=q('#route-detail');detail.replaceChildren(element('p','学校アカウントで接続を確認し、元の撮影タブへ戻って送信します。画像はこのタブに保持しています。'));
       const link=element('a','学校アカウントでログイン・接続確認','button');setIcon(link,'login');link.href=loginUrl;link.target='_blank';link.rel='noopener';detail.append(link);
-      link.addEventListener('click',event=>{event.preventDefault();if(!openConnection())message('接続画面を開けません。ブラウザーのポップアップを確認するか、接続確認リンクから保存画像を提出してください。');});
+      link.addEventListener('click',event=>{event.preventDefault();if(!openConnection())message('接続画面を開けません。ブラウザーのポップアップを確認してください。');});
       const send=element('button','ログイン完了後に送信');setIcon(send,'send');send.addEventListener('click',()=>submit('phone'));detail.append(send);
       const history=element('a','今回までの受付を確認','button');setIcon(history,'history');history.href=loginUrl;history.target='_blank';history.rel='noopener';detail.append(history);
     },'phone');
-    addRoute('Macと接続して提出','ログイン済みMacのQRを読み取ります。スマホのログインは不要です。',()=>{
-      const detail=q('#route-detail');detail.replaceChildren(element('p','Macのダッシュボードから「スマホ提出用QRを表示」を開き、QRを発行してください。'));
-      const scan=element('button','MacのQRをカメラで読み取る');setIcon(scan,'scan');scan.addEventListener('click',startPairScan);detail.append(scan);
-      const label=element('label','一時受付QRの画像を選択','button upload-label'),input=element('input');setIcon(label,'scan');input.type='file';input.accept='image/*';input.hidden=true;label.append(input);detail.append(label);
-      label.tabIndex=0;label.setAttribute('role','button');label.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();input.click();}});
-      input.addEventListener('change',async()=>{
-        try{if(!input.files[0])return;const {parsePairingQr}=await import('./10_model.mjs'),image=await loadImage(input.files[0]),id=image.getContext('2d').getImageData(0,0,image.width,image.height),
-          found=window.jsQR(id.data,image.width,image.height,{inversionAttempts:'attemptBoth'});if(!found)throw Error('PAIR_QR_INVALID');await claimPair(parsePairingQr(found.data,location.origin));}
-        catch(e){message(messageFor(e.message));}finally{input.value='';}
-      });
-      showPairControls();
-    },'laptop');
-    addRoute('画像を保存','表裏を保存し、自分でMacへ転送して提出します。',()=>{
+    addRoute('pair','Macと接続して提出','ログイン済みMacのQRを読み取ります。スマホのログインは不要です。',showPairControls,'laptop');
+    addRoute('save','画像を保存','表裏を保存し、自分でMacへ転送して提出します。',()=>{
       const detail=q('#route-detail');detail.replaceChildren(element('p','表面と裏面をそれぞれ保存してください。保存だけでは提出されません。'));
       for(const side of ['F','B']){const b=element('button',side==='F'?'表面画像を保存':'裏面画像を保存');setIcon(b,'download');b.addEventListener('click',()=>{const checked=checkPages(draft.pages);if(checked.ok)download(slots.find(slot=>draft.pages[slot]===checked.pages[side]));});detail.append(b);}
       if(navigator.canShare){const share=element('button','表裏をまとめて共有');setIcon(share,'share');share.addEventListener('click',async()=>{
@@ -461,14 +481,44 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       });detail.append(share);}
     },'download');
   }
+  function rememberPair(){try{sessionStorage.setItem('ws-home-pair',JSON.stringify(pairing));}catch{storageWarning('接続情報を保持できません。この画面を開いたまま進めてください。');}}
   function updatePairBanner(){
-    const banner=q('#pair-connection');banner.hidden=!pairing;
-    if(pairing)banner.textContent='Macとの接続：'+(pairing.accountLabel||'学校アカウント')+' ／ 確認コード '+(pairing.verificationCode||'確認中')+' ／ '+({AWAITING_APPROVAL:'Macでコードの一致を確認して承認してください。',APPROVED:'承認済み。③から送信できます。',SUBMITTING:'送信結果を確認しています。',SUBMITTED:'この接続で送信済みです。',EXPIRED:'期限切れ。新しいQRで接続してください。',CANCELLED:'接続は取り消されました。',MAC_OFFLINE:'Macの接続画面を開いてください。'}[pairing.status]||'接続を確認しています。');
+    const banner=q('#pair-connection');banner.hidden=!pairing||!!draft.confirmed&&checkPages(draft.pages).ok;
+    if(pairing)banner.textContent=pairing.verificationCode?'Macとの確認コード '+pairing.verificationCode+'。写真の確認後、③で接続状態を確認できます。':'Macとの接続を確認しています。写真はそのまま追加できます。';
+    updatePairControls();
+  }
+  function updatePairControls(){
+    q('#lookup').disabled=busy||pairBusy||conflict;q('#cancel-send').disabled=busy||pairBusy;q('#change-route').disabled=busy||pairBusy||conflict;
+    q('#route-buttons').querySelectorAll('button').forEach(button=>{button.disabled=busy||conflict||!draft.confirmed||(pairBusy&&button.dataset.route!=='pair');});
+    if(!pairView?.panel.isConnected)return;
+    const state=pairing?.status;
+    pairView.intro.hidden=!!pairing;pairView.scan.hidden=!!pairing&&!['CONNECTING','EXPIRED','CANCELLED','INVALID'].includes(state);pairView.scan.disabled=pairBusy||busy;
+    pairView.codeBox.hidden=!pairing?.verificationCode;pairView.code.textContent=pairing?.verificationCode||'';
+    const labels={CONNECTING:'Macとの接続結果を確認しています…',AWAITING_APPROVAL:'Macにも同じコードが表示されていることを確認して、Macで承認してください。',APPROVED:'Macで承認されました。「画像を送信」を押してください。',SUBMITTING:'画像の受信結果を確認しています。',SUBMITTED:'この接続で画像を送信済みです。下の受付状況を確認してください。',EXPIRED:'接続の期限を過ぎました。Macで新しいQRを発行してください。',CANCELLED:'接続は取り消されました。',MAC_OFFLINE:'Macの接続画面を開いたまま、接続状態を確認してください。'};
+    pairView.status.textContent=pairMessage||labels[state]||'MacのダッシュボードでQRを発行してください。';
+    pairView.send.hidden=!pairing||!!draft.requestId;pairView.send.disabled=busy||pairBusy||conflict||state!=='APPROVED';
+    pairView.refresh.hidden=!pairing;pairView.refresh.disabled=busy||pairBusy;
+    pairView.disconnect.hidden=!pairing||!!draft.requestId;pairView.disconnect.disabled=busy||pairBusy;
+    pairView.scan.textContent=pairing?'別のQRを読み取る':'MacのQRをカメラで読み取る';setIcon(pairView.scan,'scan');
+  }
+  function showPairControls(){
+    if(pairView?.panel.isConnected){updatePairControls();return;}
+    const detail=q('#route-detail'),panel=element('div','', 'pair-controls'),intro=element('p','Macのダッシュボードから「スマホ提出用QRを表示」を開き、QRを発行してください。'),scan=element('button','MacのQRをカメラで読み取る');
+    scan.id='pair-scan';setIcon(scan,'scan');scan.addEventListener('click',startPairScan);
+    const codeBox=element('div','', 'pair-code-box'),code=element('strong','','pair-verification-code');codeBox.tabIndex=-1;codeBox.setAttribute('aria-label','Macとスマホの確認コード');code.id='phone-pair-code';code.tabIndex=-1;
+    codeBox.append(element('p','Macとスマホの確認コード'),code);const status=element('p');status.id='pair-status';status.setAttribute('role','status');
+    const send=element('button','画像を送信','primary');send.id='pair-send';setIcon(send,'send');send.addEventListener('click',async()=>{if(await refreshPairStatus()&&pairing?.status==='APPROVED')await submit('pair');});
+    const refresh=element('button','接続状態を確認');setIcon(refresh,'refresh');refresh.addEventListener('click',()=>refreshPairStatus());
+    const disconnect=element('button','Macとの接続を取り消す');setIcon(disconnect,'close');disconnect.addEventListener('click',()=>q('#cancel-send').click());
+    const actions=element('div','','actions');actions.append(send,refresh,disconnect);panel.append(intro,scan,codeBox,status,actions);detail.append(panel);pairView={panel,intro,scan,codeBox,code,status,send,refresh,disconnect};updatePairControls();
   }
   async function startPairScan(){
-    stopPairCamera();const detail=q('#route-detail'),box=element('div'),video=element('video'),stop=element('button','QRの読み取りを中止');setIcon(stop,'close');
-    video.autoplay=true;video.muted=true;video.playsInline=true;video.style.cssText='display:block;width:100%;max-height:380px;object-fit:contain';box.append(video,stop);detail.append(box);
-    let stream,active=true,timer;stopPairCamera=()=>{active=false;clearTimeout(timer);stream?.getTracks().forEach(t=>t.stop());box.remove();};stop.addEventListener('click',()=>stopPairCamera());
+    if(pairBusy||busy)return;stopPairCamera();
+    const dialog=element('dialog','','pair-camera-dialog'),title=element('h3','MacのQRを読み取る'),hint=element('p','Macに表示したQRをカメラに写してください。'),video=element('video'),stop=element('button','QRの読み取りを中止');title.id='pair-camera-title';dialog.setAttribute('aria-labelledby',title.id);hint.setAttribute('role','status');setIcon(stop,'close');
+    video.autoplay=true;video.muted=true;video.playsInline=true;dialog.append(title,hint,video,stop);root.append(dialog);
+    let stream,active=true,timer;
+    stopPairCamera=()=>{if(!active)return;active=false;clearTimeout(timer);stream?.getTracks().forEach(t=>t.stop());video.srcObject=null;dialog.close();dialog.remove();};
+    const cancel=()=>{stopPairCamera();pairView?.scan.focus({preventScroll:true});};stop.addEventListener('click',cancel);dialog.addEventListener('cancel',event=>{event.preventDefault();cancel();});dialog.showModal();
     try{
       if(!navigator.mediaDevices?.getUserMedia)throw Error('CAMERA_UNAVAILABLE');
       stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280}},audio:false});
@@ -476,46 +526,60 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
       const read=async()=>{
         if(!active)return;
-        if(video.videoWidth){canvas.width=Math.min(1280,video.videoWidth);canvas.height=Math.round(video.videoHeight*canvas.width/video.videoWidth);ctx.drawImage(video,0,0,canvas.width,canvas.height);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),found=window.jsQR(pixels.data,pixels.width,pixels.height,{inversionAttempts:'attemptBoth'});
-          if(found){try{const {parsePairingQr}=await import('./10_model.mjs');const token=parsePairingQr(found.data,'https://joho.kaijo.ed.jp');stopPairCamera();await claimPair(token);return;}catch(e){message(messageFor(e.message));}}
-        }timer=setTimeout(read,450);
+        try{
+          if(video.videoWidth){canvas.width=Math.min(1280,video.videoWidth);canvas.height=Math.round(video.videoHeight*canvas.width/video.videoWidth);ctx.drawImage(video,0,0,canvas.width,canvas.height);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),found=window.jsQR(pixels.data,pixels.width,pixels.height,{inversionAttempts:'attemptBoth'});
+            if(found){let token;try{token=parsePairingQr(found.data,'https://joho.kaijo.ed.jp');}catch{hint.textContent='Macで発行したスマホ提出用QRを写してください。';}
+              if(token){stopPairCamera();await claimPair(token);return;}
+            }
+          }
+        }catch{hint.textContent='QRを確認できません。QR全体が明るく写るように合わせてください。';}
+        if(active)timer=setTimeout(read,450);
       };read();
-    }catch(e){stopPairCamera();message('カメラを利用できません。カメラの使用を許可するか、「一時受付QRの画像を選択」を使ってください。');}
-  }
-  function showPairControls(){
-    const detail=q('#route-detail');
-    if(!pairing)return;
-    detail.append(element('p',(pairing.accountLabel||'Mac')+' ／ 確認コード '+pairing.verificationCode+'。Macにも同じコードが表示されていることを確認してください。期限：'+timeLabel(pairing.expiresAt)));
-    const send=element('button','接続の承認を確認して送信');setIcon(send,'send');send.addEventListener('click',async()=>{
-      try{const status=await api('/api/pairs/'+pairing.pairId+'/status',undefined,pairing);pairing={...pairing,...status};updatePairBanner();if(!['APPROVED','SUBMITTING','SUBMITTED'].includes(status.status))throw Error(status.status==='EXPIRED'?'PAIR_EXPIRED':status.status==='MAC_OFFLINE'?'PAIR_MAC_OFFLINE':'PAIR_NOT_APPROVED');await submit('pair');}
-      catch(e){message(messageFor(e.message));}
-    });detail.append(send);
-    const disconnect=element('button','Macとの接続を取り消す');setIcon(disconnect,'close');disconnect.addEventListener('click',()=>q('#cancel-send').click());detail.append(disconnect);
+    }catch{stopPairCamera();pairMessage='カメラを利用できません。ブラウザーのカメラ使用を許可して、もう一度読み取ってください。写真は保持しています。';updatePairControls();reveal(q('#route-detail'));}
   }
   async function claimPair(qrToken){
-    let candidate;try{candidate=JSON.parse(sessionStorage.getItem('ws-home-pair-claim')||'null');}catch{}
-    const identity=deviceId(),same=pairing?.pairId===qrToken.slice(0,36),capability=same?pairing.capability:candidate?.qrToken===qrToken?candidate.capability:randomId().replaceAll('-','')+randomId().replaceAll('-','');
-    sessionStorage.setItem('ws-home-pair-claim',JSON.stringify({qrToken,capability}));
-    const result=await api('/api/pairs/claim',{qrToken,deviceId:identity,capability});
-    pairing={...result,deviceId:identity,capability};sessionStorage.setItem('ws-home-pair',JSON.stringify(pairing));sessionStorage.removeItem('ws-home-pair-claim');updatePairBanner();
-    message('接続要求を送信しました。確認コード '+pairing.verificationCode+' がMacと同じことを確認し、Macで承認してください。');
-    q('#cancel-send').hidden=false;q('#route-detail').replaceChildren();showPairControls();
+    if(pairBusy)return;pairBusy=true;pairMessage='Macとの接続結果を確認しています…';
+    const identity=deviceId(),same=pairing?.pairId===qrToken.slice(0,36),capability=same?pairing.capability:pendingPairClaim?.qrToken===qrToken?pendingPairClaim.capability:randomId().replaceAll('-','')+randomId().replaceAll('-','');
+    pendingPairClaim={qrToken,capability};pairing={...(same?pairing:{}),pairId:qrToken.slice(0,36),deviceId:identity,capability,status:'CONNECTING'};
+    try{sessionStorage.setItem('ws-home-pair-claim',JSON.stringify(pendingPairClaim));}catch{}rememberPair();updatePairBanner();
+    if(draft.confirmed&&checkPages(draft.pages).ok&&selectedRoute!=='pair'){selectedRoute='pair';pairView=null;q('#route-detail').replaceChildren();render();showPairControls();}
+    updatePairControls();reveal(q('#route-detail'));
+    try{
+      const result=await api('/api/pairs/claim',{qrToken,deviceId:identity,capability});
+      pairing={...result,deviceId:identity,capability};rememberPair();pendingPairClaim=null;sessionStorage.removeItem('ws-home-pair-claim');pairMessage='';updatePairBanner();
+      if(pairView?.codeBox.isConnected)reveal(pairView.codeBox);
+    }catch(e){pairMessage=e.message==='NETWORK_RETRYABLE'?'Macへの接続結果がまだ確認できません。「接続状態を確認」で同じ接続を確認してください。':messageFor(e.message);pairing.status={PAIR_EXPIRED:'EXPIRED',PAIR_CANCELLED:'CANCELLED',PAIR_INVALID:'INVALID',PAIR_ALREADY_CLAIMED:'INVALID'}[e.message]||pairing.status;rememberPair();updatePairBanner();}
+    finally{pairBusy=false;render();}
+  }
+  async function refreshPairStatus(){
+    if(!pairing||pairBusy||busy)return false;
+    if(pairing.status==='CONNECTING'&&pendingPairClaim){await claimPair(pendingPairClaim.qrToken);return pairing.status!=='CONNECTING';}
+    pairBusy=true;pairMessage='接続状態を確認しています…';updatePairControls();
+    try{const status=await api('/api/pairs/'+pairing.pairId+'/status',undefined,pairing);pairing={...pairing,...status};pairMessage='';rememberPair();updatePairBanner();return true;}
+    catch(e){pairMessage=messageFor(e.message);pairing.status={PAIR_EXPIRED:'EXPIRED',PAIR_CANCELLED:'CANCELLED',PAIR_INVALID:'INVALID'}[e.message]||pairing.status;rememberPair();return false;}
+    finally{pairBusy=false;updatePairControls();}
   }
   async function poll(){
-    if(stopped)return;
+    clearTimeout(pollTimer);if(stopped||pollRunning)return;pollRunning=true;
     try {
-      if(pairing&&!busy&&Date.now()-lastPairCheck>5000){lastPairCheck=Date.now();const status=await api('/api/pairs/'+pairing.pairId+'/status',undefined,pairing);pairing={...pairing,...status};sessionStorage.setItem('ws-home-pair',JSON.stringify(pairing));updatePairBanner();}
-      if(draft.receipt && ['RECEIVED','VERIFYING'].includes(draft.receipt.state) && !busy && !conflict) {
-        const previousId=draft.id,previousReceipt=draft.receipt.receiptId;
-        const result=await api('/api/submissions/'+draft.receipt.receiptId,undefined,draft.route==='pair'?pairing:null);
-        if(draft.id===previousId && draft.receipt?.receiptId===previousReceipt && result.state!==draft.receipt.state){draft.receipt=result;draft.state=result.state;await persist();render();onSubmitted(result);}
+      const terminal=['ACCEPTED','RESUBMIT_REQUIRED','CANCELLED'].includes(draft.receipt?.state);
+      if(!document.hidden&&!terminal){
+        if(pairing&&pairing.status!=='CONNECTING'&&!busy&&!pairBusy&&Date.now()-lastPairCheck>5000){lastPairCheck=Date.now();await refreshPairStatus();}
+        if(draft.receipt&&['RECEIVED','VERIFYING'].includes(draft.receipt.state)&&!busy&&!conflict){
+          const previousId=draft.id,previousReceipt=draft.receipt.receiptId,result=await api('/api/submissions/'+draft.receipt.receiptId,undefined,draft.route==='pair'?pairing:null);
+          if(draft.id===previousId&&draft.receipt?.receiptId===previousReceipt&&result.state!==draft.receipt.state)await receiveReceipt(result);
+        }else if(draft.requestId&&!draft.receipt&&draft.state==='RETRYABLE'&&draft.route==='pair'&&!busy&&!pairBusy&&automaticLookups<3&&Date.now()-lastRecoveryCheck>10000){automaticLookups++;lastRecoveryCheck=Date.now();await recoverReceipt();}
       }
-    }catch(e){if(e.status===401 || e.status===403)message('受付結果の確認には再ログインまたは接続の確認が必要です。画像は保持しています。');}
-    const timeout=setTimeout(poll,2500);cleanup.length=0;cleanup.push(()=>clearTimeout(timeout));
+    }catch(e){if(e.status===401||e.status===403)message('受付結果の確認には再ログインまたは接続の確認が必要です。画像は保持しています。');}
+    finally{pollRunning=false;if(!stopped)pollTimer=setTimeout(poll,2500);}
   }
+  const resume=()=>{if(!document.hidden){lastPairCheck=0;poll();}};document.addEventListener('visibilitychange',resume);
+  const leave=()=>stopPairCamera();window.addEventListener('pagehide',leave);
+  cleanup.push(()=>{clearTimeout(pollTimer);document.removeEventListener('visibilitychange',resume);window.removeEventListener('pagehide',leave);});
   local=false;
   for(const side of ['F','B'])if(draft.pages[side]){try{sources[side]=await loadImage(draft.pages[side].originalBlob,draft.pages[side].options?.turns || 0);drawSource(side);}catch(e){if(!draft.pages[side].reading?.pending)draft.pages[side].reading={status:'REVIEW',message:'原画像を復元できません。保持された補正画像を保存して退避してください。'};}}
   activeSlot=slots.find(slot=>draft.pages[slot]?.originalBlob)||'F';
-  render();updatePairBanner();await readPendingPages();poll();
+  render();updatePairBanner();await readPendingPages();if(draft.confirmed&&(draft.route||pairing))chooseRoute(draft.route||(pairing?'pair':null),false);
+  if(pairing?.status==='CONNECTING')pairMessage='前回の接続結果を確認できていません。「接続状態を確認」を押してください。';updatePairControls();poll();
   return {claimPair,dispose(){stopped=true;stopPairCamera();cleanup.forEach(f=>f());channel?.close();for(const side of ['F','B'])clearPreview(side);}};
 }

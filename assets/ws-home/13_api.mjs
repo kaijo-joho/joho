@@ -2,6 +2,10 @@ export const loginUrl='https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfy
 export const pairGatewayUrl='https://script.google.com/macros/s/AKfycbyPClzS6qn65sTffk99bwTS45zSyiErpTJR-RxQoCiA1uGXh8fduKzLlGnsOM7n7Ran/exec';
 let pairFrame,pairPeer,pairOrigin,pairChannel,pairReadyPromise;
 const pairPending=new Map();
+function resetPairConnection(){
+  pairFrame?.remove();pairFrame=pairPeer=pairOrigin=pairChannel=pairReadyPromise=null;
+  for(const p of pairPending.values()){clearTimeout(p.timer);p.reject(Error('NETWORK_RETRYABLE'));}pairPending.clear();
+}
 let frame,popup,peer,peerOrigin,channel,readyPromise,readyResolve,readyTimer;const pending=new Map();
 export const isNativeGas=!!globalThis.google?.script?.run;
 const googleOrigin=value=>{try{const u=new URL(value);return u.protocol==='https:'&&(u.hostname==='script.googleusercontent.com'||/^[a-z0-9-]+-script\.googleusercontent\.com$/.test(u.hostname));}catch{return false;}};
@@ -51,11 +55,26 @@ async function pairReady(){
     pairFrame._ready=()=>{clearTimeout(timer);resolve();};pairFrame.src=pairGatewayUrl+'?channel='+pairChannel;document.body.append(pairFrame);
   });return pairReadyPromise;
 }
-async function pairApi(path,body,pairing){
+async function pairRequest(path,body,pairing){
   const proof=pairing?{pairId:pairing.pairId,deviceId:pairing.deviceId,capability:pairing.capability}:null;
-  if(isNativeGas)return new Promise((resolve,reject)=>google.script.run.withSuccessHandler(r=>{if(r?.ok)resolve(r.data);else {const e=Error(r?.code||'HOME_UNAVAILABLE');e.status=e.message==='NOT_FOUND'?404:400;reject(e);}}).withFailureHandler(()=>reject(Error('NETWORK_RETRYABLE'))).worksheetHomePairRpc(path,body??null,proof));
+  const timeout=path==='/api/submissions'&&body?90000:15000;
+  if(isNativeGas)return new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>reject(Error('NETWORK_RETRYABLE')),timeout);
+    google.script.run.withSuccessHandler(r=>{clearTimeout(timer);if(r?.ok)resolve(r.data);else {const e=Error(r?.code||'HOME_UNAVAILABLE');e.status=e.message==='NOT_FOUND'?404:400;reject(e);}}).withFailureHandler(()=>{clearTimeout(timer);reject(Error('NETWORK_RETRYABLE'));}).worksheetHomePairRpc(path,body??null,proof);
+  });
   await pairReady();const id=crypto.randomUUID();
-  return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pairPending.delete(id);reject(Error('NETWORK_RETRYABLE'));},90000);pairPending.set(id,{timer,resolve,reject});pairPeer.postMessage({type:'WS_PAIR_REQUEST',channel:pairChannel,id,path,body,proof},pairOrigin);});
+  return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pairPending.delete(id);reject(Error('NETWORK_RETRYABLE'));},timeout);pairPending.set(id,{timer,resolve,reject});pairPeer.postMessage({type:'WS_PAIR_REQUEST',channel:pairChannel,id,path,body,proof},pairOrigin);});
+}
+async function pairApi(path,body,pairing){
+  try{return await pairRequest(path,body,pairing);}
+  catch(e){
+    // Only reads and an idempotent claim may reconnect automatically. A lost
+    // image-upload response is resolved by receipt lookup using the same ID.
+    if(e.message!=='NETWORK_RETRYABLE')throw e;
+    resetPairConnection();
+    if(body!=null&&path!=='/api/pairs/claim')throw e;
+    return pairRequest(path,body,pairing);
+  }
 }
 export async function blobBase64(blob){const bytes=new Uint8Array(await blob.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=16384)binary+=String.fromCharCode(...bytes.subarray(i,i+16384));return btoa(binary);}
 export function messageFor(code){return {
