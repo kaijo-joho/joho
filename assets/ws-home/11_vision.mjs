@@ -1,6 +1,8 @@
-import {parseWorksheetQr, provisionalLimits, hashBlob} from './10_model.mjs?v=20261015-5';
+import {parseWorksheetQr, provisionalLimits, hashBlob} from './10_model.mjs?v=20261016-ocr1';
+import {recognizePrintedLabel, makeLabelViews} from './14_label_ocr.mjs?v=20261016-ocr1';
 const layoutCache = new Map();
 const rowNames = ['class', 'tens', 'ones'];
+const decodedQrFacts = new WeakMap();
 export async function layouts() {
   if (!layoutCache.size) {
     for (const name of ['b5', 'b5-back', 'a4', 'a4-back']) {
@@ -269,7 +271,7 @@ function qrCrop(source,points,c,options) {
   const width=Math.ceil((r.width+margin*2)*density),height=Math.ceil((r.height+margin*2)*density);
   const target=targetMarkers(c,c.page.widthMm*density,c.page.heightMm*density).map(p=>({x:p.x-left*density,y:p.y-top*density}));
   const image=warp(source,points,target,width,height);tone(image,options.brightness||0,options.contrast||0,options.autoTone!==false);
-  return {image,left,top,density};
+  return {image,left,top,density,source};
 }
 function printedQrGeometry(region,c,decoded) {
   // Measure the photographed nested finder squares. Decoders can infer a noisy
@@ -317,10 +319,31 @@ function printedQrGeometry(region,c,decoded) {
 
 function readQr(region,c) {
   const {image,left,top,density}=region,ctx=image.getContext('2d',{willReadFrequently:true}),data=ctx.getImageData(0,0,image.width,image.height);
-  let decoded=window.jsQR(data.data,image.width,image.height,{inversionAttempts:'attemptBoth'});
+  const remember=decoded=>{
+    if(decoded&&typeof decoded.data==='string'&&decoded.data.length&&region.source){let set=decodedQrFacts.get(region.source);if(!set){set=new Set();decodedQrFacts.set(region.source,set);}set.add(decoded.data);}
+    return decoded;
+  };
+  let decoded=remember(window.jsQR(data.data,image.width,image.height,{inversionAttempts:'attemptBoth'})),preprocessing='original';
   if(!decoded){
     const gray=grayscale(image),lo=percentile(gray,.04),hi=percentile(gray,.96);
-    if(hi-lo>30){for(let i=0;i<gray.length;i++){const v=(gray[i]-lo)*255/(hi-lo);data.data[i*4]=data.data[i*4+1]=data.data[i*4+2]=v;}decoded=window.jsQR(data.data,image.width,image.height,{inversionAttempts:'attemptBoth'});}
+    if(hi-lo>30){for(let i=0;i<gray.length;i++){const v=(gray[i]-lo)*255/(hi-lo);data.data[i*4]=data.data[i*4+1]=data.data[i*4+2]=v;}decoded=remember(window.jsQR(data.data,image.width,image.height,{inversionAttempts:'attemptBoth'}));if(decoded)preprocessing='contrast';}
+  }
+  if(!decoded){
+    const r=c.qr.region.mm,margin=2*c.scale,x=Math.max(0,Math.round((r.x-margin-left)*density)),y=Math.max(0,Math.round((r.y-margin-top)*density));
+    const w=Math.min(image.width-x,Math.round((r.width+2*margin)*density)),h=Math.min(image.height-y,Math.round((r.height+2*margin)*density));
+    const crop=canvas(w,h);crop.getContext('2d').drawImage(image,x,y,w,h,0,0,w,h);
+    const gray=grayscale(crop),dark=gray.filter(v=>v<128).length/gray.length;
+    if(dark>=.08&&dark<=.65){
+      const support=[];
+      for(const [factor,smoothing]of [[1,false],[2,false],[3,true]]){
+        const scaled=canvas(w*factor,h*factor),sc=scaled.getContext('2d',{willReadFrequently:true});sc.imageSmoothingEnabled=smoothing;sc.drawImage(crop,0,0,scaled.width,scaled.height);
+        const pixels=sc.getImageData(0,0,scaled.width,scaled.height),found=remember(window.jsQR(pixels.data,scaled.width,scaled.height,{inversionAttempts:'attemptBoth'}));
+        if(!found)continue;
+        const location=Object.fromEntries(Object.entries(found.location).map(([key,p])=>[key,p&&typeof p.x==='number'?{x:p.x/factor+x,y:p.y/factor+y}:p]));
+        support.push({...found,location});
+      }
+      if(support.length>=2&&new Set(support.map(v=>v.data)).size===1){decoded=support[0];preprocessing='tight-crop-scale-consensus';}
+    }
   }
   if(!decoded)return null;
   let qr;try{qr=parseWorksheetQr(decoded.data);}catch{return null;}
@@ -330,7 +353,7 @@ function readQr(region,c) {
   const actual=['topLeftCorner','topRightCorner','bottomRightCorner','bottomLeftCorner'].map(key=>({x:decoded.location[key].x/density+left,y:decoded.location[key].y/density+top}));
   const error=Math.max(...actual.map((p,i)=>Math.hypot(p.x-expected[i].x,p.y-expected[i].y)));
   const measured=printedQrGeometry(region,c,decoded);
-  return {qr,error:measured?.error??error,decodedError:error,modules,actual,expected,measured};
+  return {qr,error:measured?.error??error,decodedError:error,modules,actual,expected,measured,preprocessing};
 }
 function recoverRegistration(source,points,c,found,options={}) {
   const physical=targetMarkers(c,c.page.widthMm,c.page.heightMm),toMm=homography(points,physical),toSource=homography(physical,points),observed=markerComponents(source),matches=[];
@@ -407,10 +430,10 @@ function sharpenPrintedQr(image,c,payload) {
   const decoded=readQr(qrCrop(image,targetMarkers(c,image.width,image.height),c,{autoTone:false}),c);
   if(!decoded||decoded.qr.payload!==payload)ctx.putImageData(original,x,y);
 }
-function printedHeaderModel(image,c) {
+function printedHeaderModel(image,c,fullHeight=image.height) {
   // Use the outlines of many EMPTY printed circles, never the selected answers,
   // to correct small header skew/print drift left after the page homography.
-  const gray=grayscale(image),sx=image.width/c.page.widthMm,sy=image.height/c.page.heightMm,points=[];
+  const gray=grayscale(image),sx=image.width/c.page.widthMm,sy=fullHeight/c.page.heightMm,points=[];
   const directions=Array.from({length:24},(_,i)=>({x:Math.cos(i*Math.PI/12),y:Math.sin(i*Math.PI/12)}));
   const sample=(x,y)=>pixelAt(gray,image.width,image.height,x*sx,y*sy);
   for(const row of rowNames)for(const mark of c.omr[row]){
@@ -438,7 +461,13 @@ function printedHeaderModel(image,c) {
     let model=fit(points),stable=points.filter(p=>{const q=model(p.expected);return Math.hypot(q.x-p.actual.x,q.y-p.actual.y)<.25*c.scale;});
     if(enough(stable)){
       model=fit(stable);const maxOffset=Math.max(...stable.map(p=>{const q=model(p.expected);return Math.hypot(q.x-p.expected.x,q.y-p.expected.y);}));
-      if(maxOffset<1.25*c.scale)return {model,maxOffset};
+      if(maxOffset<1.25*c.scale){
+        const p=model({x:0,y:0}),x=model({x:1,y:0}),y=model({x:0,y:1});
+        const a=x.x-p.x,b=y.x-p.x,d=x.y-p.y,e=y.y-p.y,trace=a*a+b*b+d*d+e*e,det=(a*e-b*d)**2;
+        const root=Math.sqrt(Math.max(0,trace*trace-4*det));
+        return {model,maxOffset,maxResidual:Math.max(...stable.map(p=>{const q=model(p.expected);return Math.hypot(q.x-p.actual.x,q.y-p.actual.y);})),
+          count:stable.length,minScale:Math.sqrt(Math.max(0,(trace-root)/2)),maxScale:Math.sqrt((trace+root)/2)};
+      }
     }
   }
   return null;
@@ -535,6 +564,16 @@ function quality(image, c) {
   }
   return {headerSharpness: sum / Math.max(1, count), paperBrightness: percentile(gray, .9)};
 }
+async function exportCorrected(image) {
+  let blob=await new Promise(resolve=>image.toBlob(resolve,'image/png')),grayscaleExport=false;
+  if(blob?.size>provisionalLimits.maxImageBytes){
+    const ctx=image.getContext('2d'),id=ctx.getImageData(0,0,image.width,image.height);
+    for(let i=0;i<id.data.length;i+=4){const gray=Math.round((id.data[i]+id.data[i+1]+id.data[i+2])/3);id.data[i]=id.data[i+1]=id.data[i+2]=gray;}
+    ctx.putImageData(id,0,0);blob=await new Promise(resolve=>image.toBlob(resolve,'image/png'));grayscaleExport=true;
+  }
+  if(!blob||blob.size>provisionalLimits.maxImageBytes)throw Error('OUTPUT_TOO_LARGE');
+  return {blob,grayscaleExport};
+}
 function validCorners(points,source) {
   return points.length===4&&points.every(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=0&&p.y>=0&&p.x<source.width&&p.y<source.height)&&new Set(points.map(p=>Math.round(p.x)+','+Math.round(p.y))).size===4&&points.every((p,i)=>cross(p,points[(i+1)%4],points[(i+2)%4])>0)&&polygonArea(points)>source.width*source.height*.15;
 }
@@ -573,7 +612,11 @@ export async function processImage(blob, options = {}) {
   }
   candidates.sort((a,b)=>a.error/a.c.scale-b.error/b.c.scale);
   const best=candidates[0],alternative=best&&candidates.find(v=>v.c.pageSize!==best.c.pageSize||v.qr.payload!==best.qr.payload);
-  if(!best)return {source,corners,reading:{status:'REVIEW',reason:corners?'QR_UNREADABLE':'MARKERS_NOT_FOUND',message:corners?'WS識別QRを読み取れません。影・ピンぼけを避けて撮り直すか、「調整する」で四隅を確認してください。':'用紙の位置を確認できません。暗めの机の上で、用紙の四隅がすべて入るように撮影してください。'}};
+  if(!best){
+    const known=decodedQrFacts.get(source)?.size;
+    return {source,corners,reading:{status:'REVIEW',reason:known?'QR_POSITION_MISMATCH':corners?'QR_UNREADABLE':'MARKERS_NOT_FOUND',message:known?'QRは検出されましたが、用紙との対応を確認できません。四隅の黒い■と正しい用紙かを確認してください。':corners?'WS識別QRを読み取れません。影・ピンぼけを避けて撮り直すか、「調整する」で四隅を確認してください。':'用紙の位置を確認できません。暗めの机の上で、用紙の四隅がすべて入るように撮影してください。'}};
+  }
+  if((decodedQrFacts.get(source)?.size||0)>1)return {source,corners,reading:{status:'REVIEW',reason:'QR_CONFLICT',message:'異なる内容のQRが検出されました。同じワークシートの表裏か確認してください。'}};
   corners=best.corners;
   if(best.error>(best.limit??.8)||alternative&&alternative.error/alternative.c.scale-best.error/best.c.scale<.1)return {source,corners,reading:{status:'REVIEW',reason:'QR_POSITION_MISMATCH',message:'QRは読めましたが、用紙と黒いマーカーの位置が合いません。紙の角ではなく四隅の黒い■の中心へ合わせてください。'}};
   const c=best.c,width=provisionalLimits.normalizedWidth,height=Math.round(width*c.page.heightMm/c.page.widthMm);
@@ -599,14 +642,89 @@ export async function processImage(blob, options = {}) {
       ctx.fillStyle='#111';ctx.fillRect(Math.round(r.x*sx),Math.round(r.y*sy),Math.round(r.width*sx),Math.round(r.height*sy));
     }
   }
-  let correctedBlob=await new Promise(resolve=>corrected.toBlob(resolve,'image/png')),grayscaleExport=false;
-  if(correctedBlob?.size>provisionalLimits.maxImageBytes){
-    // iPhone paper texture can exceed the PNG limit. Preserve all sampled luminance,
-    // rather than reducing QR resolution; the original colour photo remains in the draft.
-    const ctx=corrected.getContext('2d'),id=ctx.getImageData(0,0,width,height);
-    for(let i=0;i<id.data.length;i+=4){const gray=Math.round((id.data[i]+id.data[i+1]+id.data[i+2])/3);id.data[i]=id.data[i+1]=id.data[i+2]=gray;}
-    ctx.putImageData(id,0,0);correctedBlob=await new Promise(resolve=>corrected.toBlob(resolve,'image/png'));grayscaleExport=true;
+  const {blob:correctedBlob,grayscaleExport}=await exportCorrected(corrected);
+  return {source,corners,correctedBlob,sha256:await hashBlob(correctedBlob),reading:{status:problems.length?'REVIEW':'OK',message:problems[0]||'',qr:best.qr,qrModules:best.modules,identitySource:'qr',classNumber:omr.classNumber,number:omr.number,rows:omr.rows,pageSize:c.pageSize,quality:q,autoTone:options.autoTone!==false,grayscaleExport,headerAligned,registration:best.restored?'QRと残る3点で欠けた■を補正':'四隅の■で補正',restoredMarkers:best.restored?.length||0,sourcePixelsPerModule:modulePixels,elapsedMs:Math.round(performance.now()-began),correctedBytes:correctedBlob.size}};
+}
+
+function mappedOmr(c,model,dx=0,dy=0) {
+  const shifted=structuredClone(c);
+  for(const marks of Object.values(shifted.omr))for(const mark of marks){const p=model(mark.center.mm);mark.center.mm={x:p.x+dx,y:p.y+dy};}
+  return shifted;
+}
+export async function labelCrops(blob,source,markers,c,model,options) {
+  const q=c.qr.region.mm,centre=q.x+q.width/2,top=q.y+q.height-1.2*c.scale;
+  const matrix=homography(targetMarkers(c,c.page.widthMm,c.page.heightMm),markers);
+  let points=[{x:centre-7*c.scale,y:top},{x:centre+7*c.scale,y:top},{x:centre+7*c.scale,y:top+7.2*c.scale},{x:centre-7*c.scale,y:top+7.2*c.scale}].map(model).map(p=>transformPoint(matrix,p));
+  const w=Math.ceil(14*c.scale*20),h=Math.ceil(7.2*c.scale*20);
+  // Crop only this small region from the decoded original, without a full-size
+  // canvas. In particular, 24/48MP originals are not first reduced to the preview.
+  const original=new Image(),url=URL.createObjectURL(blob);let crop;
+  try{
+    original.src=url;await original.decode();const turns=((options.turns||0)%4+4)%4;
+    const rw=turns%2?source.height:source.width,rh=turns%2?source.width:source.height;
+    points=points.map(p=>{
+      const q=turns===0?p:turns===1?{x:p.y,y:rh-p.x}:turns===2?{x:rw-p.x,y:rh-p.y}:{x:rw-p.y,y:p.x};
+      return {x:q.x*original.naturalWidth/rw,y:q.y*original.naturalHeight/rh};
+    });
+    const left=Math.max(0,Math.floor(Math.min(...points.map(p=>p.x)))),top=Math.max(0,Math.floor(Math.min(...points.map(p=>p.y))));
+    const right=Math.min(original.naturalWidth,Math.ceil(Math.max(...points.map(p=>p.x)))),bottom=Math.min(original.naturalHeight,Math.ceil(Math.max(...points.map(p=>p.y))));
+    if(right<=left||bottom<=top||(right-left)*(bottom-top)>2000000)throw Error('OCR_LABEL_UNREADABLE');
+    const region=canvas(right-left,bottom-top);region.getContext('2d').drawImage(original,left,top,region.width,region.height,0,0,region.width,region.height);
+    crop=warp(region,points.map(p=>({x:p.x-left,y:p.y-top})),[{x:0,y:0},{x:w,y:0},{x:w,y:h},{x:0,y:h}],w,h);
+  }finally{original.removeAttribute('src');URL.revokeObjectURL(url);}
+  tone(crop,options.brightness||0,options.contrast||0,options.autoTone!==false);
+  return makeLabelViews(crop);
+}
+export async function processPairedImage(blob,anchor,options={}) {
+  const began=performance.now(),a=anchor?.reading;
+  if(a?.status!=='OK'||a.identityConfirmation||!anchor.sha256||![21,25,29,33].includes(a.qrModules)||rowNames.some(k=>a.rows?.[k]?.status!=='OK'))throw Error('PAIR_ANCHOR_REQUIRED');
+  const identity=parseWorksheetQr(a.qr.payload);
+  if(['subject','year','worksheetId','side'].some(k=>identity[k]!==a.qr[k]))throw Error('PAIR_ANCHOR_REQUIRED');
+  const side=identity.side==='F'?'B':'F',c=(await layouts()).find(c=>c.pageSize===a.pageSize&&c.identity.side===side);
+  if(!c)throw Error('PAIR_GEOMETRY_UNCONFIRMED');
+  const source=options.sourceCanvas||await loadImage(blob,options.turns||0),width=provisionalLimits.normalizedWidth,height=Math.round(width*c.page.heightMm/c.page.widthMm);
+  if(decodedQrFacts.get(source)?.size)throw Error('PAIR_QR_CONFLICT');
+  const sets=options.preciseCorners&&options.corners?[{points:options.corners}]:markerSets(source),candidates=[];
+  for(const set of sets){
+    if(!validCorners(set.points,source))continue;
+    for(let turn=0;turn<4;turn++){
+      const points=set.points.slice(turn).concat(set.points.slice(0,turn));
+      if(!completeMarkerSet(source,points,c))continue;
+      const header=warp(source,points,targetMarkers(c,width,height),width,Math.ceil(45/c.page.heightMm*height));tone(header,options.brightness||0,options.contrast||0,options.autoTone!==false);
+      let fit;try{fit=printedHeaderModel(header,c,height);}catch{continue;}
+      if(!fit||fit.maxOffset>.6*c.scale||fit.maxResidual>.25*c.scale||fit.minScale<.97||fit.maxScale>1.03)continue;
+      const matrix=homography(targetMarkers(c,c.page.widthMm,c.page.heightMm),points),radii=[];
+      for(const marks of Object.values(c.omr))for(const mark of marks){
+        const p=fit.model(mark.center.mm),r=mark.sampleRadiusMm,s=transformPoint(matrix,p);
+        for(const q of [{x:p.x+r,y:p.y},{x:p.x,y:p.y+r}]){const t=transformPoint(matrix,q);radii.push(Math.hypot(t.x-s.x,t.y-s.y));}
+      }
+      const q=c.qr.region.mm,quiet=q.width*4/(a.qrModules+8),symbol=[{x:q.x+quiet,y:q.y+quiet},{x:q.x+q.width-quiet,y:q.y+quiet},{x:q.x+q.width-quiet,y:q.y+q.height-quiet},{x:q.x+quiet,y:q.y+q.height-quiet}].map(p=>transformPoint(matrix,fit.model(p)));
+      const pitch=Math.min(...symbol.map((p,i)=>Math.hypot(p.x-symbol[(i+1)%4].x,p.y-symbol[(i+1)%4].y)))/a.qrModules;
+      if(Math.min(...radii)<4||pitch<3)continue;
+      if(!candidates.some(v=>v.points.every((p,i)=>Math.hypot(p.x-points[i].x,p.y-points[i].y)<2)))candidates.push({points,fit,pitch});
+    }
   }
-  if(!correctedBlob||correctedBlob.size>provisionalLimits.maxImageBytes)throw Error('OUTPUT_TOO_LARGE');
-  return {source,corners,correctedBlob,sha256:await hashBlob(correctedBlob),reading:{status:problems.length?'REVIEW':'OK',message:problems[0]||'',qr:best.qr,classNumber:omr.classNumber,number:omr.number,rows:omr.rows,pageSize:c.pageSize,quality:q,autoTone:options.autoTone!==false,grayscaleExport,headerAligned,registration:best.restored?'QRと残る3点で欠けた■を補正':'四隅の■で補正',restoredMarkers:best.restored?.length||0,sourcePixelsPerModule:modulePixels,elapsedMs:Math.round(performance.now()-began),correctedBytes:correctedBlob.size}};
+  if(candidates.length!==1)throw Error('PAIR_GEOMETRY_UNCONFIRMED');
+  const {points,fit,pitch}=candidates[0],corrected=warp(source,points,targetMarkers(c,width,height),width,height);
+  tone(corrected,options.brightness||0,options.contrast||0,options.autoTone!==false);
+    const qrRegion=qrCrop(source,points,c,options).image,qrPixels=qrRegion.getContext('2d').getImageData(0,0,qrRegion.width,qrRegion.height);
+  if(window.jsQR(qrPixels.data,qrRegion.width,qrRegion.height,{inversionAttempts:'attemptBoth'}))throw Error('PAIR_QR_CONFLICT');
+  const coordinates=mappedOmr(c,fit.model),omr=readOmr(corrected,coordinates),q=quality(corrected,c);
+  if(omr.issues.length)throw Error('PAIR_OMR_UNCONFIRMED');
+  for(const [x,y]of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]){
+    const other=readOmr(corrected,mappedOmr(c,fit.model,x*.1*c.scale,y*.1*c.scale));
+    if(other.issues.length||other.classNumber!==omr.classNumber||other.number!==omr.number)throw Error('PAIR_OMR_UNCONFIRMED');
+  }
+  if(omr.classNumber!==a.classNumber||omr.number!==a.number)throw Error('PAIR_STUDENT_MISMATCH');
+  if(q.headerSharpness<25||q.paperBrightness<100)throw Error('PAIR_IMAGE_QUALITY');
+  const crops=await labelCrops(blob,source,points,c,fit.model,options);
+  const ocr=await recognizePrintedLabel(crops);
+  if(ocr.label.worksheetId!==identity.worksheetId||ocr.label.side!==side)throw Error('PAIR_LABEL_MISMATCH');
+  const {blob:correctedBlob,grayscaleExport}=await exportCorrected(corrected);
+  return {source,corners:points,correctedBlob,sha256:await hashBlob(correctedBlob),reading:{status:'OK',message:'反対面のQRと、この面の印字・組番号を照合しました。',
+    qr:{subject:identity.subject,year:identity.year,worksheetId:identity.worksheetId,side,payload:null},identitySource:'paired-qr-printed-label-ocr',
+    classNumber:omr.classNumber,number:omr.number,rows:omr.rows,pageSize:c.pageSize,quality:q,sourcePixelsPerModule:pitch,autoTone:options.autoTone!==false,grayscaleExport,
+    identityConfirmation:{method:'paired-qr-printed-label-ocr/1',partnerQrDecoded:false,anchorPayload:identity.payload,anchorSha256:anchor.sha256,label:ocr.label.worksheetId+' '+ocr.label.side,
+      engine:ocr.engine,ocrViews:ocr.views,printedGrid:{count:fit.count,maxOffset:fit.maxOffset,maxResidual:fit.maxResidual}},
+    elapsedMs:Math.round(performance.now()-began),correctedBytes:correctedBlob.size}};
 }

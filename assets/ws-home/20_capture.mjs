@@ -1,5 +1,5 @@
-import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob, parsePairingQr} from './10_model.mjs?v=20261016-5';
-import {processImage, loadImage, detectMarkers, layouts} from './11_vision.mjs?v=20261016-1';
+import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob, parsePairingQr} from './10_model.mjs?v=20261016-ocr1';
+import {processImage, processPairedImage, loadImage, detectMarkers, layouts} from './11_vision.mjs?v=20261016-ocr1';
 import {getDraft, saveDraft, probeStorage, deviceId} from './12_store.mjs';
 import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs?v=20261016-6';
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
@@ -50,7 +50,7 @@ function imageError(code) {
 }
 export async function mountCapture(root, {mode = 'phone', owner = null, onSubmitted = () => {}} = {}) {
   const tabId = randomId(), key = 'ws-home-active-' + mode + '-' + (owner || 'anonymous');
-  let draft = newDraft(owner), busy = false, conflict = false, storeOk = true, pairing = null, local = false, stopped = false, readingSlot = null, activeSlot = 'F', statusMessage = '';
+  let draft = newDraft(owner), busy = false, conflict = false, storeOk = true, pairing = null, local = false, stopped = false, readingSlot = null, activeSlot = 'F', statusMessage = '', readingDetail = '';
   // Keep the old draft keys as photo positions; QR determines the actual side.
   const slots = ['F', 'B'], photoNumber = slot => slot === 'F' ? 1 : 2;
   const sources = {}, urls = {}, previewBlobs = {}, manuals = {}, manualPoints = {}, manualSuggestions = {}, cleanup = [];
@@ -79,7 +79,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
   function updateBusyIndicator(){
     const verifying=['RECEIVED','VERIFYING'].includes(draft.state),working=busy||stepBusy||pairBusy||verifying;
     q('#capture-busy').hidden=!working;
-    q('#busy-label').textContent=readingSlot?'写真'+photoNumber(readingSlot)+'を補正・読み取り中…':pairBusy?'Macとの接続を確認しています…':stepBusy?'画面を切り替えています…':verifying?'提出内容を検証しています…':statusMessage||'処理しています…';
+    q('#busy-label').textContent=readingSlot?(readingDetail||'写真'+photoNumber(readingSlot)+'を補正・読み取り中…'):pairBusy?'Macとの接続を確認しています…':stepBusy?'画面を切り替えています…':verifying?'提出内容を検証しています…':statusMessage||'処理しています…';
     root.setAttribute('aria-busy',String(busy||stepBusy||pairBusy));
   }
   function storageWarning(value) {q('#storage-message').textContent = value;q('#storage-message').hidden=false;}
@@ -229,7 +229,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       const r = p.reading;
       section.querySelector('.auto-tone').checked=p.options?.autoTone!==false;
       section.querySelector('.brightness').value=p.options?.brightness||0;section.querySelector('.contrast').value=p.options?.contrast||0;
-      result.textContent = r?.status === 'OK' ? (r.qr.side === 'F' ? '表面' : '裏面') + ' · ' + r.qr.worksheetId + ' · ' + r.classNumber + '組' + String(r.number).padStart(2,'0') + '番'
+      result.textContent = r?.status === 'OK' ? (r.qr.side === 'F' ? '表面' : '裏面') + ' · ' + r.qr.worksheetId + ' · ' + r.classNumber + '組' + String(r.number).padStart(2,'0') + '番' + (r.identityConfirmation?'（QRと印字で照合）':'')
         : r?.message || '補正して再読取してください。';
       result.classList.toggle('bad', r?.status !== 'OK' && !r?.pending);
       const preview = section.querySelector('.corrected-preview');
@@ -274,6 +274,13 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
       const p=draft.pages[slot];
       if(p?.reading?.pending)await readPage(slot,p.originalBlob,p.options || {});
     }
+    // Retry a saved, unsent pre-OCR draft once when this reader is first loaded.
+    // Never alter images already bound to a submitted request.
+    if(!draft.requestId&&draft.state==='UNSENT'){
+      const target=slots.find(slot=>draft.pages[slot]?.reading?.reason==='QR_UNREADABLE'&&draft.pages[slot].reading.pairAttemptVersion!=='20261016-ocr1');
+      const anchor=target&&slots.find(slot=>slot!==target&&draft.pages[slot]?.reading?.status==='OK'&&draft.pages[slot].reading.qr?.payload);
+      if(anchor)await readPage(anchor,draft.pages[anchor].originalBlob,draft.pages[anchor].options||{});
+    }
   }
   async function addPhotos(files, slot = null) {
     if(stopped || busy || stepBusy || conflict || draft.requestId && !['ACCEPTED','RESUBMIT_REQUIRED','CANCELLED'].includes(draft.receipt?.state))return;
@@ -297,17 +304,51 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     if (stopped || busy || stepBusy || conflict || draft.requestId && !['ACCEPTED','RESUBMIT_REQUIRED','CANCELLED'].includes(draft.receipt?.state)) return;
     busy = true; readingSlot=side; draft = editedDraft(draft); message('写真'+photoNumber(side)+'を補正・読取しています…'); render(); sectionFor(side).querySelector('.result').textContent='自動補正・読取中…';await nextFrame();
     try {
+      for(const slot of slots){
+        const page=draft.pages[slot];
+        if(slot!==side&&page?.reading?.identityConfirmation){
+          page.reading=page.reading.preOcrReading||{status:'REVIEW',reason:'QR_UNREADABLE',message:'反対面ともう一度照合します。'};
+          page.correctedBlob=null;page.sha256=null;
+        }
+      }
       const result = await processImage(file, options);
       draft.pages[side] = {originalBlob:file, correctedBlob:result.correctedBlob || null, sha256:result.sha256 || null,
         reading:result.reading, options:{turns:options.turns || 0, brightness:options.brightness || 0, contrast:options.contrast || 0, autoTone:options.autoTone!==false,corners:result.corners,preciseCorners:!!options.preciseCorners}};
       sources[side] = result.source; manuals[side] = -1;sectionFor(side).querySelector('.manual-help').textContent='';
+      await reconcilePrintedLabel();
       await persist(); drawSource(side); message(checkPages(draft.pages).ok?'読み取った組・番号を②で確認してください。':'');
     } catch (e) {
       // Keep the selected file even on decode/read failure; it can be exported.
       draft.pages[side] = {originalBlob:file, correctedBlob:null, reading:{status:'REVIEW',message:imageError(e.message)}, options};
       delete sources[side];sectionFor(side).querySelector('.image-box canvas').width=0;
       await persist(); message(imageError(e.message));
-    } finally {busy = false; readingSlot=null; render();}
+    } finally {busy = false; readingSlot=null; readingDetail=''; render();}
+  }
+  async function reconcilePrintedLabel() {
+    const anchors=slots.filter(slot=>draft.pages[slot]?.reading?.status==='OK'&&!draft.pages[slot].reading.identityConfirmation&&draft.pages[slot].reading.qr?.payload);
+    if(anchors.length!==1)return;
+    const anchorSlot=anchors[0],slot=slots.find(slot=>slot!==anchorSlot),page=draft.pages[slot];
+    if(!page?.originalBlob||page.reading?.reason!=='QR_UNREADABLE')return;
+    page.reading.pairAttemptVersion='20261016-ocr1';
+    readingSlot=slot;readingDetail='写真'+photoNumber(slot)+'の印字を読み取り、反対面と照合しています…';message(readingDetail);render();await nextFrame();
+    try {
+      const result=await processPairedImage(page.originalBlob,draft.pages[anchorSlot],{...page.options,sourceCanvas:sources[slot]});
+      draft.pages[slot]={...page,correctedBlob:result.correctedBlob,sha256:result.sha256,
+        reading:{...result.reading,preOcrReading:page.reading}};
+      sources[slot]=result.source;
+    }catch(error){
+      const code=error?.message||'OCR_UNAVAILABLE';
+      const messages={PAIR_GEOMETRY_UNCONFIRMED:'印字を読むための用紙位置を確認できません。四隅の黒い■を確認してください。',
+        PAIR_QR_CONFLICT:'別のQRが検出されたため、印字だけで確定できません。正しい用紙か確認してください。',
+        PAIR_OMR_UNCONFIRMED:'組・番号のマークを確認できません。表裏とも3行すべてを確認してください。',
+        PAIR_STUDENT_MISMATCH:'表面と裏面の組・番号が一致しません。紙のマークを確認してください。',
+        PAIR_LABEL_MISMATCH:'反対面のQRと、この面のワークシート名または表裏が一致しません。',
+        PAIR_IMAGE_QUALITY:'印字を読むには画像が暗いか、ぼけています。明るい場所で撮り直してください。',
+        OCR_TIMEOUT:'印字の読み取りが時間内に終わりませんでした。「自動でやり直す」で再試行してください。',
+        OCR_UNAVAILABLE:'印字の読み取りを準備できませんでした。通信を確認して再試行してください。'};
+      page.reading={...page.reading,status:'REVIEW',pairError:code,
+        message:messages[code]||'QRと印字の照合を確定できません。QR下の文字がはっきり写るように撮り直してください。'};
+    }
   }
   function sectionFor(side){return q('[data-side="'+side+'"]');}
   async function download(side) {
@@ -430,7 +471,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
     return Promise.all(['F','B'].map(async side => {
       const p=checked.pages[side], r=p.reading;
       return {side,mime:'image/png',data:await blobBase64(p.correctedBlob),sha256:p.sha256 || await hashBlob(p.correctedBlob),
-        clientReading:{qr:r.qr,classNumber:r.classNumber,number:r.number}};
+        clientReading:{qr:r.qr,classNumber:r.classNumber,number:r.number,identityConfirmation:r.identityConfirmation||null}};
     })).then(pages=>({requestId:draft.requestId,route,pages,confirmed:true}));
   }
   function receiptMessage(receipt){

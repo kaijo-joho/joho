@@ -24,6 +24,12 @@ export function parseWorksheetQr(value) {
   const [subject, year, worksheetId, side] = value.split('|');
   return {subject, year: Number(year), worksheetId, side, payload: value};
 }
+export function parsePrintedLabel(value) {
+  if(typeof value!=='string')throw Error('OCR_LABEL_UNREADABLE');
+  const match=/^([A-Za-z0-9_-]{1,20})\s*([FB])$/.exec(value.trim());
+  if(!match)throw Error('OCR_LABEL_UNREADABLE');
+  return {worksheetId:match[1],side:match[2]};
+}
 export function parsePairingQr(value, origin) {
   const u = new URL(value);
   if (u.origin !== origin || !['/ws/capture.html', '/ws-capture.html'].includes(u.pathname) || u.search || u.username || u.password) throw Error('PAIR_QR_INVALID');
@@ -39,8 +45,9 @@ export function checkPages(pages) {
   for (const slot of ['F', 'B']) {
     const p = pages[slot], side = slot;
     if (!p) errors.push({side, message: '写真を追加してください。2枚そろうと自動で読み取ります。'});
-    else if (!p.correctedBlob || !p.reading) errors.push({side, message: '写真の読取が必要です。'});
+    else if (!p.reading) errors.push({side, message: '写真の読取が必要です。'});
     else if (p.reading.status !== 'OK') errors.push({side, message: p.reading.message || '読取結果を確認できません。'});
+    else if (!p.correctedBlob) errors.push({side, message: '写真の読取が必要です。'});
     else if (!['F', 'B'].includes(p.reading.qr?.side)) errors.push({side, message: '表・裏を判別できません。QRが写るように撮り直してください。'});
     else if (!Number.isInteger(p.reading.classNumber) || !Number.isInteger(p.reading.number)) errors.push({side, message: '組・番号のマークを確認できません。表裏とも3行すべてを塗ってください。'});
     else if (identified[p.reading.qr.side]) errors.push({side, message: (p.reading.qr.side === 'F' ? '表面が2枚あります。1枚を裏面に' : '裏面が2枚あります。1枚を表面に') + '撮り直すか、写真を選び直してください。'});
@@ -49,6 +56,18 @@ export function checkPages(pages) {
   if (errors.length) return {ok: false, errors};
   const canonical = {F:identified.F.page, B:identified.B.page};
   const a = canonical.F.reading, b = canonical.B.reading;
+  const derived=['F','B'].filter(side=>canonical[side].reading.identityConfirmation);
+  if(derived.length){
+    const side=derived[0],page=canonical[side],proof=page.reading.identityConfirmation,anchor=canonical[side==='F'?'B':'F'];
+    let valid=derived.length===1&&proof.method==='paired-qr-printed-label-ocr/1'&&proof.partnerQrDecoded===false&&
+      page.reading.qr.payload===null&&proof.anchorSha256===anchor.sha256&&/^[a-f0-9]{64}$/.test(proof.anchorSha256||'');
+    try{
+      const qr=parseWorksheetQr(anchor.reading.qr.payload),label=parsePrintedLabel(proof.label);
+      valid=valid&&['subject','year','worksheetId'].every(key=>qr[key]===page.reading.qr[key])&&qr.side!==side&&
+        label.worksheetId===qr.worksheetId&&label.side===side&&proof.anchorPayload===qr.payload;
+    }catch{valid=false;}
+    if(!valid)errors.push({side:identified[side].slot,message:'QRと印字の照合をもう一度行ってください。写真を読み直してください。'});
+  }
   if (a.qr.subject !== b.qr.subject || a.qr.year !== b.qr.year || a.qr.worksheetId !== b.qr.worksheetId) {
     errors.push({side: identified.B.slot, message: '別のワークシートが混じっています。同じ用紙の表面と裏面を選んでください。'});
   }
