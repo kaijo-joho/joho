@@ -8,7 +8,7 @@ import { CloudPanel } from './cloud-ui.mjs?v=20261015-tools-store';
 import { cloudConfig } from './cloud-config.mjs';
 import { questionGroups, setRating, renderRating } from './navigation.mjs';
 import { demoRatings } from './demo-ratings.mjs';
-import { TeacherPreviewPanel } from './teacher-preview.mjs?v=20261016-set-titles1';
+import { TeacherPreviewPanel } from './teacher-preview.mjs?v=20261016-preview-no-expiry1';
 const $ = id => document.getElementById(id);
 const entries = new Map(), outputs = new Map(), docs = new Map();
 let catalog, selectedSet, question, cm, store, runSnapshot, busy = false, pendingImport;

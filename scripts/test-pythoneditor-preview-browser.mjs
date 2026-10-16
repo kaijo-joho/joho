@@ -23,7 +23,7 @@ f.state.groups[0].records.push(f.snapshot({ questionId: 'q2', prompt: '二つ目
 const initialTitle = '2-3_繰り返し処理（while文）② A基本問題';
 f.state.groups[0].title = initialTitle;
 f.enable(); f.context.toolsTeacherPreviewEnvironment_ = () => f.env;
-let hold = false, releaseReply, replyStarted, replyArrived, lose = false, invalidSession = false;
+let hold = false, releaseReply, replyStarted, replyArrived, lose = false, invalidSession = false, invalidExpiry = false;
 const actions = [], errors = [], checks = [];
 const server = await createEditorServer({ isolate: false });
 const engine = process.env.PYTHONEDITOR_ENGINE || 'Chrome';
@@ -37,6 +37,7 @@ try {
     if (hold) { hold = false; await new Promise(r => { releaseReply = r; replyStarted(); }); }
     const result = f.context.teacherPythonPreviewRpc(action, input, actorKey, requestOrigin);
     if (invalidSession && result.ok) result.value.preview.readOnly = false;
+    if (invalidExpiry && result.ok) result.value.preview.expiresAt = 'invalid-expiry';
     assert.doesNotMatch(JSON.stringify(result), /PRIVATE_RULE_SENTINEL|"answerCode"|"rules"|"registry"/);
     if (lose) { lose = false; await new Promise(r => setTimeout(r, 1800)); }
     replyArrived?.(); return result;
@@ -135,14 +136,21 @@ try {
   check('明示したデモ用アカウントも閲覧でき、教員管理・保存・採点へ昇格しない');
   invalidSession = true; await connect();
   assert.match(await page.locator('#notice').textContent(), /確認できない応答/); assert.equal(await code(), before);
-  invalidSession = false; await connect(); check('配布専用ではない応答を受け入れない');
+  invalidSession = false; await connect();
+  invalidExpiry = true; await connect();
+  assert.match(await page.locator('#notice').textContent(), /確認できない応答/); assert.equal(await code(), before);
+  invalidExpiry = false; await connect(); check('配布専用ではない応答や不正な期限情報を受け入れない');
   lose = true; await connect();
   assert.match(await page.locator('#notice').textContent(), /応答/); assert.equal(await code(), before);
   await page.waitForTimeout(1100); assert.equal(await code(), before); await connect();
   check('応答消失・タイムアウト後の遅延応答を反映せず、再取得できる');
-  const reads = f.state.reads; f.advance(7200001); await connect();
-  assert.match(await page.locator('#notice').textContent(), /有効期限/); assert.equal(await code(), before); assert.equal(f.state.reads, reads);
-  check('配信期限切れで停止し、別の取得経路へ切り替えない');
+  const reads = f.state.reads; f.advance(400 * 86400000); await connect();
+  assert.match(await page.locator('#notice').textContent(), /検証用の問題を取得しました/); assert.equal(await code(), before); assert.equal(f.state.reads, reads);
+  assert.equal(f.packages.head().expiresAt, null);
+  check('長期間経過しても期限なしの同じ問題を取得し、編集中のコードを保持する');
+  f.service.setEnabled(false); await connect();
+  assert.match(await page.locator('#notice').textContent(), /停止中/); assert.equal(await code(), before);
+  check('取得期限がなくても教員の停止操作を即時反映し、別経路へ切り替えない');
   assert.ok(actions.every(action => action === 'session')); assert.deepEqual(errors, []);
   await page.screenshot({ path: join(evidence, 'teacher-preview.png'), fullPage: true });
   const report = { at: new Date().toISOString(), engine, environment: 'real editor/browser; synthetic teacher identity/Google bridge/Properties/source GSS', checks,

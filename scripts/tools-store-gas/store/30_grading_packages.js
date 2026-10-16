@@ -26,9 +26,14 @@ var ToolsGradingPackages = (function () {
     }
     function base(generation) { return PREFIX + 'G_' + generation + '_'; }
     function partKey(generation, i) { return base(generation) + 'P_' + ('000' + i).slice(-3); }
+    // 期限なしは問題配布専用の生成側で明示した場合だけ許可する。既存の採点経路は期限付きのまま。
+    function validExpiry(issuedAt, expiresAt) {
+      return Number.isSafeInteger(issuedAt) && (expiresAt === null ? dep.allowNoExpiry === true :
+        Number.isSafeInteger(expiresAt) && issuedAt < expiresAt && expiresAt - issuedAt <= 86400000);
+    }
     function metadata(value) {
       only(value, ['schema', 'generation', 'issuedAt', 'expiresAt', 'payloadHash', 'manifestHash']);
-      assert(value && value.schema === 1 && GENERATION.test(value.generation) && HASH.test(value.payloadHash) && HASH.test(value.manifestHash) && Number.isSafeInteger(value.issuedAt) && Number.isSafeInteger(value.expiresAt) && value.issuedAt < value.expiresAt && value.expiresAt - value.issuedAt <= 86400000);
+      assert(value && value.schema === 1 && GENERATION.test(value.generation) && HASH.test(value.payloadHash) && HASH.test(value.manifestHash) && validExpiry(value.issuedAt, value.expiresAt));
       return clone(value);
     }
     function readHead(raw) { return raw ? metadata(unpack(raw)) : null; }
@@ -110,7 +115,7 @@ var ToolsGradingPackages = (function () {
     }
     function readGeneration(all, meta, fresh) {
       assert(meta, 'packages_unavailable');
-      if (fresh) assert(meta.issuedAt <= now() + 30000 && meta.expiresAt > now(), 'packages_expired');
+      if (fresh) assert(meta.issuedAt <= now() + 30000 && (meta.expiresAt === null ? dep.allowNoExpiry === true : meta.expiresAt > now()), 'packages_expired');
       var raw = all[base(meta.generation) + 'MANIFEST'];
       assert(typeof raw === 'string' && hash(raw) === meta.manifestHash);
       var m = unpack(raw);
@@ -170,7 +175,7 @@ var ToolsGradingPackages = (function () {
         var packed = compressed(json);
         assert(typeof packed === 'string' && packed.length > 0 && /^[A-Za-z0-9+/]+={0,2}$/.test(packed), 'packages_invalid');
         var issuedAt = now(), expiresAt = options.expiresAt === undefined ? issuedAt + 7200000 : options.expiresAt;
-        assert(Number.isSafeInteger(expiresAt) && expiresAt > issuedAt && expiresAt - issuedAt <= 86400000, 'packages_invalid');
+        assert(validExpiry(issuedAt, expiresAt), 'packages_invalid');
         var generation = dep.uuid ? dep.uuid() : Utilities.getUuid().replace(/-/g, '').toLowerCase();
         assert(GENERATION.test(generation) && !Object.keys(all).some(function (key) { return key.indexOf(base(generation)) === 0; }));
         var m = { schema: 1, generation: generation, issuedAt: issuedAt, expiresAt: expiresAt, payloadHash: hash(json), compressedHash: hash(packed), compressedLength: packed.length, parts: Math.ceil(packed.length / CHUNK), previousGeneration: current ? current.generation : null };

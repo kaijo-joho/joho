@@ -27,7 +27,7 @@ export class TeacherPreviewPanel {
       if (generation !== this.generation) return;
       if (typeof session?.teacher !== 'boolean' || session.preview?.readOnly !== true || session.preview.viewerRole !== (session.teacher ? 'teacher' : 'demo') || !Array.isArray(session.policies) || session.policies.length ||
           !Array.isArray(session.ratings) || session.ratings.length || !/^[a-f0-9]{32}$/.test(session.preview.generation) ||
-          !/^[a-f0-9]{64}$/.test(session.preview.sourceDigest) || !Number.isFinite(Date.parse(session.preview.expiresAt)) ||
+          !/^[a-f0-9]{64}$/.test(session.preview.sourceDigest) || (session.preview.expiresAt !== null && (typeof session.preview.expiresAt !== 'string' || !Number.isFinite(Date.parse(session.preview.expiresAt)))) ||
           !/^[a-z0-9._+-]+@gfe\.kaijo\.ed\.jp$/.test(session.account || '') || await codeHash(session.account) !== session.actorKey) throw invalid();
       const catalog = validateCatalog(session.catalog);
       if (!catalog.sets.length || catalog.sets.some(s => !s.questions.length)) throw invalid();

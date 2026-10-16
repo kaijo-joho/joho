@@ -21,7 +21,7 @@ export function teacherPreviewFixture() {
   }
   const properties = new PreviewProperties();
   let clock = Date.UTC(2026, 9, 15), nextId = 1, held = false;
-  const dependencies = { properties, now: () => clock, uuid: () => (nextId++).toString(16).padStart(32, '0'),
+  const dependencies = { properties, allowNoExpiry: true, now: () => clock, uuid: () => (nextId++).toString(16).padStart(32, '0'),
     gzip: text => gzipSync(Buffer.from(text, 'utf8')).toString('base64'), gunzip: text => gunzipSync(Buffer.from(text, 'base64')).toString('utf8'),
     byteLength: text => Buffer.byteLength(text, 'utf8'), lock: () => ({ tryLock() { if (held) return false; held = true; return true; }, releaseLock() { held = false; } }) };
   const packages = context.ToolsGradingPackages.create(dependencies);

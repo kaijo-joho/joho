@@ -5,3 +5,5 @@
 準備・権限案・実機チェック・停止手順は [TEACHER-PREVIEW.md](../../tools/pythoneditor/TEACHER-PREVIEW.md) を参照。`prepare-pythoneditor-preview-gas.mjs` は私有領域へ候補を作るだけで、Googleへ配置しない。
 
 当初の2アカウントを対象とした新規Webアプリ・OAuth・専用接続に加え、指定した追加教員1名の配布利用が承認済み。サーバーのallowlist、sessionだけのRPCを使用し、正本更新・問題採用・正式得点・生徒用GSS・Drive共有・トリガーは操作しない。実メール・IDは私有設定だけに置く。配置と学校実機での結果は合成テストと分けて記録する。
+
+2026-10-16の指定により、問題配布の取得期限は設けない。圧縮処理はこの専用GASの生成側だけが `allowNoExpiry:true` を指定して `expiresAt:null` を許可する。既存の採点経路は既定の期限検証を維持する。本人照合・許可一覧・配布停止・版固定は毎回適用する。

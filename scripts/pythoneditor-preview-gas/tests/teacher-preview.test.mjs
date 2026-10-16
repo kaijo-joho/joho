@@ -164,13 +164,47 @@ test('origin、channel、入口種別を検証し、保存・採点RPCは有効�
   assert.throws(() => f.service.rpc('session', { teacher: true }, valid.origin), code('preview_action_denied'));
   assert.equal(f.properties.writes.length, writes);
 });
-test('期限切れの問題を拒否し、別経路へ読み直さない', () => {
-  const f = fixture(); f.enable(); const reads = f.state.reads;
-  f.advance(7200001);
-  assert.throws(() => f.service.session(f.config.editorOrigin), code('preview_expired'));
-  assert.equal(f.state.reads, reads);
-  const next = f.publish(); f.service.setEnabled(true, next.generation);
-  assert.equal(f.service.session(f.config.editorOrigin).preview.generation, next.generation);
+test('指定アカウントの期限なし配布は長期間後も同じ版を返し、対象外と停止中は拒否する', () => {
+  const f = fixture(); f.config.teacherAccounts.push(ADDITIONAL_TEACHER);
+  f.properties.setProperty(f.context.ToolsTeacherPreview.keys.config, f.T.canonical(f.config));
+  const initial = f.enable(), reads = f.state.reads, writes = f.properties.writes.length;
+  assert.equal(initial.expiresAt, null); assert.equal(f.packages.head().expiresAt, null);
+  for (const elapsed of [7200001, 400 * 86400000]) {
+    f.advance(elapsed);
+    for (const account of [TEACHER, ADDITIONAL_TEACHER, DEMO]) {
+      Object.assign(f.identity, { active: account, effective: account });
+      const result = f.service.session(f.config.editorOrigin);
+      assert.equal(result.preview.expiresAt, null); assert.equal(result.preview.generation, initial.generation);
+      assert.equal(result.catalog.sets[0].questions[0].version, 'v1');
+    }
+  }
+  assert.equal(f.state.reads, reads); assert.equal(f.properties.writes.length, writes);
+  Object.assign(f.identity, { active: 'other+fixture@gfe.kaijo.ed.jp', effective: 'other+fixture@gfe.kaijo.ed.jp' });
+  assert.throws(() => f.service.session(f.config.editorOrigin), code('preview_not_allowed'));
+  Object.assign(f.identity, { active: TEACHER, effective: TEACHER }); f.service.setEnabled(false);
+  assert.throws(() => f.service.session(f.config.editorOrigin), code('preview_disabled'));
+});
+test('通常の採点パッケージは期限なしを拒否し、既定の期限切れ判定を維持する', () => {
+  const f = fixture(), defaults = { ...f.dependencies }; delete defaults.allowNoExpiry;
+  const regular = f.context.ToolsGradingPackages.create(defaults);
+  const input = { snapshots: [f.snapshot()], assignments: [], actors: {}, registry: [] };
+  assert.throws(() => regular.publish(input, { expiresAt: null }), e => e.toolsStoreCode === 'packages_invalid');
+  assert.equal(regular.head(), null);
+  const meta = regular.publish(input); assert.equal(meta.expiresAt, f.now() + 7200000);
+  assert.equal(regular.open().meta.generation, meta.generation); f.advance(7200001);
+  assert.throws(() => regular.open(), e => e.toolsStoreCode === 'packages_expired');
+  const forever = f.packages.publish(input, { expiresAt: null }); assert.equal(forever.expiresAt, null);
+  assert.throws(() => regular.open(), e => e.toolsStoreCode === 'packages_invalid');
+});
+test('旧期限付き配信は期限を尊重し、再配信で期限なしへ移行できる', () => {
+  const f = fixture(), initial = f.enable(), actors = {}; actors[f.T.actorKey(TEACHER)] = { grade: null, teacher: true };
+  const old = f.packages.publish({ snapshots: [f.snapshot()], assignments: [], actors, registry: [] }, { expectedGeneration: initial.generation, expiresAt: f.now() + 1000 });
+  const indexKey = f.context.ToolsTeacherPreview.keys.index, index = JSON.parse(f.properties.getProperty(indexKey));
+  index.generation = old.generation; f.properties.setProperty(indexKey, f.T.canonical(index));
+  assert.equal(f.service.session(f.config.editorOrigin).preview.expiresAt, new Date(old.expiresAt).toISOString());
+  f.advance(1001); assert.throws(() => f.service.session(f.config.editorOrigin), code('preview_expired'));
+  const next = f.publish(); assert.equal(next.expiresAt, null);
+  assert.equal(f.service.session(f.config.editorOrigin).preview.expiresAt, null);
 });
 test('同じID・版の本文変更は拒否し、直前の配信を保持する', () => {
   const f = fixture(), initial = f.enable();

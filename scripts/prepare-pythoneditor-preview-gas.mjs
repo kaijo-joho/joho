@@ -62,7 +62,7 @@ files.set('README.md', `# 私有の問題配布検証GAS候補
 
 生成処理はGoogleへ接続していません。生成時点では未配備・無効です。指定した新規GASだけへ配置し、所有教員、2スコープ、USER_ACCESSING、DOMAINを確認します。既存dist/grade/Colab・生徒用GSS・共有設定は変更しません。手動の標準Cloud作成や既存Cloudの紐付け変更は今回の機能では必須にしません。
 
-所有教員がrun_setupTeacherPreview、run_inspectTeacherCatalog、run_publishTeacherCatalog、run_enableTeacherPreviewの順で設定・確認・配信します。別設定がすでにある場合は上書きせず、対象を確認してください。配信は2時間有効です。
+所有教員がrun_setupTeacherPreview、run_inspectTeacherCatalog、run_publishTeacherCatalog、run_enableTeacherPreviewの順で設定・確認・配信します。別設定がすでにある場合は上書きせず、対象を確認してください。指定アカウント限定の問題配信には取得期限を設けません。接続のたびに本人・許可一覧を照合し、所有教員の停止操作を適用します。
 
 追加教員とデモ用アカウントはsessionだけ利用します。追加教員はteacher、デモはdemo roleです。正本確認・配信・有効化・停止は所有教員だけが行い、追加対象への正本GSS共有は行いません。ブラウザへ返すのは問題文・雛形・準備コードで、解答・解説・採点基準は返しません。クラウド保存・正式提出・採点は今回の対象外です。
 

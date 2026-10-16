@@ -84,7 +84,7 @@ var ToolsTeacherPreview = (function () {
       var actors = {}; actors[actor.key] = { grade: null, teacher: true };
       var packages = env.packages(), prior = packages.head();
       var meta = packages.publish({ snapshots: snapshots, assignments: [], actors: actors, registry: [] }, {
-        expectedGeneration: prior ? prior.generation : null, expiresAt: env.now() + 7200000,
+        expectedGeneration: prior ? prior.generation : null, expiresAt: null,
         beforeCommit: function () { current(c, actor); assert(env.readSource(c).digest === source.digest, 'preview_changed'); }
       });
       current(c, actor); assert(packages.head().generation === meta.generation, 'preview_changed');
@@ -94,7 +94,7 @@ var ToolsTeacherPreview = (function () {
       assert(Object.keys(all).reduce(function (sum, k) { return sum + env.bytes(k) + env.bytes(String(all[k])); }, 0) <= 450000, 'preview_capacity');
       env.properties.setProperty(INDEX, next);
       assert(index().raw === next && packages.head().generation === meta.generation, 'preview_changed');
-      return { generation: meta.generation, sourceDigest: source.digest, questions: snapshots.length, sets: groups.length, expiresAt: new Date(meta.expiresAt).toISOString() };
+      return { generation: meta.generation, sourceDigest: source.digest, questions: snapshots.length, sets: groups.length, expiresAt: meta.expiresAt === null ? null : new Date(meta.expiresAt).toISOString() };
     }
     function setEnabled(enabled, expectedGeneration) {
       var c = configuration(), actor = identity(c, true);
@@ -125,7 +125,7 @@ var ToolsTeacherPreview = (function () {
       });
       current(c, actor); assert(index().raw === i.raw && packages.head().generation === opened.meta.generation, 'preview_changed');
       return { actorKey: actor.key, account: actor.email, teacher: actor.teacher, policies: [], ratings: [],
-        preview: { readOnly: true, viewerRole: actor.teacher ? 'teacher' : 'demo', generation: opened.meta.generation, sourceDigest: i.value.sourceDigest, expiresAt: new Date(opened.meta.expiresAt).toISOString() },
+        preview: { readOnly: true, viewerRole: actor.teacher ? 'teacher' : 'demo', generation: opened.meta.generation, sourceDigest: i.value.sourceDigest, expiresAt: opened.meta.expiresAt === null ? null : new Date(opened.meta.expiresAt).toISOString() },
         catalog: { schema: 'python-editor-catalog-v1', label: '問題配布検証（採用前を含む）', sets: Object.keys(sets).map(function (k) { return sets[k]; }) } };
     }
     function rpc(action, input, origin) {
@@ -166,7 +166,7 @@ function toolsTeacherPreviewEnvironment_() {
   return { properties: PropertiesService.getScriptProperties(), now: function () { return Date.now(); },
     identity: function () { return { active: Session.getActiveUser().getEmail(), effective: Session.getEffectiveUser().getEmail() }; },
     bytes: function (text) { return Utilities.newBlob(text).getBytes().length; },
-    packages: function () { return ToolsGradingPackages.create(); },
+    packages: function () { return ToolsGradingPackages.create({ allowNoExpiry: true }); },
     readSource: function (c) {
       var book = SpreadsheetApp.openById(c.sourceFileListId), master = bounded(book.getSheetByName('Python問題マスター'), 18, 5001),
         rules = bounded(book.getSheetByName(c.gradingSheet), 15, 10001, 13), titles = pageTitles(book.getSheetByName('ページ一覧')), seen = {}, groups = [];
