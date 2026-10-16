@@ -27,7 +27,7 @@ node scripts/serve-pythoneditor.mjs --port 8768
 node scripts/serve-pythoneditor.mjs --port 8768 --master /private/tmp/pythoneditor-master-live-20261014.json
 ```
 
-指定ファイルは、Sheets APIのA1:R範囲のCellData、または前工程の18列の`import-rows.json`形式。解答を含む正本ファイルを公開ディレクトリへ置かない。サーバーは127.0.0.1に限定し、表示用に許可した項目だけへ投影する。元JSON・模範解答・採点基準を配信しない。編集中の問題を教員が確認するための経路であり、本番の認証・権限確認を代行しない。ブラウザからGoogleのCookieやOAuthトークンを取得する仕組みはない。
+指定ファイルは、Sheets APIのA1:R（旧18列）/A1:V（新22列）のCellData、または同じ列構成の`import-rows.json`形式。解答を含む正本ファイルを公開ディレクトリへ置かない。サーバーは127.0.0.1に限定し、表示用に許可した項目だけへ投影する。元JSON・模範解答・採点基準を配信しない。編集中の問題を教員が確認するための経路であり、本番の認証・権限確認を代行しない。ブラウザからGoogleのCookieやOAuthトークンを取得する仕組みはない。
 
 URLは`?set=<setId>&question=<questionId>&version=<version>`。将来の写経入口向けに`practice=<questionId>`も読み取る。URLは選択の指定であり、権限ではない。指定版がなければ案内し、別版の下書きを変換・上書きしない。
 
@@ -182,3 +182,11 @@ Pyodideは試作で検証した固定版v314.0.7をjsDelivrから読み込む。
 問題ごとに入力ケースを自動実行する学習用確認は未実装。現行の正式採点ソースは、1回の実行で送った出力テキストとコードを従来基準で判定し、Pythonを再実行しない。複数ケースのローカル確認を加える場合も、その合否を正式得点として信用しない。「指定値の出力を表示して提出」という既存の注意は、採点契約の移行まで保持する。
 
 表示の全件照合は、読取済みのA:F行配列だけを私有ファイルへ置き、`PYTHONEDITOR_PROMPT_ROWS=/private/tmp/<snapshot>.json node scripts/test-pythoneditor-prompt-browser.mjs`で実行できる。既定では独自の合成問題を使用する。正本や解答をGitへ追加しない。
+
+## 試行を伴う確認問題（2026-10-16）
+
+独自の[確認問題デモ](https://joho.kaijo.ed.jp/tools/pythoneditor/?set=demo-confirmations&question=demo-confirm-input-check&version=demo-confirmations-v1)を追加した。入力条件、乱数の種類、数当て回数、試行比較、観察後の回答の5方式を試せる。参照元のコードは元の小問で編集し、確認問題では入力を変えて実行する。問題セット選択からも開ける。
+
+条件別の試行状況と履歴を表示し、コード変更前の履歴は残す。同じ内容のコードに戻せば対応する履歴を再利用する。ブラウザへ自動保存し、ファイルメニューのJSON保存・取込みで回答と履歴を持ち出せる。GSSへのjournal保存と正式採点は未接続で、★は付けない。学校の実課題の内容や今年度Colabを変更していない。
+
+正本4列の編集方法・設定JSON・配信時の検査は[MASTER-SCHEMA.md](MASTER-SCHEMA.md)。検証は `node scripts/build-pythoneditor-confirmation.mjs --check` と `node scripts/test-pythoneditor-confirmations-browser.mjs`（WebKitは `PYTHONEDITOR_ENGINE=webkit`）を使う。

@@ -30,7 +30,7 @@ export function validateRating(raw) {
 export function setRating(set, ratingFor) {
   const unique = new Map();
   for (const q of set.questions) {
-    if (q.kind === 'observation') continue;
+    if (q.kind === 'observation' || q.kind === 'confirmation') continue;
     const rating = ratingFor(q);
     const prior=unique.get(q.questionId);
     if (!unique.has(q.questionId) || rating && (!prior || prior.total === 0 && rating.total > 0 || prior.earned === null && rating.earned !== null)) unique.set(q.questionId,rating);

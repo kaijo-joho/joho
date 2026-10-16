@@ -2,7 +2,7 @@
   "schema": 1,
   "targetProject": "grade",
   "property": "PYTHON_EDITOR_CONFIG",
-  "files": ["06_python_editor_contract.js","07_python_editor_config.js","13_python_editor_grader.js","45_python_editor_store.js","46_python_editor_master.js","22_python_editor_api.js","21_python_editor_bridge.html","98_python_editor_setup.js"],
+  "files": ["06_python_editor_contract.js","07_python_editor_config.js","13_python_editor_grader.js","45_python_editor_confirmation.js","45_python_editor_store.js","46_python_editor_master.js","22_python_editor_api.js","21_python_editor_bridge.html","98_python_editor_setup.js"],
   "route": "kind=pythoneditor",
   "legacyRouteUnchanged": ["py","ss","html"],
   "enabledByDefault": false

@@ -20,10 +20,10 @@ test('ページtitleにA基本問題・B応用問題・演習問題を付け、�
     assert.throws(() => title(id, values), code('preview_invalid'));
   }
 });
-function sourceFixture() {
+function sourceFixture(width = 22) {
   const f = fixture(), pages = [['title', 'note', 'id'], ['2-3. 繰り返し処理（while文）②', '', 'py23'], ['', '', 'py94']];
-  const master = [plain(f.context.PythonEditorMaster.headers), ...['py23a', 'py23b', 'py23'].map(id => {
-    const row = Array(18).fill(''); row[1] = id; row[3] = 'v1'; return row;
+  const master = [plain(width === 18 ? f.context.PythonEditorMaster.legacyHeaders : f.context.PythonEditorMaster.headers), ...['py23a', 'py23b', 'py23'].map(id => {
+    const row = Array(width).fill(''); row[1] = id; row[3] = 'v1'; return row;
   })];
   const data = { 'Python問題マスター': master, '採点設定py': [Array(15).fill('')], 'ページ一覧': pages }, reads = [];
   const sheet = (name, rows) => ({ getLastRow: () => rows.length, getLastColumn: () => rows[0].length,
@@ -34,8 +34,17 @@ function sourceFixture() {
   f.context.PropertiesService = { getScriptProperties: () => f.properties };
   f.context.SpreadsheetApp = { openById(id) { assert.equal(id, f.config.sourceFileListId); return { getSheetByName: name => data[name] && sheet(name, data[name]) }; } };
   f.context.PythonEditorMaster.build = (_master, _rules, spec) => ({ records: [f.snapshot(spec)], digest: 'a'.repeat(64) });
-  return { ...f, pages, reads, sourceEnv: f.context.toolsTeacherPreviewEnvironment_() };
+  return { ...f, pages, reads, data, sourceEnv: f.context.toolsTeacherPreviewEnvironment_() };
 }
+test('配布previewの正本読取は旧18列と追加4列の22列に対応する', () => {
+  for (const width of [18, 22]) {
+    const f = sourceFixture(width), source = f.sourceEnv.readSource(f.config);
+    assert.equal(source.groups.length, 3);
+    assert.deepEqual(f.reads.filter(r => r.name === 'Python問題マスター'), [{ name: 'Python問題マスター', row: 1, column: 1, height: 4, width }]);
+    f.data.Python問題マスター[0][17] = 'other';
+    assert.throws(() => f.sourceEnv.readSource(f.config), e => e.pythonEditorCode === 'snapshot_invalid');
+  }
+});
 test('正本読取は列名でid・titleを照合し、表示名の変更も配信digestに含める', () => {
   const f = sourceFixture(), before = f.sourceEnv.readSource(f.config);
   assert.deepEqual(plain(before.groups.map(g => g.title)), [
@@ -256,7 +265,7 @@ test('配備コピーは私有領域へ生成し、新旧のGASや設定を操�
     const names = await readdir(out); assert.ok(!names.includes('.clasp.json'));
     assert.deepEqual(names.filter(name => name.endsWith('.js')).sort(), [
       '00_teacher_preview.js', '05_tools_store_contract.js', '06_python_editor_contract.js',
-      '13_python_editor_grader.js', '30_grading_packages.js', '46_python_editor_master.js', '99_private_setup.js'
+      '13_python_editor_grader.js', '30_grading_packages.js', '45_python_editor_confirmation.js', '46_python_editor_master.js', '99_private_setup.js'
     ]);
     assert.equal(await readFile(join(out, '.claspignore'), 'utf8'), '**/**\n!**/*.js\n!**/*.html\n!appsscript.json\n');
     const manifest = JSON.parse(await readFile(join(out, 'appsscript.json')));

@@ -8,7 +8,20 @@ export function adaptColab(code) {
 }
 export const PYTHON_BRIDGE = String.raw`
 import sys as _sys, io as _io, os as _os, types as _types, base64 as _b64, shutil as _shutil
-from js import _pythonEditorText, _pythonEditorFigure, _pythonEditorFile
+from js import _pythonEditorText, _pythonEditorFigure, _pythonEditorFile, _pythonEditorInputPrompt
+import builtins as _builtins
+# Preserve the actual input() argument separately from stdout. Keep native input
+# conversion/EOF semantics, including the prompt shown in the output transcript.
+if not hasattr(_builtins, "_editor_original_input"):
+    _builtins._editor_original_input = _builtins.input
+def _editor_input(prompt="", /):
+    prompt = str(prompt)
+    _pythonEditorInputPrompt(prompt, True)
+    try:
+        return _builtins._editor_original_input(prompt)
+    finally:
+        _pythonEditorInputPrompt("", False)
+_builtins.input = _editor_input
 class _EditorStream:
     encoding = 'utf-8'
     def __init__(self, kind): self.kind = kind

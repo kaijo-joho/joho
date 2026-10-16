@@ -1,13 +1,18 @@
 import { LIMITS, PYODIDE_URL } from './core.mjs';
-import { adaptColab, PYTHON_BRIDGE } from './runtime.mjs';
+import { adaptColab, PYTHON_BRIDGE } from './runtime.mjs?v=20261016-confirmation1';
 import { PYTHON_DIAGNOSTICS } from './diagnostics.mjs?v=20261015-errors';
 let pyodide, generation, count, figures, current;
-let inputSequence = 0, pendingInput;
+let inputSequence = 0, pendingInput, inputPrompt = '', inputPromptActive = false;
+globalThis._pythonEditorInputPrompt = (value, active) => { flush(); inputPrompt = String(value); inputPromptActive = !!active; };
+function consumedInput(value) {
+  flush(); send('consumed-input', { prompt: inputPrompt, value: value ?? '', eof: value === null });
+  inputPromptActive = false;
+}
 let pending = { stdout: '', stderr: '' };
 function send(type, details = {}) { postMessage({ type, generation, ...details }); }
 function flush() {
   for (const stream of ['stdout', 'stderr']) if (pending[stream]) {
-    send('text', { stream, text: pending[stream] });
+    send('text', { stream, text: pending[stream], ...(stream === 'stdout' && inputPromptActive ? { inputPrompt: true } : {}) });
     pending[stream] = '';
   }
 }
@@ -70,12 +75,13 @@ self.onmessage = async ({ data }) => {
     return;
   }
   if (data.type !== 'run' || current) return;
-  current = true; generation = data.generation; count = 0; figures = 0;
+  current = true; generation = data.generation; count = 0; figures = 0; inputPrompt = ''; inputPromptActive = false;
   pending = { stdout: '', stderr: '' };
-  let globals;
+  let globals, prepared = false;
   try {
     const setup = adaptColab(data.setupCode || ''), code = adaptColab(data.code || '');
     const plot = await prepare(setup + '\n' + code);
+    prepared = true;
     const lines = [...(data.stdin || [])];
     const control = data.inputBuffer ? new Int32Array(data.inputBuffer, 0, 2) : null;
     globalThis._pythonEditorInput = async () => {
@@ -89,23 +95,24 @@ self.onmessage = async ({ data }) => {
         });
         send('status', { text: '実行中' });
       }
+      consumedInput(value);
       if (value !== null) send('text', { stream: 'input', text: value + '\n' });
       return { eof: value === null, value: value ?? '' };
     };
     pyodide.setStdin({ stdin: () => {
       if (lines.length) {
         const value = lines.shift();
-        flush(); send('text', { stream: 'input', text: value + '\n' });
+        flush(); consumedInput(value); send('text', { stream: 'input', text: value + '\n' });
         return value;
       }
-      if (!control) return null;
+      if (!control) { consumedInput(null); return null; }
       Atomics.store(control, 0, 0);
       flush(); send('input');
       while (Atomics.load(control, 0) === 0) Atomics.wait(control, 0, 0);
-      if (Atomics.load(control, 0) === 2) return null;
+      if (Atomics.load(control, 0) === 2) { consumedInput(null); return null; }
       // TextDecoderには共有メモリのviewを直接渡せないブラウザがある。
       const value = new TextDecoder().decode(new Uint8Array(data.inputBuffer, 8, Atomics.load(control, 1)).slice());
-      send('text', { stream: 'input', text: value + '\n' });
+      consumedInput(value); send('text', { stream: 'input', text: value + '\n' });
       send('status', { text: '実行中' });
       return value;
     } });
@@ -149,7 +156,7 @@ _editor_error_json
         if (formatted) ({ error, diagnostics } = formatted);
       } catch { /* Keep the original error if the diagnostic formatter itself fails. */ }
     }
-    send('error', { error, diagnostics });
+    send('error', { error, diagnostics, outcome: prepared ? 'error' : 'environment_error' });
   }
   finally {
     globals?.destroy();

@@ -121,3 +121,11 @@ PYTHONEDITOR_ENGINE=webkit node scripts/test-pythoneditor-preview-browser.mjs
 新しい画面は旧期限付きデータも読める。すでに開いている旧画面は期限なしの応答形式に対応しないため、公開反映後に再読み込みする。書きかけの保護は維持する。
 
 既存共通保存を含む単体・合成テスト90件、Chrome13項目・WebKit12項目が通過。400日経過後の同一問題の取得、対象外の拒否、教員の停止、編集内容の保持を確認した。長期間経過は合成時計での検証であり、学校実機で400日待った証拠ではない。
+
+## 確認問題用4列の互換対応（2026-10-16）
+
+正本のS:Vへkind/codeRefs/checkType/checkConfigを追加した。既存A:Rの125行の値・書式・検証・ノートは追加前の控えと一致。従来の125問には新定義を入れず、版と採点を保持する。追加欄はkind/checkTypeを選択式、参照とJSONをテキストとして管理する。編集契約は[MASTER-SCHEMA.md](MASTER-SCHEMA.md)。
+
+列追加に先立ち、同じ検証URLをversion 7へ更新した。GAS45を含む11ファイルの読み戻しが一致。OAuthの2スコープ・USER_ACCESSING/DOMAIN・許可アカウント・私有setupは変更していない。正本22列からrun_inspectTeacherCatalogで全22セット・125問を検証でき、変更前version 6と同じdigestを確認。圧縮世代と設定Propertyを切り替える再配信は不要だったため実施していない。
+
+新しい確認問題の受入れはGASとエディタで対応するが、学校問題の確認条件の作成・正式な採用/配信・journalのGSS保存・正式採点は今回実施していない。通常のgrade本番と今年度Colabは保持する。version 6と更新前HEADの私有控え、GSS旧18列の私有スナップショットを復元用に保存した。

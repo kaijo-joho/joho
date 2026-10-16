@@ -96,13 +96,13 @@ export class CloudPanel {
     return this.compareCode(q,receipt).changed?'提出後に変更':'';
   }
   render() {
-    const q=this.host.question(), policy=q&&this.cloud?.policy(q), enabled=this.connected&&!!policy;
+    const q=this.host.question(), policy=q&&this.cloud?.policy(q), enabled=this.connected&&!!policy&&q.kind!=='confirmation';
     $('cloud-connect').disabled=this.working||!(cloudConfig.enabled||toolsStoreConfig.enabled);
     const connectionLabel=this.connected||this.drafts?.connected?'学校アカウントに再接続':'学校アカウントに接続';
     $('cloud-connect-label').textContent=connectionLabel;
     $('cloud-connect').setAttribute('aria-label',connectionLabel);
     $('cloud-connect').title=cloudConfig.enabled||toolsStoreConfig.enabled?connectionLabel:'学校アカウント接続は準備中です';
-    $('save-cloud').disabled=this.working||!(this.drafts?this.drafts.connected:enabled);
+    $('save-cloud').disabled=this.working||q?.kind==='confirmation'||!(this.drafts?this.drafts.connected:enabled);
     $('open-cloud').disabled=this.working||!(this.drafts?this.drafts.connected:this.connected);
     $('formal-submit').disabled=this.working||!enabled||!policy?.canSubmit||this.host.running();
     $('formal-query').disabled=this.working||!enabled;
@@ -110,6 +110,10 @@ export class CloudPanel {
     if(!this.connected)$('cloud-account').textContent ||= cloudConfig.enabled?'未接続':'接続前・本番設定待ち';
     $('cloud-save-status').textContent=this.connected?'GSSへの保存・復元は「ファイル」メニューから行います。':'GSS下書きは別途保存';
     if(this.drafts)this.drafts.render();
+    if(q?.kind==='confirmation'){
+      $('cloud-save-status').textContent='確認問題の試行・回答はブラウザと保存ファイルに保持します。クラウド保存は未接続です。';
+      $('cloud-inline-status').hidden=true;
+    }
     const state=q&&this.states.get(questionKey(q)), receipt=state?.receipt;
     let pending;
     try{pending=q&&this.cloud?.journal.pending({...q,assignmentId:policy?.assignmentId},'submit');}catch(e){$('formal-status').textContent=e.message;return;}
@@ -117,7 +121,7 @@ export class CloudPanel {
     $('formal-score').textContent=receipt?.state==='submitted'?`最新の得点 ${score(receipt.score)}${receipt.late?'（締切後・成績対象外）':''}`:'';
     $('formal-best').textContent=state?`この問題の締切内最高点 ${score(state.bestScore)}`:'';
     $('formal-time').textContent=receipt?`サーバー受付 ${date(receipt.receivedAt)} ／ 締切 ${date(receipt.dueAt)}`:policy?`締切 ${date(policy.dueAt)}`:'';
-    $('formal-note').textContent=!enabled?'今年度は従来のColabで提出してください。':this.cloud?.session.teacher?'教員閲覧では生徒の成績として提出しません。':receipt?.state==='pending'?'採点と結果保存が完了してから提出済みになります。「採点・保存を再試行」で続けられます。':'実行結果・ローカル進捗と、ここに表示する正式得点・提出履歴は別です。';
+    $('formal-note').textContent=q?.kind==='confirmation'?'この確認問題の正式採点・提出は未接続です。学習用の確認記録とは別です。':!enabled?'今年度は従来のColabで提出してください。':this.cloud?.session.teacher?'教員閲覧では生徒の成績として提出しません。':receipt?.state==='pending'?'採点と結果保存が完了してから提出済みになります。「採点・保存を再試行」で続けられます。':'実行結果・ローカル進捗と、ここに表示する正式得点・提出履歴は別です。';
     $('formal-checks').replaceChildren();
     for(const check of receipt?.checks||[]){const li=document.createElement('li');li.textContent=`${check.passed?'✓':'×'} ${check.label}（${check.earned} / ${check.points}）`;$('formal-checks').append(li);}
     $('formal-diagnostics').textContent=(receipt?.diagnostics||[]).join('\n');
@@ -137,6 +141,7 @@ export class CloudPanel {
   }
   async refreshCurrent() {
     const q=this.host.question(),policy=q&&this.cloud?.policy(q);
+    if(q?.kind==='confirmation')return;
     if(q)await this.drafts?.selected(q);
     if(!this.connected||!policy)return;
     const cloud=this.cloud,revision=this.revision(q);let result;
@@ -145,6 +150,7 @@ export class CloudPanel {
     this.acceptState(q,result);this.render();
   }
   async save() {
+    if(this.host.question()?.kind==='confirmation')return;
     if(this.drafts)return this.withWork(()=>this.drafts.save());
     const q=this.host.question();if(!q||!this.connected)return;
     const entry={...this.host.entry(q)};
@@ -201,7 +207,7 @@ export class CloudPanel {
     });
   }
   async prepareSubmit() {
-    const q=this.host.question(),policy=q&&this.cloud?.policy(q);if(!this.connected||!policy?.canSubmit)return;
+    const q=this.host.question(),policy=q&&this.cloud?.policy(q);if(q?.kind==='confirmation'||!this.connected||!policy?.canSubmit)return;
     await this.withWork(async()=>{
       const pending=this.cloud.journal.pending({...q,assignmentId:policy.assignmentId},'submit');
       this.submission={q,input:pending?.input||await submissionText({...this.host.entry(q)},policy,this.host.run(q))};
@@ -231,7 +237,7 @@ export class CloudPanel {
       this.host.notice(result.unreceived?'サーバーに受付記録が見つかりません。送信控えを保持しています。「正式提出」から同じ要求を再送できます。':result.receipt?.state==='submitted'?'提出済みの結果を確認しました。':result.receipt?.state==='pending'?'受付済みですが、採点・結果保存は未完了です。':'この問題の提出記録はありません。');
     });
   }
-  edited(entry){this.drafts?.edited(entry);}
+  edited(entry){if(this.host.findQuestion(entry)?.kind!=='confirmation')this.drafts?.edited(entry);}
   draftBadge(q){return this.drafts?.badge(q);}
   resume(){return this.drafts?.resume();}
   unsaved(){return this.drafts?.auto?.unsaved()||false;}

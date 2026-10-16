@@ -1,19 +1,21 @@
-import { LIMITS, APP, FORMAT, questionKey, validId, validateCatalog, validateDraft, stdinLines } from './core.mjs?v=20261015-errors';
-import { demoCatalog } from './demo.mjs?v=20261015-subquestions';
+import { LIMITS, APP, FORMAT, questionKey, validId, validateCatalog, validateDraft, stdinLines } from './core.mjs?v=20261016-confirmation1';
+import { demoCatalog } from './demo.mjs?v=20261016-confirmation1';
 import { DraftStore, exportDraft } from './storage.mjs';
-import { PythonRunner } from './runner.mjs?v=20261015-errors';
+import { PythonRunner } from './runner.mjs?v=20261016-confirmation1';
 import { errorHints } from './diagnostics.mjs?v=20261015-errors';
 import { renderPrompt } from './prompt.mjs?v=20261016-prompt-structure1';
-import { CloudPanel } from './cloud-ui.mjs?v=20261015-tools-store';
+import { CloudPanel } from './cloud-ui.mjs?v=20261016-confirmation1';
 import { cloudConfig } from './cloud-config.mjs';
-import { questionGroups, questionStructure, setRating, renderRating } from './navigation.mjs?v=20261016-prompt-structure1';
+import { questionGroups, questionStructure, setRating, renderRating } from './navigation.mjs?v=20261016-confirmation1';
 import { demoRatings } from './demo-ratings.mjs';
 import { TeacherPreviewPanel } from './teacher-preview.mjs?v=20261016-preview-no-expiry1';
+import { ConfirmationStore } from './confirmation-store.mjs?v=20261016-confirmation1';
+import { ConfirmationPanel } from './confirmation-ui.mjs?v=20261016-confirmation1';
 const $ = id => document.getElementById(id);
-const entries = new Map(), outputs = new Map(), docs = new Map(), questionGroupTitles = new Map();
+const entries = new Map(), outputs = new Map(), docs = new Map(), questionGroupTitles = new Map(), trialWrites = new Set();
 let catalog, selectedSet, question, cm, store, runSnapshot, busy = false, pendingImport;
 let saveFailed = false;
-let cloudPanel;
+let cloudPanel, confirmationStore, confirmationPanel, pendingConfirmationJournal;
 let markedErrors = false;
 let pendingRequested=false;
 let editGeneration=0;
@@ -50,9 +52,9 @@ function setCode(value, q) {
     if (!docs.has(key)) docs.set(key, new CodeMirror.Doc(value, 'python'));
     cm.swapDoc(docs.get(key));
     if (cm.getValue() !== value) cm.setValue(value);
-    cm.setOption('readOnly', q.kind === 'observation');
+    cm.setOption('readOnly', q.kind === 'observation' || q.kind === 'confirmation');
     cm.refresh();
-  } else { $('code').value = value; $('code').readOnly = q.kind === 'observation'; }
+  } else { $('code').value = value; $('code').readOnly = q.kind === 'observation' || q.kind === 'confirmation'; }
 }
 function renderIndentGuides(editor, line, element) {
   const whitespace = line.text.match(/^[ \t]+/)?.[0];
@@ -71,7 +73,8 @@ function dirty() {
   editGeneration++;
   clearErrorMarkers();
   const e = currentEntry();
-  e.code = codeValue(); e.stdin = $('stdin').value;
+  if (question.kind !== 'confirmation') e.code = codeValue();
+  e.stdin = $('stdin').value;
   e.updatedAt = new Date().toISOString(); e.practiced = false;
   saveAuto(e); updateProgress(); renderOutput();cloudPanel?.render();
 }
@@ -86,13 +89,14 @@ function saveAuto(e) {
 function stateLabel(q) {
   const e = currentEntry(q);
   if (q.kind === 'observation') return '確認問題';
+  if (q.kind === 'confirmation') return confirmationPanel?.label(q) || '確認問題';
   if (e.practiced) return '実行済み';
   return e.code !== q.templateCode || e.updatedAt ? '編集中' : '未入力';
 }
 function updateProgress() {
   if (!selectedSet) return;
-  const count = selectedSet.questions.filter(q => q.kind !== 'observation' && currentEntry(q).practiced).length;
-  const total = selectedSet.questions.filter(q => q.kind !== 'observation').length;
+  const count = selectedSet.questions.filter(q => q.kind !== 'observation' && q.kind !== 'confirmation' && currentEntry(q).practiced).length;
+  const total = selectedSet.questions.filter(q => q.kind !== 'observation' && q.kind !== 'confirmation').length;
   $('progress').textContent = `実行済み ${count} / ${total} 問`;
   $('work-status').textContent = stateLabel(question);
   for (const button of $('question-list').querySelectorAll('button')) {
@@ -110,11 +114,13 @@ function selectQuestion(q, updateURL = true) {
   $('question-id').textContent = q.questionId; $('question-title').textContent = view.title;
   $('version').textContent = q.version;
   renderPrompt($('prompt'), view.prompt);
-  $('setup').hidden = !q.setupCode; $('setup-code').textContent = q.setupCode;
+  const source = effectiveSource(q);
+  const setupCode = effectiveSetupCode(q);
+  $('setup').hidden = !setupCode; $('setup-code').textContent = setupCode;
   $('observation-note').hidden = q.kind !== 'observation';
   if (q.kind === 'observation') $('observation-note').textContent = 'この問題は確認用です。前の問題のコードを実行します。';
-  const dependency = q.useExistingQuestionCode && selectedSet.questions.find(p => p.questionId === q.useExistingQuestionCode && p.version === q.version);
-  setCode(dependency ? currentEntry(dependency).code : e.code, q);
+  setCode(currentEntry(source).code, q);
+  confirmationPanel?.render(q);
   $('stdin').value = e.stdin;
   $('save-status').textContent = e.updatedAt ? 'ブラウザの下書きから再開' : '雛形を表示中';
   if (saveFailed) $('save-status').textContent = 'ブラウザ保存を確認してください';
@@ -133,7 +139,7 @@ function selectQuestion(q, updateURL = true) {
   cloudPanel?.refreshCurrent().catch(e=>cloudPanel.fail(e));
 }
 function ratingFor(q) {
-  if (q.kind === 'observation') return {earned:0,total:0};
+  if (q.kind === 'observation' || q.kind === 'confirmation') return {earned:0,total:0};
   if (cloudPanel?.hasSchoolQuestion(q)) return cloudPanel.rating(q);
   return showDemoRatings ? demoRatings.get(questionKey(q)) || null : null;
 }
@@ -143,10 +149,11 @@ function updateNavigationRatings() {
     const q=selectedSet?.questions.find(q=>questionKey(q)===button.dataset.key);
     if (!q) continue;
     const rating=ratingFor(q);
-    renderRating(button.querySelector('.question-item-rating'),rating);
+    const ratingNode = button.querySelector('.question-item-rating');
+    renderRating(ratingNode,rating); ratingNode.hidden = q.kind === 'confirmation';
     button.querySelector('.question-item-state').hidden=q.kind!=='observation'&&rating?.earned!=null&&rating.total>0;
     const hint=button.querySelector('.question-item-formal');
-    hint.textContent=cloudPanel?.navigationStatus(q)||'';hint.hidden=!hint.textContent;
+    hint.textContent=q.kind === 'confirmation' ? '' : cloudPanel?.navigationStatus(q)||'';hint.hidden=!hint.textContent;
     const badge=cloudPanel?.draftBadge(q),marker=button.querySelector('.question-item-cloud');
     if(marker){marker.textContent=badge?.text||'';marker.hidden=!badge;marker.setAttribute('aria-label',badge?.label||'');marker.title=badge?.label||'';}
   }
@@ -231,7 +238,7 @@ function renderOutput() {
   $('find-errors').hidden = !result?.diagnostics?.locations?.length || !!changed || runner.active;
   $('output-status').textContent = changed ? 'コードまたは入力を変更しました。下は変更前の実行結果です。' : result?.status || (prepared ? '確認用の入力値を使用します（設定から変更できます）。' : 'ここに実行結果が表示されます。');
   $('run-status').textContent = result?.status || '未実行';
-  $('run').disabled = !question;
+  $('run').disabled = !question || !effectiveSource(question);
   $('run').dataset.state = runner.active ? 'stop' : 'run';
   const action = runner.active ? '実行を停止' : 'コードを実行（⌘Enter）';
   $('run').setAttribute('aria-label', action); $('run').title = action;
@@ -257,7 +264,7 @@ function currentErrorLocations() {
   const result = question && outputs.get(questionKey(question));
   if (!result || runner.active || result.code !== effectiveCode(question) || result.stdin !== currentEntry().stdin) return [];
   return (result.diagnostics?.locations || []).filter(item => Number.isInteger(item.line) && item.line > 0 &&
-    item.line <= (item.source === 'setup' ? question.setupCode : effectiveCode(question)).split('\n').length);
+    item.line <= (item.source === 'setup' ? effectiveSetupCode(question) : effectiveCode(question)).split('\n').length);
 }
 function showErrorHint(location) {
   if (!currentErrorLocations().includes(location)) return;
@@ -307,19 +314,34 @@ function findErrors() {
     $('error-line-hint').hidden = false; $('error-line-hint').focus();
   }
 }
-function effectiveCode(q) {
-  if (q.useExistingQuestionCode) {
-    const p = selectedSet.questions.find(p => p.questionId === q.useExistingQuestionCode && p.version === q.version);
-    return currentEntry(p).code;
-  }
-  return currentEntry(q).code;
+function effectiveSource(q) {
+  if (q.kind === 'confirmation') return confirmationPanel?.source(q);
+  if (q.useExistingQuestionCode) return selectedSet.questions.find(p => p.questionId === q.useExistingQuestionCode && p.version === q.version);
+  return q;
+}
+function effectiveCode(q) { return currentEntry(effectiveSource(q)).code; }
+function effectiveSetupCode(q) { return q.kind === 'confirmation' ? effectiveSource(q).setupCode : q.setupCode; }
+function referencedByConfirmation(q) {
+  return catalog?.sets.some(set => set.questions.some(item => item.kind === 'confirmation' && item.codeRefs.some(ref => questionKey(ref) === questionKey(q))));
+}
+async function recordTrial(snapshot, result) {
+  if (!snapshot.recordTrial || result.trialRecorded) return;
+  result.trialRecorded = true;
+  try {
+    await confirmationStore.record({ source: snapshot.source, code: snapshot.code, inputs: result.inputs,
+      stdout: result.programStdout, stderr: result.stderr + (result.error ? (result.stderr ? '\n' : '') + result.error : ''),
+      outcome: result.outcome, truncated: result.truncated, at: new Date().toISOString() });
+    if (confirmationStore.lastError) showNotice(confirmationStore.lastError.message, true);
+    updateProgress(); updateNavigationRatings(); confirmationPanel.render(question);
+  } catch (error) { showNotice('試行記録を保存できません。' + error.message, true); }
 }
 const runner = new PythonRunner(event => {
   if (!runSnapshot) return;
   const result = outputs.get(runSnapshot.key);
   if (!result) return;
-  if (event.type === 'text') { if(event.stream === 'stderr') result.stderr += event.text; else {result.text += event.text;if(event.stream==='input')result.inputEcho+=event.text;else result.stdout+=event.text;} }
+  if (event.type === 'text') { if(event.stream === 'stderr') result.stderr += event.text; else {result.text += event.text;if(event.stream==='input')result.inputEcho+=event.text;else { result.stdout+=event.text; if (!event.inputPrompt) result.programStdout+=event.text; }} }
   if (event.type === 'status') result.status = event.text;
+  if (event.type === 'consumed-input') result.inputs.push({ prompt: event.prompt, value: event.value, ...(event.eof ? { eof: true } : {}) });
   if (event.type === 'figure') result.files.push({ kind: 'figure', name: `graph-${result.files.length + 1}.png`, data: event.data });
   if (event.type === 'file') result.files.push({ kind: 'file', name: String(event.name).replace(/[^\p{L}\p{N}_.-]/gu, '_'), data: event.data });
   if (event.type === 'input') {
@@ -329,11 +351,11 @@ const runner = new PythonRunner(event => {
     result.outcome='success';
     result.status = '実行が終了しました';
     const e = entries.get(runSnapshot.key);
-    if (e && runSnapshot.code === effectiveCode(question) && e.stdin === runSnapshot.stdin) { e.practiced = true; saveAuto(e); }
+    if (e && question.kind !== 'confirmation' && runSnapshot.code === effectiveCode(question) && e.stdin === runSnapshot.stdin) { e.practiced = true; saveAuto(e); }
   }
-  if (event.type === 'error') { result.error = event.error; result.diagnostics = event.diagnostics; result.status = 'エラーで終了しました';result.outcome='error';result.truncated=event.error.includes('出力が上限'); }
+  if (event.type === 'error') { result.error = event.error; result.diagnostics = event.diagnostics; result.status = 'エラーで終了しました';result.outcome=event.outcome || 'error';result.truncated=event.error.includes('出力が上限'); }
   if (event.type === 'stopped') {result.status = event.text;result.outcome='stopped';if(event.text.includes('上限'))showNotice(event.text,true);}
-  if (['done', 'error', 'stopped'].includes(event.type)) $('interactive-input').hidden = true;
+  if (['done', 'error', 'stopped'].includes(event.type)) { $('interactive-input').hidden = true; const task = recordTrial(runSnapshot, result); trialWrites.add(task); task.finally(() => trialWrites.delete(task)); }
   if (questionKey(question) === runSnapshot.key) {
     renderOutput(); updateProgress(); cloudPanel?.render();
     if (event.type === 'input') { $('input-line').focus(); $('input-line').scrollIntoView({block:'nearest'}); }
@@ -344,9 +366,10 @@ function run() {
   const e = currentEntry(), code = effectiveCode(question);
   if (code.length > LIMITS.code || e.stdin.length > LIMITS.code) return showNotice('コードまたは入力値が長すぎます。', true);
   clearErrorMarkers();
-  runSnapshot = { key: questionKey(question), code, stdin: e.stdin };
-  outputs.set(runSnapshot.key, { code, stdin: e.stdin, text: '', stdout:'',inputEcho:'',stderr: '', error: '', outcome:'not_run',truncated:false,status: '準備中', files: [] });
-  runner.run({ code, setupCode: question.setupCode, stdin: stdinLines(e.stdin) });
+  const source = effectiveSource(question);
+  runSnapshot = { key: questionKey(question), code, stdin: e.stdin, source: { questionId: source.questionId, version: source.version }, recordTrial: referencedByConfirmation(source) && effectiveSetupCode(question) === source.setupCode };
+  outputs.set(runSnapshot.key, { code, stdin: e.stdin, text: '', stdout:'',programStdout:'',inputs:[],inputEcho:'',stderr: '', error: '', outcome:'not_run',truncated:false,status: '準備中', files: [] });
+  runner.run({ code, setupCode: effectiveSetupCode(question), stdin: stdinLines(e.stdin) });
   renderOutput();
   cloudPanel?.render();
 }
@@ -354,10 +377,11 @@ function addCloudCatalog(incoming) {
   const existing=catalog?.sets.flatMap(s=>s.questions)||[];
   for(const q of incoming.sets.flatMap(s=>s.questions)) {
     const old=existing.find(p=>questionKey(p)===questionKey(q));
-    if(old && ['prompt','templateCode','setupCode','kind','useExistingQuestionCode'].some(k=>old[k]!==q[k]))throw new Error('同じID・版で問題内容が異なります。編集中の内容は保持しています。新しい版で接続してください。');
+    if(old && ['prompt','templateCode','setupCode','kind','useExistingQuestionCode','codeRefs','checkType','checkConfig'].some(k=>JSON.stringify(old[k])!==JSON.stringify(q[k])))throw new Error('同じID・版で問題内容が異なります。編集中の内容は保持しています。新しい版で接続してください。');
   }
   catalogGeneration++;
   if(!catalog)catalog={schema:'python-editor-catalog-v1',label:incoming.label,sets:[]};
+  if(incoming.schema==='python-editor-catalog-v2')catalog.schema=incoming.schema;
   for(const set of incoming.sets) {
     const prior=catalog.sets.find(s=>s.setId===set.setId);
     if(prior){prior.title=set.title;for(const q of set.questions)if(!prior.questions.some(p=>questionKey(p)===questionKey(q)))prior.questions.push(q);}
@@ -391,9 +415,10 @@ function saveBrowser() {
   catch (e) { showNotice(e.message, true); }
   closeMenus(true);
 }
-function saveFile() {
+async function saveFile() {
   if (!question) return;
-  download(new Blob([JSON.stringify(exportDraft(entries.values()), null, 2)], {type:'application/json'}), 'python-draft.json');
+  await Promise.all([...trialWrites]);
+  download(new Blob([JSON.stringify({...exportDraft(entries.values()), confirmationJournal: confirmationStore.snapshot()}, null, 2)], {type:'application/json'}), 'python-draft.json');
   closeMenus(true);
   showNotice('保存ファイルを作成しました。ダウンロード先を確認してください。ファイルメニューから取り込めます。');
 }
@@ -411,12 +436,12 @@ function restoreDialog() {
     openDialog($('restore-dialog'));
   } catch (e) { showNotice(e.message, true); }
 }
-function prepareImport(rawEntries, source) {
+function prepareImport(rawEntries, source, confirmationJournal = null) {
   const known = new Set(catalog.sets.flatMap(s => s.questions.map(questionKey)));
   const matching = rawEntries.filter(e => known.has(questionKey(e)));
   if (!matching.length) throw new Error('現在表示できる問題・版と一致するコードがありません。元のファイルは保持してください。');
-  pendingImport = matching;
-  $('import-description').textContent = `${source}から${matching.length}問を取り込みます。${rawEntries.length - matching.length}問は未読込の版のため取り込みません。`;
+  pendingImport = matching; pendingConfirmationJournal = confirmationJournal;
+  $('import-description').textContent = `${source}から${matching.length}問を取り込みます。${rawEntries.length - matching.length}問は未読込の版のため取り込みません。${confirmationJournal ? ' 試行履歴も既存の記録を保護して取り込みます。' : ''}`;
   $('import-preview').textContent = matching[0].code;
   openDialog($('import-dialog'));
 }
@@ -431,6 +456,7 @@ function applyImport() {
       const q=all.find(q => questionKey(q) === questionKey(incoming)),before={...currentEntry(q)};
       store.prepareImport(before, '保存内容の取込み前');
     }
+    if (pendingConfirmationJournal) confirmationStore.restore(pendingConfirmationJournal, { merge: true });
     let anyFailure=false;
     for (const incoming of pendingImport) {
       const e = {...incoming, updatedAt: new Date().toISOString(), practiced: false};
@@ -447,6 +473,15 @@ function openDialog(dialog) {
 async function init() {
   $('code').readOnly=true;$('run').disabled=true;
   try { store = new DraftStore(); } catch { showNotice('ブラウザ保存を利用できません。ファイルに保存してください。', true); }
+  confirmationStore = new ConfirmationStore();
+  confirmationPanel = new ConfirmationPanel({
+    findSource: ref => catalog?.sets.flatMap(set => set.questions).find(q => q.kind === 'code' && questionKey(q) === questionKey(ref)),
+    entry: currentEntry, running: () => !!runner.active,
+    openSource: source => selectQuestion(source), sourceChanged: q => selectQuestion(q, false),
+    warning: message => showNotice(message, true),
+    changed: () => { editGeneration++; updateProgress(); confirmationPanel.render(question); }
+  }, confirmationStore, $('confirmation-panel'));
+  if (confirmationStore.lastError) showNotice(confirmationStore.lastError.message, true);
   if (globalThis.CodeMirror) {
     cm = CodeMirror.fromTextArea($('code'), {mode:'python', readOnly:true, lineNumbers:true, indentUnit:4, tabSize:4, viewportMargin:20, lineWrapping:true, extraKeys:{Tab: cm => cm.somethingSelected() ? cm.indentSelection('add') : cm.replaceSelection(' '.repeat(4),'end'), 'Cmd-Enter':run, 'Ctrl-Enter':run, 'Shift-Enter':run}});
     cm.getWrapperElement().setAttribute('aria-label', 'Pythonコード');
@@ -465,7 +500,7 @@ async function init() {
     archive:(e,reason)=>{if(!store)throw new Error('ローカルの控えを保存できません。コードをファイルに保存してください。');store.archive(e,reason);},
     archiveEntries:reason=>{if(!store)throw new Error('切り替え前の控えを保存できません。ファイルに保存してください。');for(const e of entries.values())store.archive(e,reason);},
     findQuestion:e=>catalog?.sets.flatMap(s=>s.questions).find(q=>questionKey(q)===questionKey(e)),
-    draftEntries:()=>catalog?.sets.flatMap(s=>s.questions).map(q=>({q,entry:{...currentEntry(q)}}))||[]});
+    draftEntries:()=>catalog?.sets.flatMap(s=>s.questions).filter(q=>q.kind!=='confirmation').map(q=>({q,entry:{...currentEntry(q)}}))||[]});
   try { JohoUI.theme({storageKey:'joho.pythoneditor.view.v1',themeSelect:$('theme'),sizeSelect:$('text-size')}); JohoUI.tooltip(); } catch {}
   if (cm) {
     $('text-size').addEventListener('change', () => cm.refresh());
@@ -492,8 +527,8 @@ async function init() {
     try {
       if (file.size > 6000000) throw new Error('保存ファイルが大きすぎます。');
       const text = await file.text();
-      const imported = file.name.endsWith('.py') ? [{...target,code:text,practiced:false}] : validateDraft(JSON.parse(text)).entries;
-      prepareImport(validateDraft({app:APP,version:FORMAT,entries:imported}).entries, file.name);
+      const imported = file.name.endsWith('.py') ? validateDraft({app:APP,version:FORMAT,entries:[{...target,code:text,practiced:false}]}) : validateDraft(JSON.parse(text));
+      prepareImport(imported.entries, file.name, imported.confirmationJournal);
     } catch (e) { showNotice(e.message, true); }
   });
   for (const button of document.querySelectorAll('[data-close]')) button.addEventListener('click', () => button.closest('dialog').close());
@@ -520,7 +555,7 @@ async function init() {
     if (e.key === 'Escape') {closeMenus(true);closeSetPicker(true);}
   });
   document.addEventListener('click', e => {if (!e.target.closest('.menu')) closeMenus();if(!e.target.closest('.set-picker'))closeSetPicker();});
-  addEventListener('beforeunload', e => {if (saveFailed||cloudPanel?.unsaved()) {e.preventDefault();e.returnValue='';}});
+  addEventListener('beforeunload', e => {if (saveFailed||trialWrites.size||confirmationStore.lastError||cloudPanel?.unsaved()) {e.preventDefault();e.returnValue='';}});
   addEventListener('pagehide', () => runner.dispose());
   if (teacherPreviewMode) {
     catalog = validateCatalog({ schema: 'python-editor-catalog-v1', label: '問題配布検証', sets: [] });

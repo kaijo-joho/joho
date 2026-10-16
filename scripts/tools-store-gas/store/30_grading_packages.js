@@ -45,7 +45,18 @@ var ToolsGradingPackages = (function () {
         record.recordKey === q.version + '/' + q.questionId && record.groupKey === q.version + '/' + q.setId && record.actorKey === '' && record.requestId === '' && record.seq === 0 &&
         typeof record.at === 'string' && Number.isFinite(Date.parse(record.at)) && HASH.test(record.payloadHash) && record.payloadHash === hash(T.canonical(record.body)));
       assert(typeof q.prompt === 'string' && q.prompt.length <= 200000 && typeof q.templateCode === 'string' && q.templateCode.length <= 200000 && typeof q.setupCode === 'string' && q.setupCode.length <= 200000 &&
-        typeof q.title === 'string' && q.title.length <= 300 && ['code', 'observation'].indexOf(q.kind) >= 0 && Array.isArray(record.body.ranges) && record.body.rules && typeof record.body.rules === 'object' && typeof record.body.graded === 'boolean');
+        typeof q.title === 'string' && q.title.length <= 300 && ['code', 'observation', 'confirmation'].indexOf(q.kind) >= 0 && Array.isArray(record.body.ranges) && record.body.rules && typeof record.body.rules === 'object' && typeof record.body.graded === 'boolean');
+      if (q.kind === 'confirmation') {
+        try {
+          var C = PythonEditorConfirmation, publicConfig = C.validateConfirmationQuestion(q), full = record.body.confirmation;
+          only(full, ['codeRefs', 'checkType', 'checkConfig']);
+          var refs = C.parseCodeRefs(full.codeRefs), config = C.normalizeCheck(full.checkType, full.checkConfig);
+          assert(T.canonical(publicConfig) === T.canonical({ codeRefs: refs, checkType: full.checkType, checkConfig: C.publicCheck(full.checkType, config) }) &&
+            T.canonical(full) === T.canonical({ codeRefs: refs, checkType: full.checkType, checkConfig: config }) &&
+            record.body.graded === false && q.templateCode === '' && q.setupCode === '' && !q.useExistingQuestionCode &&
+            record.body.ranges.length === 0 && Object.keys(record.body.rules).length === 0);
+        } catch (error) { fail('packages_invalid'); }
+      } else assert(!Object.prototype.hasOwnProperty.call(record.body, 'confirmation'));
       return clone(record);
     }
     function snapshotsByGroup(records) {
@@ -106,6 +117,10 @@ var ToolsGradingPackages = (function () {
       Object.keys(before).sort().forEach(function (key) { all = all.concat(before[key]); });
       assert(all.length <= 5000);
       snapshotsByGroup(all);
+      if (all.some(function (record) { return record.body.question.kind === 'confirmation'; })) {
+        try { PythonEditorConfirmation.validateReferenceGraph(all.map(function (record) { return record.body.question; })); }
+        catch (error) { fail('packages_invalid'); }
+      }
       var actors = validateActors(input.actors);
       return { schema: 1, snapshots: all, assignments: validateAssignments(input.assignments, before), actors: actors, registry: validateRegistry(input.registry, actors) };
     }

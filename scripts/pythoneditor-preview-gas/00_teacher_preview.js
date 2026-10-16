@@ -126,7 +126,8 @@ var ToolsTeacherPreview = (function () {
       current(c, actor); assert(index().raw === i.raw && packages.head().generation === opened.meta.generation, 'preview_changed');
       return { actorKey: actor.key, account: actor.email, teacher: actor.teacher, policies: [], ratings: [],
         preview: { readOnly: true, viewerRole: actor.teacher ? 'teacher' : 'demo', generation: opened.meta.generation, sourceDigest: i.value.sourceDigest, expiresAt: opened.meta.expiresAt === null ? null : new Date(opened.meta.expiresAt).toISOString() },
-        catalog: { schema: 'python-editor-catalog-v1', label: '問題配布検証（採用前を含む）', sets: Object.keys(sets).map(function (k) { return sets[k]; }) } };
+        catalog: { schema: Object.keys(sets).some(function (key) { return sets[key].questions.some(function (q) { return q.kind === 'confirmation'; }); }) ? 'python-editor-catalog-v2' : 'python-editor-catalog-v1',
+          label: '問題配布検証（採用前を含む）', sets: Object.keys(sets).map(function (k) { return sets[k]; }) } };
     }
     function rpc(action, input, origin) {
       var c = configuration(); identity(c);
@@ -168,7 +169,7 @@ function toolsTeacherPreviewEnvironment_() {
     bytes: function (text) { return Utilities.newBlob(text).getBytes().length; },
     packages: function () { return ToolsGradingPackages.create({ allowNoExpiry: true }); },
     readSource: function (c) {
-      var book = SpreadsheetApp.openById(c.sourceFileListId), master = bounded(book.getSheetByName('Python問題マスター'), 18, 5001),
+      var book = SpreadsheetApp.openById(c.sourceFileListId), master = PythonEditorMaster.masterValues(book.getSheetByName('Python問題マスター'), 5001),
         rules = bounded(book.getSheetByName(c.gradingSheet), 15, 10001, 13), titles = pageTitles(book.getSheetByName('ページ一覧')), seen = {}, groups = [];
       master.slice(1).forEach(function (row) {
         if (row.every(function (v) { return v === ''; })) return;

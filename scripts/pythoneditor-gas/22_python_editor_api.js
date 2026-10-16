@@ -30,13 +30,14 @@ var PythonEditorService = (function () {
         var q = r.body.question, key = PythonEditor.key(q); frozenByKey[key] = r;
         if (!seen[key]) { sets[p.setId].questions.push(PythonEditorMaster.publicQuestion(r)); seen[key] = true; }
         policies.push({ questionId: q.questionId, version: q.version, assignmentId: p.assignmentId, dueAt: p.dueAt,
-          startsAt: p.startsAt, closesAt: p.closesAt, canSubmit: !env.actor.teacher && p.official && r.body.graded && env.now() >= p.startsAt && env.now() <= p.closesAt });
+          startsAt: p.startsAt, closesAt: p.closesAt, canSubmit: q.kind !== 'confirmation' && !env.actor.teacher && p.official && r.body.graded && env.now() >= p.startsAt && env.now() <= p.closesAt });
       });
     });
     // Read this learner's result rows once, rather than once for every question.
     var results = env.store.resultsForActor(env.actor.key), ratings = [];
     Object.keys(frozenByKey).forEach(function (key) {
       var frozen = frozenByKey[key], q = frozen.body.question;
+      if (q.kind === 'confirmation') return;
       var matches = policies.filter(function (p) { return PythonEditor.key(p) === key; });
       if (matches.length !== 1) return;
       var policy = env.config.assignments.filter(function (p) { return p.assignmentId === matches[0].assignmentId && p.version === q.version; })[0];
@@ -46,7 +47,8 @@ var PythonEditorService = (function () {
         rating: publicRating(frozen, best, env, frozenByKey) });
     });
     return { actorKey: env.actor.key, account: env.actor.email, teacher: env.actor.teacher, limits: PythonEditor.LIMITS, ratings: ratings,
-      catalog: { schema: 'python-editor-catalog-v1', label: '学校アカウント・採用版', sets: Object.keys(sets).map(function (k) { return sets[k]; }) }, policies: policies };
+      catalog: { schema: Object.keys(sets).some(function (key) { return sets[key].questions.some(function (q) { return q.kind === 'confirmation'; }); }) ? 'python-editor-catalog-v2' : 'python-editor-catalog-v1',
+        label: '学校アカウント・採用版', sets: Object.keys(sets).map(function (k) { return sets[k]; }) }, policies: policies };
   }
   function saveDraft(input, env, at) {
     input = PythonEditor.draft(input);
@@ -74,7 +76,7 @@ var PythonEditorService = (function () {
       .sort(function (a, b) { return b.body.score - a.body.score || b.receivedAt.localeCompare(a.receivedAt) || b.seq - a.seq; })[0] || null;
   }
   function codeStarTotal(body) {
-    if (!body.graded || body.question.kind === 'observation') return 0;
+    if (!body.graded || body.question.kind === 'observation' || body.question.kind === 'confirmation') return 0;
     return body.ranges.reduce(function (sum, range) {
       var rule = body.rules[range.scoringId];
       if (rule.schemaVersion !== 2) return sum + new Set(rule.keywordsArr || []).size;
@@ -119,7 +121,7 @@ var PythonEditorService = (function () {
     var prior = env.store.findResult(env.actor.key, receipt.requestId);
     if (prior) return response(receipt, env);
     var frozen = snapshot(receipt, env);
-    PythonEditor.assert(frozen.payloadHash === receipt.snapshotHash && frozen.body.graded, 'snapshot_invalid');
+    PythonEditor.assert(frozen.payloadHash === receipt.snapshotHash && frozen.body.graded && frozen.body.question.kind !== 'confirmation', 'snapshot_invalid');
     env.authorize(frozen, receipt.policy.assignmentId, receipt.at, false);
     var result = PythonEditorGraderV1.grade(frozen.body, receipt.body);
     env.store.finish(receipt, result, env.now(), function () { env.recheck(frozen, receipt.policy.assignmentId, receipt.at, false); });
@@ -135,7 +137,7 @@ var PythonEditorService = (function () {
       return process(prior, env);
     }
     var frozen = snapshot(input, env);
-    PythonEditor.assert(frozen.body.graded, 'not_allowed');
+    PythonEditor.assert(frozen.body.graded && frozen.body.question.kind !== 'confirmation', 'not_allowed');
     var proof = intakeTicket ? PythonEditor.intakeVerify(intakeTicket, env.intakeSecret()) : null;
     var receivedAt = proof ? proof.receivedAt : at;
     var policy = env.authorize(frozen, input.assignmentId, receivedAt, true);

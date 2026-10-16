@@ -16,7 +16,7 @@ class PreviewProperties {
 export function teacherPreviewFixture() {
   const { context, contract: T } = loadCommon();
   for (const name of ['../../tools-store-gas/store/30_grading_packages.js', '../../pythoneditor-gas/06_python_editor_contract.js',
-    '../../pythoneditor-gas/46_python_editor_master.js', '../00_teacher_preview.js']) {
+    '../../pythoneditor-gas/45_python_editor_confirmation.js', '../../pythoneditor-gas/46_python_editor_master.js', '../00_teacher_preview.js']) {
     vm.runInContext(readFileSync(new URL(name, import.meta.url), 'utf8'), context);
   }
   const properties = new PreviewProperties();

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { validateCatalog, validateDraft, APP, questionKey, stdinLines } from '../core.mjs';
 import { demoCatalog } from '../demo.mjs';
+import { confirmationDemo } from '../demo-confirmations.mjs';
 import { DraftStore } from '../storage.mjs';
 import { PythonRunner } from '../runner.mjs';
 import { adaptColab } from '../runtime.mjs';
@@ -66,3 +67,16 @@ if(process.env.PYTHONEDITOR_MASTER){
   for(const q of all) for(const k of ['answerCode','explanation','gradingVersion','scoringIds','runtimeConfig','note','sourceFileId']) assert.ok(!(k in q));
 }
 console.log('Python editor core: schema, private projection, draft conflict/version, stop/stale response passed');
+
+// New confirmation catalogs preserve explicit references and portable journals.
+const confirmed = validateCatalog({schema:'python-editor-catalog-v2',sets:[confirmationDemo]});
+assert.equal(confirmed.sets[0].questions.filter(q=>q.kind==='confirmation').length,5);
+const invalidRef=structuredClone(confirmationDemo);
+invalidRef.questions.find(q=>q.kind==='confirmation').codeRefs[0].version='missing';
+assert.throws(()=>validateCatalog({schema:'python-editor-catalog-v2',sets:[invalidRef]}),/参照元/);
+const privateConfig=structuredClone(confirmationDemo);
+privateConfig.questions.find(q=>q.kind==='confirmation').checkConfig.private={expectedOutputs:{below:{mode:'exact',text:'private'}}};
+assert.throws(()=>validateCatalog({schema:'python-editor-catalog-v2',sets:[privateConfig]}),/非公開/);
+const portable={app:APP,version:1,entries:[],confirmationJournal:{schema:1,trials:[],responses:{}}};
+assert.deepEqual(validateDraft(portable).confirmationJournal,portable.confirmationJournal);
+assert.throws(()=>validateDraft({...portable,confirmationJournal:{...portable.confirmationJournal,score:100}}));

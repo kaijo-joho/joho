@@ -1,7 +1,7 @@
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import { createHash, createHmac, randomUUID } from 'node:crypto';
-const files = ['06_python_editor_contract.js','07_python_editor_config.js','13_python_editor_grader.js','45_python_editor_store.js','46_python_editor_master.js','22_python_editor_api.js'];
+const files = ['06_python_editor_contract.js','07_python_editor_config.js','13_python_editor_grader.js','45_python_editor_confirmation.js','45_python_editor_store.js','46_python_editor_master.js','22_python_editor_api.js'];
 const sources = await Promise.all(files.map(f => readFile(new URL('../../../scripts/pythoneditor-gas/' + f, import.meta.url), 'utf8')));
 const hash = text => createHash('sha256').update(text).digest('hex');
 const uid = () => randomUUID().replaceAll('-', '');

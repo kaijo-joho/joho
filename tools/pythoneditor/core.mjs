@@ -1,3 +1,5 @@
+import { validateConfirmationQuestion, validateReferenceGraph } from './confirmation.mjs';
+import { validateJournal } from './confirmation-store.mjs';
 // 画面・実行・保存で共有する契約。正式採点の結果を生成しない。
 export const APP = 'kaijo-python-editor';
 export const FORMAT = 1;
@@ -12,7 +14,7 @@ function text(value, max, name) {
 export function questionKey(q) { return `${q.version}/${q.questionId}`; }
 // 配信内容は許可した項目だけへ投影する。模範解答・教員メモは受け入れない。
 export function validateCatalog(raw) {
-  if (raw?.schema !== 'python-editor-catalog-v1' || !Array.isArray(raw.sets) || raw.sets.length > 100) throw new Error('問題データの形式が対応していません。');
+  if (!['python-editor-catalog-v1','python-editor-catalog-v2'].includes(raw?.schema) || !Array.isArray(raw.sets) || raw.sets.length > 100) throw new Error('問題データの形式が対応していません。');
   const sets = [], keys = new Set(), setIds = new Set();
   for (const set of raw.sets) {
     if (!validId(set.setId) || setIds.has(set.setId) || !Array.isArray(set.questions) || set.questions.length > 300) throw new Error('問題セットのIDを確認してください。');
@@ -22,10 +24,15 @@ export function validateCatalog(raw) {
       const key = questionKey(q);
       if (keys.has(key)) throw new Error('同じ版の問題IDが重複しています。');
       keys.add(key);
+      if (q.kind !== undefined && !['code','observation','confirmation'].includes(q.kind)) throw new Error('問題種別を確認してください。');
       const result = { questionId: q.questionId, setId: set.setId, version: q.version,
         title: text(q.title, 300, '問題名'), prompt: text(q.prompt, LIMITS.prompt, '問題文'),
         templateCode: text(q.templateCode, LIMITS.code, '雛形'), setupCode: text(q.setupCode || '', LIMITS.code, '準備コード'),
-        kind: q.kind === 'observation' ? 'observation' : 'code' };
+        kind: q.kind === 'confirmation' ? 'confirmation' : q.kind === 'observation' ? 'observation' : 'code' };
+      if (q.kind === 'confirmation') {
+        if (result.templateCode || result.setupCode || q.useExistingQuestionCode) throw new Error('確認問題は参照元のコードを使用します。');
+        Object.assign(result, validateConfirmationQuestion(q));
+      } else if (q.codeRefs !== undefined || q.checkType !== undefined || q.checkConfig !== undefined) throw new Error('確認設定と問題種別を確認してください。');
       if (q.useExistingQuestionCode) {
         if (!validId(q.useExistingQuestionCode)) throw new Error('参照する問題IDを確認してください。');
         result.useExistingQuestionCode = q.useExistingQuestionCode;
@@ -33,6 +40,7 @@ export function validateCatalog(raw) {
       return result;
     });
     for (const q of questions) if (q.useExistingQuestionCode && !questions.some(p => p.questionId === q.useExistingQuestionCode && p.version === q.version && p !== q)) throw new Error('参照元の問題が同じ版にありません。');
+    validateReferenceGraph(questions);
     sets.push({ setId: set.setId, title: text(set.title, 300, 'セット名'), questions });
   }
   return { schema: raw.schema, label: typeof raw.label === 'string' ? raw.label.slice(0, 300) : '', sets };
@@ -56,5 +64,6 @@ export function validateDraft(raw) {
       updatedAt: typeof e.updatedAt === 'string' ? e.updatedAt.slice(0, 40) : '',
       practiced: e.practiced === true };
   });
-  return { app: APP, version: FORMAT, entries, savedAt: typeof raw.savedAt === 'string' ? raw.savedAt : '' };
+  return { app: APP, version: FORMAT, entries, savedAt: typeof raw.savedAt === 'string' ? raw.savedAt : '',
+    ...(raw.confirmationJournal === undefined ? {} : { confirmationJournal: validateJournal(raw.confirmationJournal) }) };
 }
