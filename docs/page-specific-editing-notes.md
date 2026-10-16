@@ -898,3 +898,7 @@ id11〜id15には各3件、計15件の独立した比較例を既存の本文31�
 - UA・platform・タッチ情報からスマホ/PC向けリンクを絞る。デスクトップ表示のiPadもスマホ向けとし、不明な端末とJavaScript無効時は全経路を表示する。「すべての提出方法を表示」で常に別の経路を選べる。端末判定はアクセス制御に使用しない。
 - Mac専用入口は認証と限定受付の有効状態を確認した後、QRを1度だけ自動表示する。受付一覧の更新では再発行しない。生成QRは新撮影URLとfragmentだけを持ち、既存の旧URL QRも同一origin・許可path・能力値の厳格な検査を通す。写真・接続の保存キーは維持する。
 - asset版20261016-5。既存の写真/確認/提出タブ、WebKitの通信照合、両面QR/必須OMR、Mac承認、2アカウント限定、非公開保存と独立再読取を維持する。教材のページ一覧GSS・生成pages.jsは変更しない。
+
+### ワークシート関連favicon（2026-10-16）
+
+- /ws/index.html・/ws/capture.htmlと旧URLの案内ページは、共通head.jsが使うimg/favicon.icoをicon / shortcut iconとして指定する。GASの提出状況・写真提出・Mac受付は、cmn/00_code.jsのCommon.FAVICON_URLと同じ学校公式URLをHtmlOutput.setFaviconUrlで設定する。補助ページへ共通headローダー全体を追加せず、認証・撮影・提出処理と既存ライブラリ構成を維持する。
