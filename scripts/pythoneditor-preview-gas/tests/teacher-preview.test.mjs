@@ -7,6 +7,7 @@ import vm from 'node:vm';
 import { teacherPreviewFixture as fixture, TEACHER, DEMO } from './fixture.mjs';
 const plain = value => JSON.parse(JSON.stringify(value));
 const code = expected => error => error.previewCode === expected;
+const ADDITIONAL_TEACHER = 'second-teacher+fixture@gfe.kaijo.ed.jp';
 
 test('教員のプレビューは読取だけで、採用・設定・圧縮データを変えない', () => {
   const f = fixture(), before = JSON.stringify(f.properties.values);
@@ -36,6 +37,35 @@ test('明示したデモ用アカウントは配布だけ利用でき、管理�
   assert.throws(() => f.service.setEnabled(false), code('preview_not_allowed'));
   assert.equal(f.state.reads, reads); assert.equal(f.properties.writes.length, writes);
   assert.doesNotMatch(JSON.stringify(result), /PRIVATE_RULE_SENTINEL|"rules"|"answerCode"/);
+});
+test('追加教員は教員表示で配布だけ利用でき、所有教員の管理操作は実行できない', () => {
+  const f = fixture();
+  f.config.teacherAccounts.push(ADDITIONAL_TEACHER);
+  f.properties.setProperty(f.context.ToolsTeacherPreview.keys.config, f.T.canonical(f.config));
+  const meta = f.enable(), reads = f.state.reads, writes = f.properties.writes.length;
+  Object.assign(f.identity, { active: ADDITIONAL_TEACHER, effective: ADDITIONAL_TEACHER });
+  const result = plain(f.service.rpc('session', {}, f.config.editorOrigin));
+  assert.equal(result.account, ADDITIONAL_TEACHER); assert.equal(result.teacher, true);
+  assert.equal(result.preview.viewerRole, 'teacher'); assert.equal(result.preview.generation, meta.generation);
+  assert.equal(result.catalog.sets[0].questions[0].templateCode, 'print(1)');
+  assert.doesNotMatch(JSON.stringify(result), /PRIVATE_RULE_SENTINEL|"rules"|"answerCode"/);
+  assert.throws(() => f.service.preview(), code('preview_not_allowed'));
+  assert.throws(() => f.service.publish({ expectedDigest: meta.sourceDigest, confirmation: 'PUBLISH_TEACHER_CATALOG_PREVIEW_V1' }), code('preview_not_allowed'));
+  assert.throws(() => f.service.setEnabled(false), code('preview_not_allowed'));
+  assert.throws(() => f.service.rpc('submit', {}, f.config.editorOrigin), code('preview_action_denied'));
+  Object.assign(f.identity, { active: ADDITIONAL_TEACHER, effective: TEACHER });
+  assert.throws(() => f.service.session(f.config.editorOrigin), code('preview_not_allowed'));
+  assert.equal(f.state.reads, reads); assert.equal(f.properties.writes.length, writes);
+  Object.assign(f.identity, { active: TEACHER, effective: TEACHER });
+  assert.equal(f.service.preview().questions, 1);
+  assert.equal(f.service.setEnabled(false).enabled, false);
+});
+test('追加教員の重複・学校外・デモ兼用・人数超過を拒否する', () => {
+  for (const teachers of [[], [TEACHER, TEACHER], [TEACHER, 'teacher@example.invalid'], [TEACHER, DEMO], [TEACHER, ADDITIONAL_TEACHER, 'third+fixture@gfe.kaijo.ed.jp']]) {
+    const f = fixture();
+    f.properties.setProperty(f.context.ToolsTeacherPreview.keys.config, f.T.canonical({ ...f.config, teacherAccounts: teachers }));
+    assert.throws(() => f.service.preview(), code('preview_invalid'));
+  }
 });
 test('無効状態、非教員、別の教員、実行主体の不一致、空の本人を拒否する', () => {
   const f = fixture(); f.publish();
@@ -152,5 +182,25 @@ test('配備コピーは私有領域へ生成し、新旧のGASや設定を操�
     const originalManifest = await readFile(join(out, 'appsscript.json'), 'utf8');
     assert.throws(() => execFileSync(process.execPath, command, { encoding: 'utf8', stdio: 'pipe' }));
     assert.equal(await readFile(join(out, 'appsscript.json'), 'utf8'), originalManifest);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+test('追加教員の私有設定から再生成でき、実メールは公開ソースへ埋め込まない', async () => {
+  const root = await mkdtemp('/private/tmp/pythoneditor-preview-additional-teacher-test-');
+  try {
+    const settings = join(root, 'settings.json'), out = join(root, 'gas');
+    await writeFile(settings, JSON.stringify({ editorOrigin: 'https://example.invalid', sourceFileListId: 'synthetic_filelist_identifier_0001', teacherAccount: TEACHER, additionalTeacherAccount: ADDITIONAL_TEACHER, demoAccount: DEMO, gradingSheet: '採点設定py' }));
+    const result = JSON.parse(execFileSync(process.execPath, [new URL('../../prepare-pythoneditor-preview-gas.mjs', import.meta.url).pathname, '--settings', settings, '--out', out], { encoding: 'utf8' }));
+    assert.equal(result.remoteChanged, false);
+    const review = JSON.parse(await readFile(join(out, 'DEPLOYMENT_REVIEW.json')));
+    assert.equal(review.teacherAccounts, 2); assert.equal(review.demoAccounts, 1); assert.equal(review.permissionsChanged, false);
+    const f = fixture(); f.properties.values = {};
+    f.context.Session = { getActiveUser: () => ({ getEmail: () => f.identity.active }), getEffectiveUser: () => ({ getEmail: () => f.identity.effective }) };
+    f.context.PropertiesService = { getScriptProperties: () => f.properties }; f.context.console = { log() {} };
+    vm.runInContext(await readFile(join(out, '99_private_setup.js'), 'utf8'), f.context);
+    f.context.run_setupTeacherPreview();
+    const config = JSON.parse(f.properties.getProperty(f.context.ToolsTeacherPreview.keys.config));
+    assert.deepEqual(config.teacherAccounts, [TEACHER, ADDITIONAL_TEACHER]); assert.equal(config.enabled, false);
+    Object.assign(f.identity, { active: ADDITIONAL_TEACHER, effective: ADDITIONAL_TEACHER });
+    assert.throws(() => f.context.run_setupTeacherPreview());
   } finally { await rm(root, { recursive: true, force: true }); }
 });

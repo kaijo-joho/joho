@@ -21,22 +21,22 @@ var ToolsTeacherPreview = (function () {
       assert(plain(c) && Object.keys(c).every(function (k) { return ['schema', 'enabled', 'editorOrigin', 'sourceFileListId', 'teacherAccounts', 'demoAccounts', 'gradingSheet'].indexOf(k) >= 0; }) &&
         c.schema === 1 && typeof c.enabled === 'boolean' && /^https:\/\/[A-Za-z0-9.-]+(?::\d+)?$/.test(c.editorOrigin) &&
         /^[A-Za-z0-9_-]{20,160}$/.test(c.sourceFileListId) && /^採点設定py(?:_[A-Za-z0-9_-]+)?$/.test(c.gradingSheet) &&
-        Array.isArray(c.teacherAccounts) && c.teacherAccounts.length === 1 &&
-        c.teacherAccounts.every(function (v) { return typeof v === 'string' && /^[a-z0-9._+-]+@gfe\.kaijo\.ed\.jp$/.test(v); }) &&
+        Array.isArray(c.teacherAccounts) && c.teacherAccounts.length >= 1 && c.teacherAccounts.length <= 2 &&
+        c.teacherAccounts.every(function (v, i, values) { return typeof v === 'string' && /^[a-z0-9._+-]+@gfe\.kaijo\.ed\.jp$/.test(v) && values.indexOf(v) === i; }) &&
         Array.isArray(c.demoAccounts) && c.demoAccounts.length <= 1 && c.demoAccounts.every(function (v) {
           return typeof v === 'string' && /^[a-z0-9._+-]+@gfe\.kaijo\.ed\.jp$/.test(v) && c.teacherAccounts.indexOf(v) < 0;
         }));
       return c;
     }
-    function identity(c, teacherOnly) {
+    function identity(c, ownerOnly) {
       var who = env.identity(), active = account(who.active), effective = account(who.effective);
       var teacher = c.teacherAccounts.indexOf(active) >= 0;
-      assert(active && active === effective && (teacher || !teacherOnly && c.demoAccounts.indexOf(active) >= 0), 'preview_not_allowed');
+      assert(active && active === effective && (ownerOnly ? active === c.teacherAccounts[0] : teacher || c.demoAccounts.indexOf(active) >= 0), 'preview_not_allowed');
       return { email: active, key: T.actorKey(active), teacher: teacher };
     }
     function current(c, actor) {
       assert(T.canonical(configuration()) === T.canonical(c), 'preview_changed');
-      assert(identity(c, actor.teacher).key === actor.key, 'preview_not_allowed');
+      assert(identity(c).key === actor.key, 'preview_not_allowed');
     }
     function index() {
       var raw = env.properties.getProperty(INDEX), value = parse(raw);
