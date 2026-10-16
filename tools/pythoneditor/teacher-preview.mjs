@@ -1,6 +1,6 @@
 import { questionKey, validateCatalog } from './core.mjs';
 import { GoogleBridge, bridgeURL, codeHash } from './cloud.mjs';
-import { teacherPreviewConfig } from './teacher-preview-config.mjs?v=20261016-preview-disabled';
+import { teacherPreviewConfig } from './teacher-preview-config.mjs?v=20261016-preview-live1';
 
 const $ = id => document.getElementById(id);
 const invalid = () => new Error('配布検証として確認できない応答です。編集中のコードは保持しています。');

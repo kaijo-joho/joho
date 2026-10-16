@@ -15,9 +15,9 @@
 
 ## 承認した配置・権限の範囲
 
-| 対象 | 案 |
+| 対象 | 設定 |
 |---|---|
-| 新規GAS | 指定した学校教員が所有する「Pythonエディタ・教員用配布検証」1件 |
+| 新規GAS | 指定した学校教員が所有する「PythonEditor 問題配布検証」1件 |
 | 実行主体／公開範囲 | 利用者本人として実行 `USER_ACCESSING`／学校ドメイン `DOMAIN` |
 | 実際の利用対象 | サーバーのallowlistに明示する教員1名と指定デモ用アカウント1名。管理操作は教員のみ |
 | OAuth | `spreadsheets`、`userinfo.email` の2スコープ |
@@ -35,7 +35,7 @@ Googleの[Webアプリ実行主体](https://developers.google.com/apps-script/gu
 
 ## 私有の配備候補
 
-実メールや設定値は公開リポジトリへ保存しない。私有の設定JSONに `editorOrigin`、`sourceFileListId`、`teacherAccount`、`demoAccount`、`gradingSheet` を指定する。`demoAccount` は指定した1名のみとし、省略時は教員だけの検証となる。
+実メールや設定値は公開リポジトリへ保存しない。私有の設定JSONに `editorOrigin`、`sourceFileListId`、`teacherAccount`、`demoAccount`、`gradingSheet` を指定する。`demoAccount` は指定した1名のみとし、省略時は教員だけの検証となる。 現行のColab移行版の `gradingSheet` は `採点設定py_20261014` とする。旧 `採点設定py` は今年度のColab用として保持する。
 
 ```sh
 node scripts/prepare-pythoneditor-preview-gas.mjs \
@@ -47,7 +47,7 @@ node scripts/prepare-pythoneditor-preview-gas.mjs \
 
 ## 公開候補に含める依存
 
-2026-10-16の公開候補は `origin/main` の `8f5bdf7` を基準に、`124b2db`・`da6d4c6` の配布プレビューだけを移植した。追加する共有モジュールは圧縮・hash照合・版固定を担う `30_grading_packages.js` のみ。学生採点・同期・collector・トリガー用モジュールは含めない。通常のクラウド設定と、専用設定の `enabled:false`・空URLを維持している。
+2026-10-16の公開候補は `origin/main` の `8f5bdf7` を基準に、`124b2db`・`da6d4c6` の配布プレビューだけを移植した。追加する共有モジュールは圧縮・hash照合・版固定を担う `30_grading_packages.js` のみ。学生採点・同期・collector・トリガー用モジュールは含めない。通常のクラウド設定は無効。問題配布専用設定には確認済みの新規GASの固定URLを設定し、有効にしている。
 
 配備候補で参照する既存 `05_tools_store_contract.js` と `46_python_editor_master.js` はmainのままとする。先行枝の05との差分は今回使わない学生採点表の定数のみ。46との差分は今回呼ばない `read()` とその内部読取関数のみで、プレビューは専用の読取処理を使う。問題を検証する `build()` と公開項目を限定する `publicQuestion()` は同一。採点表N列の配付URL数式だけを許可する処理はプレビュー専用読取側にある。
 
@@ -82,15 +82,19 @@ node scripts/prepare-pythoneditor-preview-gas.mjs \
 
 ## 実配置の進行状況
 
-2026-10-16、指定学校教員が所有する新規の「PythonEditor 問題配布検証」を作成し、version 2まで配置した。10ファイルの読戻しが一致し、利用者本人実行・学校内限定・上記2スコープを確認した。初期ソースとversion 1を復元用に保持している。
+2026-10-16、指定学校教員が所有する新規の「PythonEditor 問題配布検証」をversion 3へ配置した。10ファイルの読戻しが一致し、利用者本人実行・学校内限定・上記2スコープを確認した。初期ソースと既存バージョンを復元用に保持している。
 
-新規アプリの初回OAuth承認はTakashiさんの操作待ち。問題の圧縮配信とサーバー有効化は未実施で、フロント専用設定も無効・空URLのまま。教員・デモの実アカウントによる問題取得は未確認。Google Cloudの手動プロジェクト作成は上限表示となったが、この新規GASの自動作成するデフォルトCloudでは作成・配置が完了した。一般的な上限の免除を保証するものではない。
+Takashiさんによる初回OAuth承認後、実際の正本から22セット・125項目を検証し、圧縮配信・サーバー有効化を完了した。旧採点表を参照すると新版で分割した4項目のIDが不一致となるため、検証GASの参照先を既存の `採点設定py_20261014` へ補正した。旧設定は検証GAS内へ保存し、旧採点表や問題マスターの内容は変更していない。一時診断用の関数は最終配置から除去した。
+
+今回の配信データの取得期限は2026-10-16 11:02（日本時間）。延長は教員が `run_publishTeacherCatalog` で手動再配信する。通常のクラウド保存・正式採点の接続は無効。教員の実ブラウザでの取得を確認し、結果をこの文書へ追記する。指定デモ用アカウントの実ブラウザ・実Safari・40名同時利用は未確認。
+
+Google Cloudの手動プロジェクト作成は上限表示となったが、この新規GASの自動作成するデフォルトCloudでは作成・配置が完了した。一般的な上限の免除を保証するものではない。
 
 ## 検証記録
 
 上記main基準の公開候補で、指定デモ用アカウントのrole分離・版固定・ID重複拒否を含む単体・合成テスト11件、既存を含む回帰138件が通過。配布専用UIはChrome11項目・WebKit10項目が通過し、デモの閲覧許可・教員への昇格禁止・管理操作拒否も確認した。通常デモの大問・小問回帰はChrome・WebKitとも6項目と、各27通りの幅・テーマ・文字サイズが通過。構文確認・差分の空白確認・検索索引の整合確認も通過した。
 
-Google本人確認・GSS・Propertiesは合成で、学校OAuth・実GAS・Jamf管理Macの確認とは区別する。WebKitは実Safariとは区別する。この公開候補の移植・検証作業では、Googleの設定・配信、commit、pushは実施していない。
+Google本人確認・GSS・Propertiesは合成で、学校OAuth・実GAS・Jamf管理Macの確認とは区別する。WebKitは実Safariとは区別する。実配置と学校アカウントでの確認状況は、上の実配置記録に示す。
 
 ```sh
 node --test scripts/pythoneditor-preview-gas/tests/*.test.mjs
