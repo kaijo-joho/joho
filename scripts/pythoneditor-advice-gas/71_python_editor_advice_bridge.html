@@ -1,0 +1,31 @@
+<!doctype html><html lang="ja"><head><base target="_top"><meta charset="utf-8"></head><body>
+<p id="status">Pythonエラー相談室への接続を準備しています。</p>
+<script>
+(() => {
+  'use strict';
+  const boot = <?!= bootJson ?>;
+  const peer = window.top;
+  const protocol = 'python-editor-advice-v1';
+  const actions = new Set(['session', 'consult', 'getConsultation', 'errorTypes', 'searchHistory']);
+  const pending = new Set();
+  const send = message => peer.postMessage({ protocol, channel: boot.channel, ...message }, boot.origin);
+  addEventListener('message', event => {
+    const data = event.data;
+    if (event.source !== peer || event.origin !== boot.origin || !data || typeof data !== 'object' ||
+        data.protocol !== protocol || data.channel !== boot.channel || data.type !== 'request' ||
+        !/^[a-f0-9]{32}$/.test(data.id) || !actions.has(data.action) || pending.has(data.id) || pending.size >= 8 ||
+        data.action !== 'session' && !/^[a-f0-9]{64}$/.test(data.actorKey)) return;
+    pending.add(data.id);
+    google.script.run.withSuccessHandler(result => {
+      pending.delete(data.id); send({ type: 'response', id: data.id, result });
+    }).withFailureHandler(() => {
+      pending.delete(data.id);
+      send({ type: 'response', id: data.id, result: { ok: false, error: {
+        code: 'transport', message: '接続を確認してください。相談は再送せず、結果を照会してください。'
+      } } });
+    }).pythonEditorAdviceRpc(data.action, data.input || {}, data.actorKey, boot.origin);
+  });
+  send({ type: 'ready' });
+  document.getElementById('status').textContent = '元のエディタで相談内容を確認してください。';
+})();
+</script></body></html>

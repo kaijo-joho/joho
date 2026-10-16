@@ -5,31 +5,34 @@ const hex = bytes => [...bytes].map(n => n.toString(16).padStart(2,'0')).join(''
 export async function codeHash(code) { return hex(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(code)))); }
 export class CloudError extends Error { constructor(code,message) { super(message);this.code=code; } }
 const error = (code,message) => new CloudError(code,message);
-export function bridgeURL(config, origin, channel) {
-  if (!config.enabled) throw error('disabled','GSS接続は準備中です。今年度の提出は従来のColabを使用してください。');
+export function bridgeURL(config, origin, channel, {kind='pythoneditor',disabledMessage}={}) {
+  if (!config.enabled) throw error('disabled',disabledMessage||'GSS接続は準備中です。今年度の提出は従来のColabを使用してください。');
   const url = new URL(config.bridgeURL);
   if(url.origin !== 'https://script.google.com' || !/^\/(?:a\/macros\/[A-Za-z0-9.-]+\/s|macros\/s)\/[-A-Za-z0-9_]+\/exec$/.test(url.pathname) || url.username || url.password || url.search || url.hash)
     throw error('config','学校アカウントの接続先を確認できません。');
-  url.search = new URLSearchParams({kind:'pythoneditor',origin,channel}).toString();return url.href;
+  url.search = new URLSearchParams({kind,origin,channel}).toString();return url.href;
 }
 export function googleOrigin(origin) {
   try {const u=new URL(origin);return u.protocol==='https:' && !u.port && (/^(?:script|[a-z0-9-]+-script)\.googleusercontent\.com$/.test(u.hostname)||u.hostname.endsWith('.script.googleusercontent.com'));} catch {return false;}
 }
 export class GoogleBridge {
-  constructor(config,{timeout=60000,win=window,doc=document}={}) {this.config=config;this.timeout=timeout;this.win=win;this.doc=doc;this.requests=new Map();this.generation=0;}
+  constructor(config,{timeout=60000,win=window,doc=document,protocol=PROTOCOL,kind='pythoneditor',title='学校アカウント接続',messages={}}={}) {
+    this.config=config;this.timeout=timeout;this.win=win;this.doc=doc;this.requests=new Map();this.generation=0;
+    this.protocol=protocol;this.kind=kind;this.title=title;this.messages=messages;
+  }
   async connect() {
     this.dispose();const generation=++this.generation;
     this.channel=hex(crypto.getRandomValues(new Uint8Array(32)));
-    const url=bridgeURL(this.config,this.win.location.origin,this.channel);
-    this.frame=this.doc.createElement('iframe');this.frame.hidden=true;this.frame.title='学校アカウント接続';this.frame.src=url;
+    const url=bridgeURL(this.config,this.win.location.origin,this.channel,{kind:this.kind,disabledMessage:this.messages.disabled});
+    this.frame=this.doc.createElement('iframe');this.frame.hidden=true;this.frame.title=this.title;this.frame.src=url;
     this.frame.referrerPolicy='no-referrer';
     const ready=new Promise((resolve,reject)=>{
       this.ready={resolve,reject};
-      this.readyTimer=setTimeout(()=>reject(error('timeout','接続の応答を確認できません。学校アカウントでログインしてから再接続してください。コードは保持しています。')),this.timeout);
+      this.readyTimer=setTimeout(()=>reject(error('timeout',this.messages.connect||'接続の応答を確認できません。学校アカウントでログインしてから再接続してください。コードは保持しています。')),this.timeout);
     });
     this.listener=event=>{
       const d=event.data;
-      if(generation!==this.generation||d?.protocol!==PROTOCOL||d.channel!==this.channel||!googleOrigin(event.origin))return;
+      if(generation!==this.generation||d?.protocol!==this.protocol||d.channel!==this.channel||!googleOrigin(event.origin))return;
       if(d.type==='ready' && !this.peer) {this.peer=event.source;this.origin=event.origin;clearTimeout(this.readyTimer);this.ready.resolve();return;}
       if(event.source!==this.peer||event.origin!==this.origin||d.type!=='response')return;
       const pending=this.requests.get(d.id);if(!pending)return;
@@ -45,9 +48,9 @@ export class GoogleBridge {
     if(this.requests.size>=8)return Promise.reject(error('busy','通信処理が混み合っています。'));
     const id=uuid();
     return new Promise((resolve,reject)=>{
-      const timer=setTimeout(()=>{this.requests.delete(id);reject(error('timeout','応答を確認できません。保存・提出の送信番号は保持しています。結果を照会するか同じ要求で再試行してください。'));},this.timeout);
+      const timer=setTimeout(()=>{this.requests.delete(id);reject(error('timeout',this.messages.timeout||'応答を確認できません。保存・提出の送信番号は保持しています。結果を照会するか同じ要求で再試行してください。'));},this.timeout);
       this.requests.set(id,{resolve,reject,timer});
-      this.peer.postMessage({protocol:PROTOCOL,channel:this.channel,type:'request',id,action,input,actorKey:actorKey||null},this.origin);
+      this.peer.postMessage({protocol:this.protocol,channel:this.channel,type:'request',id,action,input,actorKey:actorKey||null},this.origin);
     });
   }
   dispose() {

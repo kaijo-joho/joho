@@ -11,11 +11,13 @@ import { demoRatings } from './demo-ratings.mjs';
 import { TeacherPreviewPanel } from './teacher-preview.mjs?v=20261016-preview-no-expiry1';
 import { ConfirmationStore } from './confirmation-store.mjs?v=20261016-confirmation1';
 import { ConfirmationPanel } from './confirmation-ui.mjs?v=20261016-confirmation1';
+import { AdvicePanel } from './advice-ui.mjs?v=20261017-advice1';
 const $ = id => document.getElementById(id);
 const entries = new Map(), outputs = new Map(), docs = new Map(), questionGroupTitles = new Map(), trialWrites = new Set();
 let catalog, selectedSet, question, cm, store, runSnapshot, busy = false, pendingImport;
 let saveFailed = false;
-let cloudPanel, confirmationStore, confirmationPanel, pendingConfirmationJournal;
+let cloudPanel, confirmationStore, confirmationPanel, pendingConfirmationJournal, advicePanel;
+const adviceDrafts = new Map();
 let markedErrors = false;
 let pendingRequested=false;
 let editGeneration=0;
@@ -254,6 +256,7 @@ function renderOutput() {
     });
     caption.append(label, button); figure.append(caption); $('figures').append(figure);
   }
+  advicePanel?.contextChanged();
 }
 function clearErrorMarkers() {
   if (markedErrors) cm?.clearGutter('CodeMirror-linenumbers');
@@ -321,6 +324,21 @@ function effectiveSource(q) {
 }
 function effectiveCode(q) { return currentEntry(effectiveSource(q)).code; }
 function effectiveSetupCode(q) { return q.kind === 'confirmation' ? effectiveSource(q).setupCode : q.setupCode; }
+function adviceSnapshot() {
+  if (!question || !effectiveSource(question)) return null;
+  const code = effectiveCode(question), setupCode = effectiveSetupCode(question) || '';
+  const key = questionKey(question), result = outputs.get(key);
+  const matching = result?.code === code && result?.setupCode === setupCode && result.stdin === currentEntry().stdin;
+  if (!matching) {
+    const previous = adviceDrafts.get(key);
+    if (!previous || previous.code !== code || previous.setupCode !== setupCode)
+      adviceDrafts.set(key, { code, setupCode, runId: 'draft:' + crypto.randomUUID() });
+  }
+  return { setId: question.setId, questionId: question.questionId, version: question.version,
+    title: $('question-title').textContent || question.title,
+    code, setupCode, runId: matching ? result.runId : adviceDrafts.get(key).runId,
+    errorText: matching ? result.error || result.stderr || '' : '' };
+}
 function referencedByConfirmation(q) {
   return catalog?.sets.some(set => set.questions.some(item => item.kind === 'confirmation' && item.codeRefs.some(ref => questionKey(ref) === questionKey(q))));
 }
@@ -367,9 +385,10 @@ function run() {
   if (code.length > LIMITS.code || e.stdin.length > LIMITS.code) return showNotice('コードまたは入力値が長すぎます。', true);
   clearErrorMarkers();
   const source = effectiveSource(question);
-  runSnapshot = { key: questionKey(question), code, stdin: e.stdin, source: { questionId: source.questionId, version: source.version }, recordTrial: referencedByConfirmation(source) && effectiveSetupCode(question) === source.setupCode };
-  outputs.set(runSnapshot.key, { code, stdin: e.stdin, text: '', stdout:'',programStdout:'',inputs:[],inputEcho:'',stderr: '', error: '', outcome:'not_run',truncated:false,status: '準備中', files: [] });
-  runner.run({ code, setupCode: effectiveSetupCode(question), stdin: stdinLines(e.stdin) });
+  const setupCode = effectiveSetupCode(question) || '', runId = crypto.randomUUID();
+  runSnapshot = { key: questionKey(question), code, stdin: e.stdin, runId, setupCode, source: { questionId: source.questionId, version: source.version }, recordTrial: referencedByConfirmation(source) && setupCode === (source.setupCode || '') };
+  outputs.set(runSnapshot.key, { code, setupCode, runId, stdin: e.stdin, text: '', stdout:'',programStdout:'',inputs:[],inputEcho:'',stderr: '', error: '', outcome:'not_run',truncated:false,status: '準備中', files: [] });
+  runner.run({ code, setupCode, stdin: stdinLines(e.stdin) });
   renderOutput();
   cloudPanel?.render();
 }
@@ -501,6 +520,7 @@ async function init() {
     archiveEntries:reason=>{if(!store)throw new Error('切り替え前の控えを保存できません。ファイルに保存してください。');for(const e of entries.values())store.archive(e,reason);},
     findQuestion:e=>catalog?.sets.flatMap(s=>s.questions).find(q=>questionKey(q)===questionKey(e)),
     draftEntries:()=>catalog?.sets.flatMap(s=>s.questions).filter(q=>q.kind!=='confirmation').map(q=>({q,entry:{...currentEntry(q)}}))||[]});
+  advicePanel = new AdvicePanel({ snapshot: adviceSnapshot, closeMenus: () => closeMenus(true) });
   try { JohoUI.theme({storageKey:'joho.pythoneditor.view.v1',themeSelect:$('theme'),sizeSelect:$('text-size')}); JohoUI.tooltip(); } catch {}
   if (cm) {
     $('text-size').addEventListener('change', () => cm.refresh());
@@ -514,6 +534,9 @@ async function init() {
   $('run').addEventListener('click', () => runner.active ? runner.stop() : run());
   $('find-errors').addEventListener('click', findErrors);
   $('error-line-hint').addEventListener('click', () => { const locations = currentErrorLocations(); if (locations.length) showErrorHint(locations[0]); });
+  $('error-hint-advice').addEventListener('click', () => {
+    $('error-hint-dialog').close(); setTimeout(() => advicePanel.open(), 0);
+  });
   $('input-settings').addEventListener('click', () => { closeMenus(); openDialog($('stdin-dialog')); });
   $('clear-stdin').addEventListener('click', () => { $('stdin').value = ''; dirty(); $('stdin').focus(); });
   for (const menu of document.querySelectorAll('.topbar .menu')) menu.querySelector(':scope > summary').addEventListener('click', () => {
@@ -548,7 +571,7 @@ async function init() {
   $('next').addEventListener('click', () => selectQuestion(selectedSet.questions[selectedSet.questions.indexOf(question)+1]));
   $('list-toggle').addEventListener('click', () => { closeSetPicker();const hidden = !$('question-nav').hidden; $('question-nav').hidden = hidden; document.querySelector('.layout').classList.toggle('nav-hidden',hidden); $('list-toggle').setAttribute('aria-expanded',String(!hidden)); closeMenus(); });
   document.addEventListener('keydown', e => {
-    if (e.isComposing || help?.root.contains(e.target) || document.querySelector('dialog[open]')) return;
+    if (e.isComposing || help?.root.contains(e.target) || $('advice-panel').contains(e.target) || document.querySelector('dialog[open]')) return;
     if (e.key === 'Enter' && !e.altKey && (e.metaKey || e.ctrlKey || e.shiftKey) && !e.target.closest('#interactive-input')) {e.preventDefault();run();}
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {e.preventDefault();saveBrowser();}
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'o') {e.preventDefault();$('file-input').click();}
@@ -556,7 +579,7 @@ async function init() {
   });
   document.addEventListener('click', e => {if (!e.target.closest('.menu')) closeMenus();if(!e.target.closest('.set-picker'))closeSetPicker();});
   addEventListener('beforeunload', e => {if (saveFailed||trialWrites.size||confirmationStore.lastError||cloudPanel?.unsaved()) {e.preventDefault();e.returnValue='';}});
-  addEventListener('pagehide', () => runner.dispose());
+  addEventListener('pagehide', () => { runner.dispose(); advicePanel.dispose(); });
   if (teacherPreviewMode) {
     catalog = validateCatalog({ schema: 'python-editor-catalog-v1', label: '問題配布検証', sets: [] });
     $('catalog-label').textContent = catalog.label;

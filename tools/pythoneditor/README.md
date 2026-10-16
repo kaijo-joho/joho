@@ -1,5 +1,7 @@
 # Pythonエディタ 0.1 BETA
 
+2026-10-17：コード・エラー・任意の相談文を確認し、既存pyerrの回答をエディタ内に表示する相談室を追加した。共有履歴、問題・版・実行に結び付けた回答、応答消失時の結果照会を実装した。公開フロントの相談接続は無効。GASは私有コピーの準備とローカル検証までで、本番反映・新しい権限設定・AIへの実送信は行っていない。構成と有効化前の具体案は[ADVICE.md](ADVICE.md)。
+
 2026-10-16：教員1名と指定した高1デモ用アカウント1名による問題配布専用の検証入口を準備した。デモは閲覧だけの別roleとし、配信・設定は教員に限定する。[TEACHER-PREVIEW.md](TEACHER-PREVIEW.md) に新規GAS・OAuth・専用接続の範囲、配置・実機確認・停止手順を記載。問題配布専用の接続を有効にした。通常のクラウド保存・正式採点は無効のまま。実配置と学校実機の確認結果は同手順へ記録する。
 
 2026-10-15：distによる生徒別保存先管理、利用者権限の共通保存GAS、Pythonの接続・クラウド自動保存・復元を追加した。接続は無効のまま。新しい本番GAS/OAuth/共有・台帳変更は未実施。構成、検証、本番反映前の具体案は[TOOLS-CLOUD.md](TOOLS-CLOUD.md)を参照。今年度のColabとHTMLエディタの経路は変更しない。
@@ -36,6 +38,8 @@ URLは`?set=<setId>&question=<questionId>&version=<version>`。将来の写経�
 - `editor.mjs` / `editor.css` / `index.html`: 縦並びの問題・コード・出力、選択、進捗、復元、表示。
 - `runner.mjs` / `worker.mjs` / `runtime.mjs`: PyodideのWorker実行、世代照合、停止、入力、ライブラリ準備、Colab互換処理。
 - `diagnostics.mjs`: Python標準の例外整形と、端末内だけの行別ヒント。
+- `advice.mjs` / `advice-ui.mjs` / `advice.css`: 相談用コピーの確認、共有確認、JSON回答、本人別の送信控えと結果照会、過去の相談。接続は`advice-config.mjs`で既定無効。
+- `scripts/pythoneditor-advice-gas/` / `scripts/prepare-pythoneditor-advice-gas.mjs`: pyerrのHTML互換を維持する追加窓口と、原本を変更せず私有の配置候補を作る準備処理。
 - `storage.mjs` / `core.mjs`: 問題・版ごとの保存、競合検知、形式・上限の検査。
 - `cloud.mjs` / `cloud-ui.mjs`: 学校アカウント接続、GSS保存/復元/競合、送信控え、正式提出と結果照会。
 - `scripts/pythoneditor-gas/`: gradeへ追加する専用8ファイル。版固定、GSSの追記保存、現行Python判定コードの独立コピー。配置・保存契約は[CLOUD.md](CLOUD.md)。
@@ -128,9 +132,12 @@ node scripts/test-pythoneditor-errors-browser.mjs
 node scripts/test-pythoneditor-subquestions-browser.mjs
 node scripts/test-pythoneditor-prompt-browser.mjs
 node scripts/test-pythoneditor-cloud-browser.mjs
+node scripts/test-pythoneditor-advice-browser.mjs
 ```
 
 ブラウザ検証にはPlaywrightとChromeが必要。`NODE_PATH`で既存の依存パッケージを指定できる。`PYTHONEDITOR_ENGINE=webkit`でPlaywright WebKitを使用する。
+
+相談室のGAS互換テストは `node scripts/pythoneditor-advice-gas/test.mjs --baseline /Users/takashi/Documents/GAS/pyerr`。原本を読み取り、`/private/tmp`の新規候補だけで合成検証する。実AI呼び出しや`clasp push`は行わない。
 
 私有の原本コードによる全授業検証は、問題・解答を公開ディレクトリに書かず、外部の一時領域へケースを作る:
 
