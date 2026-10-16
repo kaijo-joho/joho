@@ -83,6 +83,12 @@ var PythonEditorMaster = (function () {
       var body = { schema: 1, question: q, gradingVersion: grading, engineVersion: PythonEditorGraderV1.engineVersion,
         ranges: ranges, rules: chosen, graded: scoringIds.length > 0 && q.kind !== 'observation' && q.kind !== 'confirmation', sourceHash: String(r[15] || '') };
       if (confirmation) body.confirmation = confirmation;
+      if (Object.prototype.hasOwnProperty.call(runtime, 'confirmationGrading')) {
+        if (!confirmation) masterError('confirmationGrading は kind=confirmation だけに指定してください。', r, index);
+        try { body.confirmationGrading = PythonEditorConfirmationGraderV1.normalize(confirmation.checkType, confirmation.checkConfig, runtime.confirmationGrading); }
+        catch (error) { masterError('確認問題の正式採点定義を確認してください。配点・条件・必要なprivate正答を明示してください。', r, index); }
+        body.engineVersion = PythonEditorConfirmationGraderV1.engineVersion; body.graded = true;
+      }
       records.push({ body: body, sourceStatus: r[12], payloadHash: PythonEditor.hashText(PythonEditor.canonical(body)) });
     });
     records.forEach(function (r) {
@@ -133,7 +139,16 @@ var PythonEditorMaster = (function () {
       return { recordKey: PythonEditor.key(q), groupKey: q.version + '/' + q.setId, actorKey: '', questionId: q.questionId,
         version: q.version, requestId: '', seq: 0, at: at, payloadHash: r.payloadHash, adoptedBy: actor.key, body: r.body };
     });
-    var saved = PythonEditorStore.create(c).putSnapshots(records, function () {
+    var store = PythonEditorStore.create(c);
+    // 確認問題だけを先に採用して、参照元が未固定のまま正式提出を開かない。
+    records.filter(function (record) { return record.body.graded && record.body.question.kind === 'confirmation'; }).forEach(function (record) {
+      record.body.confirmation.codeRefs.forEach(function (ref) {
+        var source = records.find(function (candidate) { return PythonEditor.key(candidate) === PythonEditor.key(ref); }) || store.findSnapshot(ref);
+        PythonEditor.assert(source && source.body && source.payloadHash === PythonEditor.hashText(PythonEditor.canonical(source.body)) &&
+          PythonEditor.key(source.body.question) === PythonEditor.key(ref) && source.body.question.kind === 'code' && source.body.question.setId === record.body.question.setId, 'snapshot_missing');
+      });
+    });
+    var saved = store.putSnapshots(records, function () {
       PythonEditorConfig.identity(true);
       PythonEditor.assert(PythonEditorConfig.config().hash === c.hash && read(spec).digest === expectedDigest, 'config_changed');
     });
@@ -143,7 +158,8 @@ var PythonEditorMaster = (function () {
     var q = r.body.question;
     if (q.kind === 'confirmation') {
       var confirmation = PythonEditorConfirmation.validateConfirmationQuestion(q);
-      PythonEditor.assert(r.body.graded === false, 'snapshot_invalid');
+      if (r.body.graded === true) PythonEditorConfirmationGraderV1.starTotal(r.body);
+      else PythonEditor.assert(r.body.graded === false && !Object.prototype.hasOwnProperty.call(r.body, 'confirmationGrading'), 'snapshot_invalid');
       return { questionId: q.questionId, setId: q.setId, version: q.version, title: q.title, prompt: q.prompt,
         templateCode: '', setupCode: '', kind: q.kind, codeRefs: confirmation.codeRefs,
         checkType: confirmation.checkType, checkConfig: confirmation.checkConfig };

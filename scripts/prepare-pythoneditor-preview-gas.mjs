@@ -23,6 +23,7 @@ for (const [destination, source] of [
   ['13_python_editor_grader.js', './pythoneditor-gas/13_python_editor_grader.js'],
   ['30_grading_packages.js', './tools-store-gas/store/30_grading_packages.js'],
   ['45_python_editor_confirmation.js', './pythoneditor-gas/45_python_editor_confirmation.js'],
+  ['47_python_editor_confirmation_grader.js', './pythoneditor-gas/47_python_editor_confirmation_grader.js'],
   ['46_python_editor_master.js', './pythoneditor-gas/46_python_editor_master.js'],
   ['appsscript.json', './pythoneditor-preview-gas/appsscript.proposed.json']
 ]) files.set(destination, await readFile(new URL(source, import.meta.url), 'utf8'));

@@ -265,7 +265,7 @@ test('配備コピーは私有領域へ生成し、新旧のGASや設定を操�
     const names = await readdir(out); assert.ok(!names.includes('.clasp.json'));
     assert.deepEqual(names.filter(name => name.endsWith('.js')).sort(), [
       '00_teacher_preview.js', '05_tools_store_contract.js', '06_python_editor_contract.js',
-      '13_python_editor_grader.js', '30_grading_packages.js', '45_python_editor_confirmation.js', '46_python_editor_master.js', '99_private_setup.js'
+      '13_python_editor_grader.js', '30_grading_packages.js', '45_python_editor_confirmation.js', '46_python_editor_master.js', '47_python_editor_confirmation_grader.js', '99_private_setup.js'
     ]);
     assert.equal(await readFile(join(out, '.claspignore'), 'utf8'), '**/**\n!**/*.js\n!**/*.html\n!appsscript.json\n');
     const manifest = JSON.parse(await readFile(join(out, 'appsscript.json')));

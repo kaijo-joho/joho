@@ -1,9 +1,9 @@
 import { questionKey, validateCatalog } from './core.mjs';
 import { cloudConfig } from './cloud-config.mjs';
-import { validateRating, ratingKey } from './navigation.mjs';
-import { GoogleBridge, CloudWorkspace, submissionText, codeHash, bridgeURL } from './cloud.mjs';
+import { validateRating, ratingKey } from './navigation.mjs?v=20261017-confirmation-sync1';
+import { GoogleBridge, CloudWorkspace, submissionText, confirmationSubmission, confirmationEvidenceHash, canonicalEvidence, codeHash, bridgeURL } from './cloud.mjs?v=20261017-confirmation-sync1';
 import { toolsStoreConfig } from './tools-store-config.mjs';
-import { ToolsDraftPanel } from './tools-store-ui.mjs';
+import { ToolsDraftPanel } from './tools-store-ui.mjs?v=20261017-confirmation-sync1';
 const $ = id => document.getElementById(id);
 const score = n => n === null || n === undefined ? 'なし' : `${Math.round(n*1000)/10} 点`;
 const date = value => new Date(value).toLocaleString('ja-JP');
@@ -66,13 +66,17 @@ export class CloudPanel {
     });
   }
   hasSchoolQuestion(q) {return this.schoolKeys.has(questionKey(q));}
-  rating(q) {return this.connected ? this.ratings.get(questionKey(q)) || null : null;}
+  rating(q) {
+    if (!this.connected) return null;
+    return this.ratings.get(questionKey(q)) || (this.hasSchoolQuestion(q) && (!this.cloud?.policy(q) || this.cloud.policy(q).graded === false) ? { earned: 0, total: 0, version: q.version } : null);
+  }
   acceptState(q,result) {
     this.states.set(questionKey(q),result);
     if(result.rating)this.ratings.set(questionKey(q),validateRating(result.rating));
   }
   revision(q) {const n=(this.readRevisions.get(q.questionId)||0)+1;this.readRevisions.set(q.questionId,n);return n;}
   compareCode(q,receipt) {
+    if (q.kind === 'confirmation') return this.compareConfirmation(q, receipt);
     const key=questionKey(q),code=this.host.entry(q).code,previous=this.codeComparisons.get(key);
     if(previous?.code===code&&previous.hash===receipt.codeHash)return previous;
     const comparison={code,hash:receipt.codeHash,changed:null};this.codeComparisons.set(key,comparison);
@@ -81,6 +85,21 @@ export class CloudPanel {
       if(this.codeComparisons.get(key)!==comparison)return;
       comparison.changed=hash!==receipt.codeHash;this.render();
     }).catch(()=>{});
+    return comparison;
+  }
+  confirmationSources(q) {
+    return q.codeRefs.map(ref => { const source = this.host.findQuestion(ref); if (!source) throw new Error('参照元の問題・版を読み込んでください。'); return this.host.entry(source); });
+  }
+  compareConfirmation(q,receipt) {
+    const key = questionKey(q), journal = this.host.confirmationStore.snapshot(), refs = new Set(q.codeRefs.map(questionKey));
+    const sources = this.confirmationSources(q), snapshot = { schema: 1, trials: journal.trials.filter(t => refs.has(questionKey(t.source))), responses: journal.responses[key] ? { [key]: journal.responses[key] } : {} };
+    const signature = canonicalEvidence({ sources, journal: snapshot }), previous = this.codeComparisons.get(key);
+    if (previous?.signature === signature && previous.hash === receipt.evidenceHash) return previous;
+    const comparison = { signature, hash: receipt.evidenceHash, changed: null }; this.codeComparisons.set(key, comparison);
+    confirmationSubmission(q, { assignmentId: receipt.assignmentId }, sources, snapshot).then(confirmationEvidenceHash).then(hash => {
+      if (this.codeComparisons.get(key) !== comparison) return;
+      comparison.changed = hash !== receipt.evidenceHash; this.render();
+    }).catch(() => { if (this.codeComparisons.get(key) === comparison) { comparison.invalid = true; this.render(); } });
     return comparison;
   }
   navigationStatus(q) {
@@ -96,13 +115,13 @@ export class CloudPanel {
     return this.compareCode(q,receipt).changed?'提出後に変更':'';
   }
   render() {
-    const q=this.host.question(), policy=q&&this.cloud?.policy(q), enabled=this.connected&&!!policy&&q.kind!=='confirmation';
+    const q=this.host.question(), policy=q&&this.cloud?.policy(q), enabled=this.connected&&!!policy;
     $('cloud-connect').disabled=this.working||!(cloudConfig.enabled||toolsStoreConfig.enabled);
     const connectionLabel=this.connected||this.drafts?.connected?'学校アカウントに再接続':'学校アカウントに接続';
     $('cloud-connect-label').textContent=connectionLabel;
     $('cloud-connect').setAttribute('aria-label',connectionLabel);
     $('cloud-connect').title=cloudConfig.enabled||toolsStoreConfig.enabled?connectionLabel:'学校アカウント接続は準備中です';
-    $('save-cloud').disabled=this.working||q?.kind==='confirmation'||!(this.drafts?this.drafts.connected:enabled);
+    $('save-cloud').disabled=this.working||!(this.drafts?(q?.kind==='confirmation'?this.drafts.confirmation?.state().connected:this.drafts.connected):enabled&&q?.kind!=='confirmation');
     $('open-cloud').disabled=this.working||!(this.drafts?this.drafts.connected:this.connected);
     $('formal-submit').disabled=this.working||!enabled||!policy?.canSubmit||this.host.running();
     $('formal-query').disabled=this.working||!enabled;
@@ -110,7 +129,7 @@ export class CloudPanel {
     if(!this.connected)$('cloud-account').textContent ||= cloudConfig.enabled?'未接続':'接続前・本番設定待ち';
     $('cloud-save-status').textContent=this.connected?'GSSへの保存・復元は「ファイル」メニューから行います。':'GSS下書きは別途保存';
     if(this.drafts)this.drafts.render();
-    if(q?.kind==='confirmation'){
+    if(q?.kind==='confirmation'&&!this.drafts){
       $('cloud-save-status').textContent='確認問題の試行・回答はブラウザと保存ファイルに保持します。クラウド保存は未接続です。';
       $('cloud-inline-status').hidden=true;
     }
@@ -121,7 +140,7 @@ export class CloudPanel {
     $('formal-score').textContent=receipt?.state==='submitted'?`最新の得点 ${score(receipt.score)}${receipt.late?'（締切後・成績対象外）':''}`:'';
     $('formal-best').textContent=state?`この問題の締切内最高点 ${score(state.bestScore)}`:'';
     $('formal-time').textContent=receipt?`サーバー受付 ${date(receipt.receivedAt)} ／ 締切 ${date(receipt.dueAt)}`:policy?`締切 ${date(policy.dueAt)}`:'';
-    $('formal-note').textContent=q?.kind==='confirmation'?'この確認問題の正式採点・提出は未接続です。学習用の確認記録とは別です。':!enabled?'今年度は従来のColabで提出してください。':this.cloud?.session.teacher?'教員閲覧では生徒の成績として提出しません。':receipt?.state==='pending'?'採点と結果保存が完了してから提出済みになります。「採点・保存を再試行」で続けられます。':'実行結果・ローカル進捗と、ここに表示する正式得点・提出履歴は別です。';
+    $('formal-note').textContent=!enabled?(q?.kind==='confirmation'?'確認記録は学習用です。正式採点・提出は接続と採点設定の準備後に利用できます。':'今年度は従来のColabで提出してください。'):q?.kind==='confirmation'&&policy.graded===false?'この確認問題は正式な配点が未設定です。試行と回答の記録は保持します。':this.cloud?.session.teacher?'教員閲覧では生徒の成績として提出しません。':q?.kind==='confirmation'&&!policy?.canSubmit?'この確認問題は現在、正式提出の対象外です。試行と回答の記録は保持します。':receipt?.state==='pending'?'採点と結果保存が完了してから提出済みになります。「採点・保存を再試行」で続けられます。':'実行結果・ローカル進捗と、ここに表示する正式得点・提出履歴は別です。';
     $('formal-checks').replaceChildren();
     for(const check of receipt?.checks||[]){const li=document.createElement('li');li.textContent=`${check.passed?'✓':'×'} ${check.label}（${check.earned} / ${check.points}）`;$('formal-checks').append(li);}
     $('formal-diagnostics').textContent=(receipt?.diagnostics||[]).join('\n');
@@ -135,13 +154,14 @@ export class CloudPanel {
       if(questionKey(q)!==questionKey(receipt))$('formal-edited').textContent='この結果は別の版での提出です。';
       else {
         const comparison=this.compareCode(q,receipt);
-        if(comparison.changed!==null)$('formal-edited').textContent=comparison.changed?'現在のコードは提出時から変更されています。再提出するまで得点は変わりません。':'現在のコードと提出時のコードは一致しています。';
+        const name=q.kind==='confirmation'?'コード・試行・回答の記録':'コード';
+        if(comparison.invalid)$('formal-edited').textContent='提出時の記録との比較を確認できません。正式な得点は変更していません。';
+        else if(comparison.changed!==null)$('formal-edited').textContent=comparison.changed?`現在の${name}は提出時から変更されています。再提出するまで得点は変わりません。`:`現在の${name}と提出時の内容は一致しています。`;
       }
     }
   }
   async refreshCurrent() {
     const q=this.host.question(),policy=q&&this.cloud?.policy(q);
-    if(q?.kind==='confirmation')return;
     if(q)await this.drafts?.selected(q);
     if(!this.connected||!policy)return;
     const cloud=this.cloud,revision=this.revision(q);let result;
@@ -150,9 +170,9 @@ export class CloudPanel {
     this.acceptState(q,result);this.render();
   }
   async save() {
-    if(this.host.question()?.kind==='confirmation')return;
     if(this.drafts)return this.withWork(()=>this.drafts.save());
     const q=this.host.question();if(!q||!this.connected)return;
+    if(q.kind==='confirmation')return;
     const entry={...this.host.entry(q)};
     await this.withWork(async()=>{
       const result=await this.cloud.save(entry);
@@ -207,10 +227,20 @@ export class CloudPanel {
     });
   }
   async prepareSubmit() {
-    const q=this.host.question(),policy=q&&this.cloud?.policy(q);if(q?.kind==='confirmation'||!this.connected||!policy?.canSubmit)return;
+    const q=this.host.question(),policy=q&&this.cloud?.policy(q);if(!this.connected||!policy?.canSubmit)return;
     await this.withWork(async()=>{
       const pending=this.cloud.journal.pending({...q,assignmentId:policy.assignmentId},'submit');
-      this.submission={q,input:pending?.input||await submissionText({...this.host.entry(q)},policy,this.host.run(q))};
+      await this.host.confirmationStore?.idle();
+      const confirmation=q.kind==='confirmation';
+      if (confirmation && this.host.unrecordedConfirmation?.(q)) throw new Error('入力中の回答があります。「回答を記録」を押してから提出してください。');
+      this.submission={q,input:pending?.input||(confirmation?await confirmationSubmission(q,policy,this.confirmationSources(q),this.host.confirmationStore.snapshot()):await submissionText({...this.host.entry(q)},policy,this.host.run(q)))};
+      if(confirmation){
+        const input=this.submission.input;
+        $('submit-description').textContent=`${q.title}（${q.version}）を提出します。${pending?'前回の未確認の送信を同じ番号・同じ内容で再送します。':''}参照元のコード全文、試行${input.journal.trials.length}回のコード・入力・出力と、この問題の回答を送信します。得点はサーバーが採用版の採点基準で判定します。受付時刻はサーバーで記録します。`;
+        $('submit-preview').textContent=JSON.stringify({sources:input.sources,journal:input.journal},null,2);
+        $('submit-run-note').textContent='表示中の学習用チェックの結果・達成フラグを正式得点として送信することはありません。';
+        this.open($('submit-dialog'));return;
+      }
       $('submit-description').textContent=`${q.title}（${q.version}）を提出します。${pending?'前回の未確認の送信を、同じ番号・同じ全文で再送します。':''}コード全文・入力値・実行の表示テキスト・標準エラーを学校のGSSへ送信します。受付時刻はサーバーで記録し、締切内のこの問題の最高点を成績に採用します。`;
       $('submit-preview').textContent=this.submission.input.code;
       $('submit-run-note').textContent=this.submission.input.run.outcome==='not_run'?'このコードの実行結果がないため、出力テキストは空で送信します。':'';
@@ -238,7 +268,8 @@ export class CloudPanel {
     });
   }
   edited(entry){if(this.host.findQuestion(entry)?.kind!=='confirmation')this.drafts?.edited(entry);}
+  confirmationsEdited(){this.drafts?.confirmationsEdited();}
   draftBadge(q){return this.drafts?.badge(q);}
   resume(){return this.drafts?.resume();}
-  unsaved(){return this.drafts?.auto?.unsaved()||false;}
+  unsaved(){return this.drafts?.unsaved()||false;}
 }

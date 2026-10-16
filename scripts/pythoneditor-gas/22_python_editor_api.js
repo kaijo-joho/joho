@@ -29,15 +29,26 @@ var PythonEditorService = (function () {
         PythonEditor.assert(r.payloadHash === env.hash(PythonEditor.canonical(r.body)), 'snapshot_invalid');
         var q = r.body.question, key = PythonEditor.key(q); frozenByKey[key] = r;
         if (!seen[key]) { sets[p.setId].questions.push(PythonEditorMaster.publicQuestion(r)); seen[key] = true; }
-        policies.push({ questionId: q.questionId, version: q.version, assignmentId: p.assignmentId, dueAt: p.dueAt,
-          startsAt: p.startsAt, closesAt: p.closesAt, canSubmit: q.kind !== 'confirmation' && !env.actor.teacher && p.official && r.body.graded && env.now() >= p.startsAt && env.now() <= p.closesAt });
+        policies.push({ questionId: q.questionId, version: q.version, assignmentId: p.assignmentId, dueAt: p.dueAt, graded: r.body.graded === true,
+          startsAt: p.startsAt, closesAt: p.closesAt, canSubmit: !env.actor.teacher && p.official && r.body.graded && env.now() >= p.startsAt && env.now() <= p.closesAt });
+      });
+    });
+    // 親確認問に明示された参照元だけを公開投影する。旧版の提出権限は追加しない。
+    Object.keys(frozenByKey).forEach(function (key) {
+      var parent = frozenByKey[key], q = parent.body.question;
+      if (q.kind !== 'confirmation') return;
+      parent.body.confirmation.codeRefs.forEach(function (ref) {
+        var sourceKey = PythonEditor.key(ref), source = frozenByKey[sourceKey] || env.store.findSnapshot(ref);
+        PythonEditor.assert(source && source.body && source.body.schema === 1 && source.payloadHash === env.hash(PythonEditor.canonical(source.body)) &&
+          PythonEditor.key(source.body.question) === sourceKey && source.body.question.kind === 'code' && source.body.question.setId === q.setId, 'snapshot_missing');
+        if (!seen[sourceKey]) { sets[q.setId].questions.push(PythonEditorMaster.publicQuestion(source)); seen[sourceKey] = true; }
       });
     });
     // Read this learner's result rows once, rather than once for every question.
     var results = env.store.resultsForActor(env.actor.key), ratings = [];
     Object.keys(frozenByKey).forEach(function (key) {
       var frozen = frozenByKey[key], q = frozen.body.question;
-      if (q.kind === 'confirmation') return;
+      if (q.kind === 'confirmation' && !frozen.body.graded) return;
       var matches = policies.filter(function (p) { return PythonEditor.key(p) === key; });
       if (matches.length !== 1) return;
       var policy = env.config.assignments.filter(function (p) { return p.assignmentId === matches[0].assignmentId && p.version === q.version; })[0];
@@ -76,7 +87,8 @@ var PythonEditorService = (function () {
       .sort(function (a, b) { return b.body.score - a.body.score || b.receivedAt.localeCompare(a.receivedAt) || b.seq - a.seq; })[0] || null;
   }
   function codeStarTotal(body) {
-    if (!body.graded || body.question.kind === 'observation' || body.question.kind === 'confirmation') return 0;
+    if (!body.graded || body.question.kind === 'observation') return 0;
+    if (body.question.kind === 'confirmation') return PythonEditorConfirmationGraderV1.starTotal(body);
     return body.ranges.reduce(function (sum, range) {
       var rule = body.rules[range.scoringId];
       if (rule.schemaVersion !== 2) return sum + new Set(rule.keywordsArr || []).size;
@@ -97,8 +109,8 @@ var PythonEditorService = (function () {
       if (cache) cache[key] = frozen;
     }
     PythonEditor.assert(frozen && frozen.payloadHash === env.hash(PythonEditor.canonical(frozen.body)), 'snapshot_invalid');
-    var total = codeStarTotal(frozen.body), earned = best ? (best.body.checks || []).filter(function (check) {
-      return /(?:^|・)コード条件[0-9]+$/.test(check.label) && check.passed === true;
+    var confirmation = frozen.body.question.kind === 'confirmation', total = codeStarTotal(frozen.body), earned = best ? (best.body.checks || []).filter(function (check) {
+      return (confirmation ? /^確認条件[0-9]+$/ : /(?:^|・)コード条件[0-9]+$/).test(check.label) && check.passed === true && (!confirmation || check.points > 0);
     }).length : null;
     PythonEditor.assert(earned === null || earned <= total, 'grading_failed');
     return { earned: earned, total: total, version: frozen.body.question.version };
@@ -116,14 +128,26 @@ var PythonEditorService = (function () {
       return { requestId: r.requestId, version: r.version, receivedAt: r.receivedAt, gradedAt: r.at, score: r.body.score, late: !r.eligible };
     }) };
   }
+  function confirmationSources(frozen, input, env) {
+    var confirmation = frozen.body.question.kind === 'confirmation';
+    PythonEditor.assert(confirmation === (input.kind === 'confirmation-v1'), 'invalid_input');
+    if (!confirmation) return null;
+    PythonEditorConfirmationGraderV1.starTotal(frozen.body);
+    // 指定した採用済み旧版を直接解決する。現在の配信版へ差し替えない。
+    var sources = frozen.body.confirmation.codeRefs.map(function (ref) {
+      var record = env.store.findSnapshot(ref); PythonEditor.assert(record, 'snapshot_missing'); return record;
+    });
+    PythonEditorConfirmationGraderV1.bind(frozen.body, input, sources); return sources;
+  }
   function process(receipt, env) {
     PythonEditor.assert(receipt && receipt.actorKey === env.actor.key, 'not_allowed');
     var prior = env.store.findResult(env.actor.key, receipt.requestId);
     if (prior) return response(receipt, env);
     var frozen = snapshot(receipt, env);
-    PythonEditor.assert(frozen.payloadHash === receipt.snapshotHash && frozen.body.graded && frozen.body.question.kind !== 'confirmation', 'snapshot_invalid');
+    PythonEditor.assert(frozen.payloadHash === receipt.snapshotHash && frozen.body.graded, 'snapshot_invalid');
     env.authorize(frozen, receipt.policy.assignmentId, receipt.at, false);
-    var result = PythonEditorGraderV1.grade(frozen.body, receipt.body);
+    var sources = confirmationSources(frozen, receipt.body, env);
+    var result = sources ? PythonEditorConfirmationGraderV1.grade(frozen.body, receipt.body, sources) : PythonEditorGraderV1.grade(frozen.body, receipt.body);
     env.store.finish(receipt, result, env.now(), function () { env.recheck(frozen, receipt.policy.assignmentId, receipt.at, false); });
     return response(receipt, env);
   }
@@ -137,7 +161,8 @@ var PythonEditorService = (function () {
       return process(prior, env);
     }
     var frozen = snapshot(input, env);
-    PythonEditor.assert(frozen.body.graded && frozen.body.question.kind !== 'confirmation', 'not_allowed');
+    PythonEditor.assert(frozen.body.graded, 'not_allowed');
+    confirmationSources(frozen, input, env);
     var proof = intakeTicket ? PythonEditor.intakeVerify(intakeTicket, env.intakeSecret()) : null;
     var receivedAt = proof ? proof.receivedAt : at;
     var policy = env.authorize(frozen, input.assignmentId, receivedAt, true);

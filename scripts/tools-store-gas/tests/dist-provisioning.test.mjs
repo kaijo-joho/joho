@@ -390,3 +390,35 @@ test('作成中に台帳が並べ替えられても本人行を再照合して�
   assert.equal(f.ledger.cells[1][0], other); assert.equal(f.ledger.cells[1][4], undefined);
   assert.equal(f.ledger.cells[2][0], student); assert.equal(f.ledger.cells[2][4], result.value.spreadsheetId);
 });
+
+test('確認journal拡張は教員の明示フラグでだけ追加し旧schema/本文/保存先を保持する', () => {
+  const f = fixture({ registered: true }), ss = registeredSS(f), guide = ss.getSheetByName('使い方');
+  const generation = guide.getRange(3, 2).getValue(), storeId = ss.getId();
+  ss.getSheetByName('Python').getRange(2, 1).setValue('KEEP-CODE');
+  f.state.active = teacher;
+  const preview = f.api.preview({ accounts: [student] });
+  assert.equal(preview.value.accounts[0].confirmationJournal, 'upgrade_required');
+  assert.equal(ss.getSheetByName('Python確認'), null);
+  f.data.set('TOOLS_STORE_DIST_CONFIRMATION_ENABLED', 'true');
+  const updated = f.api.prepare({ accounts: [student], confirmation: 'PREPARE_TOOLS_STORES_V1' });
+  assert.equal(updated.ok, true); assert.equal(updated.value.results[0].state, 'ready');
+  assert.equal(ss.getId(), storeId); assert.equal(guide.getRange(1, 2).getValue(), 1);
+  assert.notEqual(guide.getRange(3, 2).getValue(), generation);
+  assert.equal(ss.getSheetByName('Python').getRange(2, 1).getValue(), 'KEEP-CODE');
+  const C = f.ctx.ToolsStoreContract.constants.CONFIRMATION;
+  for (const [name, rows, header] of [[C.SHEET, C.ROWS, C.HEADERS], [C.RECEIPTS, C.RECEIPT_ROWS, C.RECEIPT_HEADERS]]) {
+    const sheet = ss.getSheetByName(name); assert(sheet.rows >= rows); assert.equal(sheet.hidden, true);
+    assert.deepEqual(sheet.getRange(1, 1, 1, 4).getValues()[0], plain(header));
+    assert.deepEqual(sheet.protections[0].editors, [teacher]); assert.equal(sheet.protections[0].warning, false);
+  }
+  const after = f.api.preview({ accounts: [student] }); assert.equal(after.value.accounts[0].confirmationJournal, 'ready');
+});
+
+test('activeの確認シート片方消失を教員prepareでも空シートで隠さない', () => {
+  const f = fixture({ registered: true }), ss = registeredSS(f); f.state.active = teacher;
+  f.data.set('TOOLS_STORE_DIST_CONFIRMATION_ENABLED', 'true');
+  assert.equal(f.api.prepare({ accounts: [student], confirmation: 'PREPARE_TOOLS_STORES_V1' }).value.results[0].state, 'ready');
+  ss.sheets = ss.sheets.filter(sheet => sheet.name !== 'Python確認受付');
+  const result = f.api.prepare({ accounts: [student], confirmation: 'PREPARE_TOOLS_STORES_V1' });
+  assert.equal(result.value.results[0].state, 'blocked'); assert.equal(ss.getSheetByName('Python確認受付'), null);
+});

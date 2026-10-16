@@ -49,6 +49,7 @@ var ToolsStoreDistribution = (function () {
       enabled: get('TOOLS_STORE_DIST_ENABLED') === 'true',
       provisioningEnabled: get('TOOLS_STORE_DIST_PROVISIONING_ENABLED') === 'true',
       adminEnabled: get('TOOLS_STORE_DIST_ADMIN_ENABLED') === 'true',
+      confirmationEnabled: get('TOOLS_STORE_DIST_CONFIRMATION_ENABLED') === 'true',
       bindingKey: text(get('TOOLS_STORE_BINDING_KEY')),
       bindingLifetimeMs: 3600000,
       allowedOrigins: strictJSON(get('TOOLS_STORE_ALLOWED_ORIGINS'), []),
@@ -170,8 +171,8 @@ var ToolsStoreDistribution = (function () {
       assert(allowPreparing && (meta.state === 'creating' || meta.state === 'upgrading'), 'store_busy');
     }
   }
-  function assertHeader(sheet) {
-    var expected = ToolsStoreContract.constants.HEADERS;
+  function assertHeader(sheet, expected) {
+    expected = expected || ToolsStoreContract.constants.HEADERS;
     assert(sheet && sheet.getMaxColumns() >= expected.length, 'store_invalid');
     var actual = sheet.getRange(1, 1, 1, expected.length).getValues()[0];
     assert(actual.every(function (value, index) { return value === expected[index]; }), 'store_invalid');
@@ -186,6 +187,13 @@ var ToolsStoreDistribution = (function () {
     assertHeader(current); assertHeader(history);
     assert(current.getMaxRows() >= c.DRAFT_ROWS && history.getMaxRows() >= c.HISTORY_ROWS, 'store_invalid');
     assert(current.isSheetHidden() && history.isSheetHidden() && !ss.getSheetByName(META_SHEET).isSheetHidden(), 'store_invalid');
+  }
+  function assertConfirmationLayout(ss) {
+    var c = ToolsStoreContract.constants.CONFIRMATION;
+    [[c.SHEET, c.ROWS, c.HEADERS], [c.RECEIPTS, c.RECEIPT_ROWS, c.RECEIPT_HEADERS]].forEach(function (spec) {
+      var sheet = ss.getSheetByName(spec[0]); assertHeader(sheet, spec[2]);
+      assert(sheet.getMaxRows() >= spec[1] && sheet.isSheetHidden(), 'store_invalid');
+    });
   }
   function getExisting(env, c, entry, allowPreparing) {
     var file = safeFile(env, entry.spreadsheetId);
@@ -279,6 +287,21 @@ var ToolsStoreDistribution = (function () {
       protect(env, sheet, sheet.getRange(1, 1, 1, constants.HEADERS.length), 'tools-store:header:' + spec[0] + ':v1', c.teachers);
       sheet.hideSheet();
     });
+    if (c.confirmationEnabled) {
+      var ext = constants.CONFIRMATION, existed = !!ss.getSheetByName(ext.SHEET) && !!ss.getSheetByName(ext.RECEIPTS);
+      [[ext.SHEET, ext.ROWS, ext.HEADERS], [ext.RECEIPTS, ext.RECEIPT_ROWS, ext.RECEIPT_HEADERS]].forEach(function (spec) {
+        var sheet = ss.getSheetByName(spec[0]);
+        if (!sheet) sheet = ss.insertSheet(spec[0]);
+        ensureGrid(sheet, spec[1], spec[2].length);
+        if (sheet.getLastRow() === 0) sheet.getRange(1, 1, 1, spec[2].length).setValues([spec[2].slice()]);
+        else assertHeader(sheet, spec[2]);
+        sheet.setFrozenRows(1);
+        protect(env, sheet, sheet.getRange(1, 1, 1, spec[2].length), 'tools-store:confirmation:' + spec[0] + ':v1', c.teachers);
+        sheet.hideSheet();
+      });
+      assertConfirmationLayout(ss);
+      if (!existed) guide.getRange(3, 2).setValue(env.randomId());
+    }
     env.flush();
     assertLayout(ss);
     guide.getRange(4, 2).setValue('active');
@@ -343,7 +366,11 @@ var ToolsStoreDistribution = (function () {
     var existing = getExisting(env, c, entry, repair);
     if (repair) {
       // active版の必須シート消失を空の新規シートで隠さない。作成途中だけ再開できる。
-      if (existing.metadata.state === 'active') assertLayout(existing.spreadsheet);
+      if (existing.metadata.state === 'active') {
+        assertLayout(existing.spreadsheet);
+        var ext = ToolsStoreContract.constants.CONFIRMATION;
+        if (existing.spreadsheet.getSheetByName(ext.SHEET) || existing.spreadsheet.getSheetByName(ext.RECEIPTS)) assertConfirmationLayout(existing.spreadsheet);
+      }
       ensureStructure(env, c, existing.spreadsheet, account, existing.owner, false);
       existing.file.addEditor(account);
       existing.file.setShareableByEditors(false);
@@ -404,8 +431,12 @@ var ToolsStoreDistribution = (function () {
           if (entry.spreadsheetId) {
             var existing = getExisting(env, c, entry, true);
             assertLayout(existing.spreadsheet);
+            var ext = ToolsStoreContract.constants.CONFIRMATION;
+            var hasConfirmation = !!existing.spreadsheet.getSheetByName(ext.SHEET) && !!existing.spreadsheet.getSheetByName(ext.RECEIPTS);
+            if (hasConfirmation) assertConfirmationLayout(existing.spreadsheet);
             return { account: account, state: existing.metadata.state === 'active' ? 'registered' : 'preparing',
-              spreadsheetId: entry.spreadsheetId, pending: !!pending };
+              spreadsheetId: entry.spreadsheetId, pending: !!pending,
+              confirmationJournal: hasConfirmation ? 'ready' : 'upgrade_required' };
           }
           return { account: account, state: entry.storeColumn ? (pending ? 'resume_required' : 'create_candidate') : 'ledger_column_required', pending: !!pending };
         } catch (error) { return { account: account, state: 'blocked', code: ERROR_MESSAGES[error.code] ? error.code : 'internal' }; }

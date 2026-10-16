@@ -30,8 +30,10 @@ export function validateRating(raw) {
 export function setRating(set, ratingFor) {
   const unique = new Map();
   for (const q of set.questions) {
-    if (q.kind === 'observation' || q.kind === 'confirmation') continue;
+    if (q.kind === 'observation') continue;
     const rating = ratingFor(q);
+    // 採点設定のない確認問題は分母に加えない。学習用の達成率を★へ変換しない。
+    if (q.kind === 'confirmation' && (!rating || !rating.total)) continue;
     const prior=unique.get(q.questionId);
     if (!unique.has(q.questionId) || rating && (!prior || prior.total === 0 && rating.total > 0 || prior.earned === null && rating.earned !== null)) unique.set(q.questionId,rating);
   }

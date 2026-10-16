@@ -4,13 +4,13 @@ import { DraftStore, exportDraft } from './storage.mjs';
 import { PythonRunner } from './runner.mjs?v=20261016-confirmation1';
 import { errorHints } from './diagnostics.mjs?v=20261015-errors';
 import { renderPrompt } from './prompt.mjs?v=20261016-prompt-structure1';
-import { CloudPanel } from './cloud-ui.mjs?v=20261016-confirmation1';
+import { CloudPanel } from './cloud-ui.mjs?v=20261017-confirmation-sync1';
 import { cloudConfig } from './cloud-config.mjs';
-import { questionGroups, questionStructure, setRating, renderRating } from './navigation.mjs?v=20261016-confirmation1';
+import { questionGroups, questionStructure, setRating, renderRating } from './navigation.mjs?v=20261017-confirmation-sync1';
 import { demoRatings } from './demo-ratings.mjs';
 import { TeacherPreviewPanel } from './teacher-preview.mjs?v=20261016-preview-no-expiry1';
-import { ConfirmationStore } from './confirmation-store.mjs?v=20261016-confirmation1';
-import { ConfirmationPanel } from './confirmation-ui.mjs?v=20261016-confirmation1';
+import { ConfirmationStore, CONFIRMATION_STORAGE_KEY, LEGACY_CONFIRMATION_STORAGE_KEY } from './confirmation-store.mjs?v=20261017-confirmation-sync1';
+import { ConfirmationPanel } from './confirmation-ui.mjs?v=20261017-confirmation-sync1';
 import { AdvicePanel } from './advice-ui.mjs?v=20261017-advice1';
 const $ = id => document.getElementById(id);
 const entries = new Map(), outputs = new Map(), docs = new Map(), questionGroupTitles = new Map(), trialWrites = new Set();
@@ -141,8 +141,9 @@ function selectQuestion(q, updateURL = true) {
   cloudPanel?.refreshCurrent().catch(e=>cloudPanel.fail(e));
 }
 function ratingFor(q) {
-  if (q.kind === 'observation' || q.kind === 'confirmation') return {earned:0,total:0};
+  if (q.kind === 'observation') return {earned:0,total:0};
   if (cloudPanel?.hasSchoolQuestion(q)) return cloudPanel.rating(q);
+  if (q.kind === 'confirmation') return {earned:0,total:0};
   return showDemoRatings ? demoRatings.get(questionKey(q)) || null : null;
 }
 function updateNavigationRatings() {
@@ -152,11 +153,11 @@ function updateNavigationRatings() {
     if (!q) continue;
     const rating=ratingFor(q);
     const ratingNode = button.querySelector('.question-item-rating');
-    renderRating(ratingNode,rating); ratingNode.hidden = q.kind === 'confirmation';
+    renderRating(ratingNode,rating); ratingNode.hidden = q.kind === 'confirmation' && !rating?.total;
     button.querySelector('.question-item-state').hidden=q.kind!=='observation'&&rating?.earned!=null&&rating.total>0;
     const hint=button.querySelector('.question-item-formal');
-    hint.textContent=q.kind === 'confirmation' ? '' : cloudPanel?.navigationStatus(q)||'';hint.hidden=!hint.textContent;
-    const badge=cloudPanel?.draftBadge(q),marker=button.querySelector('.question-item-cloud');
+    hint.textContent=cloudPanel?.navigationStatus(q)||'';hint.hidden=!hint.textContent;
+    const badge=confirmationStore?.lastError && (q.kind==='confirmation'||referencedByConfirmation(q)) ? {text:'⚠',label:'確認記録のブラウザ保存を確認してください'} : cloudPanel?.draftBadge(q),marker=button.querySelector('.question-item-cloud');
     if(marker){marker.textContent=badge?.text||'';marker.hidden=!badge;marker.setAttribute('aria-label',badge?.label||'');marker.title=badge?.label||'';}
   }
   for (const button of $('set-menu').querySelectorAll('button[data-set]')) {
@@ -170,7 +171,7 @@ function updateNavigationRatings() {
     $('set-trigger').setAttribute('aria-label',`問題セットを選択：${selectedSet.title}`);
     const rating=setRating(selectedSet,ratingFor);
     renderRating($('set-current-rating'),rating,true);
-    $('rating-note').textContent=teacherPreviewMode?'問題配布検証です。今回の接続では★評価を取得しません。':rating?.example?'★は表示例です。実行・編集では変わりません。':'★は締切内最高点の提出で満たしたコードのチェック数です。';
+    $('rating-note').textContent=teacherPreviewMode?'問題配布検証です。今回の接続では★評価を取得しません。':rating?.example?'★は表示例です。実行・編集では変わりません。':'★は締切内最高点の提出で満たしたチェック項目数です。';
   }
 }
 function buildSetPicker() {
@@ -350,7 +351,7 @@ async function recordTrial(snapshot, result) {
       stdout: result.programStdout, stderr: result.stderr + (result.error ? (result.stderr ? '\n' : '') + result.error : ''),
       outcome: result.outcome, truncated: result.truncated, at: new Date().toISOString() });
     if (confirmationStore.lastError) showNotice(confirmationStore.lastError.message, true);
-    updateProgress(); updateNavigationRatings(); confirmationPanel.render(question);
+    updateProgress(); updateNavigationRatings();
   } catch (error) { showNotice('試行記録を保存できません。' + error.message, true); }
 }
 const runner = new PythonRunner(event => {
@@ -430,6 +431,7 @@ function download(blob, name) {
 }
 function saveBrowser() {
   if (!question) return;
+  if (confirmationPanel.unrecorded()) { showNotice('入力中の確認問題の回答があります。「回答を記録」を押してから保存してください。', true); return; }
   try { if (!store) throw new Error('ブラウザ保存が利用できません。'); store.write({...currentEntry(), updatedAt: new Date().toISOString()}, 'manual'); $('save-status').textContent = 'ブラウザに明示保存済み'; }
   catch (e) { showNotice(e.message, true); }
   closeMenus(true);
@@ -437,6 +439,8 @@ function saveBrowser() {
 async function saveFile() {
   if (!question) return;
   await Promise.all([...trialWrites]);
+  await confirmationStore.idle();
+  if (confirmationPanel.unrecorded()) { showNotice('入力中の確認問題の回答があります。「回答を記録」を押してからファイルへ保存してください。', true); return; }
   download(new Blob([JSON.stringify({...exportDraft(entries.values()), confirmationJournal: confirmationStore.snapshot()}, null, 2)], {type:'application/json'}), 'python-draft.json');
   closeMenus(true);
   showNotice('保存ファイルを作成しました。ダウンロード先を確認してください。ファイルメニューから取り込めます。');
@@ -452,19 +456,32 @@ function restoreDialog() {
       button.addEventListener('click', () => { $('restore-dialog').close(); prepareImport([c.entry], c.label); });
       $('restore-options').append(button);
     }
+    let copies = [], legacy;
+    try { copies = confirmationStore.backups(); } catch { const p = document.createElement('p'); p.className = 'danger'; p.textContent = '確認記録の控えを読み取れません。元の控えは保持しています。'; $('restore-options').append(p); }
+    for (const copy of copies) {
+      const button = document.createElement('button'); button.type = 'button'; button.textContent = `確認記録の控えを書き出す：${copy.reason} / ${copy.at}`;
+      button.addEventListener('click', () => { download(new Blob([JSON.stringify({ ...exportDraft(entries.values()), confirmationJournal: copy.journal }, null, 2)], { type: 'application/json' }), 'python-confirmation-backup.json'); showNotice('確認記録の控えを保存ファイルに書き出しました。'); });
+      $('restore-options').append(button);
+    }
+    try { legacy = confirmationStore.legacySnapshot(); } catch { const p = document.createElement('p'); p.className = 'danger'; p.textContent = '旧版の確認記録を読み取れません。元の記録は保持しています。'; $('restore-options').append(p); }
+    if (legacy) {
+      const button = document.createElement('button'); button.type = 'button'; button.textContent = '旧版の確認記録をファイルに書き出す';
+      button.addEventListener('click', () => download(new Blob([JSON.stringify({ ...exportDraft(entries.values()), confirmationJournal: legacy }, null, 2)], { type: 'application/json' }), 'python-confirmation-legacy.json'));
+      $('restore-options').append(button);
+    }
     openDialog($('restore-dialog'));
   } catch (e) { showNotice(e.message, true); }
 }
 function prepareImport(rawEntries, source, confirmationJournal = null) {
   const known = new Set(catalog.sets.flatMap(s => s.questions.map(questionKey)));
   const matching = rawEntries.filter(e => known.has(questionKey(e)));
-  if (!matching.length) throw new Error('現在表示できる問題・版と一致するコードがありません。元のファイルは保持してください。');
+  if (!matching.length && !confirmationJournal) throw new Error('現在表示できる問題・版と一致するコードがありません。元のファイルは保持してください。');
   pendingImport = matching; pendingConfirmationJournal = confirmationJournal;
   $('import-description').textContent = `${source}から${matching.length}問を取り込みます。${rawEntries.length - matching.length}問は未読込の版のため取り込みません。${confirmationJournal ? ' 試行履歴も既存の記録を保護して取り込みます。' : ''}`;
-  $('import-preview').textContent = matching[0].code;
+  $('import-preview').textContent = matching[0]?.code || `試行${confirmationJournal?.trials.length || 0}回・確認問題の回答${Object.keys(confirmationJournal?.responses || {}).length}件`;
   openDialog($('import-dialog'));
 }
-function applyImport() {
+async function applyImport() {
   pendingRequested=false;
   if (runner.active) runner.stop('保存内容を取り込むため停止しました。');
   try {
@@ -475,7 +492,7 @@ function applyImport() {
       const q=all.find(q => questionKey(q) === questionKey(incoming)),before={...currentEntry(q)};
       store.prepareImport(before, '保存内容の取込み前');
     }
-    if (pendingConfirmationJournal) confirmationStore.restore(pendingConfirmationJournal, { merge: true });
+    if (pendingConfirmationJournal) await confirmationStore.restore(pendingConfirmationJournal, { merge: true });
     let anyFailure=false;
     for (const incoming of pendingImport) {
       const e = {...incoming, updatedAt: new Date().toISOString(), practiced: false};
@@ -494,6 +511,7 @@ async function init() {
   try { store = new DraftStore(); } catch { showNotice('ブラウザ保存を利用できません。ファイルに保存してください。', true); }
   confirmationStore = new ConfirmationStore();
   confirmationPanel = new ConfirmationPanel({
+    question: () => question,
     findSource: ref => catalog?.sets.flatMap(set => set.questions).find(q => q.kind === 'code' && questionKey(q) === questionKey(ref)),
     entry: currentEntry, running: () => !!runner.active,
     openSource: source => selectQuestion(source), sourceChanged: q => selectQuestion(q, false),
@@ -514,12 +532,22 @@ async function init() {
   }
   $('code').addEventListener('input', dirty); $('stdin').addEventListener('input', dirty);
   const ConnectionPanel = teacherPreviewMode ? TeacherPreviewPanel : CloudPanel;
-  cloudPanel=new ConnectionPanel({catalog:()=>catalog,renderRatings:updateNavigationRatings,question:()=>question,entry:q=>({...currentEntry(q)}),run:q=>outputs.get(questionKey(q)),running:()=>!!runner.active,
+  cloudPanel=new ConnectionPanel({catalog:()=>catalog,confirmationStore,unrecordedConfirmation:q=>confirmationPanel.unrecorded(q),renderRatings:updateNavigationRatings,question:()=>question,entry:q=>({...currentEntry(q)}),run:q=>outputs.get(questionKey(q)),running:()=>!!runner.active,
     notice:(message,danger)=>showNotice(message,danger,true),closeMenus:()=>closeMenus(true),addCatalog:addCloudCatalog,importDraft:importCloudDraft,
     archive:(e,reason)=>{if(!store)throw new Error('ローカルの控えを保存できません。コードをファイルに保存してください。');store.archive(e,reason);},
     archiveEntries:reason=>{if(!store)throw new Error('切り替え前の控えを保存できません。ファイルに保存してください。');for(const e of entries.values())store.archive(e,reason);},
     findQuestion:e=>catalog?.sets.flatMap(s=>s.questions).find(q=>questionKey(q)===questionKey(e)),
     draftEntries:()=>catalog?.sets.flatMap(s=>s.questions).filter(q=>q.kind!=='confirmation').map(q=>({q,entry:{...currentEntry(q)}}))||[]});
+  let lastConfirmationSnapshot = JSON.stringify(confirmationStore.snapshot());
+  confirmationStore.subscribe(() => {
+    const snapshot = JSON.stringify(confirmationStore.snapshot());
+    if (snapshot !== lastConfirmationSnapshot) { lastConfirmationSnapshot = snapshot; editGeneration++; cloudPanel?.confirmationsEdited?.(); confirmationPanel.render(question); }
+    updateProgress(); updateNavigationRatings(); cloudPanel?.render();
+  });
+  addEventListener('storage', event => {
+    if (event.key === LEGACY_CONFIRMATION_STORAGE_KEY) showNotice('旧版の画面で確認記録が更新されました。その画面の記録をファイルへ保存してから再読み込みしてください。旧版の記録は「ブラウザ保存から復元」からも書き出せます。', true);
+    if ([CONFIRMATION_STORAGE_KEY, LEGACY_CONFIRMATION_STORAGE_KEY].includes(event.key)) confirmationStore.refresh();
+  });
   advicePanel = new AdvicePanel({ snapshot: adviceSnapshot, closeMenus: () => closeMenus(true) });
   try { JohoUI.theme({storageKey:'joho.pythoneditor.view.v1',themeSelect:$('theme'),sizeSelect:$('text-size')}); JohoUI.tooltip(); } catch {}
   if (cm) {
@@ -578,7 +606,7 @@ async function init() {
     if (e.key === 'Escape') {closeMenus(true);closeSetPicker(true);}
   });
   document.addEventListener('click', e => {if (!e.target.closest('.menu')) closeMenus();if(!e.target.closest('.set-picker'))closeSetPicker();});
-  addEventListener('beforeunload', e => {if (saveFailed||trialWrites.size||confirmationStore.lastError||cloudPanel?.unsaved()) {e.preventDefault();e.returnValue='';}});
+  addEventListener('beforeunload', e => {if (saveFailed||trialWrites.size||confirmationStore.pending.size||confirmationStore.lastError||confirmationPanel.unrecorded()||cloudPanel?.unsaved()) {e.preventDefault();e.returnValue='';}});
   addEventListener('pagehide', () => { runner.dispose(); advicePanel.dispose(); });
   if (teacherPreviewMode) {
     catalog = validateCatalog({ schema: 'python-editor-catalog-v1', label: '問題配布検証', sets: [] });

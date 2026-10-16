@@ -18,7 +18,7 @@ const url = server.url + '?set=demo-confirmations&question=demo-confirm-input-ch
 const select = id => page.locator(`#question-list button[data-question="${id}"]`).click();
 const edit = value => page.evaluate(value => document.querySelector('.CodeMirror').CodeMirror.setValue(value), value);
 const code = () => page.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.getValue());
-const journal = () => page.evaluate(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v1')));
+const journal = () => page.evaluate(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v2')));
 const progress = () => page.locator('#confirmation-progress').textContent();
 async function prepared(value) {
   await page.locator('#settings-menu > summary').click(); await page.locator('#input-settings').click();
@@ -28,7 +28,7 @@ async function run({ error = false } = {}) {
   const before = (await journal())?.trials.length || 0;
   await page.locator('#run').click();
   await page.waitForFunction(() => document.querySelector('#run').dataset.state === 'run', null, { timeout: 125000 });
-  await page.waitForFunction(before => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v1'))?.trials.length > before, before);
+  await page.waitForFunction(before => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v2'))?.trials.length > before, before);
   assert.equal(await page.locator('#error').isVisible(), error);
   return page.locator('#output').textContent();
 }
@@ -46,7 +46,7 @@ try {
   if (engine !== 'webkit') {
     await prepared(''); await page.locator('#run').click(); await page.waitForSelector('#interactive-input:not([hidden])', { timeout: 125000 });
     await page.locator('#input-line').fill('5'); await page.locator('#interactive-input button[type=submit]').click();
-    await page.waitForFunction(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v1'))?.trials.length === 1);
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v2'))?.trials.length === 1);
   } else { await prepared('5\n'); await run(); }
   await prepared('6\n'); await run(); await prepared('9\n'); await run();
   assert.match(await progress(), /3\/3/); assert.equal(await page.locator('#confirmation-progress').getAttribute('data-state'), 'complete');
@@ -64,7 +64,7 @@ try {
   data = await journal(); assert.equal(data.trials.at(-1).outcome, 'error'); assert.equal(data.trials.at(-1).inputs[0].value, 'bad');
   await select('demo-confirm-input-code'); await edit('while True:\n    pass\n'); await select('demo-confirm-input-check');
   await page.locator('#run').click(); await page.waitForFunction(() => document.querySelector('#run').dataset.state === 'stop');
-  await page.locator('#run').click(); await page.waitForFunction(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v1')).trials.length === 5);
+  await page.locator('#run').click(); await page.waitForFunction(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v2')).trials.length === 5);
   assert.equal((await journal()).trials.at(-1).outcome, 'stopped'); assert.match(await progress(), /0\/3/);
   await select('demo-confirm-input-code'); await edit(original); await select('demo-confirm-input-check'); assert.match(await progress(), /3\/3/);
   check('source edits invalidate current-code progress while prior/error/stopped trials remain recoverable');
@@ -103,7 +103,7 @@ try {
   await restoredPage.locator('#file-input').setInputFiles({ name: 'python-draft.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(downloaded)) });
   await restoredPage.waitForSelector('#import-dialog[open]'); await restoredPage.locator('#confirm-import').click();
   await restoredPage.waitForFunction(() => !document.querySelector('#import-dialog').open);
-  assert.deepEqual(await restoredPage.evaluate(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v1'))), beforeReload);
+  assert.deepEqual(await restoredPage.evaluate(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v2'))), beforeReload);
   await restoredContext.close(); check('portable JSON includes journal and a fresh browser restores it after explicit review');
   const isolated = await createEditorServer();
   const compatContext = await browser.newContext(), compatPage = await compatContext.newPage();
@@ -120,17 +120,17 @@ try {
     await compatPage.waitForSelector('#question-list button'); await compatPage.locator('#run').click();
     await compatPage.waitForFunction(() => document.querySelector('#run').dataset.state === 'run', null, { timeout: 125000 });
     assert.equal(await compatPage.locator('#output').textContent(), 'observation\n');
-    assert.equal(await compatPage.evaluate(() => localStorage.getItem('joho.pythoneditor.confirmations.v1')), null);
+    assert.equal(await compatPage.evaluate(() => localStorage.getItem('joho.pythoneditor.confirmations.v2')), null);
     await compatPage.locator('[data-question="compat-confirmation"]').click(); await compatPage.locator('#run').click();
-    await compatPage.waitForFunction(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v1'))?.trials.length === 1);
+    await compatPage.waitForFunction(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v2'))?.trials.length === 1);
     assert.equal(await compatPage.locator('#output').textContent(), 'source\n');
     assert.match(await compatPage.locator('#confirmation-progress').textContent(), /確認1\/1/);
     check('legacy observation keeps its own setup code; new confirmation uses the explicit source setup without mixing the two');
     await compatPage.locator('[data-question="compat-input-confirmation"]').click(); await compatPage.locator('#run').click();
     await compatPage.waitForSelector('#interactive-input:not([hidden])', { timeout: 125000 });
     await compatPage.locator('#input-line').fill('8'); await compatPage.locator('#interactive-input button[type=submit]').click();
-    await compatPage.waitForFunction(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v1')).trials.length === 2);
-    const isolatedTrial = await compatPage.evaluate(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v1')).trials.at(-1));
+    await compatPage.waitForFunction(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v2')).trials.length === 2);
+    const isolatedTrial = await compatPage.evaluate(() => JSON.parse(localStorage.getItem('joho.pythoneditor.confirmations.v2')).trials.at(-1));
     assert.deepEqual(isolatedTrial.inputs, [{ prompt: '値: ', value: '8' }]); assert.equal(isolatedTrial.stdout, '8\n');
     assert.match(await compatPage.locator('#confirmation-progress').textContent(), /1\/1/);
     check('isolated interactive input also records the exact prompt/value and program output on JSPI or SharedArrayBuffer');

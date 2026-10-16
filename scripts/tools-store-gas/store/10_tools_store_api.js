@@ -38,19 +38,20 @@ var ToolsStoreService = (function () {
           range.getLastRow() >= row + rows - 1 && range.getLastColumn() >= column + columns - 1;
       });
     }
-    function verifyTable(sheet, rows) {
-      assertion(sheet && sheet.getMaxRows() >= rows && sheet.getMaxColumns() >= C.HEADERS.length && sheet.getLastRow() <= rows, 'schema_mismatch');
-      var header = sheet.getRange(1, 1, 1, C.HEADERS.length);
-      assertion(T.canonical(header.getValues()[0]) === T.canonical(C.HEADERS) && header.getFormulas()[0].every(function (v) { return v === ''; }), 'schema_mismatch');
-      if (sheet.getMaxColumns() > C.HEADERS.length) {
-        var extra = sheet.getRange(1, C.HEADERS.length + 1, 1, sheet.getMaxColumns() - C.HEADERS.length);
+    function verifyTable(sheet, rows, columns) {
+      columns = columns || C.HEADERS;
+      assertion(sheet && sheet.getMaxRows() >= rows && sheet.getMaxColumns() >= columns.length && sheet.getLastRow() <= rows, 'schema_mismatch');
+      var header = sheet.getRange(1, 1, 1, columns.length);
+      assertion(T.canonical(header.getValues()[0]) === T.canonical(columns) && header.getFormulas()[0].every(function (v) { return v === ''; }), 'schema_mismatch');
+      if (sheet.getMaxColumns() > columns.length) {
+        var extra = sheet.getRange(1, columns.length + 1, 1, sheet.getMaxColumns() - columns.length);
         assertion(extra.getValues()[0].every(function (v) { return v === ''; }) && extra.getFormulas()[0].every(function (v) { return v === ''; }), 'schema_mismatch');
       }
-      assertion(protectedRange(sheet, 1, 1, 1, C.HEADERS.length), 'protection_mismatch');
+      assertion(protectedRange(sheet, 1, 1, 1, columns.length), 'protection_mismatch');
       assertion(sheet.isSheetHidden(), 'schema_mismatch');
       sheet.getProtections(dep.protectionType || SpreadsheetApp.ProtectionType.RANGE).forEach(function (p) {
         var range = p.getRange();
-        assertion(p.isWarningOnly() || p.canEdit() || range.getLastRow() < 2 || range.getColumn() > C.HEADERS.length, 'body_not_editable');
+        assertion(p.isWarningOnly() || p.canEdit() || range.getLastRow() < 2 || range.getColumn() > columns.length, 'body_not_editable');
       });
       var sheetProtection = sheet.getProtections(dep.sheetProtectionType || SpreadsheetApp.ProtectionType.SHEET);
       assertion(sheetProtection.every(function (p) { return p.isWarningOnly() || p.canEdit(); }), 'body_not_editable');
@@ -88,19 +89,46 @@ var ToolsStoreService = (function () {
       assertion(account === T.normalizeAccount(identity.effective), 'execution_mode_mismatch');
       assertion(config.allowedDomains.indexOf(account.split('@')[1]) >= 0, 'account_denied');
       assertion(account === binding.account && T.actorKey(account) === binding.actorKey, 'account_mismatch', '接続した学校アカウントが異なります。');
-      assertion(['session', 'listDrafts', 'getDraft', 'saveDraft', 'lookupSave'].indexOf(action) >= 0, 'invalid_action');
+      var journalActions = ['getConfirmationJournal', 'getConfirmationJournalChunk', 'releaseConfirmationRead', 'beginConfirmationSave', 'putConfirmationChunk', 'saveConfirmationJournal', 'lookupConfirmationSave'];
+      var isJournal = journalActions.indexOf(action) >= 0;
+      assertion(isJournal || ['session', 'listDrafts', 'getDraft', 'saveDraft', 'lookupSave'].indexOf(action) >= 0, 'invalid_action');
       var normalized;
       if (action === 'session') { only(input, []); normalized = {}; }
       if (action === 'listDrafts') { only(input, ['tool']); assertion(input.tool === 'python', 'invalid_tool'); normalized = { tool: 'python' }; }
       if (action === 'getDraft') { only(input, ['tool', 'questionId', 'version', 'revision']); normalized = query(input); if (input.revision !== undefined) normalized.revision = id(input.revision); }
       if (action === 'saveDraft') normalized = saveInput(input);
       if (action === 'lookupSave') { only(input, ['tool', 'requestId']); assertion(input.tool === 'python', 'invalid_tool'); normalized = { tool: 'python', requestId: id(input.requestId) }; }
+      if (isJournal) {
+        assertion(config.confirmationEnabled === true, 'confirmation_disabled', '確認記録のクラウド同期は準備中です。コード保存は継続できます。');
+        var fields = { getConfirmationJournal: ['tool'], getConfirmationJournalChunk: ['tool','revision','index','readId'], releaseConfirmationRead: ['tool','revision','readId'],
+          beginConfirmationSave: ['tool','requestId','expectedRevision','journalHash','byteLength','chunkCount'], putConfirmationChunk: ['tool','requestId','index','text'],
+          saveConfirmationJournal: ['tool','requestId','expectedRevision'], lookupConfirmationSave: ['tool','requestId'] };
+        only(input, fields[action]); assertion(input.tool === 'python', 'invalid_tool'); normalized = { tool: 'python' };
+        if (fields[action].indexOf('requestId') >= 0) normalized.requestId = id(input.requestId);
+        if (fields[action].indexOf('expectedRevision') >= 0) { assertion(input.expectedRevision === null || typeof input.expectedRevision === 'string' && /^[a-f0-9]{32}$/.test(input.expectedRevision), 'invalid_request'); normalized.expectedRevision = input.expectedRevision; }
+        if (fields[action].indexOf('revision') >= 0) normalized.revision = id(input.revision);
+        if (fields[action].indexOf('readId') >= 0) normalized.readId = id(input.readId);
+        if (fields[action].indexOf('index') >= 0) { assertion(Number.isSafeInteger(input.index) && input.index >= 0 && input.index < C.CONFIRMATION.PARTS, 'invalid_request'); normalized.index = input.index; }
+        if (action === 'putConfirmationChunk') normalized.text = text(input.text, C.CONFIRMATION.CHUNK, false);
+        if (action === 'beginConfirmationSave') {
+          assertion(typeof input.journalHash === 'string' && /^[a-f0-9]{64}$/.test(input.journalHash) && Number.isSafeInteger(input.byteLength) && input.byteLength > 0 && input.byteLength <= C.CONFIRMATION.MAX_BYTES &&
+            Number.isSafeInteger(input.chunkCount) && input.chunkCount >= 1 && input.chunkCount <= C.CONFIRMATION.PARTS, 'invalid_request');
+          Object.assign(normalized, { journalHash: input.journalHash, byteLength: input.byteLength, chunkCount: input.chunkCount });
+        }
+      }
       var lock = dep.lock ? dep.lock() : LockService.getUserLock();
       assertion(lock.tryLock(5000), 'busy', '保存処理中です。少し待って再試行してください。');
       try {
         // ロック取得後にも構成・世代・所有者・保護を確認する。教員による更新中は書き込まない。
         var book = open(binding, account);
-        if (action === 'session') return { account: account, actorKey: binding.actorKey, spreadsheetId: binding.spreadsheetId, schemaVersion: C.SCHEMA_VERSION };
+        var extensionPresent = !!book.getSheetByName(C.CONFIRMATION.SHEET) && !!book.getSheetByName(C.CONFIRMATION.RECEIPTS);
+        if (action === 'session') return { account: account, actorKey: binding.actorKey, spreadsheetId: binding.spreadsheetId, schemaVersion: C.SCHEMA_VERSION,
+          confirmationJournal: { schema: 1, enabled: config.confirmationEnabled === true && extensionPresent, maxBytes: C.CONFIRMATION.MAX_BYTES, chunkSize: C.CONFIRMATION.CHUNK } };
+        if (isJournal) {
+          assertion(extensionPresent, 'confirmation_upgrade_required', '確認記録の保存先を教員が更新する必要があります。コード保存は継続できます。');
+          verifyTable(book.getSheetByName(C.CONFIRMATION.SHEET), C.CONFIRMATION.ROWS, C.CONFIRMATION.HEADERS);
+          verifyTable(book.getSheetByName(C.CONFIRMATION.RECEIPTS), C.CONFIRMATION.RECEIPT_ROWS, C.CONFIRMATION.RECEIPT_HEADERS);
+        }
         function recheck() {
           var values = book.getSheetByName(C.GUIDE).getRange(1, 1, 6, 2).getValues();
           assertion(Number(values[0][1]) === C.SCHEMA_VERSION && values[4][1] === C.KIND, 'schema_mismatch');
@@ -108,7 +136,7 @@ var ToolsStoreService = (function () {
           assertion(values[2][1] === binding.generation, 'binding_stale');
           assertion(values[3][1] === 'active', 'store_inactive');
         }
-        var repository = ToolsStoreRepository.create(book, Object.assign({}, dep, { recheck: recheck }));
+        var repository = (isJournal ? ToolsConfirmationRepository : ToolsStoreRepository).create(book, Object.assign({}, dep, { recheck: recheck }));
         var value = repository[action](normalized);
         recheck(); return value;
       } finally { lock.releaseLock(); }

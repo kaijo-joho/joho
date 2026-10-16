@@ -53,7 +53,10 @@ var ToolsGradingPackages = (function () {
           var refs = C.parseCodeRefs(full.codeRefs), config = C.normalizeCheck(full.checkType, full.checkConfig);
           assert(T.canonical(publicConfig) === T.canonical({ codeRefs: refs, checkType: full.checkType, checkConfig: C.publicCheck(full.checkType, config) }) &&
             T.canonical(full) === T.canonical({ codeRefs: refs, checkType: full.checkType, checkConfig: config }) &&
-            record.body.graded === false && q.templateCode === '' && q.setupCode === '' && !q.useExistingQuestionCode &&
+            (record.body.graded === false ? !Object.prototype.hasOwnProperty.call(record.body, 'confirmationGrading') :
+              record.body.graded === true && record.body.engineVersion === PythonEditorConfirmationGraderV1.engineVersion &&
+              T.canonical(record.body.confirmationGrading) === T.canonical(PythonEditorConfirmationGraderV1.normalize(full.checkType, full.checkConfig, record.body.confirmationGrading))) &&
+            q.templateCode === '' && q.setupCode === '' && !q.useExistingQuestionCode &&
             record.body.ranges.length === 0 && Object.keys(record.body.rules).length === 0);
         } catch (error) { fail('packages_invalid'); }
       } else assert(!Object.prototype.hasOwnProperty.call(record.body, 'confirmation'));

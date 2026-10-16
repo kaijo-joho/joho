@@ -61,3 +61,9 @@ if (e && e.parameter && e.parameter.type === 'toolsStore') {
 ## 検証の範囲
 
 Nodeのfake Drive/GSSとmessageブリッジのテストです。Google上の実権限、学校アカウントでの承認、Safari/Chromeの初回認証、40名同時利用は未検証です。初回Google承認は別タブで各GASを開いてからエディタへ戻る手順が必要になる場合があり、実機で確認します。
+
+## 確認journal用の追加構成（2026-10-17）
+
+`TOOLS_STORE_DIST_CONFIRMATION_ENABLED`は未設定で無効。承認後に教員が明示し、対象1名のpreview→prepareで`Python確認`と`Python確認受付`を追加する案。利用者GASからの作成・保護変更は行わない。旧schemaVersion1、Python本文、Python履歴、台帳のGSSIDは保持し、追加時はgenerationを更新して再接続させる。active版で追加シートが片方消失していれば空で作り直さず停止する。
+
+本番の設定・GSS・権限はこのソース変更で操作していない。詳細・分割RPC・停止・容量は[保存用GASの契約](../store/README.md#確認journalの追加契約2026-10-17本番無効)を参照する。

@@ -15,6 +15,7 @@ ScriptPropertiesへ次の**設定名**を用意する。実値はコード・公
 | 設定名 | 用途 |
 |---|---|
 | `TOOLS_STORE_ENABLED` | `true`のときだけ有効。未設定は無効 |
+| `TOOLS_STORE_CONFIRMATION_ENABLED` | 確認journalの分割保存だけを追加で許可。未設定は無効 |
 | `TOOLS_STORE_BINDING_KEY` | distと共有するサーバー専用HMAC鍵。32文字以上 |
 | `TOOLS_STORE_ALLOWED_ORIGINS` | エディタoriginのJSON配列。ワイルドカードなし |
 | `TOOLS_STORE_ALLOWED_DOMAINS` | 学校アカウントのドメインのJSON配列 |
@@ -65,3 +66,46 @@ distが教員権限で生徒ごとに1つのGSSを作成・取得し、既存の
 `node --test scripts/tools-store-gas/tests/common-contract.test.mjs scripts/tools-store-gas/tests/store-repository.test.mjs scripts/tools-store-gas/tests/store-bridge.test.mjs`
 
 Node fake GSS/署名/橋で本人・世代・origin・保護、CAS、貸出端末、20万字、式先頭、途中書込、応答消失、再送、checkpoint、40名の独立環境を検証する。40名テストは合成であり、実GASの応答時間・クォータ・学校アカウント40名同時利用の検証ではない。
+
+## 確認journalの追加契約（2026-10-17・本番無効）
+
+従来の`schemaVersion:1`と`Python`/`Python履歴`は保持する。確認journalのデータ形式もportable schema1で、試行1000件・回答2000件・UTF-8 JSON 4MiBまで。`common/06_tools_confirmation_contract.js`はブラウザの`confirmation.mjs`と`confirmation-store.mjs`の検証関数から生成する。未知のscore等の項目、重複試行ID、存在しない試行への回答参照、不正なID/版、コードのSHA-256不一致を拒否する。JSONを正規化し、全体のSHA-256とUTF-8バイト数を読戻してから保存済みとする。学習用の記録であり、入力・出力・端末日時・hashを正式な受付や正解の証明にはしない。
+
+### 分割RPC
+
+すべて既存の本人・binding・origin・UserLockと、所有者・編集権限・保護・世代/stateを再照合する。ブラウザから任意の保存先IDや本人メールを受け取らない。
+
+| action | 入力（すべてtool:'python'） | 戻り値 |
+|---|---|---|
+| `getConfirmationJournal` | `{tool}` | 空なら`{journal,revision:null,journalHash,byteLength,chunkCount:0,chunkSize:32000}`。既存ならmanifest |
+| `getConfirmationJournalChunk` | `{tool,revision,readId,index}` | `{revision,index,text,chunkHash}` |
+| `releaseConfirmationRead` | `{tool,revision,readId}` | `{state:'released',revision}` |
+| `beginConfirmationSave` | `{tool,requestId,expectedRevision,journalHash,byteLength,chunkCount}` | `{state:'uploading',requestId,received:[index...]}`、または既知のsaved/conflict |
+| `putConfirmationChunk` | `{tool,requestId,index,text}` | `{state:'uploading',requestId,index,chunkHash}` |
+| `saveConfirmationJournal` | `{tool,requestId,expectedRevision}` | `{state:'saved',requestId,revision,journalHash}`、またはconflict |
+| `lookupConfirmationSave` | `{tool,requestId}` | saved/conflict、または`{state:'pending'|'missing',requestId}` |
+
+manifestは`{revision,journalHash,byteLength,chunkCount,chunkSize:32000,readId}`。conflictはこれに`state:'conflict'`を付ける。元のexpectedRevision・requestId・journalHash・byteLength・chunkCountを途中で変更しない。chunkも同じ番号で異なる本文を送ったら拒否する。4MiBのjournal全体を1 RPCへ入れる直接保存方式は用意しない。クライアント側はcanonicalな本文をUTF-16 32000文字以下で分割し、サロゲート対を分断しない。受信時は全chunkのrevision/index/hashと全体hash/バイト数を照合してから取り込む。
+
+### 追加シートと途中失敗の保護
+
+- 教員として動くdistだけが非表示の`Python確認`（1067行以上）と`Python確認受付`（4097行以上）を準備する。4列ヘッダーだけを教員限定で保護し、本文は本人が編集できる。利用者GASはシート・行・保護・共有を追加しない。
+- `Python確認`はcommitポインター2行と8つの分割バンク。1バンクはmetadata1行＋最大132chunk行。各chunkは`j:`付きの1セルへ入れ、式として評価させない。直前の有効commitを保持して別バンクへ準備し、検証後だけポインターを切り替える。
+- readIdごとに5分の読取リースを持ち、chunk取得で更新する。読取中のバンクは再利用せず、別端末で最新版が変わっても指定revisionを最後まで読める。終了時は必ずreleaseする。通信断等でリース切れの場合は明示エラーとし、新旧chunkを混ぜない。8つのバンクは読取保護の一時世代であり、永久履歴の保存機能ではない。
+- 未commitのバンクは20分経過後に再利用できる。不変の受付記録を残すため、元の要求で再beginして再準備できる。別端末が先にcommitしていればCAS競合になり、現在のjournalを上書きしない。
+- 受付一覧はrequestIdと要求fingerprintを同じセルへ先に固定する。応答消失・metadata/本文/commitの部分書込では同IDの照会・再送で回復し、勝手に別要求へ置換しない。直前commitの受付結果を確定してから次の要求を受け付ける。初版4096件の受付記録は自動削除せず、満杯では保存を停止して教員へ通知する。
+
+### 教員による更新と承認前の境界
+
+1. 保存GASとdistの候補を生成・差分確認し、旧デプロイ・台帳・対象GSSを退避する。本番反映・共有変更は別途承認する。
+2. distに`TOOLS_STORE_DIST_CONFIRMATION_ENABLED=true`を明示する案。既存admin/provisionの許可も必要。指定教員が対象1名をpreviewし、`prepareToolsStoresV1`を既存の`PREPARE_TOOLS_STORES_V1`で実行する。初版の構成を壊さず追加し、準備中は`upgrading`で保存を止める。追加時にgenerationを更新するため、生徒は再接続して新bindingを取得する。
+3. activeな保存先の追加シートが片方だけ消えている場合は、空シートで隠して自動復旧しない。元データの所在を先に確認する。
+4. 追加シート・保護・所有者・本文の保持を読戻し、保存GASの`TOOLS_STORE_CONFIRMATION_ENABLED=true`を限定対象で確認する。旧構成の保存先は通常のコード保存を継続し、確認同期だけ`confirmation_upgrade_required`で止める。
+5. 初回OAuth、貸出機→自端末、通信断、認証切れ、実40名で検証後に利用範囲を判断する。ここでは本番/GSS/プロパティ/権限/トリガーを操作していない。停止は確認用フラグをfalseにし、追加シートや受付記録を削除しない。
+
+4MiB全体を20秒ごとに送る設計は授業運用の既定にしない。小さいjournalでも変更の集約と直列化を行い、大きいjournalでは1回の保存に最大132 RPCが必要になることを表示・実測する。40名の実GAS応答時間・GSS書込量・初回取得時間は未測定。規模が増えれば試行の差分追記など別の契約が必要で、今回の合成試験だけで実運用負荷が解決したとは判断しない。
+
+```sh
+node scripts/build-tools-confirmation-contract.mjs --check
+node --test scripts/tools-store-gas/tests/*.test.mjs scripts/tools-store-gas-test-prepare.mjs
+```

@@ -33,13 +33,13 @@ export class FakeRange {
     const range = this;
     const finder = {
       entire: false,
-      matchEntireCell(v) { this.entire = v; return this; }, useRegularExpression() { return this; },
+      matchEntireCell(v) { this.entire = v; return this; }, useRegularExpression(value) { this.regex = value; return this; },
       findAll() {
         range.sheet.searches.push({ row: range.row, column: range.column, rows: range.rows });
         const found = [];
         for (let r = 0; r < range.rows; r++) for (let c = 0; c < range.columns; c++) {
           const cell = String(range.sheet.cells.get(`${range.row + r},${range.column + c}`) ?? '');
-          if (this.entire ? cell === value : cell.includes(value)) found.push(new FakeRange(range.sheet, range.row + r, range.column + c));
+          if (this.regex ? new RegExp(value).test(cell) : this.entire ? cell === value : cell.includes(value)) found.push(new FakeRange(range.sheet, range.row + r, range.column + c));
         }
         return found;
       }
@@ -68,7 +68,7 @@ export class FakeSheet {
 export function setup(options = {}) {
   let clock = options.now || Date.UTC(2026, 9, 15), nextId = 1;
   const account = options.account || 'student@example.test', owner = 'teacher@example.test';
-  const config = { enabled: true, bindingKey: 'synthetic-test-key-only-32-characters', allowedOrigins: ['https://school.example'], allowedDomains: ['example.test'], teacherOwners: [owner], bindingLifetimeMs: 3600000, ...options.config };
+  const config = { enabled: true, confirmationEnabled: options.confirmation === true, bindingKey: 'synthetic-test-key-only-32-characters', allowedOrigins: ['https://school.example'], allowedDomains: ['example.test'], teacherOwners: [owner], bindingLifetimeMs: 3600000, ...options.config };
   const env = { SpreadsheetApp: { ProtectionType: { RANGE: 'RANGE', SHEET: 'SHEET' } } };
   const { context, contract: T } = loadStore(env), C = T.constants;
   const guide = new FakeSheet(C.GUIDE, 100, 2, false), data = new FakeSheet(C.SHEET, C.DRAFT_ROWS, 14, true), history = new FakeSheet(C.HISTORY, C.HISTORY_ROWS, 14, true);
@@ -76,7 +76,17 @@ export function setup(options = {}) {
   guide.getRange(1, 1, 6, 2).setValues([['schemaVersion', 1], ['actorKey', T.actorKey(account)], ['generation', generation], ['state', 'active'], ['kind', C.KIND], ['teacherOwner', owner]]);
   guide.protectRange(1, 1, 6, 2);
   for (const sheet of [data, history]) { sheet.getRange(1, 1, 1, 14).setValues([[...C.HEADERS]]); sheet.protectRange(1, 1, 1, 14); sheet.writes = []; }
-  const book = { getSheetByName: name => ({ [C.GUIDE]: guide, [C.SHEET]: data, [C.HISTORY]: history })[name] || null,
+  const sheets = { [C.GUIDE]: guide, [C.SHEET]: data, [C.HISTORY]: history };
+  let confirmation, confirmationReceipts;
+  if (options.confirmation) {
+    const K = C.CONFIRMATION;
+    confirmation = new FakeSheet(K.SHEET, K.ROWS, 4, true);
+    confirmationReceipts = new FakeSheet(K.RECEIPTS, K.RECEIPT_ROWS, 4, true);
+    for (const [sheet, header] of [[confirmation, K.HEADERS], [confirmationReceipts, K.RECEIPT_HEADERS]]) {
+      sheet.getRange(1, 1, 1, 4).setValues([[...header]]); sheet.protectRange(1, 1, 1, 4); sheet.writes = []; sheets[sheet.name] = sheet;
+    }
+  }
+  const book = { getSheetByName: name => sheets[name] || null,
     getOwner: () => ({ getEmail: () => owner }), getEditors: () => [{ getEmail: () => account }] };
   const locks = { held: false, acquisitions: 0, releases: 0, denied: false };
   const identity = { active: account, effective: account };
@@ -91,5 +101,5 @@ export function setup(options = {}) {
   function save(overrides = {}) {
     return call('saveDraft', { tool: 'python', questionId: 'demo-q1', version: 'v1', setId: 'demo', title: '問題', folder: '', requestId: (nextId++).toString(16).padStart(32, '0'), clientId: 'b'.repeat(32), expectedRevision: null, code: 'print(1)', stdin: '', ...overrides });
   }
-  return { T, C, context, config, service, dependencies, guide, data, history, book, locks, identity, call, save, issue, binding, advance: ms => { clock += ms; } };
+  return { T, C, context, config, service, dependencies, guide, data, history, confirmation, confirmationReceipts, sheets, book, locks, identity, call, save, issue, binding, advance: ms => { clock += ms; } };
 }

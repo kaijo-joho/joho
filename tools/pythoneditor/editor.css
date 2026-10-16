@@ -92,7 +92,7 @@
 
 /* Keep picker layers above the code editor and within the sidebar width. */
 #question-nav{z-index:1}#workspace{position:relative;z-index:0}
-@media(max-width:620px){#question-nav{position:relative}}
+@media(max-width:620px){#question-nav{position:relative;top:auto}}
 
 /* Major questions group their subquestions; rated work needs only exceptional status. */
 #question-list .question-group{margin:16px 0 0}#question-list .question-group:first-child{margin-top:0}

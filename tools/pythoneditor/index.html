@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex">
   <title>Pythonエディタ｜海城情報科</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="editor.css?v=20261016-confirmation1">
+  <link rel="stylesheet" href="editor.css?v=20261017-confirmation-sync1">
   <link rel="stylesheet" href="advice.css?v=20261017-advice1">
   <link rel="stylesheet" href="../shared/ui-kit.css">
   <link rel="stylesheet" href="../shared/help-panel.css">
@@ -20,7 +20,7 @@
   <script defer src="vendor/purify.min.js"></script>
   <script defer src="vendor/katex.min.js"></script>
   <script defer src="vendor/auto-render.min.js"></script>
-  <script type="module" src="editor.mjs?v=20261017-advice1"></script>
+  <script type="module" src="editor.mjs?v=20261017-confirmation-sync1"></script>
 </head>
 <body>
   <header class="topbar" id="topbar">
@@ -128,6 +128,7 @@
   <dialog id="cloud-dialog"><h2>クラウドの下書きを取り込む</h2><p>内容を選んで確認してください。取り込み前のローカル内容を控えに残します。</p><div id="cloud-options"></div><label for="cloud-revisions">保存履歴</label><select id="cloud-revisions" disabled></select><pre id="cloud-preview"></pre><button id="cloud-import" type="button" class="primary" disabled>控えを残して取り込む</button><button type="button" data-close>キャンセル</button></dialog>
   <dialog id="tools-connect-dialog"><h2>学校アカウントに接続</h2><p id="tools-connect-status" role="status">学校アカウントとクラウドの保存先を確認します。</p><div id="tools-connect-frame"></div><p>初回は学校アカウントで利用を許可する必要がある場合があります。</p><p><a id="tools-login" target="_blank" rel="noopener noreferrer">別タブで学校アカウントにログイン</a></p><p><a id="tools-store-login" hidden target="_blank" rel="noopener noreferrer">別タブでクラウド保存の利用を確認</a></p><button id="tools-connect-retry" type="button">再接続</button><button type="button" data-close>閉じる</button></dialog>
   <dialog id="cloud-conflict"><h2 id="conflict-title">GSS保存の競合</h2><p>別の端末などで保存された内容と異なります。下はGSSの最新の内容です。GSSの履歴とローカルの控えで両方を保護してから選択を反映します。</p><pre id="conflict-preview"></pre><button id="conflict-cloud" type="button">GSSの続きを取り込む</button><button id="conflict-local" type="button">ローカルの続きをGSSに保存</button><button type="button" data-close>保留</button></dialog>
+  <dialog id="confirmation-cloud-conflict" aria-labelledby="confirmation-cloud-title"><h2 id="confirmation-cloud-title">確認記録の続きを選ぶ</h2><p id="confirmation-cloud-summary"></p><h3>このブラウザの回答</h3><pre id="confirmation-cloud-local-preview"></pre><h3>クラウドの回答</h3><pre id="confirmation-cloud-remote-preview"></pre><button id="confirmation-cloud-local" type="button">このブラウザの回答を残す</button><button id="confirmation-cloud-remote" type="button">クラウドの回答を取り込む</button><button type="button" data-close>保留</button></dialog>
   <dialog id="submit-dialog"><h2>正式提出の確認</h2><p id="submit-description"></p><p id="submit-run-note" class="advice"></p><pre id="submit-preview"></pre><button id="submit-confirm" type="button" class="primary">この全文を正式提出</button><button type="button" data-close>キャンセル</button></dialog>
   <aside id="operation-help" hidden>
     <section data-help-topic="run" data-help-title="実行する"><h3>実行する</h3><ol><li>問題を選び、コードを入力します。</li><li>出力セル左の▶または⌘Enterで実行します。</li><li>input()で止まったら出力欄へ入力し、Enterで続けます。</li></ol><details><summary>停止と再実行</summary><p>実行中は同じ位置の■で計算を終了します。コードは残ります。再実行は共通の準備コードと現在の問題を新しい変数で実行します。</p></details><details><summary>入力を待っているとき</summary><p>Google Chromeでは、出力欄から1回ずつ入力を続けられます。⏏は入力終了（EOF）を渡します。逐次入力が使えない環境や、同じ値で繰り返し確認する場合は、設定の「確認用の入力値」を使用できます。</p></details></section>

@@ -1,4 +1,5 @@
 import { questionKey, validId, LIMITS } from './core.mjs';
+import { validateJournal } from './confirmation-store.mjs?v=20261017-confirmation-sync1';
 const PROTOCOL = 'python-editor-rpc-v1';
 const uuid = () => crypto.randomUUID().replaceAll('-', '');
 const hex = bytes => [...bytes].map(n => n.toString(16).padStart(2,'0')).join('');
@@ -143,4 +144,36 @@ export async function submissionText(entry,policy,run) {
       outputText:matching?run.text:'',stdout:matching?run.stdout:'',inputEcho:matching?run.inputEcho:'',stderr:matching?run.stderr:'',errorText:matching?run.error:''}};
   for(const name of ['outputText','stdout','inputEcho','stderr','errorText'])if(result.run[name].length>LIMITS.output)throw error('output','実行テキストが長すぎます。再実行して出力を確認してください。');
   return result;
+}
+export function canonicalEvidence(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return '[' + value.map(canonicalEvidence).join(',') + ']';
+  return '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + canonicalEvidence(value[key])).join(',') + '}';
+}
+// 学習用の達成フラグ・得点を送らず、問題/版に結び付いた本文だけを提出する。
+export async function confirmationSubmission(q, policy, entries, journal) {
+  if (q?.kind !== 'confirmation' || !Array.isArray(q.codeRefs) || !q.codeRefs.length || q.codeRefs.length > 8)
+    throw error('confirmation', '確認問題の参照元を確認できません。');
+  const keys = new Set(q.codeRefs.map(questionKey)), seen = new Set();
+  const sources = q.codeRefs.map(ref => {
+    if (!validId(ref.questionId) || !validId(ref.version) || seen.has(questionKey(ref))) throw error('confirmation', '参照元の問題・版が不正です。');
+    seen.add(questionKey(ref));
+    const matches = entries.filter(entry => questionKey(entry) === questionKey(ref));
+    if (matches.length !== 1 || typeof matches[0].code !== 'string' || matches[0].code.length > LIMITS.code)
+      throw error('confirmation', '参照元のコードを読み込んでから提出してください。');
+    return { questionId: ref.questionId, version: ref.version, code: matches[0].code };
+  });
+  const value = validateJournal(journal), question = questionKey(q);
+  const selected = { schema: 1, trials: value.trials.filter(trial => keys.has(questionKey(trial.source))),
+    responses: Object.hasOwn(value.responses, question) ? { [question]: value.responses[question] } : {} };
+  validateJournal(selected);
+  for (const trial of selected.trials) if (await codeHash(trial.code) !== trial.codeHash) throw error('confirmation', '試行記録のコードとhashが一致しません。元の記録を保持して提出を止めました。');
+  const input = { kind: 'confirmation-v1', questionId: q.questionId, version: q.version, assignmentId: policy.assignmentId, sources, journal: selected };
+  // 受付で追加するrequestId/evidenceHashを含め、サーバーと同じ上限を先に検査する。
+  if (canonicalEvidence({ ...input, requestId: '0'.repeat(32), evidenceHash: '0'.repeat(64) }).length > 960000)
+    throw error('payload_too_large', 'この確認問題の提出記録が上限を超えています。記録は削除していません。ファイルに保存して教員へ相談してください。');
+  return input;
+}
+export async function confirmationEvidenceHash(input) {
+  return codeHash(canonicalEvidence({ questionId: input.questionId, version: input.version, sources: input.sources, journal: input.journal }));
 }

@@ -159,6 +159,6 @@ test('確認問題は正式提出と星評価から除外し、ブラウザの�
   const request = { ...f.submission(), questionId: 'check1' };
   assert.throws(() => f.dispatch('submit', request), error => error.pythonEditorCode === 'not_allowed');
   const f2 = createCloudFixture(); body.graded = true; f2.freeze(body);
-  assert.throws(() => f2.dispatch('submit', request), error => error.pythonEditorCode === 'not_allowed');
+  assert.throws(() => f2.dispatch('submit', request), error => error.pythonEditorCode === 'invalid_input');
   assert.equal(f2.store.requests(f2.P.gradeGroup(f2.environment.actor.key, f2.config.assignments[0], 'check1')).length, 0);
 });

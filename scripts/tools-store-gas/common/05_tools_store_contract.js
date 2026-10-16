@@ -9,7 +9,12 @@ var ToolsStoreContract = (function () {
     GUIDE: '使い方', SHEET: 'Python', HISTORY: 'Python履歴',
     HEADERS: Object.freeze(HEADERS), DRAFTS: 256, BLOCK: 4, DRAFT_ROWS: 1025,
     HISTORY_ROWS: 2049, PARTS: 5, CHUNK: 45000, MAX_TEXT: 200000,
-    RECENT: 16, CHECKPOINT_MS: 300000
+    RECENT: 16, CHECKPOINT_MS: 300000,
+    CONFIRMATION: Object.freeze({ SCHEMA: 1, SHEET: 'Python確認', RECEIPTS: 'Python確認受付',
+      HEADERS: Object.freeze(['confirmationKeyV1', 'recordKind', 'metaJson', 'payload']),
+      RECEIPT_HEADERS: Object.freeze(['confirmationRequestV1', 'recordKind', 'metaJson', 'payload']),
+      MAX_BYTES: 4194304, CHUNK: 32000, PARTS: 132, SLOTS: 8, BLOCK: 133, ROWS: 1067,
+      RECEIPT_ROWS: 4097, READ_MS: 300000, UPLOAD_MS: 1200000 })
   });
   function fail(code, message) {
     var error = new Error(message || 'クラウド保存を完了できませんでした。');

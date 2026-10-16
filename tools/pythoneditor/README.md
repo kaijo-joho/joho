@@ -1,5 +1,7 @@
 # Pythonエディタ 0.1 BETA
 
+2026-10-17：確認記録の同時保存による欠落をWeb Locksで防ぎ、旧ブラウザ保存を残したまま新しい保存キーへ移行する。試行・回答のクラウド自動保存/復元、明示選択と控えによる競合解決、正式提出・結果照会・★表示のソースを追加した。確認問題の正式配点は未設定のまま。本番GAS・GSS・権限は変更せず、保存と提出の接続は無効を維持する。契約と反映前の具体案は[CONFIRMATION-SYNC.md](CONFIRMATION-SYNC.md)。
+
 2026-10-17：コード・エラー・任意の相談文を確認し、既存pyerrの回答をエディタ内に表示する相談室を追加した。共有履歴、問題・版・実行に結び付けた回答、応答消失時の結果照会を実装した。公開フロントの相談接続は無効。GASは私有コピーの準備とローカル検証までで、本番反映・新しい権限設定・AIへの実送信は行っていない。構成と有効化前の具体案は[ADVICE.md](ADVICE.md)。
 
 2026-10-16：教員1名と指定した高1デモ用アカウント1名による問題配布専用の検証入口を準備した。デモは閲覧だけの別roleとし、配信・設定は教員に限定する。[TEACHER-PREVIEW.md](TEACHER-PREVIEW.md) に新規GAS・OAuth・専用接続の範囲、配置・実機確認・停止手順を記載。問題配布専用の接続を有効にした。通常のクラウド保存・正式採点は無効のまま。実配置と学校実機の確認結果は同手順へ記録する。
@@ -41,6 +43,7 @@ URLは`?set=<setId>&question=<questionId>&version=<version>`。将来の写経�
 - `advice.mjs` / `advice-ui.mjs` / `advice.css`: 相談用コピーの確認、共有確認、JSON回答、本人別の送信控えと結果照会、過去の相談。接続は`advice-config.mjs`で既定無効。
 - `scripts/pythoneditor-advice-gas/` / `scripts/prepare-pythoneditor-advice-gas.mjs`: pyerrのHTML互換を維持する追加窓口と、原本を変更せず私有の配置候補を作る準備処理。
 - `storage.mjs` / `core.mjs`: 問題・版ごとの保存、競合検知、形式・上限の検査。
+- `confirmation-store.mjs` / `confirmation-cloud.mjs`: 確認記録の排他保存、分割送信、同一要求の照会・再送、版固定の取得、回答の三方向マージ。
 - `cloud.mjs` / `cloud-ui.mjs`: 学校アカウント接続、GSS保存/復元/競合、送信控え、正式提出と結果照会。
 - `scripts/pythoneditor-gas/`: gradeへ追加する専用8ファイル。版固定、GSSの追記保存、現行Python判定コードの独立コピー。配置・保存契約は[CLOUD.md](CLOUD.md)。
 - `question-structure.mjs`: 取得済みの問題からセット・大問・小問の表示を整理する。正本は書き換えず、共通説明・条件・入出力例を保持する。

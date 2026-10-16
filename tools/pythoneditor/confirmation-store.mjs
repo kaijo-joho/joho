@@ -1,7 +1,9 @@
 import { normalizeTrial, refKey } from './confirmation.mjs?v=20261016-confirmation1';
 
 // 学習用の試行記録。正式得点・提出状態・認証情報は保存しない。
-export const CONFIRMATION_STORAGE_KEY = 'joho.pythoneditor.confirmations.v1';
+export const LEGACY_CONFIRMATION_STORAGE_KEY = 'joho.pythoneditor.confirmations.v1';
+export const CONFIRMATION_STORAGE_KEY = 'joho.pythoneditor.confirmations.v2';
+const BACKUP_PREFIX = 'joho.pythoneditor.confirmations.backup.v1.';
 export const JOURNAL_LIMITS = Object.freeze({ trials: 1000, responses: 2000, bytes: 4 * 1024 * 1024 });
 const idPattern = /^[A-Za-z][A-Za-z0-9_.-]{0,119}$/;
 const trialIdPattern = /^[A-Za-z0-9_.-]{1,120}$/;
@@ -68,7 +70,7 @@ export function validateJournal(raw) {
   return withinLimits({ schema: 1, trials, responses });
 }
 
-function mergeJournals(current, incoming) {
+export function mergeJournals(current, incoming) {
   const trials = new Map(current.trials.map(trial => [trial.id, trial]));
   for (const trial of incoming.trials) {
     if (trials.has(trial.id) && JSON.stringify(trials.get(trial.id)) !== JSON.stringify(trial))
@@ -84,13 +86,27 @@ function mergeJournals(current, incoming) {
   return withinLimits({ schema: 1, trials: [...trials.values()], responses });
 }
 
+// Nodeでの合成試験用。ブラウザでは同一originのWeb Locksで別タブも排他する。
+const testQueues = new WeakMap();
+function nodeLocks(storage) {
+  return { request: async (_name, fn) => {
+    const previous = testQueues.get(storage) || Promise.resolve(); let release;
+    const next = new Promise(resolve => { release = resolve; }); testQueues.set(storage, next);
+    await previous.catch(() => {});
+    try { return await fn(); } finally { release(); }
+  } };
+}
+
 export class ConfirmationStore {
-  constructor(storage) {
+  constructor(storage, options = {}) {
     this.lastError = null;
+    this.pending = new Set(); this.listeners = new Set();
     this.journal = empty();
     this.baseline = empty();
-    try { this.storage = arguments.length ? storage : globalThis.localStorage; }
+    try { this.storage = storage === undefined ? globalThis.localStorage : storage; }
     catch { this.storage = null; this.lastError = fail('storage', 'ブラウザ保存を使用できません。試行記録はこの画面内に保持します。'); }
+    this.locks = Object.hasOwn(options, 'locks') ? options.locks : typeof window === 'undefined' && this.storage
+      ? nodeLocks(this.storage) : globalThis.navigator?.locks;
     try {
       const { journal } = this.readStored();
       this.journal = journal;
@@ -98,17 +114,32 @@ export class ConfirmationStore {
     } catch (error) { this.lastError = error; }
   }
   snapshot() { return clone(this.journal); }
+  subscribe(listener) { this.listeners.add(listener); return () => this.listeners.delete(listener); }
+  notify() { for (const listener of this.listeners) listener(); }
+  track(task) {
+    this.pending.add(task);
+    task.then(() => { this.pending.delete(task); this.notify(); }, () => { this.pending.delete(task); this.notify(); });
+    return task;
+  }
+  async idle() { while (this.pending.size) await Promise.allSettled([...this.pending]); }
   trials(refs) {
     if (!Array.isArray(refs)) throw fail('journal_invalid', '参照するコードの問題ID・版を確認してください。');
     const keys = new Set(refs.map(ref => key(refKey(ref))));
     return clone(this.journal.trials.filter(trial => keys.has(refKey(trial.source))));
   }
   response(questionKey) { return clone(this.journal.responses[key(questionKey)] ?? null); }
+  legacySnapshot() {
+    const raw = this.storage?.getItem(LEGACY_CONFIRMATION_STORAGE_KEY);
+    return raw == null ? null : validateJournal(JSON.parse(raw));
+  }
   readStored() {
     if (!this.storage || typeof this.storage.getItem !== 'function' || typeof this.storage.setItem !== 'function')
       throw fail('storage', 'ブラウザ保存を使用できません。試行記録はこの画面内に保持します。');
     let raw;
-    try { raw = this.storage.getItem(CONFIRMATION_STORAGE_KEY); }
+    try {
+      raw = this.storage.getItem(CONFIRMATION_STORAGE_KEY);
+      if (raw === null) raw = this.storage.getItem(LEGACY_CONFIRMATION_STORAGE_KEY);
+    }
     catch { throw fail('storage', 'ブラウザ保存を読み取れません。試行記録はこの画面内に保持しています。'); }
     if (raw === null) return { journal: empty(), raw };
     try { return { journal: validateJournal(JSON.parse(raw)), raw }; }
@@ -132,7 +163,80 @@ export class ConfirmationStore {
     merged.responses = Object.fromEntries(Object.entries(responses).filter(([, value]) => value !== undefined));
     return withinLimits(merged);
   }
-  commit(candidate, { keepOnConflict = false } = {}) {
+  commit(candidate, options = {}) { return this.track(this.commitAsync(candidate, options)); }
+  async commitAsync(candidate, options = {}) {
+    candidate = validateJournal(candidate);
+    if (!this.storage) return this.commitLocked(candidate, options);
+    if (!this.locks?.request) {
+      this.journal = candidate;
+      this.lastError = fail('storage_lock', 'ブラウザの排他保存を使用できません。確認記録はこの画面内に保持しています。クラウドまたはファイルへ保存してください。');
+      return this.snapshot();
+    }
+    return this.locks.request(CONFIRMATION_STORAGE_KEY, () => this.commitLocked(candidate, options));
+  }
+  // storageイベントで別タブの追加を反映する。イベントを往復させないよう再保存しない。
+  refresh() {
+    return this.track((async () => {
+      const read = () => {
+        try {
+          const { journal } = this.readStored();
+          this.journal = this.reconcile(this.journal, journal); this.baseline = clone(journal);
+          if (JSON.stringify(this.journal) === JSON.stringify(journal)) this.lastError = null;
+          else this.lastError ||= fail('storage_pending', 'この画面内にブラウザ未保存の確認記録があります。クラウドまたはファイルへ保存してください。');
+        } catch (error) { this.lastError = error; }
+        return this.snapshot();
+      };
+      return this.locks?.request ? this.locks.request(CONFIRMATION_STORAGE_KEY, read) : read();
+    })());
+  }
+  backups() {
+    if (!this.storage) return [];
+    const values = [];
+    for (let index = 0; index < this.storage.length; index++) {
+      const name = this.storage.key(index); if (!name?.startsWith(BACKUP_PREFIX)) continue;
+      const value = JSON.parse(this.storage.getItem(name));
+      if (typeof value.reason !== 'string' || !Number.isFinite(Date.parse(value.at))) throw fail('storage_invalid', '確認記録の控えを読み取れません。元の控えは保持しています。');
+      values.push({ id: name, ...value, journal: validateJournal(value.journal) });
+    }
+    return values.sort((a, b) => b.at.localeCompare(a.at));
+  }
+  backup(reason, raw = this.snapshot()) {
+    const value = { reason, at: new Date().toISOString(), journal: validateJournal(raw) };
+    const name = BACKUP_PREFIX + crypto.randomUUID();
+    try {
+      const serialized = JSON.stringify(value); this.storage.setItem(name, serialized);
+      if (this.storage.getItem(name) !== serialized) throw new Error();
+    } catch { throw fail('storage_backup', '確認記録の控えを保存できません。現在の内容は変更していません。ファイルへ保存してから教員へ相談してください。'); }
+    return name;
+  }
+  // クラウド読込開始後の編集は置換しない。変更する回答の元内容を先に控える。
+  adoptRemote(raw, { expectedLocal, isCurrent = () => true } = {}) {
+    const incoming = validateJournal(raw), expected = validateJournal(expectedLocal);
+    return this.track((async () => {
+      if (!this.locks?.request) throw fail('storage_lock', '安全に取り込むための排他保存を使用できません。元の内容は保持しています。');
+      return this.locks.request(CONFIRMATION_STORAGE_KEY, () => {
+        if (!isCurrent()) throw fail('journal_changed', '接続先が変更されたため取り込みを中止しました。現在の記録は保持しています。');
+        const stored = this.readStored(), current = this.reconcile(this.journal, stored.journal);
+        const responses = { ...current.responses }; let replacing = false;
+        for (const [name, value] of Object.entries(incoming.responses)) {
+          if (JSON.stringify(expected.responses[name]) === JSON.stringify(value)) continue;
+          if (JSON.stringify(current.responses[name]) !== JSON.stringify(expected.responses[name]) && JSON.stringify(current.responses[name]) !== JSON.stringify(value))
+            throw fail('journal_changed', '取得中に回答が変更されました。現在の回答を保持しています。もう一度同期してください。');
+          replacing ||= current.responses[name] !== undefined && JSON.stringify(current.responses[name]) !== JSON.stringify(value);
+          responses[name] = value;
+        }
+        const merged = mergeJournals({ ...current, responses: {} }, { ...incoming, responses: {} }); merged.responses = responses;
+        validateJournal(merged);
+        if (replacing) this.backup('クラウドの回答を取り込む前', current);
+        if (!isCurrent()) throw fail('journal_changed', '接続先が変更されたため取り込みを中止しました。現在の記録は保持しています。');
+        this.journal = current; this.baseline = clone(stored.journal);
+        const result = this.commitLocked(merged);
+        if (this.lastError) throw this.lastError;
+        return result;
+      });
+    })());
+  }
+  commitLocked(candidate, { keepOnConflict = false } = {}) {
     candidate = validateJournal(candidate);
     let stored;
     try { stored = this.readStored(); }
@@ -175,7 +279,8 @@ export class ConfirmationStore {
     this.lastError = fail('storage_changed', '別のタブによる更新が続いています。記録をこの画面内に保持し、保存を止めました。');
     return this.snapshot();
   }
-  async record(input) {
+  record(input) { return this.track(this.recordAsync(input)); }
+  async recordAsync(input) {
     try {
       object(input, ['schema', 'source', 'code', 'inputs', 'stdout', 'stderr', 'outcome', 'truncated', 'at'], '実行記録');
       // 呼出し後の問題切替・コード編集に影響されない実行開始時の写しを使う。
@@ -184,20 +289,20 @@ export class ConfirmationStore {
       if (typeof captured.code !== 'string' || captured.code.length > 200000) throw fail('journal_invalid', '記録するコードの形式・長さを確認してください。');
       const trial = normalizeTrial({ ...captured, schema: 1, id: `trial-${globalThis.crypto.randomUUID()}`,
         codeHash: await codeHash(captured.code), at: captured.at ?? new Date().toISOString() });
-      this.commit({ ...this.journal, trials: [...this.journal.trials, trial] }, { keepOnConflict: true });
+      await this.commit({ ...this.journal, trials: [...this.journal.trials, trial] }, { keepOnConflict: true });
       return clone(trial);
     } catch (error) { this.lastError = error; throw error; }
   }
-  setResponse(questionKey, value) {
+  async setResponse(questionKey, value) {
     try {
       const responses = { ...this.journal.responses, [key(questionKey)]: response(value) };
-      return this.commit({ ...this.journal, responses });
+      return await this.commit({ ...this.journal, responses });
     } catch (error) { this.lastError = error; throw error; }
   }
-  restore(raw, { merge = true } = {}) {
+  async restore(raw, { merge = true } = {}) {
     try {
       if (merge !== true) throw fail('journal_restore', '既存の試行記録を破棄する取込みには対応していません。');
-      return this.commit(mergeJournals(this.journal, validateJournal(raw)));
+      return await this.commit(mergeJournals(this.journal, validateJournal(raw)));
     } catch (error) { this.lastError = error; throw error; }
   }
 }

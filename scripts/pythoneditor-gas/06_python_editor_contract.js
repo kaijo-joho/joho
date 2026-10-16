@@ -46,6 +46,8 @@ var PythonEditor = (function () {
       code: text(input.code, LIMITS.code), stdin: text(input.stdin, LIMITS.input) };
   }
   function submission(input, hash) {
+    if (input && Object.prototype.hasOwnProperty.call(input, 'kind')) assert(input.kind === 'confirmation-v1', 'invalid_input');
+    if (input && input.kind === 'confirmation-v1') return confirmationSubmission(input, hash);
     var q = scope(input);
     request(input);
     assert(assignmentId(input.assignmentId), 'invalid_input');
@@ -61,6 +63,50 @@ var PythonEditor = (function () {
     assert(r.codeHash === hash(value.code), 'stale_output');
     assert(canonical(value).length <= LIMITS.payload, 'payload_too_large');
     return value;
+  }
+  function exact(value, fields) {
+    assert(value && Object.prototype.toString.call(value) === '[object Object]' && Object.keys(value).every(function (name) { return fields.indexOf(name) >= 0; }), 'invalid_input');
+  }
+  function confirmationSubmission(input, hash) {
+    exact(input, ['kind','questionId','version','assignmentId','requestId','sources','journal','intakeTicket']);
+    var q = scope(input); request(input);
+    assert(input.kind === 'confirmation-v1' && assignmentId(input.assignmentId) && Array.isArray(input.sources) && input.sources.length >= 1 && input.sources.length <= 8, 'invalid_input');
+    var sourceKeys = Object.create(null), sources = input.sources.map(function (source) {
+      exact(source, ['questionId','version','code']); var ref = scope(source), key = PythonEditor.key(ref);
+      assert(!sourceKeys[key], 'invalid_input'); sourceKeys[key] = true;
+      return { questionId: ref.questionId, version: ref.version, code: text(source.code, LIMITS.code) };
+    });
+    exact(input.journal, ['schema','trials','responses']);
+    assert(input.journal.schema === 1 && Array.isArray(input.journal.trials) && input.journal.trials.length <= 1000, 'invalid_input');
+    var trialIds = Object.create(null), trials = input.journal.trials.map(function (trial) {
+      var normalized;
+      try { normalized = PythonEditorConfirmation.normalizeTrial(trial); } catch (_) { fail('invalid_input'); }
+      assert(sourceKeys[key(normalized.source)] && !trialIds[normalized.id], 'invalid_input'); trialIds[normalized.id] = true;
+      // 実行の証明ではなく、送信された本文とhashの整合性だけを検査する。
+      assert(normalized.codeHash === hash(normalized.code), 'stale_output'); return normalized;
+    });
+    var responseKey = key(q), responses = {};
+    exact(input.journal.responses, [responseKey]);
+    if (Object.prototype.hasOwnProperty.call(input.journal.responses, responseKey)) {
+      var raw = input.journal.responses[responseKey], response = {}; exact(raw, ['answer','selections']);
+      if (Object.prototype.hasOwnProperty.call(raw, 'answer')) {
+        assert(typeof raw.answer === 'string' && raw.answer.length <= 20000 || typeof raw.answer === 'number' && Number.isFinite(raw.answer), 'invalid_input');
+        response.answer = raw.answer;
+      }
+      if (Object.prototype.hasOwnProperty.call(raw, 'selections')) {
+        exact(raw.selections, Object.keys(raw.selections || {})); var names = Object.keys(raw.selections);
+        assert(names.length <= 100, 'invalid_input'); response.selections = {};
+        names.forEach(function (name) { assert(id(name) && typeof raw.selections[name] === 'string' && trialIds[raw.selections[name]], 'invalid_input'); response.selections[name] = raw.selections[name]; });
+      }
+      responses[responseKey] = response;
+    }
+    var value = { kind: 'confirmation-v1', questionId: q.questionId, version: q.version, assignmentId: input.assignmentId,
+      requestId: input.requestId, sources: sources, journal: { schema: 1, trials: trials, responses: responses } };
+    value.evidenceHash = confirmationEvidenceHash(value, hash);
+    assert(canonical(value).length <= LIMITS.payload, 'payload_too_large'); return value;
+  }
+  function confirmationEvidenceHash(value, hash) {
+    return hash(canonical({ questionId: value.questionId, version: value.version, sources: value.sources, journal: value.journal }));
   }
   function extract(code, ranges) {
     var lines = code.replace(/\r\n?/g, '\n').split('\n'), used = [], result = {};
@@ -85,10 +131,13 @@ var PythonEditor = (function () {
   function gradeGroup(actorKey, policy, questionId) { return [actorKey, policy.year, policy.setId, questionId].join('/'); }
   function publicDraft(r) { return r ? { questionId: r.questionId, version: r.version, revision: r.revision, seq: r.seq, updatedAt: r.at, code: r.body.code, stdin: r.body.stdin } : null; }
   function receipt(r, result) {
-    return { requestId: r.requestId, questionId: r.questionId, version: r.version, assignmentId: r.policy.assignmentId,
-      receivedAt: r.at, dueAt: r.policy.dueAt, late: r.at > r.policy.dueAt, codeHash: r.body.run.codeHash,
+    var value = { requestId: r.requestId, questionId: r.questionId, version: r.version, assignmentId: r.policy.assignmentId,
+      receivedAt: r.at, dueAt: r.policy.dueAt, late: r.at > r.policy.dueAt,
       state: result ? 'submitted' : 'pending', score: result ? result.body.score : null,
       gradedAt: result ? result.at : null, checks: result ? result.body.checks : [], diagnostics: result ? result.body.diagnostics : [] };
+    if (r.body.kind === 'confirmation-v1') { value.kind = 'confirmation-v1'; value.evidenceHash = r.body.evidenceHash; }
+    else value.codeHash = r.body.run.codeHash;
+    return value;
   }
   var messages = {
     login_required: '学校アカウントで再接続してください。コードは保持しています。',
@@ -119,5 +168,6 @@ var PythonEditor = (function () {
   }
   return { LIMITS: LIMITS, ID: ID, REQUEST: REQUEST, HASH: HASH, fail: fail, assert: assert, id: id, assignmentId: assignmentId, iso: iso, text: text,
     canonical: canonical, hashText: hashText, uuid: uuid, intakeIssue: intakeIssue, intakeVerify: intakeVerify, scope: scope, key: key, request: request, draft: draft, submission: submission,
+    confirmationEvidenceHash: confirmationEvidenceHash,
     extract: extract, draftGroup: draftGroup, gradeGroup: gradeGroup, publicDraft: publicDraft, receipt: receipt, error: error };
 })();

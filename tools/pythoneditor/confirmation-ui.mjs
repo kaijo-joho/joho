@@ -14,7 +14,7 @@ function shortOutput(trial) { return trial.stdout.trim().split('\n').at(-1)?.sli
 // Learning observations are separate from official grades. Every label comes from
 // declared public conditions; this view never accepts or generates a score.
 export class ConfirmationPanel {
-  constructor(host, store, root) { this.host = host; this.store = store; this.root = root; this.selected = new Map(); }
+  constructor(host, store, root) { this.host = host; this.store = store; this.root = root; this.selected = new Map(); this.answerDrafts = new Map(); }
   source(q) {
     if (q?.kind !== 'confirmation') return null;
     const selected = this.selected.get(questionKey(q));
@@ -32,13 +32,17 @@ export class ConfirmationPanel {
   label(q) {
     try { return this.progress(q).label; } catch { return '確認条件を読み込めません'; }
   }
-  saveResponse(q, response) {
+  unrecorded(q) {
+    const values = q ? [[questionKey(q), this.answerDrafts.get(questionKey(q))]] : [...this.answerDrafts];
+    return values.some(([key, value]) => value !== undefined && value !== String(this.store.response(key)?.answer ?? ''));
+  }
+  async saveResponse(q, response) {
     const focusId = document.activeElement?.id;
     try {
-      this.store.setResponse(questionKey(q), response);
+      await this.store.setResponse(questionKey(q), response);
       if (this.store.lastError) this.host.warning(this.store.lastError.message);
       this.host.changed();
-      if (focusId) this.root.querySelector(`#${CSS.escape(focusId)}`)?.focus();
+      if (focusId && this.host.question?.() === q) this.root.querySelector(`#${CSS.escape(focusId)}`)?.focus();
     } catch (error) { this.host.warning(error.message); }
   }
   render(q) {
@@ -108,16 +112,20 @@ export class ConfirmationPanel {
   }
   renderAnswer(q) {
     const config = q.checkConfig, response = this.store.response(questionKey(q)) || {};
+    const draft = this.answerDrafts.get(questionKey(q)), value = draft ?? response.answer ?? '';
     const form = element('form', 'confirmation-answer'), label = element('label', '', config.question);
     let input;
     if (config.format === 'choice') {
       input = element('select');
       const option = element('option', '', '回答を選んでください'); option.value = ''; input.append(option);
       for (const choice of config.choices) { const option = element('option', '', choice.label); option.value = choice.id; input.append(option); }
-      input.value = response.answer ?? '';
+      input.value = value;
     } else {
-      input = element('input'); input.type = 'number'; input.step = 'any'; input.value = response.answer ?? '';
+      input = element('input'); input.type = 'number'; input.step = 'any'; input.value = value;
     }
+    const note = element('p', 'muted', '入力中の回答は未記録です。「回答を記録」を押してください。'); note.id = 'confirmation-answer-unsaved'; note.hidden = String(value) === String(response.answer ?? '');
+    const remember = () => { this.answerDrafts.set(questionKey(q), input.value); note.hidden = !this.unrecorded(q); };
+    input.addEventListener('input', remember); input.addEventListener('change', remember);
     input.id = 'confirmation-answer'; input.required = true; label.append(input); form.append(label);
     const save = element('button', '', '回答を記録'); save.type = 'submit'; save.id = 'confirmation-answer-save'; form.append(save);
     form.addEventListener('submit', event => {
@@ -125,9 +133,12 @@ export class ConfirmationPanel {
       if (!input.value || !form.reportValidity()) return;
       const answer = config.format === 'number' ? Number(input.value) : input.value;
       if (config.format === 'number' && !Number.isFinite(answer)) return;
-      this.saveResponse(q, { answer });
+      const captured = input.value;
+      this.saveResponse(q, { answer }).then(() => {
+        if (this.store.response(questionKey(q))?.answer === answer && this.answerDrafts.get(questionKey(q)) === captured) this.answerDrafts.delete(questionKey(q));
+      });
     });
-    this.root.append(form);
+    this.root.append(form, note);
   }
   renderHistory(q) {
     const trials = this.store.trials(q.codeRefs);

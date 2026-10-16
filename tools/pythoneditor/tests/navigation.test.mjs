@@ -28,3 +28,10 @@ test('星の不正な値や版を拒否する',()=>{
   for(const raw of [{earned:4,total:3},{earned:-1,total:3},{earned:1.5,total:3},{earned:1,total:10001},{earned:1,total:3,version:'<script>'}])assert.throws(()=>validateRating(raw));
   assert.deepEqual(validateRating({earned:null,total:3,version:'v1'}),{earned:null,total:3,version:'v1',example:false});
 });
+test('正式採点設定のある確認問題だけを★合計に含める',()=>{
+  const a={questionId:'code',version:'v1',kind:'code'},b={questionId:'check',version:'v1',kind:'confirmation'},c={questionId:'ungraded',version:'v1',kind:'confirmation'};
+  const ratings=new Map([['code',{earned:2,total:3}],['check',{earned:1,total:2}]]);
+  assert.deepEqual(setRating({questions:[a,b,c]},q=>ratings.get(q.questionId)||null),{earned:3,total:5,example:false});
+  ratings.set('check',{earned:null,total:2});
+  assert.deepEqual(setRating({questions:[b,c]},q=>ratings.get(q.questionId)||null),{earned:0,total:2,example:false});
+});

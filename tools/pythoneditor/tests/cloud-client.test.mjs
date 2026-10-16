@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CloudWorkspace, CloudJournal, GoogleBridge, bridgeURL, googleOrigin, codeHash, submissionText } from '../cloud.mjs';
+import { CloudWorkspace, CloudJournal, GoogleBridge, bridgeURL, googleOrigin, codeHash, submissionText, confirmationSubmission, confirmationEvidenceHash } from '../cloud.mjs';
+import { createCloudFixture } from './cloud-fixture.mjs';
 import { DraftStore } from '../storage.mjs';
 const actorKey='a'.repeat(64),q={questionId:'q1',version:'v1'},policy={...q,assignmentId:'assignment1',canSubmit:true};
 const T0='2026-10-14T00:00:00.000Z';
@@ -93,4 +94,33 @@ test('サーバー到着証明を控えに保持して再送し、コード本�
   const rpc=async(_a,input)=>{calls.push(input);if(fail){const e=new Error('busy');e.intakeTicket=ticket;throw e;}return{receipt:{state:'submitted',requestId:input.requestId}};};
   const cloud=new CloudWorkspace(rpc,session,storage),body=await submissionText(entry,policy,null);await assert.rejects(cloud.submit(body));
   fail=false;await new CloudWorkspace(rpc,session,storage).submit(body);assert.deepEqual(calls[1].intakeTicket,ticket);assert.equal(calls[1].requestId,calls[0].requestId);assert.equal(calls[1].code,calls[0].code);
+});
+test('確認提出は参照した問題/版の本文だけを送り、サーバーと同じevidenceHashになる', async () => {
+  const q={questionId:'check1',version:'v1',kind:'confirmation',codeRefs:[{questionId:'q1',version:'v1'}]};
+  const trial={schema:1,id:'trial-a',source:{questionId:'q1',version:'v1'},code:'print(2)',codeHash:await codeHash('print(2)'),inputs:[],stdout:'2\n',stderr:'',outcome:'success',truncated:false,at:T0};
+  const unrelated={...trial,id:'trial-b',source:{questionId:'another',version:'v2'}};
+  const input=await confirmationSubmission(q,policy,[entry,{...entry,questionId:'another'}],{schema:1,trials:[trial,unrelated],responses:{'v1/check1':{selections:{first:trial.id}},'v2/check2':{answer:2}}});
+  assert.deepEqual(input.sources,[{questionId:'q1',version:'v1',code:'print(2)'}]); assert.deepEqual(input.journal.trials,[trial]);
+  assert.deepEqual(Object.keys(input.journal.responses),['v1/check1']); assert.equal(input.completed,undefined); assert.equal(input.score,undefined);
+  const f=createCloudFixture(),normalized=f.P.submission({...input,requestId:'1'.repeat(32)},f.P.hashText);
+  assert.equal(await confirmationEvidenceHash(input),normalized.evidenceHash);
+  const changed=structuredClone(input);changed.journal.responses['v1/check1'].answer=1;
+  assert.notEqual(await confirmationEvidenceHash(changed),normalized.evidenceHash);
+});
+test('確認提出は参照版の不足・改変hash・関連外試行への選択・容量超過を無断補正しない', async () => {
+  const q={questionId:'check1',version:'v1',kind:'confirmation',codeRefs:[{questionId:'q1',version:'v1'}]};
+  const trial={schema:1,id:'trial-a',source:{questionId:'q1',version:'v1'},code:'print(2)',codeHash:await codeHash('print(2)'),inputs:[],stdout:'2\n',stderr:'',outcome:'success',truncated:false,at:T0};
+  await assert.rejects(confirmationSubmission(q,policy,[{...entry,version:'v2'}],{schema:1,trials:[],responses:{}}),/参照元/);
+  await assert.rejects(confirmationSubmission(q,policy,[entry],{schema:1,trials:[{...trial,codeHash:'a'.repeat(64)}],responses:{}}),/hash/);
+  await assert.rejects(confirmationSubmission(q,policy,[entry],{schema:1,trials:[{...trial,source:{questionId:'another',version:'v1'}}],responses:{'v1/check1':{selections:{one:trial.id}}}}),/試行/);
+  const code='#'.repeat(195000),large={...trial,code,codeHash:await codeHash(code)};
+  await assert.rejects(confirmationSubmission(q,policy,[entry],{schema:1,trials:Array.from({length:5},(_,i)=>({...large,id:'t'+i})),responses:{}}),e=>e.code==='payload_too_large');
+});
+test('確認提出も応答消失後は元の試行・回答・IDを保持し、新しい回答へ差し替えない', async () => {
+  const storage=new Storage(),calls=[];let complete=false;
+  const cloud=new CloudWorkspace(async(_a,input)=>{calls.push(structuredClone(input));if(!complete)throw new Error('lost');return{receipt:{state:'submitted',requestId:input.requestId}};},session,storage);
+  const input={kind:'confirmation-v1',questionId:'check1',version:'v1',assignmentId:policy.assignmentId,sources:[entry],journal:{schema:1,trials:[],responses:{'v1/check1':{answer:1}}}};
+  await assert.rejects(cloud.submit(input)); complete=true;
+  const changed=structuredClone(input);changed.journal.responses['v1/check1'].answer=2;
+  await cloud.submit(changed);assert.deepEqual(calls[1],calls[0]);assert.equal(storage.length,0);
 });

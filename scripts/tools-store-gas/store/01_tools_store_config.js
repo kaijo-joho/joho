@@ -7,6 +7,7 @@ function toolsStoreConfig_() {
   }
   return {
     enabled: p.getProperty('TOOLS_STORE_ENABLED') === 'true',
+    confirmationEnabled: p.getProperty('TOOLS_STORE_CONFIRMATION_ENABLED') === 'true',
     bindingKey: p.getProperty('TOOLS_STORE_BINDING_KEY') || '',
     allowedOrigins: list('TOOLS_STORE_ALLOWED_ORIGINS'),
     allowedDomains: list('TOOLS_STORE_ALLOWED_DOMAINS'),
