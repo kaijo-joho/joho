@@ -1,6 +1,6 @@
 // Synthetic page records only. QR determines sides; no image or student data.
 import assert from 'node:assert/strict';
-import {checkPages} from '../assets/ws-home/10_model.mjs';
+import {checkPages,parsePairingQr} from '../assets/ws-home/10_model.mjs';
 const page=(side,reading={})=>({correctedBlob:new Blob(['synthetic']),reading:{status:'OK',qr:{subject:'INFO1',year:2026,worksheetId:'dr41',side},classNumber:3,number:7,...reading}});
 const front=page('F'),back=page('B');let passed=0;
 function test(name,fn){fn();passed++;console.log('OK '+name);}
@@ -26,4 +26,16 @@ test('unread back marks remain mandatory',()=>assert.equal(checkPages({F:page('B
 test('pending originals cannot pass confirmation',()=>assert.equal(checkPages({F:{originalBlob:new Blob(),reading:{status:'PENDING'}},B:front}).ok,false));
 test('missing QR side cannot pass confirmation',()=>assert.equal(checkPages({F:page('F',{qr:null}),B:back}).ok,false));
 test('missing mark values cannot pass even with a claimed OK status',()=>assert.equal(checkPages({F:front,B:page('B',{number:null})}).ok,false));
-console.log(JSON.stringify({mode:'SYNTHETIC_SIDE_MAPPING',passed}));
+const origin='https://joho.kaijo.ed.jp',token='synthetic_pair_token_for_qa_only_1234';
+for(const route of ['/ws/capture.html','/ws-capture.html'])test('pair QR accepts canonical or compatible capture URL '+route,()=>assert.equal(parsePairingQr(origin+route+'#pair='+token,origin),token));
+for(const url of [
+  'https://example.test/ws/capture.html#pair='+token,
+  'http://joho.kaijo.ed.jp/ws/capture.html#pair='+token,
+  origin+'/ws/index.html#pair='+token,
+  origin+'/ws/capture.html?redirect=other#pair='+token,
+  origin+'/ws/capture.html#pair='+token+'&other=1',
+  origin+'/ws/capture.html#pair='+token+'&pair='+token,
+  origin+'/ws/capture.html#pair=short',
+  'https://user:password@joho.kaijo.ed.jp/ws/capture.html#pair='+token
+])test('pair QR rejects another origin, route, query, capability or credentials '+passed,()=>assert.throws(()=>parsePairingQr(url,origin)));
+console.log(JSON.stringify({mode:'SYNTHETIC_SIDE_MAPPING_AND_PAIR_URL',passed}));

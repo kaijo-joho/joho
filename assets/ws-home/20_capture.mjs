@@ -1,4 +1,4 @@
-import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob, parsePairingQr} from './10_model.mjs?v=20261015-5';
+import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob, parsePairingQr} from './10_model.mjs?v=20261016-5';
 import {processImage, loadImage, detectMarkers, layouts} from './11_vision.mjs?v=20261016-1';
 import {getDraft, saveDraft, probeStorage, deviceId} from './12_store.mjs';
 import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs?v=20261016-4';

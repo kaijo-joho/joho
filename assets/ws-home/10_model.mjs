@@ -26,7 +26,7 @@ export function parseWorksheetQr(value) {
 }
 export function parsePairingQr(value, origin) {
   const u = new URL(value);
-  if (u.origin !== origin || u.pathname !== '/ws-capture.html' || u.search) throw Error('PAIR_QR_INVALID');
+  if (u.origin !== origin || !['/ws/capture.html', '/ws-capture.html'].includes(u.pathname) || u.search || u.username || u.password) throw Error('PAIR_QR_INVALID');
   const params = new URLSearchParams(u.hash.slice(1));
   const token = params.get('pair');
   if (Array.from(params.keys()).join(',') !== 'pair' || !/^[A-Za-z0-9_-]{24,160}$/.test(token || '')) throw Error('PAIR_QR_INVALID');
