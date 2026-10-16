@@ -92,7 +92,7 @@ export async function blobBase64(blob){const bytes=new Uint8Array(await blob.arr
 export function messageFor(code){return {
   AUTH_REQUIRED:'学校アカウントでログインし、元の撮影画面で送信してください。画像は保持しています。',
   AUTH_CHANGED:'アカウントが変わりました。元の本人でログインし直してください。',
-  HOME_FORBIDDEN:'現在、スマホ提出は指定された管理者・生徒デモアカウントだけに開放しています。',
+  HOME_FORBIDDEN:'学校のGoogleアカウントでログインしてください。',
   HOME_NOT_READY:'管理者による保存先の準備が必要です。画像は保持しています。',
   HOME_ROSTER_SCOPE:'対象の年度・学年・名簿情報を確認できません。',
   ACCOUNT_NOT_REGISTERED:'このアカウントの名簿情報を確認できません。',
@@ -101,7 +101,7 @@ export function messageFor(code){return {
   HOME_OPERATION_CONFLICT:'同じ受付の画像が変更されています。画像を保持し、受付を確認してください。',
   HOME_PRIVATE_STORAGE:'非公開保存先を確認できません。管理者へお知らせください。',
   HOME_ORIGIN_REQUIRED:'学校教材サイトの撮影ページから開いてください。',
-  HOME_LIMIT:'限定試験の受付上限に達しました。管理者へお知らせください。',
+  HOME_LIMIT:'受付が混み合っているか、このアカウントの受付件数が上限に達しています。教員へお知らせください。',
   HOME_FINALIZING:'最終登録を確認しています。受付結果を確認してから、必要なら取消をやり直してください。',
   PAIR_NOT_OPEN:'Macとの接続を準備できません。ページを再読み込みしてください。',
   PAIR_INVALID:'接続用QRを確認できません。Macで新しいQRを発行してください。',
