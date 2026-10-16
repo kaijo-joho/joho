@@ -36,7 +36,7 @@ try{
   assert.equal(await page.locator('#set-trigger').getAttribute('data-set'),'demo-subquestions');assert.equal(await page.locator('#question-list button').count(),5);
   assert.equal(await page.locator('#progress').textContent(),'実行済み 0 / 4 問');
   assert.deepEqual(await page.locator('#question-list .question-item-title').allTextContents(),['(1) 気温を2つの場合に分ける','(2) 気温を3つの場合に分ける','表の作成と表示','(1) 必要な箱の数','(2) 入力を変えて確認']);
-  assert.match(await page.locator('#prompt').textContent(),/問1 気温の判定/);assert.match(await page.locator('#prompt').textContent(),/\(1\) 2つ/);check('direct URL opens 3 parent questions / 5 entries, with parent and subquestion labels');
+  assert.equal(await page.locator('#question-title').textContent(),'問1 (1) 気温を2つの場合に分ける');assert.doesNotMatch(await page.locator('#prompt').textContent(),/問1 気温の判定|\(1\) 2つ/);assert.match(await page.locator('#prompt').textContent(),/整数の気温を入力/);check('direct URL opens 3 parent questions / 5 entries, showing the title once and retaining shared instructions');
   await input('24\n');assert.equal(await run(),'気温（℃）: 24\n低い\n');
   const first=(await code()).replace('print("低い")','print("低い（編集済み）")');await edit(first);
   await select('demo-temperature-02');await input('15\n');assert.equal(await run(),'気温（℃）: 15\n中くらい\n');

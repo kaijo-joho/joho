@@ -3,14 +3,14 @@ import { demoCatalog } from './demo.mjs?v=20261015-subquestions';
 import { DraftStore, exportDraft } from './storage.mjs';
 import { PythonRunner } from './runner.mjs?v=20261015-errors';
 import { errorHints } from './diagnostics.mjs?v=20261015-errors';
-import { renderPrompt } from './prompt.mjs';
+import { renderPrompt } from './prompt.mjs?v=20261016-prompt-structure1';
 import { CloudPanel } from './cloud-ui.mjs?v=20261015-tools-store';
 import { cloudConfig } from './cloud-config.mjs';
-import { questionGroups, setRating, renderRating } from './navigation.mjs';
+import { questionGroups, questionStructure, setRating, renderRating } from './navigation.mjs?v=20261016-prompt-structure1';
 import { demoRatings } from './demo-ratings.mjs';
 import { TeacherPreviewPanel } from './teacher-preview.mjs?v=20261016-preview-no-expiry1';
 const $ = id => document.getElementById(id);
-const entries = new Map(), outputs = new Map(), docs = new Map();
+const entries = new Map(), outputs = new Map(), docs = new Map(), questionGroupTitles = new Map();
 let catalog, selectedSet, question, cm, store, runSnapshot, busy = false, pendingImport;
 let saveFailed = false;
 let cloudPanel;
@@ -106,9 +106,10 @@ function selectQuestion(q, updateURL = true) {
   clearErrorMarkers();
   busy = true; question = q;
   const e = currentEntry();
-  $('question-id').textContent = q.questionId; $('question-title').textContent = q.title;
+  const view = questionStructure(q, { groupTitle: questionGroupTitles.get(questionKey(q)) });
+  $('question-id').textContent = q.questionId; $('question-title').textContent = view.title;
   $('version').textContent = q.version;
-  renderPrompt($('prompt'), q.prompt);
+  renderPrompt($('prompt'), view.prompt);
   $('setup').hidden = !q.setupCode; $('setup-code').textContent = q.setupCode;
   $('observation-note').hidden = q.kind !== 'observation';
   if (q.kind === 'observation') $('observation-note').textContent = 'この問題は確認用です。前の問題のコードを実行します。';
@@ -194,13 +195,14 @@ function openSetPicker() {
   ($('set-menu').querySelector('[aria-selected="true"]')||$('set-menu').querySelector('button'))?.focus();
 }
 function selectSet(set, selected, preserveCurrent=false) {
-  selectedSet=set;$('question-list').replaceChildren();
+  selectedSet=set;questionGroupTitles.clear();$('question-list').replaceChildren();
   for (const group of questionGroups(set.questions)) {
     const li=document.createElement('li'),list=document.createElement('ul');
     li.className=group.title?'question-group':'question-group ungrouped';
     if(group.title){const heading=document.createElement('h3');heading.textContent=group.title;li.append(heading);}
     for (const item of group.items) {
       const q=item.question,row=document.createElement('li'),button=document.createElement('button');
+      questionGroupTitles.set(questionKey(q),group.title);
       button.type='button';button.className='question-button';button.dataset.question=q.questionId;button.dataset.key=questionKey(q);
       const labels=document.createElement('span'),title=document.createElement('span'),state=document.createElement('span'),rating=document.createElement('span'),hint=document.createElement('span');
       labels.className='question-labels';title.className='question-item-title';title.textContent=item.title;

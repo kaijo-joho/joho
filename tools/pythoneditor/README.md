@@ -39,6 +39,7 @@ URLは`?set=<setId>&question=<questionId>&version=<version>`。将来の写経�
 - `storage.mjs` / `core.mjs`: 問題・版ごとの保存、競合検知、形式・上限の検査。
 - `cloud.mjs` / `cloud-ui.mjs`: 学校アカウント接続、GSS保存/復元/競合、送信控え、正式提出と結果照会。
 - `scripts/pythoneditor-gas/`: gradeへ追加する専用8ファイル。版固定、GSSの追記保存、現行Python判定コードの独立コピー。配置・保存契約は[CLOUD.md](CLOUD.md)。
+- `question-structure.mjs`: 取得済みの問題からセット・大問・小問の表示を整理する。正本は書き換えず、共通説明・条件・入出力例を保持する。
 - `prompt.mjs`: Markdown、ヒント、表、数式の表示。DOMPurifyでタグ・属性を限定し、外部画像・iframe・スクリプトを通さない。
 - `scripts/pythoneditor-master.mjs`: GSS読取データから生徒向け項目だけを取り出す。
 - `scripts/serve-pythoneditor.mjs`: ローカル確認用の配信。固定パス、同一origin、GET/HEADのみ。
@@ -125,6 +126,7 @@ node --test tools/pythoneditor/tests/*.test.mjs
 node scripts/test-pythoneditor-browser.mjs
 node scripts/test-pythoneditor-errors-browser.mjs
 node scripts/test-pythoneditor-subquestions-browser.mjs
+node scripts/test-pythoneditor-prompt-browser.mjs
 node scripts/test-pythoneditor-cloud-browser.mjs
 ```
 
@@ -172,3 +174,11 @@ Pyodideは試作で検証した固定版v314.0.7をjsDelivrから読み込む。
 小問に取得済みの★評価がある場合、通常の「実行済み」「編集中」「前回提出済み」は重ねない。★は提出結果のまま保持し、必要な場合だけ「提出後に変更」「送信の完了未確認」「採点・保存待ち」「別の版で提出」を補う。提出コードとの比較は端末内で行い、後から完了した比較結果を新しい編集へ付けない。未採点の小問の作業状態と確認専用問題の表示は保持する。公開デモの★は表示例のため、提出済みを意味しない。
 
 ファイルメニューと操作説明の名称は「クラウドに下書き保存」「クラウドから開く」とする。保存先は従来のGSSで、正式提出とは独立した下書き保存のまま。
+
+## Colab由来の問題見出し（2026-10-16）
+
+現行のpromptには、移行元のセット見出し・大問見出し・小問見出しが含まれる。表示ではセット名を左の選択部、大問を左の見出し、小問を右枠上部へまとめる。本文からは確認できた構造上の重複だけを省き、共通説明、タイトルと異なる解法・条件、コード、入出力例、提出時の注意を残す。コード中のコメントは見出しとして扱わない。正本のprompt、ID、版、雛形、今年度のColabは変更しない。
+
+問題ごとに入力ケースを自動実行する学習用確認は未実装。現行の正式採点ソースは、1回の実行で送った出力テキストとコードを従来基準で判定し、Pythonを再実行しない。複数ケースのローカル確認を加える場合も、その合否を正式得点として信用しない。「指定値の出力を表示して提出」という既存の注意は、採点契約の移行まで保持する。
+
+表示の全件照合は、読取済みのA:F行配列だけを私有ファイルへ置き、`PYTHONEDITOR_PROMPT_ROWS=/private/tmp/<snapshot>.json node scripts/test-pythoneditor-prompt-browser.mjs`で実行できる。既定では独自の合成問題を使用する。正本や解答をGitへ追加しない。

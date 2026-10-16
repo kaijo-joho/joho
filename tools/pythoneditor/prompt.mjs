@@ -1,7 +1,9 @@
+import { normalizePromptMarkdown } from './question-structure.mjs?v=20261016-prompt-structure1';
+
 export function renderPrompt(container, source) {
   // Markdown/HTMLの本文はデータとして扱い、スクリプト・属性・外部画像を通さない。
   if (!globalThis.marked || !globalThis.DOMPurify) { container.textContent = source; return; }
-  const normalized = source.replace(/^(#{1,6})(?=\*|[^\s#])/gm, '$1 ');
+  const normalized = normalizePromptMarkdown(source);
   const fragment = DOMPurify.sanitize(marked.parse(normalized), {
     RETURN_DOM_FRAGMENT: true,
     ALLOWED_TAGS: ['p','br','strong','em','b','i','s','code','pre','h1','h2','h3','h4','h5','h6','blockquote','ul','ol','li','table','thead','tbody','tr','th','td','details','summary','span','div','a','hr','font','sub','sup'],

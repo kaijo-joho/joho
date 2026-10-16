@@ -1,30 +1,20 @@
 import { questionKey, validId } from './core.mjs';
 
-const plainHeading = line => line.replace(/^#{1,6}\s*/, '').replace(/\*\*|__/g, '').trim();
-const majorPattern = /^問\s*([0-9０-９]+)(?:[.．、:：]\s*|\s*).*/;
+export { questionStructure } from './question-structure.mjs?v=20261016-prompt-structure1';
+import { questionStructure } from './question-structure.mjs?v=20261016-prompt-structure1';
+
 export function questionGroups(questions) {
   const groups = new Map();
   for (const question of questions) {
-    const headings = question.prompt.split('\n').filter(line => /^#{1,6}/.test(line)).map(plainHeading);
-    const titleMajor = question.title.match(majorPattern)?.[1]?.normalize('NFKC');
-    const heading = headings.find(text => {
-      const number = text.match(majorPattern)?.[1]?.normalize('NFKC');
-      return number && (!titleMajor || number === titleMajor);
-    });
-    const number = titleMajor || heading?.match(majorPattern)?.[1]?.normalize('NFKC');
-    const key = number || 'ungrouped';
-    if (!groups.has(key)) groups.set(key, { title: heading || (number ? `問${number}` : ''), items: [] });
-    const short = question.title.replace(/^問\s*[0-9０-９]+[.．、:：]?\s*/, '').trim();
-    const minor = short.match(/^[（(]\s*([0-9０-９]+)\s*[）)]\s*/)
-      || headings.map(text => text.match(/^[（(]\s*([0-9０-９]+)\s*[）)]\s*/)).find(Boolean);
-    const body = short.replace(/^[（(]\s*[0-9０-９]+\s*[）)]\s*/, '') || question.title;
-    groups.get(key).items.push({ question, body, minor: minor?.[1]?.normalize('NFKC') });
+    const view = questionStructure(question), key = view.groupKey || 'ungrouped';
+    if (!groups.has(key)) groups.set(key, { title: view.groupTitle, items: [] });
+    groups.get(key).items.push({ question, body: view.shortTitle, minor: view.minor, hasMinorInTitle: view.hasMinorInTitle });
   }
   for (const group of groups.values()) {
     const multiple = new Set(group.items.map(item => item.question.questionId)).size > 1;
     for (const item of group.items) {
       const duplicate = questions.filter(q => q.questionId === item.question.questionId).length > 1;
-      item.title = `${multiple && item.minor ? `(${item.minor}) ` : ''}${item.body}${duplicate ? `（${item.question.version}）` : ''}`;
+      item.title = `${multiple && item.minor && !item.hasMinorInTitle ? `(${item.minor}) ` : ''}${item.body}${duplicate ? `（${item.question.version}）` : ''}`;
     }
   }
   return [...groups.values()];
