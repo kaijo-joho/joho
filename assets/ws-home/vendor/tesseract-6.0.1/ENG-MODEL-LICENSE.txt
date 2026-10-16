@@ -1,0 +1,5 @@
+eng model: @tesseract.js-data/eng 1.0.0, 4.0.0
+Package metadata license: MIT.
+Traineddata upstream: https://github.com/tesseract-ocr/tessdata_best (Apache-2.0).
+https://github.com/naptha/tessdata
+The Apache-2.0 license text is provided in TESSERACT-CORE-LICENSE.txt.
