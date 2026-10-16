@@ -8,7 +8,7 @@ import { CloudPanel } from './cloud-ui.mjs?v=20261015-tools-store';
 import { cloudConfig } from './cloud-config.mjs';
 import { questionGroups, setRating, renderRating } from './navigation.mjs';
 import { demoRatings } from './demo-ratings.mjs';
-import { TeacherPreviewPanel } from './teacher-preview.mjs?v=20261016-preview-live1';
+import { TeacherPreviewPanel } from './teacher-preview.mjs?v=20261016-set-titles1';
 const $ = id => document.getElementById(id);
 const entries = new Map(), outputs = new Map(), docs = new Map();
 let catalog, selectedSet, question, cm, store, runSnapshot, busy = false, pendingImport;
@@ -358,7 +358,7 @@ function addCloudCatalog(incoming) {
   if(!catalog)catalog={schema:'python-editor-catalog-v1',label:incoming.label,sets:[]};
   for(const set of incoming.sets) {
     const prior=catalog.sets.find(s=>s.setId===set.setId);
-    if(prior){for(const q of set.questions)if(!prior.questions.some(p=>questionKey(p)===questionKey(q)))prior.questions.push(q);}
+    if(prior){prior.title=set.title;for(const q of set.questions)if(!prior.questions.some(p=>questionKey(p)===questionKey(q)))prior.questions.push(q);}
     else catalog.sets.push(set);
   }
   buildSetPicker();

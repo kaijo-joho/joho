@@ -34,7 +34,10 @@ export function teacherPreviewFixture() {
   const config = { schema: 1, enabled: false, editorOrigin: 'https://example.invalid', sourceFileListId: 'synthetic_filelist_identifier_0001', teacherAccounts: [TEACHER], demoAccounts: [DEMO], gradingSheet: '採点設定py' };
   const identity = { active: TEACHER, effective: TEACHER };
   const state = { groups: [{ setId: 'demo', version: 'v1', records: [snapshot()] }], reads: 0 };
-  const build = () => ({ groups: state.groups, digest: T.hash(T.canonical(state.groups)) });
+  const build = () => {
+    const groups = state.groups.map(g => ({ ...g, title: g.title || g.setId }));
+    return { groups, digest: T.hash(T.canonical(groups)) };
+  };
   const env = { properties, identity: () => identity, now: () => clock, bytes: s => Buffer.byteLength(s, 'utf8'), packages: () => packages,
     readSource() { state.reads++; state.onRead?.(); return build(); } };
   properties.setProperty(context.ToolsTeacherPreview.keys.config, T.canonical(config)); properties.writes = [];

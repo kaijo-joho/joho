@@ -14,6 +14,14 @@ var ToolsTeacherPreview = (function () {
   function plain(value) { return value && Object.prototype.toString.call(value) === '[object Object]'; }
   function parse(text) { try { return JSON.parse(text); } catch (ignored) { assert(false); } }
   function account(value) { return String(value || '').trim().toLowerCase(); }
+  function validTitle(value) { return typeof value === 'string' && value.trim().length > 0 && value.length <= 300 && !/[\u0000-\u001f\u007f]/.test(value); }
+  function setTitle(setId, pageTitles) {
+    var match = /^(py[0-9]+)([ab]?)$/.exec(setId);
+    assert(match && plain(pageTitles) && validTitle(pageTitles[match[1]]));
+    var title = pageTitles[match[1]].trim().replace(/^(\d+-\d+)\.\s*/, '$1_') + ' ' +
+      ({ a: 'A基本問題', b: 'B応用問題', '': '演習問題' })[match[2]];
+    assert(validTitle(title)); return title;
+  }
   function create(env) {
     var T = ToolsStoreContract;
     function configuration() {
@@ -45,7 +53,8 @@ var ToolsTeacherPreview = (function () {
         Array.isArray(value.groups) && value.groups.length > 0 && value.groups.length <= 100);
       var seen = {};
       value.groups.forEach(function (g) {
-        assert(plain(g) && Object.keys(g).length === 2 && PythonEditor.id(g.setId) && PythonEditor.id(g.version) && !seen[g.version + '/' + g.setId]);
+        assert(plain(g) && Object.keys(g).every(function (k) { return ['setId', 'version', 'title'].indexOf(k) >= 0; }) &&
+          PythonEditor.id(g.setId) && PythonEditor.id(g.version) && (!Object.prototype.hasOwnProperty.call(g, 'title') || validTitle(g.title)) && !seen[g.version + '/' + g.setId]);
         seen[g.version + '/' + g.setId] = true;
       });
       return { raw: raw, value: value };
@@ -54,7 +63,7 @@ var ToolsTeacherPreview = (function () {
       var c = configuration(), actor = identity(c, true), source = env.readSource(c);
       current(c, actor);
       assert(source && /^[a-f0-9]{64}$/.test(source.digest) && Array.isArray(source.groups) && source.groups.length > 0 && source.groups.length <= 100);
-      return { digest: source.digest, sets: source.groups.map(function (g) { return { setId: g.setId, version: g.version, questions: g.records.length }; }),
+      return { digest: source.digest, sets: source.groups.map(function (g) { return { setId: g.setId, version: g.version, title: g.title, questions: g.records.length }; }),
         questions: source.groups.reduce(function (sum, g) { return sum + g.records.length; }, 0), enabled: c.enabled };
     }
     function publish(input) {
@@ -63,13 +72,15 @@ var ToolsTeacherPreview = (function () {
       var source = env.readSource(c); assert(source.digest === input.expectedDigest, 'preview_changed');
       var snapshots = [], groups = [], at = new Date(env.now()).toISOString();
       source.groups.forEach(function (g) {
-        groups.push({ setId: g.setId, version: g.version });
+        assert(validTitle(g.title));
+        groups.push({ setId: g.setId, version: g.version, title: g.title });
         g.records.forEach(function (r) {
           var q = r.body.question;
           snapshots.push({ recordKey: PythonEditor.key(q), groupKey: q.version + '/' + q.setId, actorKey: '', questionId: q.questionId, version: q.version,
             requestId: '', seq: 0, at: at, payloadHash: r.payloadHash, adoptedBy: actor.key, body: r.body });
         });
       });
+      assert(env.bytes(T.canonical({ schema: 1, generation: new Array(33).join('0'), sourceDigest: source.digest, groups: groups })) < 8000, 'preview_capacity');
       var actors = {}; actors[actor.key] = { grade: null, teacher: true };
       var packages = env.packages(), prior = packages.head();
       var meta = packages.publish({ snapshots: snapshots, assignments: [], actors: actors, registry: [] }, {
@@ -107,7 +118,7 @@ var ToolsTeacherPreview = (function () {
       var sets = {};
       i.value.groups.forEach(function (g) {
         var rows = opened.snapshots(g.setId, g.version); assert(rows.length > 0);
-        if (!sets[g.setId]) sets[g.setId] = { setId: g.setId, title: g.setId, questions: [] };
+        if (!sets[g.setId]) sets[g.setId] = { setId: g.setId, title: g.title || g.setId, questions: [] };
         rows.sort(function (a, b) { return a.body.question.order - b.body.question.order; }).forEach(function (r) {
           sets[g.setId].questions.push(PythonEditorMaster.publicQuestion(r));
         });
@@ -129,7 +140,7 @@ var ToolsTeacherPreview = (function () {
     }
     return Object.freeze({ preview: preview, publish: publish, session: session, rpc: rpc, boot: boot, setEnabled: setEnabled });
   }
-  return Object.freeze({ create: create, keys: Object.freeze({ config: CONFIG, index: INDEX }) });
+  return Object.freeze({ create: create, setTitle: setTitle, keys: Object.freeze({ config: CONFIG, index: INDEX }) });
 }());
 
 function toolsTeacherPreviewEnvironment_() {
@@ -139,21 +150,34 @@ function toolsTeacherPreviewEnvironment_() {
     PythonEditor.assert(range.getFormulas().every(function (r, row) { return r.every(function (v, col) { return !v || row > 0 && col === ignoredFormulaColumn; }); }), 'snapshot_invalid');
     return range.getValues();
   }
+  function pageTitles(sheet) {
+    PythonEditor.assert(sheet && sheet.getLastRow() > 1 && sheet.getLastRow() <= 5001 && sheet.getLastColumn() >= 2 && sheet.getLastColumn() <= 100, 'snapshot_invalid');
+    var header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0], id = header.indexOf('id'), title = header.indexOf('title');
+    PythonEditor.assert(id >= 0 && title >= 0 && header.lastIndexOf('id') === id && header.lastIndexOf('title') === title, 'snapshot_invalid');
+    var count = sheet.getLastRow() - 1, ids = sheet.getRange(2, id + 1, count, 1).getValues(),
+      titles = sheet.getRange(2, title + 1, count, 1).getValues(), result = {};
+    ids.forEach(function (row, i) {
+      if (!/^py[0-9]+$/.test(row[0])) return;
+      PythonEditor.assert(!Object.prototype.hasOwnProperty.call(result, row[0]), 'snapshot_invalid');
+      result[row[0]] = titles[i][0];
+    });
+    return result;
+  }
   return { properties: PropertiesService.getScriptProperties(), now: function () { return Date.now(); },
     identity: function () { return { active: Session.getActiveUser().getEmail(), effective: Session.getEffectiveUser().getEmail() }; },
     bytes: function (text) { return Utilities.newBlob(text).getBytes().length; },
     packages: function () { return ToolsGradingPackages.create(); },
     readSource: function (c) {
       var book = SpreadsheetApp.openById(c.sourceFileListId), master = bounded(book.getSheetByName('Python問題マスター'), 18, 5001),
-        rules = bounded(book.getSheetByName(c.gradingSheet), 15, 10001, 13), seen = {}, groups = [];
+        rules = bounded(book.getSheetByName(c.gradingSheet), 15, 10001, 13), titles = pageTitles(book.getSheetByName('ページ一覧')), seen = {}, groups = [];
       master.slice(1).forEach(function (row) {
         if (row.every(function (v) { return v === ''; })) return;
         var key = row[3] + '/' + row[1]; if (seen[key]) return; seen[key] = true;
         var built = PythonEditorMaster.build(master, rules, { setId: row[1], version: row[3], gradingSheet: c.gradingSheet });
-        groups.push({ setId: row[1], version: row[3], records: built.records, digest: built.digest });
+        groups.push({ setId: row[1], version: row[3], title: ToolsTeacherPreview.setTitle(row[1], titles), records: built.records, digest: built.digest });
       });
       groups.sort(function (a, b) { return (a.version + '/' + a.setId).localeCompare(b.version + '/' + b.setId); });
-      return { groups: groups, digest: ToolsStoreContract.hash(ToolsStoreContract.canonical(groups.map(function (g) { return [g.setId, g.version, g.digest]; }))) };
+      return { groups: groups, digest: ToolsStoreContract.hash(ToolsStoreContract.canonical(groups.map(function (g) { return [g.setId, g.version, g.title, g.digest]; }))) };
     }
   };
 }

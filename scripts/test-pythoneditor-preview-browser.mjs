@@ -20,6 +20,8 @@ assert.equal(panel.split('new GoogleBridge(config)').length, 2);
 const f = teacherPreviewFixture(); f.config.editorOrigin = origin;
 f.properties.setProperty(f.context.ToolsTeacherPreview.keys.config, f.T.canonical(f.config));
 f.state.groups[0].records.push(f.snapshot({ questionId: 'q2', prompt: '二つ目の問題文', code: 'print("preview")' }));
+const initialTitle = '2-3_繰り返し処理（while文）② A基本問題';
+f.state.groups[0].title = initialTitle;
 f.enable(); f.context.toolsTeacherPreviewEnvironment_ = () => f.env;
 let hold = false, releaseReply, replyStarted, replyArrived, lose = false, invalidSession = false;
 const actions = [], errors = [], checks = [];
@@ -66,7 +68,23 @@ try {
   assert.equal(await page.locator('#question-id').textContent(), 'q2');
   assert.match(await page.locator('#prompt').textContent(), /二つ目/);
   assert.match(page.url(), /mode=teacher-preview/); assert.equal(await page.locator('#set-trigger').isDisabled(), false);
-  check('教員接続で圧縮データを取得し、URL指定の問題・雛形を開く');
+  assert.equal(await page.locator('#set-current-title').textContent(), initialTitle);
+  await page.locator('#set-trigger').click();
+  assert.deepEqual(await page.locator('#set-menu .set-option-title').allTextContents(), [initialTitle]);
+  await page.keyboard.press('Escape');
+  check('教員接続で圧縮データと表示名を取得し、URL指定の問題・雛形を開く');
+  for (const width of [1440, 720, 390]) {
+    await page.setViewportSize({ width, height: 1000 }); await page.locator('#set-trigger').click();
+    const bounds = await page.evaluate(() => {
+      const menu = document.querySelector('#set-menu').getBoundingClientRect(), nav = document.querySelector('#question-nav').getBoundingClientRect();
+      return { overflow: document.documentElement.scrollWidth > innerWidth + 1, left: menu.left, right: menu.right, top: menu.top, bottom: menu.bottom, navLeft: nav.left, navRight: nav.right };
+    });
+    assert.equal(bounds.overflow, false, JSON.stringify(bounds));
+    assert.ok(bounds.left >= bounds.navLeft && bounds.right <= bounds.navRight && bounds.right <= width + 1 && bounds.top >= 0 && bounds.bottom <= 1001, JSON.stringify(bounds));
+    await page.keyboard.press('Escape');
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  check('長い問題セット名でも3種類の画面幅で一覧を枠内に表示する');
   for (const id of ['save-cloud', 'open-cloud', 'formal-submit', 'formal-query', 'formal-resume']) assert.equal(await page.locator('#' + id).isDisabled(), true);
   assert.deepEqual(actions, ['session']); check('保存・正式採点・提出を有効にしない');
   const edit = code => page.evaluate(value => document.querySelector('.CodeMirror').CodeMirror.setValue(value), code);
@@ -76,11 +94,18 @@ try {
   await page.locator('#question-list [data-question="q2"]').click();
   assert.equal(await code(), 'print("編集した下書き")'); assert.match(page.url(), /mode=teacher-preview/);
   check('問題切替でも下書きと教員検証モードを保持する');
+  const updatedTitle = initialTitle + '（表示名の更新）';
+  f.state.groups[0].title = updatedTitle; f.publish();
   hold = true; const started = new Promise(r => { replyStarted = r; });
   await page.locator('#cloud-connect').click(); await started;
   await edit('print("応答待ちの編集")'); releaseReply();
   await page.waitForFunction(() => !document.querySelector('#cloud-connect').disabled);
-  assert.equal(await code(), 'print("応答待ちの編集")'); check('遅れた再接続応答で編集中のコードを上書きしない');
+  assert.equal(await code(), 'print("応答待ちの編集")');
+  assert.equal(await page.locator('#set-current-title').textContent(), updatedTitle);
+  await page.locator('#set-trigger').click();
+  assert.deepEqual(await page.locator('#set-menu .set-option-title').allTextContents(), [updatedTitle]);
+  await page.keyboard.press('Escape');
+  check('再接続で表示名を更新し、遅れた応答でも編集中のコードを上書きしない');
   // 初回Pyodideロードはネットワーク環境に依存する。学校実機の証明には数えない。
   if (engine !== 'webkit') {
     await edit('print("preview execution")'); await page.locator('#run').click();

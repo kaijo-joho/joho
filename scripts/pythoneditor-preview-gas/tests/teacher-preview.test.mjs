@@ -9,6 +9,77 @@ const plain = value => JSON.parse(JSON.stringify(value));
 const code = expected => error => error.previewCode === expected;
 const ADDITIONAL_TEACHER = 'second-teacher+fixture@gfe.kaijo.ed.jp';
 
+test('ページtitleにA基本問題・B応用問題・演習問題を付け、章番号の区切りだけを揃える', () => {
+  const f = fixture(), title = f.context.ToolsTeacherPreview.setTitle;
+  const pages = { py23: '2-3. 繰り返し処理（while文）②', py33: '3-3_2次元リスト' };
+  assert.equal(title('py23a', pages), '2-3_繰り返し処理（while文）② A基本問題');
+  assert.equal(title('py23b', pages), '2-3_繰り返し処理（while文）② B応用問題');
+  assert.equal(title('py23', pages), '2-3_繰り返し処理（while文）② 演習問題');
+  assert.equal(title('py33a', pages), '3-3_2次元リスト A基本問題');
+  for (const [id, values] of [['py23c', pages], ['py24a', pages], ['py23a', { py23: '' }], ['py23a', { py23: '行\n改行' }], ['py23a', { py23: '長'.repeat(300) }]]) {
+    assert.throws(() => title(id, values), code('preview_invalid'));
+  }
+});
+function sourceFixture() {
+  const f = fixture(), pages = [['title', 'note', 'id'], ['2-3. 繰り返し処理（while文）②', '', 'py23'], ['', '', 'py94']];
+  const master = [plain(f.context.PythonEditorMaster.headers), ...['py23a', 'py23b', 'py23'].map(id => {
+    const row = Array(18).fill(''); row[1] = id; row[3] = 'v1'; return row;
+  })];
+  const data = { 'Python問題マスター': master, '採点設定py': [Array(15).fill('')], 'ページ一覧': pages }, reads = [];
+  const sheet = (name, rows) => ({ getLastRow: () => rows.length, getLastColumn: () => rows[0].length,
+    getRange(row, column, height, width) {
+      reads.push({ name, row, column, height, width });
+      return { getValues: () => rows.slice(row - 1, row - 1 + height).map(r => r.slice(column - 1, column - 1 + width)), getFormulas: () => Array.from({ length: height }, () => Array(width).fill('')) };
+    } });
+  f.context.PropertiesService = { getScriptProperties: () => f.properties };
+  f.context.SpreadsheetApp = { openById(id) { assert.equal(id, f.config.sourceFileListId); return { getSheetByName: name => data[name] && sheet(name, data[name]) }; } };
+  f.context.PythonEditorMaster.build = (_master, _rules, spec) => ({ records: [f.snapshot(spec)], digest: 'a'.repeat(64) });
+  return { ...f, pages, reads, sourceEnv: f.context.toolsTeacherPreviewEnvironment_() };
+}
+test('正本読取は列名でid・titleを照合し、表示名の変更も配信digestに含める', () => {
+  const f = sourceFixture(), before = f.sourceEnv.readSource(f.config);
+  assert.deepEqual(plain(before.groups.map(g => g.title)), [
+    '2-3_繰り返し処理（while文）② 演習問題', '2-3_繰り返し処理（while文）② A基本問題', '2-3_繰り返し処理（while文）② B応用問題'
+  ]);
+  assert.deepEqual(f.reads.filter(r => r.name === 'ページ一覧'), [
+    { name: 'ページ一覧', row: 1, column: 1, height: 1, width: 3 },
+    { name: 'ページ一覧', row: 2, column: 3, height: 2, width: 1 },
+    { name: 'ページ一覧', row: 2, column: 1, height: 2, width: 1 }
+  ]);
+  f.pages[1][0] += ' 改訂'; const after = f.sourceEnv.readSource(f.config);
+  assert.notEqual(after.digest, before.digest);
+  assert.deepEqual(plain(after.groups.map(g => g.records)), plain(before.groups.map(g => g.records)));
+  f.pages.push(['重複', '', 'py23']);
+  assert.throws(() => f.sourceEnv.readSource(f.config), e => e.pythonEditorCode === 'snapshot_invalid');
+  f.pages.pop(); f.pages[1][0] = '';
+  assert.throws(() => f.sourceEnv.readSource(f.config), code('preview_invalid'));
+});
+test('表示名だけの再配信は同じ版の問題を保持し、接続時に正本を読まない', () => {
+  const f = fixture(); f.state.groups[0].title = '初回の表示名'; const initial = f.enable();
+  const before = plain(f.service.session(f.config.editorOrigin).catalog.sets[0]);
+  f.state.groups[0].title = '変更後の表示名'; const next = f.publish(), reads = f.state.reads;
+  const after = plain(f.service.session(f.config.editorOrigin).catalog.sets[0]);
+  assert.notEqual(initial.sourceDigest, next.sourceDigest); assert.notEqual(initial.generation, next.generation);
+  assert.equal(before.title, '初回の表示名'); assert.equal(after.title, '変更後の表示名');
+  assert.deepEqual(after.questions, before.questions); assert.equal(f.state.reads, reads);
+  const key = f.context.ToolsTeacherPreview.keys.index, index = JSON.parse(f.properties.getProperty(key));
+  delete index.groups[0].title; f.properties.setProperty(key, f.T.canonical(index));
+  assert.equal(f.service.session(f.config.editorOrigin).catalog.sets[0].title, 'demo');
+  index.groups[0].title = ''; f.properties.setProperty(key, f.T.canonical(index));
+  assert.throws(() => f.service.session(f.config.editorOrigin), code('preview_invalid'));
+});
+test('表示名が配信中に変わった場合と、indexの容量超過では現行世代を保持する', () => {
+  const f = fixture(), initial = f.enable(), expected = f.service.preview().digest;
+  let reads = 0;
+  f.state.onRead = () => { if (++reads === 2) f.state.groups[0].title = '途中で変更'; };
+  assert.throws(() => f.service.publish({ expectedDigest: expected, confirmation: 'PUBLISH_TEACHER_CATALOG_PREVIEW_V1' }), code('preview_changed'));
+  assert.equal(f.service.session(f.config.editorOrigin).preview.generation, initial.generation);
+  f.state.onRead = null;
+  f.state.groups = Array.from({ length: 10 }, (_, i) => ({ setId: 'set-' + i, title: '長'.repeat(290), version: 'v1', records: [f.snapshot({ setId: 'set-' + i, questionId: 'q' + i })] }));
+  assert.throws(() => f.publish(), code('preview_capacity'));
+  assert.equal(f.service.session(f.config.editorOrigin).preview.generation, initial.generation);
+});
+
 test('教員のプレビューは読取だけで、採用・設定・圧縮データを変えない', () => {
   const f = fixture(), before = JSON.stringify(f.properties.values);
   const plan = plain(f.service.preview());
