@@ -19,7 +19,7 @@
       {done:saved, text:'「保存」でMacのファイルへの保存を確認'}
     ];
     const message = !folder ? '「HTML実習」フォルダを作成し、本人用の html11-01.html を入れてからフォルダを接続してください。' :
-      !opened ? '「ファイル」→「読み込んだファイル一覧…」から、HTML実習フォルダ直下の html11-01.html を開いてください。' :
+      !opened ? 'エディタ上部の「開く」でファイル選択画面を表示し、HTML実習フォルダ直下の html11-01.html を選んでください。' :
       !saved ? 'コードの編集は不要です。「保存」を押して、Macのファイルへ保存できることを確認してください。' :
       '実習の準備ができました。「提出」から保存したHTMLを提出してください。';
     return {active, ready:saved, steps, message};
