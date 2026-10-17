@@ -301,3 +301,19 @@ function renderSchoolTrial_(event) {
   } catch (ignored) { return HtmlService.createHtmlOutput('<p>限定試用へ接続できません。学校アカウントと試用設定を確認してください。</p>'); }
 }
 function collectSchoolTrial_() { return ToolsSchoolTrial.create(schoolTrialEnvironment_()).collect(); }
+
+// google.script.runのobject変換を避け、policy・未受付・対象外判定のnullを双方向で保持する。
+// 認証・権限・保存の判定は既存の公開RPCだけを通す。
+function schoolPythonTrialJsonRpc(raw) {
+  try {
+    if (typeof raw !== 'string' || raw.length > 2100000) throw new Error('invalid_json_request');
+    var request = JSON.parse(raw), fields = ['action','input','expectedActorKey','origin'];
+    if (!request || Object.prototype.toString.call(request) !== '[object Object]' || Object.keys(request).length !== fields.length ||
+      !fields.every(function (field) { return Object.prototype.hasOwnProperty.call(request, field); }) ||
+      typeof request.action !== 'string' || !request.input || Object.prototype.toString.call(request.input) !== '[object Object]' ||
+      !(request.expectedActorKey === null || typeof request.expectedActorKey === 'string') || typeof request.origin !== 'string') throw new Error('invalid_json_request');
+    return JSON.stringify(schoolPythonTrialRpc(request.action, request.input, request.expectedActorKey, request.origin));
+  } catch (ignored) {
+    return JSON.stringify({ ok: false, error: { code: 'invalid_request', message: '限定試用の通信形式を確認できません。元の提出番号とコードは保持してください。' } });
+  }
+}

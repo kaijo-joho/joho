@@ -6,15 +6,28 @@
   const boot = <?!= bootJson ?>, peer = window.top, pending = new Set();
   const actions = new Set(['session','store','submit','lookup','questionStatus']);
   const send = message => peer.postMessage({protocol:boot.protocol,channel:boot.channel,...message},boot.origin);
+  const failure = id => {pending.delete(id);send({type:'response',id,result:{ok:false,error:{code:'transport_failed',message:'限定試用の応答を確認できません。元の提出番号で結果を照会してください。'}}});};
   addEventListener('message', event => {
     const data = event.data;
     if(event.source !== peer || event.origin !== boot.origin || data?.protocol !== boot.protocol || data.channel !== boot.channel ||
       data.type !== 'request' || !/^[a-f0-9]{32}$/.test(data.id) || !actions.has(data.action) || pending.has(data.id) || pending.size >= 8 ||
       data.action !== 'session' && !/^[a-f0-9]{64}$/.test(data.actorKey || '')) return;
     pending.add(data.id);
-    google.script.run.withSuccessHandler(result => {pending.delete(data.id);send({type:'response',id:data.id,result});})
-      .withFailureHandler(() => {pending.delete(data.id);send({type:'response',id:data.id,result:{ok:false,error:{code:'transport_failed',message:'限定試用の応答を確認できません。元の提出番号で結果を照会してください。'}}});})
-      .schoolPythonTrialRpc(data.action,data.input || {},data.actorKey,boot.origin);
+    let raw;
+    try {
+      raw=JSON.stringify({action:data.action,input:data.input || {},expectedActorKey:data.actorKey ?? null,origin:boot.origin});
+      if(raw.length>2100000)throw new Error('request_too_large');
+    } catch {failure(data.id);return;}
+    google.script.run.withSuccessHandler(raw => {
+      try {
+        if(typeof raw!=='string')throw new Error('invalid_response');
+        const result=JSON.parse(raw);
+        if(!result || typeof result!=='object' || Array.isArray(result) || typeof result.ok!=='boolean' ||
+          result.ok && !Object.prototype.hasOwnProperty.call(result,'value') ||
+          !result.ok && (!result.error || typeof result.error.code!=='string' || typeof result.error.message!=='string'))throw new Error('invalid_response');
+        pending.delete(data.id);send({type:'response',id:data.id,result});
+      } catch {failure(data.id);}
+    }).withFailureHandler(() => failure(data.id)).schoolPythonTrialJsonRpc(raw);
   });
   send({type:'ready'});
 })();

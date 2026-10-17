@@ -50,7 +50,7 @@ node scripts/prepare-pythoneditor-trial-gas.mjs \
 
 1. `run_prepareSchoolTrialPersonalStores` は3名の個別GSSだけを作成・本人共有する。回収GSS・接続configは未作成のまま。
 2. `run_configureSchoolTrialPersonalOnly` は3名分を読戻して接続設定と専用鍵を用意する。`centralId:null`、初回は無効。回収先なしで保存・試用提出・照会を利用できる。
-3. Driveの実permissionで所有者、本人以外の編集者なし、一般アクセスが制限付きであることを確認する。編集者の再共有を無効にする。
+3. Driveの実permissionで所有者、本人以外の編集者なし、一般アクセスが制限付きであることを確認する。編集者の再共有を無効にする設定は、本人への編集権限付与とは別の承認事項として扱う。
 4. `run_inspectSchoolTrial` で全構成を読戻し、私有の `run_configureSchoolTrialEndpoint` で同じexecを固定する。
 5. `run_enableSchoolTrial` と専用 `trial-config.mjs` を有効にする。通常の保存/採点設定は無効のまま。
 6. 回収は所有教員の `run_collectSchoolTrial`。定期実行する場合はGASのUIから `schoolTrialCollectionTrigger` を設置する。
@@ -58,6 +58,8 @@ node scripts/prepare-pythoneditor-trial-gas.mjs \
 回収先が未設定なら回収はGSS接続前に停止し、回収トリガーも有効にしない。追加作成が承認された後の `run_prepareSchoolTrial` は既存3名分を再作成せず、中央GSSだけを作成して接続する。個人GSSID・scope・世代・署名鍵・受付履歴・有効状態を維持する。定期回収を準備するときは `run_enableSchoolTrial` を再実行してarmする。
 
 OAuthは既存の `spreadsheets` と `userinfo.email`、Webアプリは `USER_ACCESSING` / `DOMAIN` のまま。トリガーはGAS UIで設置し、実行時のeffective ownerと最初に記録したtrigger UIDを照合する。ScriptApp APIの追加権限を3名へ要求しない。
+
+`google.script.run` とはJSON文字列で往復する。採点範囲の終端なし、未受付、評価対象外を表す `null` をobject変換で欠落させないためである。JSON窓口も既存RPCの本人・権限・保存検査を通し、別の認証経路は設けない。
 
 停止は `run_stopSchoolTrial`、フロントの `trial-config.mjs enabled:false`。個別GSS・再送控え・履歴・署名鍵を削除しない。旧公開版と退避ソースへ戻せるようにし、通常授業の設定を巻き戻さない。
 
@@ -73,3 +75,11 @@ node scripts/test-pythoneditor-school-trial-browser.mjs
 ```
 
 合成試験では固定3role、第四者拒否、別人binding、保存/確認journal、再送・通信断・不完全書込、署名改変、旧版、最高評価、回収重複、停止・所有者/保護不整合、貸出機相当の新規context復元を確認する。ブラウザ試験は実UI/実GASロジックを合成のSession/Sheetsへ接続し、実Googleアカウントと区別する。実共有・実アカウント・40人授業の負荷は別に検証記録を残す。
+
+### 2026-10-17の反映と確認
+
+- 3名の個人GSSを作成し、教員所有・対象本人のみ編集者・一般アクセス制限付き・6シート・管理情報の保護を実データで読戻した。
+- 限定試用GAS v10を同じURLへ反映。退避した配布専用v7と試用v9を保持し、配置した21ファイルの一致を確認した。
+- 公開エディタの所有教員アカウントで、125項目取得、`input()`を含むPython実行、下書き保存、控えを残す復元、署名付き提出、100点・★★★・履歴表示を確認した。個人GSSの受付行も `committed`、全文・実行記録・受付・署名ありと読戻した。
+- 自動試験431件とChrome/WebKit各20グループの合成ブラウザ試験が成功。ほか2名の本人ログインと40人の実機同時利用は未検証。
+- 回収用の追加GSSと編集者の再共有を禁止する設定は別途確認中。中央回収先は未設定、回収トリガーは未設置で、個人GSSの保存・試用提出は有効。

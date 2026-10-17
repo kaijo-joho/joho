@@ -19,7 +19,8 @@ const types = { '.html': 'text/html', '.mjs': 'text/javascript', '.js': 'text/ja
 const report = { at: new Date().toISOString(), engine, environment: 'synthetic identity/GSS; real trial/store GAS, browser UI, local evaluator and nested bridges; no Pyodide or live network', checks: [] };
 const calls = [], requests = [], errors = [], contexts = [], outside = [];
 const check = name => { report.checks.push(name); console.log('PASS', name); };
-const fullCode = fixture.submission().code;
+// 乱数を含む場合の出力条件passed:nullも、object変換で落とさず送信・受信する。
+const fullCode = fixture.submission().code + '\nimport random\n';
 const initial = plain(fixture.session(OWNER));
 const source = initial.catalog.sets.flatMap(set => set.questions).find(q => q.questionId === 'q1' && q.version === 'v1');
 const confirmation = initial.catalog.sets.flatMap(set => set.questions).find(q => q.kind === 'confirmation');
@@ -52,11 +53,14 @@ async function context(account, mode = 'school-trial') {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true }); contexts.push(ctx);
   const fault = { loseSubmit: false, offline: false, denied: false };
   await ctx.exposeBinding('__schoolTrialRPC', async (_source, kind, action, input, key, requestOrigin) => {
+    let raw;
+    if (kind === 'trial') { raw = action; ({ action, input, expectedActorKey: key, origin: requestOrigin } = JSON.parse(raw)); }
+    const envelope = value => kind === 'trial' ? JSON.stringify(value) : value;
     calls.push({ account, kind, action, input: structuredClone(input) });
-    if (fault.offline) return { ok: false, error: { code: 'transport_failed', message: '合成の通信断です。送信控えは保持しています。' } };
+    if (fault.offline) return envelope({ ok: false, error: { code: 'transport_failed', message: '合成の通信断です。送信控えは保持しています。' } });
     fixture.select(fault.denied ? FOURTH : account);
-    const result = kind === 'preview' ? plain(fixture.context.teacherPythonPreviewRpc(action, input, key, requestOrigin)) : plain(fixture.rpc(action, input, key, requestOrigin));
-    if (kind === 'trial' && action === 'submit' && fault.loseSubmit) { fault.loseSubmit = false; return { ok: false, error: { code: 'transport_failed', message: '合成の応答消失です。同じ番号で照会してください。' } }; }
+    const result = kind === 'preview' ? plain(fixture.context.teacherPythonPreviewRpc(action, input, key, requestOrigin)) : fixture.context.schoolPythonTrialJsonRpc(raw);
+    if (kind === 'trial' && action === 'submit' && fault.loseSubmit) { fault.loseSubmit = false; return envelope({ ok: false, error: { code: 'transport_failed', message: '合成の応答消失です。同じ番号で照会してください。' } }); }
     return result;
   });
   await ctx.route('**/*', async route => {
@@ -76,7 +80,8 @@ async function context(account, mode = 'school-trial') {
     }
     if (u.origin === 'https://n-school-trial-fixture-0lu-script.googleusercontent.com') {
       const kind = u.pathname.slice(1), boot = { protocol: kind === 'trial' ? 'python-editor-trial-rpc-v1' : 'python-editor-rpc-v1', origin: u.searchParams.get('origin'), channel: u.searchParams.get('channel') };
-      const shim = `<script>window.google={script:{run:{withSuccessHandler(success){return{withFailureHandler(failure){return{schoolPythonTrialRpc(action,input,key,origin){window.__schoolTrialRPC('trial',action,input,key,origin).then(success,failure);},teacherPythonPreviewRpc(action,input,key,origin){window.__schoolTrialRPC('preview',action,input,key,origin).then(success,failure);}};}};}}}};</script>`;
+      // object内のnullプロパティを落とす合成Google transport。JSON文字列はそのまま通る。
+      const shim = `<script>const googleTransport=v=>Array.isArray(v)?v.map(googleTransport):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).filter(([,x])=>x!==null).map(([k,x])=>[k,googleTransport(x)])):v;window.google={script:{run:{withSuccessHandler(success){return{withFailureHandler(failure){return{schoolPythonTrialJsonRpc(raw){window.__schoolTrialRPC('trial',googleTransport(raw)).then(v=>success(googleTransport(v)),failure);},teacherPythonPreviewRpc(action,input,key,origin){window.__schoolTrialRPC('preview',action,input,key,origin).then(success,failure);}};}};}}}};</script>`;
       const template = kind === 'trial' ? trialTemplate : previewTemplate;
       return route.fulfill({ contentType: 'text/html', body: template.replace('<?!= bootJson ?>', JSON.stringify(boot)).replace('<script>', shim + '<script>') });
     }
@@ -113,9 +118,11 @@ try {
     const priorStars = await qButton(page, source).locator('.question-item-rating').textContent(); assert.match(priorStars, /試用評価/); assert.ok(!priorStars.includes('★'));
     await page.locator('#formal-submit').click(); await page.waitForSelector('#submit-dialog[open]');
     const preview = JSON.parse(await page.locator('#submit-preview').textContent()); assert.equal(preview.code, code); assert.equal(preview.assessment.starEarned, 1); assert.equal(preview.run.outcome, 'not_run');
+    assert.ok(preview.assessment.checks.some(check => check.passed === null && check.eligible === false));
     assert.match(await page.locator('#submit-description').textContent(), /本番成績へ反映しません/); assert.equal(await qButton(page, source).locator('.question-item-rating').textContent(), priorStars);
     await page.locator('#submit-confirm').click(); await waitIdle(page); await page.waitForFunction(() => document.querySelector('#formal-status').textContent === '試用提出済み');
     assert.match(await page.locator('#formal-score').textContent(), /試用評価/); assert.match(await qButton(page, source).locator('.question-item-rating').textContent(), /試用評価.*★/);
+    assert.match(await page.locator('#formal-checks').textContent(), /今回は点数の対象外/);
     assert.match(await page.locator('#set-current-rating').textContent(), /試用評価.*★1\/1/); assert.match(await page.locator('#rating-note').textContent(), /試用評価/); check(`${role}: reviewed local report updates only received trial stars and history`);
 
     fixture.advance(1000); await edit(page, code + '# 再提出\n'); expected.set(account, code + '# 再提出\n'); fault.loseSubmit = true;
