@@ -14,7 +14,7 @@ const before=await readFile(join(out,'appsscript.json'),'utf8');
 const manifest={timeZone:'Asia/Tokyo',dependencies:{},exceptionLogging:'STACKDRIVER',runtimeVersion:'V8',
   oauthScopes:['https://www.googleapis.com/auth/spreadsheets','https://www.googleapis.com/auth/userinfo.email'],
   executionApi:{access:'MYSELF'},webapp:{executeAs:'USER_ACCESSING',access:'DOMAIN'}};
-const names=['00_contract.js','10_service.js','20_repository.js','30_outbox.js','40_teacher_log.js','90_entrypoints.js','98_setup_probe.js','_OVERVIEW.html','_CHANGELOG.html'];
+const names=['00_contract.js','10_service.js','20_repository.js','30_outbox.js','40_teacher_log.js','50_store_layout.js','90_entrypoints.js','97_trial_store_admin.js','98_setup_probe.js','_OVERVIEW.html','_CHANGELOG.html'];
 for(const name of names){const source=await readFile(new URL('./html-intake-gas/'+name,import.meta.url),'utf8');if(name.endsWith('.js'))new vm.Script(source,{filename:name});await writeFile(join(out,name),source,{flag:'wx',mode:0o600});}
 const privateSource='// 私有の2アカウント限定準備情報。公開Gitへ追加しない。\nfunction htmlIntakeTrialSetup_(){return '+JSON.stringify(setup)+';}\n';
 await writeFile(join(out,'99_trial_setup_private.js'),privateSource,{flag:'wx',mode:0o600});
