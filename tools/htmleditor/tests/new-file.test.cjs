@@ -38,6 +38,14 @@ function fixture(initial = {}) {
  const fs = new HtmlFileSystem();fs.dirHandle=directory;fs.dirName=directory.name;
  return {fs, files, state, directory, fileHandle};
 }
+test('プレビュー専用の読取りでは編集対象パス・読込通知・保存先を変更しない', async () => {
+ const h=fixture(), events=[];h.fs.currentFilePath='first.html';h.fs.onChange(event=>events.push(event));
+ const handle=h.fileHandle('second.html','<html><body>リンク先</body></html>');
+ h.fs.fileEntries.set('second.html',{handle,kind:'file'});
+ assert.match(await h.fs.readFile('second.html',{activate:false}),/リンク先/);
+ assert.equal(h.fs.currentFilePath,'first.html');assert.equal(events.length,0);
+ await h.fs.readFile('second.html');assert.equal(h.fs.currentFilePath,'second.html');assert.equal(events.length,1);
+});
 test('新規HTMLは書込・close・読戻し確認後だけ一覧へ追加し、編集中パスは保持する', async () => {
  const h=fixture();h.fs.currentFilePath='html12-01.html';
  const result=await h.fs.writeNewFile('html13-01.html','<!doctype html>\n<html><body>新規</body></html>');

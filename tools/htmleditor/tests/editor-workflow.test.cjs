@@ -98,7 +98,11 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     CodeMirror:{fromTextArea:(node, options) => { calls.cmOptions = options; return cm; }}, HtmlFileSystem:FakeFs,
     HtmlEditorFolderMemory:{create:() => { if (memoryFails) throw Error('IndexedDB unavailable'); return memory; }},
     HtmlEditorRecovery:{create:() => ({save() {}, list:() => ({items:recoveryItems, errors:[]})})},
-    HtmlPreview:class { constructor(options) { this.fs = options.fs; calls.previewOptions = options; calls.previewUpdates = []; } update(...args) { calls.previewUpdates.push(args); } openInNewTab() {} },
+    HtmlPreview:class extends require('../preview.js') {
+      constructor(options) { super(options); calls.preview = this; calls.previewOptions = options; calls.previewUpdates = []; this.transform = value => value; }
+      update(...args) { calls.previewUpdates.push(args); super.update(...args); }
+      openInNewTab() {}
+    },
     HtmlEditorDiagnostics:require('../diagnostics.js'), HtmlEditorHintUsage:require('../hint-usage.js'), HtmlEditorClipboard:require('../clipboard.js'), CSS:{supports:() => true},
     HtmlPracticeEditor:{lessons:() => [{id:'html11', title:'HTML', files:[]}], taskForFile:() => null, inspect:() => null, submission() {}},
     HtmlEditorWorkflow:{distribution:() => ({message:'', kind:'ready'}), submission:() => ({ready:false, message:''})},
@@ -128,6 +132,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
 test('プレビューのtitleはテキスト表示し、未設定・構造不足・CSS切替で古い題名を残さない', async () => {
   const app = makeHarness({remembered:false});
   await app.tick();
+  assert.equal(app.calls.previewOptions.onNavigate, undefined, 'リンク移動を編集対象・教材変更へ接続しない');
   app.calls.previewOptions.onTitle('海城 & <img src=x>');
   assert.equal(app.nodes.previewTitle.textContent, '海城 & <img src=x>');
   assert.equal(app.nodes.previewTitle.hidden, false);
@@ -378,12 +383,12 @@ test('本人情報の不一致は編集中に警告するだけ。キャッシ�
 
 
 for (const fragment of ['#topic-c', '#%E6%9C%AA%E6%9D%A5', '#topic#c', '']) {
-  test('別ファイルへのリンクは保存先と位置を引き継ぐ: ' + (fragment || '位置指定なし'), async () => {
+  test('別ファイルへのリンクは編集対象を変えずプレビュー内で位置を引き継ぐ: ' + (fragment || '位置指定なし'), async () => {
     const h = makeHarness(); await h.tick(); await chooseSample(h);
     h.disk.set('second.html', '<html><body><h2 id="topic-c">未来</h2></body></html>');
-    await h.calls.previewOptions.onNavigate('./second.html' + fragment);
-    assert.equal(h.nodes.currentFileLabel.textContent, 'second.html');
-    assert.equal(h.cm.getValue(), h.disk.get('second.html'));
+    await h.calls.preview.navigate('./second.html' + fragment);
+    assert.equal(h.nodes.currentFileLabel.textContent, 'sample.html');
+    assert.equal(h.cm.getValue(), 'old saved content');
     assert.equal(h.calls.previewUpdates.at(-1)[1], 'second.html');
     assert.equal(h.calls.previewUpdates.at(-1)[2], fragment);
     assert.equal(h.calls.writes, 0);
@@ -396,30 +401,29 @@ test('位置指定付きのリンクもフォルダ外・外部URL・クエリ�
   const updates = h.calls.previewUpdates.length;
   for (const href of ['../second.html#topic-c', '%2e%2e/second.html#topic-c', '/second.html#topic-c',
     'https://example.com/second.html#topic-c', 'second.html?query=1#topic-c', '%2fsecond.html#topic-c']) {
-    await h.calls.previewOptions.onNavigate(href);
+    await h.calls.preview.navigate(href);
     assert.equal(h.nodes.currentFileLabel.textContent, 'sample.html');
     assert.equal(h.cm.getValue(), 'old saved content');
   }
   assert.equal(h.calls.previewUpdates.length, updates);
 });
 
-for (const mode of ['save', 'discard', 'cancel', 'writeFailure', 'readFailure']) {
-  test('位置指定付きのファイル移動で未保存確認を維持する: ' + mode, async () => {
-    const h = makeHarness({failWrite:mode === 'writeFailure', failReadAfterWrite:mode === 'readFailure'});
+for (const mode of ['saved', 'unsaved', 'readFailure']) {
+  test('プレビューだけの移動では保存確認を出さず、編集内容・保存先・教材を維持する: ' + mode, async () => {
+    const h = makeHarness();
     await h.tick(); await chooseSample(h);
-    h.disk.set('second.html', 'destination'); h.cm.setValue('edited content');
+    h.disk.set('second.html', 'destination');
+    if (mode !== 'saved') h.cm.setValue('edited content');
+    if (mode === 'readFailure') h.calls.preview.fs.readFile = async () => { throw Error('preview read failed'); };
     const updates = h.calls.previewUpdates.length;
-    const navigation = h.calls.previewOptions.onNavigate('second.html#topic-c'); await h.tick();
-    assert.equal(h.calls.previewUpdates.length, updates, '確認が済むまで移動しない');
-    h.nodes.actionButtons.children.find(n => n.dataset.choice ===
-      (mode === 'cancel' ? 'cancel' : mode === 'discard' ? 'discard' : 'save')).click();
-    await h.tick();
-    await navigation;
-    const moved = mode === 'save' || mode === 'discard';
-    assert.equal(h.nodes.currentFileLabel.textContent, moved ? 'second.html' : 'sample.html');
-    assert.equal(h.cm.getValue(), moved ? 'destination' : 'edited content');
-    assert.equal(h.calls.previewUpdates.length, updates + Number(moved));
-    if (moved) assert.equal(h.calls.previewUpdates.at(-1)[2], '#topic-c');
-    assert.equal(h.disk.get('sample.html'), mode === 'save' || mode === 'readFailure' ? 'edited content' : 'old saved content');
+    const lesson = h.nodes.lessonSelect.value;
+    await h.calls.preview.navigate('second.html#topic-c');
+    assert.equal(h.nodes.actionDialog.open, false);
+    assert.equal(h.nodes.currentFileLabel.textContent, 'sample.html');
+    assert.equal(h.cm.getValue(), mode === 'saved' ? 'old saved content' : 'edited content');
+    assert.equal(h.nodes.lessonSelect.value, lesson); assert.equal(h.calls.writes, 0);
+    assert.equal(h.calls.previewUpdates.length, updates + Number(mode !== 'readFailure'));
+    if (mode !== 'readFailure') assert.equal(h.calls.previewUpdates.at(-1)[2], '#topic-c');
+    assert.equal(h.disk.get('sample.html'), 'old saved content');
   });
 }

@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const source = fs.readFileSync(require.resolve('../preview.js'), 'utf8');
 
 function setup(title = '実習のページ') {
-  const calls = {titles:[], parsed:[], opened:[], blobs:[]}, iframe = {addEventListener() {}}, context = {
+  const calls = {titles:[], parsed:[], opened:[], blobs:[],diagnostics:[],notices:[]}, iframe = {addEventListener() {}}, context = {
     HtmlEditorDiagnostics:require('../diagnostics.js'),
     DOMParser:class {
       parseFromString(html, type) {
@@ -20,7 +20,7 @@ function setup(title = '実習のページ') {
     window:{open:(...args) => calls.opened.push(args)}, setTimeout:() => 1
   };
   vm.runInNewContext(source, context);
-  const preview = new context.HtmlPreview({iframe, onTitle:value => calls.titles.push(value)});
+  const preview = new context.HtmlPreview({iframe, onTitle:value => calls.titles.push(value),onDiagnostics:value=>calls.diagnostics.push(value),onNotice:value=>calls.notices.push(value)});
   return {preview, iframe, calls};
 }
 
@@ -35,6 +35,18 @@ test('プレビュー更新時にDOMのtitleを通知し、元のHTMLは書き�
   assert.match(h.calls.parsed[0], /^<meta http-equiv="Content-Security-Policy"/);
   h.preview.transform(html, true);
   assert.equal(h.calls.titles.length, 1, '別タブ用の変換では元の表示を更新しない');
+});
+
+test('リンク先の診断は編集元へ付けず、プレビュー内での移動と更新の戻り先を案内する', () => {
+  const h = setup(); h.preview.update('<html><body>編集中</body></html>', 'first.html');
+  assert.equal(h.calls.diagnostics.length, 1);
+  h.preview.update('<html><body>リンク先</body></html>', 'second.html', '', true);
+  assert.equal(h.calls.diagnostics.length, 1); assert.match(h.calls.notices.at(-1), /リンク先をプレビューしています：second.html/);
+  h.preview.update('<html><body>閉じ忘れ', 'broken.html', '', true);
+  assert.equal(h.calls.diagnostics.length, 1); assert.match(h.iframe.srcdoc, /リンク先のコードに問題/);
+  assert.doesNotMatch(h.iframe.srcdoc, /エラーを探す/);
+  h.preview.update('<html><body>編集中</body></html>', 'first.html');
+  assert.equal(h.calls.diagnostics.length, 2); assert.equal(h.calls.notices.at(-1), '');
 });
 
 test('構造が不足したHTMLは題名を消して警告し、title未設定は空文字を通知する', () => {

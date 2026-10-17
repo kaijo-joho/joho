@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-local-grading-20261017">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-preview-local-feedback-20261017">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -187,6 +187,7 @@
     <p>画像や別ファイルのCSSを使うときは、フォルダ全体を読み込みます。<code>images/photo.jpg</code>はHTMLのある場所からの相対パスです。読み込んだフォルダ外は参照できません。</p>
     <p>教材の画像は、上部の「ダウンロード」または解説内の画像リンクから「imagesへ保存」で直接保存できます。先にFinderで「HTML実習」の中に「images」を作ってください。フォルダを自動作成したり、同名画像を上書きしたりしません。保存・読戻し確認後にプレビューへ反映します。直接保存非対応の環境では、通常ダウンロード後にFinderで移動します。</p>
     <p>見つからない画像を教材サイトから自動補完しません。外部画像・外部CSSなどの自動通信を止めているため、通常のブラウザと表示が異なる場合があります。HTML/CSS実習用のプレビューであり、入力したJavaScriptは実行しません。</p>
+    <p>同じ実習フォルダのHTMLへのリンクは、プレビュー内だけで移動します。編集中のファイルと解説は変わりません。プレビューの更新や保存で、編集中のファイルの表示へ戻ります。外部サイトへのリンクは別タブで開きます。</p>
     <p>プレビュー更新時に、編集中のHTMLとその中のCSSを限定的に検査します。問題があれば以前のプレビューと題名を消して、修正を促します。実習ではhtml・bodyを明示し、br・imgなど終了タグを使わない要素以外は終了タグも書きます。HTML規格では省略できる場合もありますが、この実習用の条件は通常のブラウザとは異なります。</p>
     <p>class・style・href・srcなど主要属性の明確なつづり間違いと、head・body、リスト・説明リスト・表、見出しなどの基本的な囲む関係も確認します。data-*・aria-*や独自要素の属性は、このつづり検査から除きます。属性値・リンク先の正しさや、すべての配置規則を判定するものではありません。</p>
     <p>まずは自分で見直してください。必要なときだけ「エラーを探す」を押すと行番号に⚠が付き、⚠を押すと短いヒントが出ます。最初に利用記録の送信を確認します。記録するのはボタンの利用回数・時刻・行番号・検査項目だけで、入力履歴は記録せず、自動減点もしません。編集すると古い印は消えます。</p>
@@ -212,7 +213,7 @@
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.9.0（2026年10月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>HTMLエディタ 0.9.1（2026年10月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
     <p>通常の編集はこの端末とブラウザで処理します。「提出」を押すと、保存確認済みの内容をモーダル内の学校アカウント用フォームへ渡します。提出記録の作成は、フォーム内の「提出する」を押したときだけです。ログインや表示がうまくいかない場合は「表示・ログインで困ったとき」から「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
@@ -240,18 +241,18 @@
 <script src="workflow.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-oJmPBn0EqhE7xQ26mqno+/eqlUXowH64e8RobjuanKiallBhN4dh8LgTasUBMqJ5" crossorigin="anonymous"></script>
 <script src="download.js?v=html-editor-submit-ui-20261004" data-editor-required integrity="sha384-QMsVJ5/4SqjH37OmJLAN9dcbX4qDlqgAlyK71ZYHCryGGH8HdA0T3ditUwRHVdnx" crossorigin="anonymous"></script>
 <script src="grading-assets.js?v=html-local-grading-20261017" integrity="sha384-CtYpuqDaEqtwxt5eSkZMn3lU8NRYBQnIAb3CovQFfr3BfaC7ByQcP70iQb3wUap6" crossorigin="anonymous"></script>
-<script src="local-grading.js?v=html-local-grading-20261017" integrity="sha384-Bn5DPx2hCkoI/Gg+sY9t/unkjQ9c4jrCljaRu2dwbzYwiZeFi5Bcge711Ush2eD3" crossorigin="anonymous"></script>
+<script src="local-grading.js?v=html-preview-local-feedback-20261017" integrity="sha384-sbuNaalGnonp5nIKPHQisjPijmYJZ7t5w3qzQQhO8+VTFM9TaFONNG05qdOnO43i" crossorigin="anonymous"></script>
 <script src="submission.js?v=html-local-grading-20261017" data-editor-required integrity="sha384-zV3jrjIHFjakAfcho7tN4sBxb7qK3CnODzxgKSSMoNb/wU8se2cfesWWcPHhkff+" crossorigin="anonymous"></script>
 <script src="routing.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
 <script src="navigation.js?v=html-editor-direct-images-20261008" data-editor-required integrity="sha384-hE0+g+x+Et37xMv33+35aNQArj3lACp+sgx2BG7a4oYwYdfVs7FiQvmFsTKmu6zn" crossorigin="anonymous"></script>
 <script src="recovery.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-j5rv44DgQetWLG8LlvUQBTDmR8Ex6u3HktVI3w2QwWplULJLYh8Jn7Oqn+spWRUO" crossorigin="anonymous"></script>
-<script src="filesystem.js?v=html-editor-direct-images-20261008" data-editor-required integrity="sha384-q7GA2HZccu8khACiOPubF/wfbADXxZNLsnOYA9XQXJCuUlGoC/IafwMo93GjHAoY" crossorigin="anonymous"></script>
+<script src="filesystem.js?v=html-preview-local-feedback-20261017" data-editor-required integrity="sha384-7U3azlVhlgPREIfPzyoP5oGcE9tLUgDqQPYPSpQjToSSDGm/3ekLzu4dn5zXJlP5" crossorigin="anonymous"></script>
 <script src="folder-memory.js?v=html-editor-v3-20261002-enabled" integrity="sha384-X0jCctHQJZmYAtsq/o7avFraHuzzySbJTNpOMmVbYCw0Ct4ywp/H5hccAHB8XF1v" crossorigin="anonymous"></script>
 <script src="diagnostics.js?v=html-editor-attribute-layout-20261005" data-editor-required integrity="sha384-ArVXRo/o4B+2o0hz+bvR5rrrSaHmmMwrKhoVZp37OVlfV/7RBl6fOrmaSIP8oTWC" crossorigin="anonymous"></script>
 <script src="hint-usage.js?v=html-editor-error-hints-20261005" integrity="sha384-IshffaAoBNtrVXRzCv6fdav0aNzXw/vCGhz5nr4rpbuEs8A7Ug/z2NY/0JyjOMm1" crossorigin="anonymous"></script>
-<script src="preview.js?v=html-editor-fragment-navigation-20261007" data-editor-required integrity="sha384-uifpG3fjjpkS9EPtaTZKmPv81sP2sXIXByVBoAjnH9vIezDwVXhx3idI1Y5yFWmv" crossorigin="anonymous"></script>
+<script src="preview.js?v=html-preview-local-feedback-20261017" data-editor-required integrity="sha384-DXU1kP7mHiTdKDsk4vh1QfLCzfCtsW/ci/Fli4Q5dIshsZR0d169Ze7bBqBDEyhv" crossorigin="anonymous"></script>
 <script src="onboarding.js?v=html-editor-onboarding-guide-20261016" data-editor-required integrity="sha384-1wpU/42emmfLcuGx2FSev2ERHgOXKd0MahTbNGDssi+Hx1UPSveOptJMhxwuzu+5" crossorigin="anonymous"></script>
 <script src="clipboard.js?v=html-editor-copy-status-20261008" data-editor-required integrity="sha384-pIZWyXvpzypp+4Phg7thVMcAANiPEi74SXZCQAP8w8XspUx+5xaNfKsA3/IThSAc" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-local-grading-20261017" data-editor-required integrity="sha384-5W/HkLKE7Ht6hvh9HQTAUAY0w9x4yYngAf4FSsN/TXuDorfpyutbbSyN8mbrZjbt" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-preview-local-feedback-20261017" data-editor-required integrity="sha384-nmYOa229JaKi3gUj9JCCsfSRIrCijtqM8K4BKDIZRypowTub3LFJfrB8lQsEk0O9" crossorigin="anonymous"></script>
 </body>
 </html>

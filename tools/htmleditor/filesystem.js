@@ -110,7 +110,7 @@
     }
     resolveResourceUrl(path,base=''){if(typeof path!=='string'||!path||path.startsWith('#')||path.startsWith('/')||/^[A-Za-z][A-Za-z0-9+.-]*:/.test(path)||path.startsWith('//')||/[\u0000-\u001f\u007f\\]/.test(path)||/%(?:2f|2F|5c|5C|00)/.test(path))return null;try{const b=base?safePath(base):'';const combined=b?b.split('/').slice(0,-1).concat(path.split('/')).join('/'):path;const stack=[];for(const p of combined.split('/')){if(!p||p==='.')continue;if(p==='..'){if(!stack.length)return null;stack.pop()}else stack.push(p)}const normalized=safePath(stack.join('/'));return this.blobUrlMap.get(normalized)||null}catch(_){return null}}
     getFileList(){return Array.from(this.fileEntries.keys()).sort((a,b)=>a.localeCompare(b))}
-    async readFile(path) {
+    async readFile(path, {activate = true} = {}) {
       const rel = textPath(path);
       const entry = this.fileEntries.get(rel);
       if (!entry) throw new Error(`ファイル "${path}" が見つかりません。`);
@@ -120,8 +120,10 @@
       if (raw.byteLength > MAX_TEXT_BYTES) throw new Error('読み込むファイルが大きすぎます。');
       let text;
       try { text = decodeUtf8(raw); } catch (_) { throw new Error('UTF-8として読み込めないファイルです。'); }
-      this.currentFilePath = rel;
-      this._notify('file-loaded', {path:rel, text});
+      if (activate) {
+        this.currentFilePath = rel;
+        this._notify('file-loaded', {path:rel, text});
+      }
       return text;
     }
     async writeFile(path, content) {

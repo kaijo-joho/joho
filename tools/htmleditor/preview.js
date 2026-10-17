@@ -5,6 +5,23 @@
 })(typeof globalThis === 'undefined' ? this : globalThis, function (diagnostics) {
   'use strict';
   const CSP = "default-src 'none'; script-src 'none'; img-src blob: data:; style-src 'unsafe-inline' blob:; font-src data:; object-src 'none'; base-uri 'none'; form-action 'none'";
+  function resolveLocalLink(href, base, files) {
+    if (typeof href !== 'string' || /^[a-z][a-z0-9+.-]*:|^\/|\\|[\u0000-\u001f\u007f]|%(?:2f|5c|00)/i.test(href)) return null;
+    try {
+      const separator = href.indexOf('#');
+      const relative = separator < 0 ? href : href.slice(0, separator);
+      const fragment = separator < 0 ? '' : href.slice(separator);
+      if (relative.includes('?')) return null;
+      const parts = base.split('/').slice(0, -1);
+      for (const part of decodeURIComponent(relative).split('/')) {
+        if (!part || part === '.') continue;
+        if (part === '..') { if (!parts.length) return null; parts.pop(); }
+        else parts.push(part);
+      }
+      const path = parts.join('/');
+      return /\.html?$/i.test(path) && files?.has(path) ? {path, fragment} : null;
+    } catch { return null; }
+  }
   // DOMParserは省略したhtml/bodyを補うため、入力中の開始タグを先に確認する。
   // コメント・属性値・文字列として扱う要素・template/外国語要素内は数えない。
   function missingStructure(source) {
@@ -46,12 +63,12 @@
   class HtmlPreview {
     constructor(options = {}) {
       this.iframe = options.iframe; this.fs = options.fs;
-      this.onNavigate = options.onNavigate || (() => {});
+      this.onNavigate = options.onNavigate || (href => this.navigate(href));
       this.onNotice = options.onNotice || (() => {});
       this.onTitle = options.onTitle || (() => {});
       this.onDiagnostics = options.onDiagnostics || (() => {});
       this.pageTitle = '';
-      this.lastHtml = ''; this.basePath = ''; this.fragment = '';
+      this.lastHtml = ''; this.renderedHtml = ''; this.basePath = ''; this.fragment = ''; this.linked = false; this.revision = 0;
       this.localLinks = new Map();
       this.iframe?.addEventListener('load', () => {
         try {
@@ -65,30 +82,47 @@
           }
           // WebKitではscripts禁止iframe内の親製click handlerも働かない。
           // 通信を伴わないabout:blankへのネイティブ遷移を、親のloadで受ける。
-          // 未保存確認を取り消しても、元のプレビューを失わない。
-          this.update(this.lastHtml, this.basePath);
+          // 読取り失敗でも元のプレビューを残す。編集対象や教材は切り替えない。
+          this.revision++; this.fragment = '';
+          this.iframe.srcdoc = this.renderedHtml;
           this.onNavigate(href);
         } catch { /* 親がアクセスできない画面には介入しない。 */ }
       });
     }
-    update(source, basePath = '', fragment = '') {
+    update(source, basePath = '', fragment = '', linked = false) {
+      this.revision++; this.linked = linked;
       this.lastHtml = source; this.basePath = basePath;
       this.fragment = typeof fragment === 'string' && fragment.startsWith('#') ? fragment : '';
-      if (this.iframe) this.iframe.srcdoc = this.transform(source);
+      this.renderedHtml = this.transform(source);
+      if (this.iframe) this.iframe.srcdoc = this.renderedHtml;
+    }
+    async navigate(href) {
+      const revision = this.revision, fs = this.fs;
+      const entries = fs?.fileEntries, directory = fs?.dirHandle;
+      const link = resolveLocalLink(href, this.basePath, entries);
+      const current = () => revision === this.revision && fs === this.fs && entries === fs?.fileEntries && directory === fs?.dirHandle;
+      try {
+        if (!link) throw Error('リンク先を読み込んだフォルダ内で見つけられません。パスを確認してください。');
+        const source = await fs.readFile(link.path, {activate:false});
+        // 更新・別ファイルの選択・フォルダ変更後に古い読取りを表示しない。
+        if (!current() || !fs.fileEntries.has(link.path)) return;
+        this.update(source, link.path, link.fragment, true);
+      } catch (error) { if (current()) this.onNotice(error.message || 'リンク先をプレビューできませんでした。'); }
     }
     blocked(detached = false) {
       if (!detached) { this.localLinks.clear(); this.fragment = ''; this.pageTitle = ''; this.onTitle(null); }
-      const message = 'コードに問題があります。修正してからプレビューを更新してください。まずは自分で見直し、必要なときは「エラーを探す」を使えます。';
+      const message = this.linked ? 'リンク先のコードに問題があります。「開く」からリンク先のファイルを開いて修正してください。プレビューを更新すると編集中のファイルへ戻ります。' :
+        'コードに問題があります。修正してからプレビューを更新してください。まずは自分で見直し、必要なときは「エラーを探す」を使えます。';
       this.onNotice(message);
       return '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' + CSP + '"></head><body>' +
         '<div role="alert" style="font-family:sans-serif;line-height:1.7;padding:20px;background:#fff4df;color:#723c00">' +
         '<strong>プレビューを表示していません</strong><p>' + message + '</p></div></body></html>';
     }
-    showBlocked() { if (this.iframe) this.iframe.srcdoc = this.blocked(); }
+    showBlocked() { this.revision++; this.renderedHtml = this.blocked(); if (this.iframe) this.iframe.srcdoc = this.renderedHtml; }
     transform(source, detached = false) {
       const result = diagnostics.check(source, {supports:typeof CSS === 'undefined' ? null : (name, value) => CSS.supports(name, value),
         selector:value => { try { document.createDocumentFragment().querySelector(value); return true; } catch { return false; } }});
-      if (!detached) this.onDiagnostics(result);
+      if (!detached && !this.linked) this.onDiagnostics(result);
       if (!result.valid) return this.blocked(detached);
       // DOMParserの入力時点から通信禁止の方針を先頭へ置く。生徒のCSP等は後で除去する。
       const doc = new DOMParser().parseFromString('<meta http-equiv="Content-Security-Policy" content="' + CSP + '">' + source, 'text/html');
@@ -137,8 +171,9 @@
           [...doc.querySelectorAll('[style]')].some(node => /url\s*\(/i.test(node.getAttribute('style')))) {
         missing.add('CSS内の画像・読み込み指定（このプレビューでは未対応）');
       }
-      this.onNotice(missing.size ? '表示できない参照：' + [...missing].slice(0,8).join('、') +
-        '。画像やCSSを含むフォルダを読み込み、相対パスを確認してください。外部素材の自動読込は行いません。' : '');
+      const linkedNotice = !detached && this.linked ? 'リンク先をプレビューしています：' + this.basePath + '。編集中のファイルは変わりません。更新すると元の表示へ戻ります。' : '';
+      this.onNotice([linkedNotice, missing.size ? '表示できない参照：' + [...missing].slice(0,8).join('、') +
+        '。画像やCSSを含むフォルダを読み込み、相対パスを確認してください。外部素材の自動読込は行いません。' : ''].filter(Boolean).join(' '));
       if (!detached) this.localLinks = localLinks;
       return '<!doctype html>\n' + doc.documentElement.outerHTML;
     }
@@ -156,5 +191,6 @@
     }
   }
   HtmlPreview.missingStructure = missingStructure;
+  HtmlPreview.resolveLocalLink = resolveLocalLink;
   return HtmlPreview;
 });

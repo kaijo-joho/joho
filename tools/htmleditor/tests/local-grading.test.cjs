@@ -94,7 +94,7 @@ test('Worker停止・時間切れ・取消しで編集画面や旧提出を妨�
 test('採点不能時の★を隠し、未提出・受領とは別表示にする',async()=>{
   class Node{constructor(){this.children=[];this.textContent='';}append(...n){this.children.push(...n);}insertBefore(n,b){this.children.splice(this.children.indexOf(b),0,n);}setAttribute(){}remove(){}}
   const doc={createElement:()=>new Node(),createTextNode:text=>Object.assign(new Node(),{textContent:text})},parent=new Node();
-  const p=G.panel(parent,{document:doc,isCurrent:()=>true,input:{},grader:{grade:async()=>({status:'checked',receipt:{result:{state:'needs_review',rules:[{passed:true,label:'見出し',points:10,earned:10}]}}})}});
+  const p=G.panel(parent,{document:doc,timers:{setTimeout(fn){queueMicrotask(fn);return 1;},clearTimeout(){}},isCurrent:()=>true,input:{},grader:{grade:async()=>({status:'checked',receipt:{result:{state:'needs_review',rules:[{passed:true,label:'見出し',points:10,earned:10}]}}})}});
   await p.completed;
   const text=n=>n.textContent+n.children.map(text).join('');const display=text(parent);
   assert.ok(display.includes('この表示だけでは提出完了になりません'));assert.ok(display.includes('確認待ち：見出し'));assert.doesNotMatch(display,/★|10|100/);p.dispose();

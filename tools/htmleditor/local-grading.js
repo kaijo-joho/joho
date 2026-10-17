@@ -89,16 +89,23 @@
     }
     return Object.freeze({grade});
   }
-  function panel(container, {grader,input,isCurrent,document = globalThis.document}) {
-    const controller = new AbortController(); let disposed = false;
+  function panel(container, {grader,input,isCurrent,document = globalThis.document,timers = globalThis}) {
+    const controller = new AbortController(); let disposed = false, finishDelay;
+    // 採点・GASフォームの準備はすぐ始め、結果の表示だけを最低5秒待つ。
+    const delay = new Promise(resolve => { finishDelay = resolve; });
+    const timer = timers.setTimeout(finishDelay, 5000);
     const section = document.createElement('section'); section.className = 'local-grade-feedback';
+    section.setAttribute('aria-busy','true');
     const heading = document.createElement('h3'); heading.textContent = 'このファイルの確認結果（端末内）';
     const status = document.createElement('p'); status.setAttribute('role','status');
-    status.textContent = '保存した内容を確認しています…';
+    status.className = 'download-status';
+    const spinner = document.createElement('span'); spinner.className = 'download-spinner'; spinner.setAttribute('aria-hidden','true');
+    status.append(spinner,document.createTextNode('保存した内容を採点しています…'));
     const note = document.createElement('p'); note.className = 'note';
     note.textContent = 'この表示だけでは提出完了になりません。提出の完了はフォーム内の受領表示で確認してください。';
     section.append(heading,status,note); container.append(section);
-    const completed = grader.grade({...input,signal:controller.signal}).then(value => {
+    const completed = Promise.resolve().then(() => grader.grade({...input,signal:controller.signal})).then(async value => {
+      await delay;
       if (disposed) return null;
       if (!isCurrent()) { status.textContent = '内容が変わりました。保存して提出を準備し直してください。'; return null; }
       if (value.status === 'receipt-only') { status.textContent = 'この課題は提出を受け付けた後に★がつきます。'; return value; }
@@ -116,8 +123,11 @@
     }).catch(() => {
       if (!disposed) status.textContent = '端末内での確認を利用できません。下の提出フォームはそのまま使えます。';
       return null;
+    }).finally(() => {
+      timers.clearTimeout(timer); finishDelay();
+      if (!disposed) section.setAttribute('aria-busy','false');
     });
-    return {completed,dispose() { disposed = true; controller.abort(); section.remove(); }};
+    return {completed,dispose() { disposed = true; timers.clearTimeout(timer); finishDelay(); controller.abort(); section.remove(); }};
   }
   return Object.freeze({create,panel,select,canonical,hash,MAX_BYTES});
 });

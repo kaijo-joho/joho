@@ -376,23 +376,6 @@
       notify('行番号の横の⚠からヒントを確認できます。編集すると印は消えます。');
     });
   }
-  function safeRelativeLink(href, base) {
-    if (/^[a-z][a-z0-9+.-]*:|^\/|\\|[\u0000-\u001f\u007f]|%(?:2f|5c|00)/i.test(href)) return null;
-    try {
-      const separator = href.indexOf('#');
-      const relative = separator < 0 ? href : href.slice(0, separator);
-      const fragment = separator < 0 ? '' : href.slice(separator);
-      if (relative.includes('?')) return null;
-      const parts = base.split('/').slice(0, -1);
-      for (const part of decodeURIComponent(relative).split('/')) {
-        if (!part || part === '.') continue;
-        if (part === '..') { if (!parts.length) return null; parts.pop(); }
-        else parts.push(part);
-      }
-      const path = parts.join('/');
-      return editable(path) && fs.fileEntries.has(path) ? {path, fragment} : null;
-    } catch { return null; }
-  }
   async function loadFile(path, fragment = '') {
     let value = await fs.readFile(path); // 読取失敗は現在の文書に触れない。
     const hadChanges = dirty();
@@ -727,13 +710,7 @@
         label.textContent = label.hidden ? '' : title || 'タイトル未設定';
         label.dataset.tip = label.hidden ? '' : title ? 'HTMLのtitleタグ：' + title : 'HTMLのtitleタグがないか、中が空です。';
       },
-      onNotice:message => { if (/\.css$/i.test(doc?.fileName || '')) return; $('previewNotice').textContent = message; $('previewNotice').hidden = !message; },
-      onNavigate:href => exclusive(async () => {
-        if (!doc) return;
-        const link = safeRelativeLink(href, doc.fileName);
-        if (!link) throw Error('リンク先を読み込んだフォルダ内で見つけられません。パスを確認してください。');
-        await loadFile(link.path, link.fragment);
-      })});
+      onNotice:message => { if (/\.css$/i.test(doc?.fileName || '')) return; $('previewNotice').textContent = message; $('previewNotice').hidden = !message; }});
     cm = CodeMirror.fromTextArea($('codeEditor'), {
       mode:'htmlmixed', lineNumbers:true, gutters:['CodeMirror-linenumbers','error-hints'], autoCloseTags:false, smartIndent:false, electricChars:false,
       indentUnit:2, tabSize:2, lineWrapping:true, readOnly:'nocursor',
