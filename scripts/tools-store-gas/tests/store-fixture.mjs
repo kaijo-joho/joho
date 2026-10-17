@@ -71,7 +71,7 @@ export function setup(options = {}) {
   const config = { enabled: true, confirmationEnabled: options.confirmation === true, bindingKey: 'synthetic-test-key-only-32-characters', allowedOrigins: ['https://school.example'], allowedDomains: ['example.test'], teacherOwners: [owner], bindingLifetimeMs: 3600000, ...options.config };
   const env = { SpreadsheetApp: { ProtectionType: { RANGE: 'RANGE', SHEET: 'SHEET' } } };
   const { context, contract: T } = loadStore(env), C = T.constants;
-  const guide = new FakeSheet(C.GUIDE, 100, 2, false), data = new FakeSheet(C.SHEET, C.DRAFT_ROWS, 14, true), history = new FakeSheet(C.HISTORY, C.HISTORY_ROWS, 14, true);
+  const guide = new FakeSheet(C.GUIDE, 100, 2, false), data = new FakeSheet(C.SHEET, options.draftRows ?? C.DRAFT_ROWS, 14, true), history = new FakeSheet(C.HISTORY, C.HISTORY_ROWS, 14, true);
   const generation = 'a'.repeat(32), spreadsheetId = 'synthetic_spreadsheet_identifier_0001';
   guide.getRange(1, 1, 6, 2).setValues([['schemaVersion', 1], ['actorKey', T.actorKey(account)], ['generation', generation], ['state', 'active'], ['kind', C.KIND], ['teacherOwner', owner]]);
   guide.protectRange(1, 1, 6, 2);

@@ -7,7 +7,8 @@ var ToolsStoreContract = (function () {
   var C = Object.freeze({
     SCHEMA_VERSION: 1, KIND: 'tools-store-v1', AUDIENCE: 'tools-store-v1',
     GUIDE: '使い方', SHEET: 'Python', HISTORY: 'Python履歴',
-    HEADERS: Object.freeze(HEADERS), DRAFTS: 256, BLOCK: 4, DRAFT_ROWS: 1025,
+    HEADERS: Object.freeze(HEADERS), DRAFTS: 1024, BLOCK: 4, DRAFT_ROWS: 4097,
+    MIN_DRAFTS: 256, MIN_DRAFT_ROWS: 1025,
     HISTORY_ROWS: 2049, PARTS: 5, CHUNK: 45000, MAX_TEXT: 200000,
     RECENT: 16, CHECKPOINT_MS: 300000,
     CONFIRMATION: Object.freeze({ SCHEMA: 1, SHEET: 'Python確認', RECEIPTS: 'Python確認受付',
@@ -16,6 +17,10 @@ var ToolsStoreContract = (function () {
       MAX_BYTES: 4194304, CHUNK: 32000, PARTS: 132, SLOTS: 8, BLOCK: 133, ROWS: 1067,
       RECEIPT_ROWS: 4097, READ_MS: 300000, UPLOAD_MS: 1200000 })
   });
+  // 既存256問版のschema1も使う。物理的に存在する完全な4行だけを容量とする。
+  function draftCapacity(rows) {
+    return Number.isSafeInteger(rows) && rows >= 1 ? Math.min(C.DRAFTS, Math.floor((rows - 1) / C.BLOCK)) : 0;
+  }
   function fail(code, message) {
     var error = new Error(message || 'クラウド保存を完了できませんでした。');
     error.toolsStoreCode = code; throw error;
@@ -84,7 +89,7 @@ var ToolsStoreContract = (function () {
     try { payload = JSON.parse(unb64(pieces[0])); } catch (ignored) { fail('binding_invalid'); }
     return validatePayload(payload, config, now);
   }
-  return Object.freeze({ constants: C, fail: fail, assert: assert, hash: hash, actorKey: actorKey,
+  return Object.freeze({ constants: C, draftCapacity: draftCapacity, fail: fail, assert: assert, hash: hash, actorKey: actorKey,
     normalizeAccount: normalizeAccount, canonical: canonical, equal: equal,
     issueBinding: issueBinding, verifyBinding: verifyBinding });
 }());

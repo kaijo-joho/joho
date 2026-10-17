@@ -38,9 +38,9 @@ var ToolsStoreService = (function () {
           range.getLastRow() >= row + rows - 1 && range.getLastColumn() >= column + columns - 1;
       });
     }
-    function verifyTable(sheet, rows, columns) {
+    function verifyTable(sheet, rows, columns, maxUsedRows) {
       columns = columns || C.HEADERS;
-      assertion(sheet && sheet.getMaxRows() >= rows && sheet.getMaxColumns() >= columns.length && sheet.getLastRow() <= rows, 'schema_mismatch');
+      assertion(sheet && sheet.getMaxRows() >= rows && sheet.getMaxColumns() >= columns.length && sheet.getLastRow() <= (maxUsedRows === undefined ? rows : maxUsedRows), 'schema_mismatch');
       var header = sheet.getRange(1, 1, 1, columns.length);
       assertion(T.canonical(header.getValues()[0]) === T.canonical(columns) && header.getFormulas()[0].every(function (v) { return v === ''; }), 'schema_mismatch');
       if (sheet.getMaxColumns() > columns.length) {
@@ -74,7 +74,8 @@ var ToolsStoreService = (function () {
       assertion(values[2][1] === binding.generation, 'binding_stale', '保存先の構成が変わりました。学校アカウントへ接続し直してください。');
       assertion(values[3][1] === 'active', 'store_inactive', '保存先を更新中か利用停止中です。');
       assertion(protectedRange(guide, 1, 1, 6, 2), 'protection_mismatch');
-      verifyTable(book.getSheetByName(C.SHEET), C.DRAFT_ROWS);
+      var drafts = book.getSheetByName(C.SHEET);
+      verifyTable(drafts, C.MIN_DRAFT_ROWS, C.HEADERS, 1 + T.draftCapacity(drafts ? drafts.getMaxRows() : 0) * C.BLOCK);
       verifyTable(book.getSheetByName(C.HISTORY), C.HISTORY_ROWS);
       return book;
     }

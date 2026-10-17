@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
+import { setup as setupStore } from './store-fixture.mjs';
 
 const common = readFileSync(new URL('../common/05_tools_store_contract.js', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../dist/19_tools_store_distribution.js', import.meta.url), 'utf8');
@@ -165,7 +166,7 @@ test('初回作成は台帳の専用セルだけ更新し、teacher所有/本人
   const guide = ss.getSheetByName('使い方');
   assert.equal(guide.getRange(4, 2).getValue(), 'active');
   assert.equal(guide.hidden, false);
-  for (const [name, rows] of [['Python', 1025], ['Python履歴', 2049]]) {
+  for (const [name, rows] of [['Python', 4097], ['Python履歴', 2049]]) {
     const sheet = ss.getSheetByName(name);
     assert.ok(sheet.rows >= rows);
     assert.equal(sheet.hidden, true);
@@ -176,6 +177,77 @@ test('初回作成は台帳の専用セルだけ更新し、teacher所有/本人
   }
   const payload = f.ctx.ToolsStoreContract.verifyBinding(result.value.binding, f.env.configuration(), f.env.now().getTime());
   assert.equal(payload.account, student); assert.equal(payload.origin, origin); assert.equal(payload.spreadsheetId, ss.getId());
+});
+
+test('旧256枠は拡張前も接続でき、教員による1024枠増設は既存位置/本文/履歴/受付を保持して接続世代を更新する', () => {
+  const f = fixture({ registered: true }), ss = registeredSS(f), guide = ss.getSheetByName('使い方');
+  f.data.set('TOOLS_STORE_DIST_CONFIRMATION_ENABLED', 'true'); f.state.active = teacher;
+  assert.equal(f.api.prepare({ accounts: [student], confirmation: 'PREPARE_TOOLS_STORES_V1' }).value.results[0].state, 'ready');
+  const current = ss.getSheetByName('Python'), history = ss.getSheetByName('Python履歴');
+  current.rows = 1025; f.state.active = student;
+  const connection = f.api.connection(f.request); assert.equal(connection.ok, true);
+  assert.equal(current.getMaxRows(), 1025); // 生徒の接続は行を増やさない。
+  const store = setupStore({ account: student, draftRows: 1025, config: { bindingKey: tokenKey,
+    allowedOrigins: [origin], allowedDomains: ['school.example.test'], teacherOwners: [teacher] } });
+  function refreshStore() {
+    for (const name of ['使い方', 'Python', 'Python履歴']) {
+      const from = ss.getSheetByName(name), to = store.sheets[name]; to.rows = from.rows; to.columns = from.columns; to.cells.clear();
+      from.cells.forEach((row, y) => row.forEach((value, x) => { if (value !== undefined) to.cells.set(`${y + 1},${x + 1}`, value); }));
+    }
+  }
+  const service = store.context.ToolsStoreService.create(store.config, { ...store.dependencies,
+    openBook: id => { assert.equal(id, ss.getId()); return store.book; }, owner: () => teacher });
+  const rpc = (action, input = {}, token = connection.value.binding) => service.call(action, input, token, origin);
+  refreshStore(); assert.equal(rpc('session').schemaVersion, 1);
+  const request = { tool: 'python', questionId: 'legacy-q', version: 'v1', setId: 'legacy', title: '問題', folder: '授業',
+    requestId: 'c'.repeat(32), clientId: 'd'.repeat(32), expectedRevision: null, code: 'print("old code")', stdin: 'old input' };
+  const accepted = rpc('saveDraft', request);
+  for (const name of ['Python', 'Python履歴']) {
+    const from = store.sheets[name], to = ss.getSheetByName(name); to.cells = [];
+    for (const [key, value] of from.cells) { const [row, column] = key.split(',').map(Number); (to.cells[row - 1] ||= [])[column - 1] = value; }
+  }
+  ss.getSheetByName('Python確認受付').getRange(2, 1).setValue('existing opaque receipt to preserve');
+  const snapshot = new Map(['Python', 'Python履歴', 'Python確認', 'Python確認受付'].map(name => [name, structuredClone(ss.getSheetByName(name).cells)]));
+  const generation = guide.getRange(3, 2).getValue();
+  const append = current.insertRowsAfter;
+  current.insertRowsAfter = function (after, count) {
+    assert.equal(guide.getRange(4, 2).getValue(), 'upgrading');
+    assert.notEqual(guide.getRange(3, 2).getValue(), generation); // 増設する前に旧bindingを止める。
+    return append.call(this, after, count);
+  };
+  f.state.active = teacher;
+  const upgraded = f.api.prepare({ accounts: [student], confirmation: 'PREPARE_TOOLS_STORES_V1' });
+  assert.equal(upgraded.value.results[0].state, 'ready'); assert.equal(current.getMaxRows(), 4097);
+  assert.notEqual(guide.getRange(3, 2).getValue(), generation);
+  for (const [name, cells] of snapshot) assert.deepEqual(ss.getSheetByName(name).cells, cells);
+  refreshStore();
+  assert.throws(() => rpc('session'), error => error.toolsStoreCode === 'binding_stale');
+  assert.throws(() => rpc('saveDraft', { ...request, requestId: 'e'.repeat(32), expectedRevision: accepted.draft.revision, code: 'stale client' }), error => error.toolsStoreCode === 'binding_stale');
+  f.state.active = student;
+  const renewed = f.api.connection(f.request); assert.equal(renewed.ok, true);
+  assert.equal(rpc('session', {}, renewed.value.binding).schemaVersion, 1);
+  const restored = rpc('getDraft', { tool: 'python', questionId: request.questionId, version: request.version }, renewed.value.binding);
+  assert.equal(restored.draft.code, request.code); assert.equal(restored.draft.stdin, request.stdin);
+  assert.equal(restored.draft.revision, accepted.draft.revision);
+  const nextGeneration = guide.getRange(3, 2).getValue(); f.state.active = teacher;
+  assert.equal(f.api.prepare({ accounts: [student], confirmation: 'PREPARE_TOOLS_STORES_V1' }).value.results[0].state, 'ready');
+  assert.equal(guide.getRange(3, 2).getValue(), nextGeneration); assert.equal(current.getMaxRows(), 4097);
+  for (const [name, cells] of snapshot) assert.deepEqual(ss.getSheetByName(name).cells, cells);
+});
+
+test('増設直後の例外ではupgradingと新世代を保持し、再prepareで本文を変えず再開できる', () => {
+  const f = fixture({ registered: true }), ss = registeredSS(f), guide = ss.getSheetByName('使い方'), current = ss.getSheetByName('Python');
+  current.rows = 1025; current.getRange(2, 4).setValue('KEEP ORIGINAL ROW');
+  const generation = guide.getRange(3, 2).getValue(), append = current.insertRowsAfter; let once = true;
+  current.insertRowsAfter = function (after, count) { append.call(this, after, count); if (once) { once = false; throw Error('synthetic lost expansion response'); } };
+  f.state.active = teacher;
+  const interrupted = f.api.prepare({ accounts: [student], confirmation: 'PREPARE_TOOLS_STORES_V1' });
+  assert.equal(interrupted.value.results[0].state, 'blocked'); assert.equal(current.getMaxRows(), 4097);
+  assert.equal(guide.getRange(4, 2).getValue(), 'upgrading'); assert.notEqual(guide.getRange(3, 2).getValue(), generation);
+  const resumedGeneration = guide.getRange(3, 2).getValue();
+  const resumed = f.api.prepare({ accounts: [student], confirmation: 'PREPARE_TOOLS_STORES_V1' });
+  assert.equal(resumed.value.results[0].state, 'ready'); assert.equal(current.getRange(2, 4).getValue(), 'KEEP ORIGINAL ROW');
+  assert.equal(guide.getRange(4, 2).getValue(), 'active'); assert.equal(guide.getRange(3, 2).getValue(), resumedGeneration);
 });
 
 test('登録済み接続は再作成・共有変更・ScriptLockを使わない', () => {

@@ -30,9 +30,24 @@ test('未設定鍵・過大寿命・未許可tool・不正GSSを発行しない'
   assert.throws(() => T.issueBinding({ ...input, tool: 'html' }, config, now), code('binding_invalid'));
   assert.throws(() => T.issueBinding({ ...input, spreadsheetId: '../arbitrary' }, config, now), code('binding_invalid'));
 });
-test('共通レイアウトは14列・256問版・5分checkpointで一定', () => {
+test('共通レイアウトは14列・初期1024問版・旧256問版互換で履歴/確認容量を変えない', () => {
   assert.equal(T.constants.HEADERS.length, 14);
-  assert.equal(T.constants.DRAFT_ROWS, 1 + 256 * 4);
+  assert.equal(T.constants.DRAFTS, 1024);
+  assert.equal(T.constants.DRAFT_ROWS, 1 + 1024 * 4);
+  assert.equal(T.constants.MIN_DRAFTS, 256);
+  assert.equal(T.constants.MIN_DRAFT_ROWS, 1 + 256 * 4);
+  assert.equal(T.constants.HISTORY_ROWS, 2049);
+  assert.equal(T.constants.CONFIRMATION.MAX_BYTES, 4 * 1024 * 1024);
+  assert.equal(T.constants.CONFIRMATION.RECEIPT_ROWS, 4097);
   assert.equal(T.constants.CHUNK * T.constants.PARTS >= T.constants.MAX_TEXT, true);
   assert.equal(T.constants.CHECKPOINT_MS, 300000);
+});
+test('実容量は物理的な完全4行ブロックで算出し1024問版を超えない', () => {
+  assert.equal(T.draftCapacity(1025), 256);
+  assert.equal(T.draftCapacity(1028), 256);
+  assert.equal(T.draftCapacity(1029), 257);
+  assert.equal(T.draftCapacity(4097), 1024);
+  assert.equal(T.draftCapacity(10000), 1024);
+  assert.equal(T.draftCapacity(0), 0);
+  assert.equal(T.draftCapacity(undefined), 0);
 });

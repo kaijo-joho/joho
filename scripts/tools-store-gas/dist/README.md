@@ -67,3 +67,9 @@ Nodeのfake Drive/GSSとmessageブリッジのテストです。Google上の実�
 `TOOLS_STORE_DIST_CONFIRMATION_ENABLED`は未設定で無効。承認後に教員が明示し、対象1名のpreview→prepareで`Python確認`と`Python確認受付`を追加する案。利用者GASからの作成・保護変更は行わない。旧schemaVersion1、Python本文、Python履歴、台帳のGSSIDは保持し、追加時はgenerationを更新して再接続させる。active版で追加シートが片方消失していれば空で作り直さず停止する。
 
 本番の設定・GSS・権限はこのソース変更で操作していない。詳細・分割RPC・停止・容量は[保存用GASの契約](../store/README.md#確認journalの追加契約2026-10-17本番無効)を参照する。
+
+## コードの初期容量（2026-10-17）
+
+新規の保存先は1,024問版を初期確保する。`Python`の先頭見出し1行＋4行×1,024枠で4,097行。`Python履歴`は従来どおり2,049行。既存256問版の本文・行位置・見出し・schemaVersion1を保持し、接続時には増設しない。
+
+承認後の教員によるprepareで、既存GSSの末尾に不足分の空行を追加する。枠を増設した場合はgenerationを更新し、以前のbindingを停止して再接続させる。再度prepareして必要行数が揃っていれば、本文を動かしたり、容量変更を理由に世代を更新したりしない。構成整備中は従来どおり`upgrading`にして書込みを止める。本番での増設・権限操作は今回行っていない。

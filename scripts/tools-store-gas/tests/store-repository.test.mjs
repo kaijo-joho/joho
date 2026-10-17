@@ -7,6 +7,25 @@ const q = { tool: 'python', questionId: 'demo-q1', version: 'v1' };
 const errorCode = expected => error => error.toolsStoreCode === expected;
 const plain = value => JSON.parse(JSON.stringify(value));
 
+// 境界までの既存データは実saveの有効ブロックから作る。全件saveを繰り返して
+// テストを二次時間にせず、境界の新規保存・復元・上限拒否自体は実APIを通す。
+function occupiedBlocks(f, first, last) {
+  const template = f.data.getRange(2, 1, 4, 14).getValues();
+  const unpack = value => JSON.parse(value.slice(2)).body;
+  const pack = body => 'j:' + f.T.canonical({ body, digest: f.T.hash(f.T.canonical(body)) });
+  for (let index = first; index <= last; index++) {
+    const rows = plain(template), questionId = 'seed-q' + index, version = 'v1';
+    const key = 'k:' + f.T.hash(f.T.canonical([questionId, version]));
+    const data = unpack(rows[2][2]);
+    Object.assign(data.draft, { questionId, version, requestId: id(200000 + index), revision: id(100000 + index) });
+    data.key = key; rows[2][0] = key; rows[2][2] = pack(data);
+    const commit = unpack(rows[0][2]);
+    Object.assign(commit, { key, revision: data.draft.revision, dataHash: f.T.hash(f.T.canonical(data)), history: [], receipts: [data.draft] });
+    rows[0][0] = key; rows[0][2] = pack(commit);
+    f.data.getRange(2 + index * 4, 1, 4, 14).setValues(rows);
+  }
+}
+
 test('本人のsessionだけ確立し、構成を変更せずUserLockを解放する', () => {
   const f = setup(), session = f.call('session');
   assert.equal(session.actorKey, f.T.actorKey('student@example.test'));
@@ -99,6 +118,72 @@ test('版ごとに独立保存し、旧版を新版で上書きしない', () =>
   assert.equal(f.call('getDraft', q).draft.code, 'old version');
   assert.equal(f.call('getDraft', { ...q, version: 'v2' }).draft.code, 'new version');
   assert.equal(f.call('listDrafts', { tool: 'python' }).drafts.length, 2);
+});
+test('257問版目と1024問版目を実保存・復元し1025問版目は既存データを消さず拒否する', () => {
+  const f = setup(), first = f.save({ code: 'legacy version', stdin: 'old input' });
+  occupiedBlocks(f, 1, 255);
+  const second = f.save({ version: 'v2', code: 'version 257', stdin: 'new input' });
+  assert.equal(second.state, 'saved');
+  assert.equal(f.call('getDraft', q).draft.code, 'legacy version');
+  assert.equal(f.call('getDraft', { ...q, version: 'v2' }).draft.stdin, 'new input');
+  occupiedBlocks(f, 257, 1022);
+  const last = f.save({ questionId: 'last-question', code: 'version 1024' });
+  assert.equal(last.state, 'saved');
+  assert.equal(f.call('getDraft', { ...q, questionId: 'last-question' }).draft.code, 'version 1024');
+  assert.equal(f.call('listDrafts', { tool: 'python' }).drafts.length, 1024);
+  const before = new Map(f.data.cells), history = new Map(f.history.cells), writes = f.data.writes.length;
+  assert.throws(() => f.save({ questionId: 'one-too-many' }), error => error.toolsStoreCode === 'storage_full' && error.message.includes('1024'));
+  assert.deepEqual(f.data.cells, before); assert.deepEqual(f.history.cells, history); assert.equal(f.data.writes.length, writes);
+  assert.equal(f.call('getDraft', q).draft.revision, first.draft.revision);
+  assert.equal(f.data.getMaxRows(), 4097);
+});
+test('旧1025行GSSは拡張前も接続・保存でき、満杯時は256問版と表示して行追加せず停止する', () => {
+  const f = setup({ draftRows: 1025 }), first = f.save({ code: 'old layout' });
+  assert.equal(f.call('session').schemaVersion, 1);
+  occupiedBlocks(f, 1, 255);
+  assert.throws(() => f.save({ questionId: 'next-question' }), error => error.toolsStoreCode === 'storage_full' && error.message.includes('256'));
+  const updated = f.save({ expectedRevision: first.draft.revision, code: 'existing question still editable' });
+  assert.equal(updated.state, 'saved'); assert.equal(f.data.getMaxRows(), 1025);
+  assert.equal(f.call('getDraft', q).draft.code, 'existing question still editable');
+});
+test('不完全な追加行は容量に数えず、実容量外/1024枠外の内容や最小互換行未満は拒否する', () => {
+  const partial = setup({ draftRows: 1028 }); partial.save(); occupiedBlocks(partial, 1, 255);
+  assert.throws(() => partial.save({ questionId: 'partial-block' }), errorCode('storage_full'));
+  partial.data.getRange(1026, 1).setValues([['unexpected partial block']]);
+  assert.throws(() => partial.call('session'), errorCode('schema_mismatch'));
+  const undersized = setup({ draftRows: 1024 }); assert.throws(() => undersized.call('session'), errorCode('schema_mismatch'));
+  const oversized = setup({ draftRows: 5000 }); assert.equal(oversized.call('session').schemaVersion, 1);
+  oversized.data.getRange(4098, 1).setValues([['unexpected outside supported capacity']]);
+  assert.throws(() => oversized.call('session'), errorCode('schema_mismatch'));
+});
+test('少数の問版では空き4096行を走査せず、使用ブロックと割当用の次1ブロックだけ読む', () => {
+  const f = setup();
+  assert.deepEqual(plain(f.call('listDrafts', { tool: 'python' })), { drafts: [] });
+  assert.equal(f.call('getDraft', q).draft, null);
+  assert.equal(f.call('lookupSave', { tool: 'python', requestId: id(99000) }).state, 'missing');
+  assert.equal(f.data.searches.length, 0);
+  const first = f.save(); f.data.reads = []; f.data.searches = [];
+  assert.equal(f.call('listDrafts', { tool: 'python' }).drafts.length, 1);
+  f.call('getDraft', q); f.call('lookupSave', { tool: 'python', requestId: first.draft.requestId });
+  assert.equal(f.data.searches.every(range => range.row === 2 && range.rows === 4), true);
+  f.save({ questionId: 'next-question' });
+  assert.equal(f.data.searches.every(range => range.rows <= 4), true);
+  const bodyReads = f.data.reads.filter(range => range.row > 1);
+  assert.equal(bodyReads.some(range => range.row === 2 && range.rows === 8 && range.columns === 1), true);
+  assert.equal(bodyReads.every(range => range.rows <= 8), true);
+  assert.equal(f.data.getMaxRows(), 4097);
+});
+test('使用範囲内の重複問版やキーのない途中データを空きとして上書きしない', () => {
+  const duplicate = setup(); duplicate.save();
+  duplicate.data.getRange(6, 1, 4, 14).setValues(duplicate.data.getRange(2, 1, 4, 14).getValues());
+  const before = new Map(duplicate.data.cells);
+  assert.throws(() => duplicate.call('getDraft', q), errorCode('storage_corrupt'));
+  assert.throws(() => duplicate.save(), errorCode('storage_corrupt'));
+  assert.deepEqual(duplicate.data.cells, before);
+  const orphan = setup(); orphan.save(); orphan.data.getRange(6, 4).setValues([['unknown body']]);
+  const orphanBefore = new Map(orphan.data.cells);
+  assert.throws(() => orphan.save({ questionId: 'new-question' }), errorCode('storage_corrupt'));
+  assert.deepEqual(orphan.data.cells, orphanBefore);
 });
 test('20万字のcode/stdin・サロゲート境界・数式先頭を欠落/式実行なしで往復する', () => {
   const f = setup();

@@ -80,22 +80,30 @@ var ToolsStoreRepository = (function () {
       return { current: candidates[0] || null, values: values };
     }
     function readBlock(row, key) { var result = blockFrom(sheet.getRange(row, 1, C.BLOCK, C.HEADERS.length).getValues(), key, false); result.row = row; return result; }
+    function draftExtent() {
+      var capacity = T.draftCapacity(sheet.getMaxRows()), used = Math.ceil(Math.max(0, sheet.getLastRow() - 1) / C.BLOCK);
+      assertion(capacity >= C.MIN_DRAFTS && used <= capacity);
+      return { capacity: capacity, usedRows: used * C.BLOCK };
+    }
     function findBlock(key, allocate) {
-      var hits = sheet.getRange(2, 1, C.DRAFT_ROWS - 1, 1).createTextFinder(key).matchEntireCell(true).useRegularExpression(false).findAll();
+      var extent = draftExtent();
+      var hits = extent.usedRows ? sheet.getRange(2, 1, extent.usedRows, 1).createTextFinder(key).matchEntireCell(true).useRegularExpression(false).findAll() : [];
       var blocks = {};
       hits.forEach(function (range) { blocks[2 + Math.floor((range.getRow() - 2) / C.BLOCK) * C.BLOCK] = true; });
       var rows = Object.keys(blocks).map(Number);
       assertion(rows.length <= 1);
       if (rows.length) return readBlock(rows[0], key);
       if (!allocate) return null;
-      var keys = sheet.getRange(2, 1, C.DRAFT_ROWS - 1, 1).getValues();
+      // 使用範囲内の空きと末尾の1ブロックだけを調べ、予約した空き全行は読まない。
+      var allocationRows = Math.min(extent.usedRows + C.BLOCK, extent.capacity * C.BLOCK);
+      var keys = sheet.getRange(2, 1, allocationRows, 1).getValues();
       for (var i = 0; i < keys.length; i += C.BLOCK) {
         if (!keys.slice(i, i + C.BLOCK).every(function (r) { return r[0] === ''; })) continue;
         var empty = readBlock(2 + i, key);
         assertion(empty.values.every(function (r) { return r.every(function (v) { return v === ''; }); }));
         return empty;
       }
-      T.fail('storage_full', '保存先の構成更新が必要です。先生へ連絡してください。');
+      T.fail('storage_full', '保存先の上限（' + extent.capacity + '問版）に達しました。保存先の構成更新が必要です。先生へ連絡してください。');
     }
     function verifyWrite(target, row, values, check) {
       var error;
@@ -149,7 +157,7 @@ var ToolsStoreRepository = (function () {
       return { draft: drafts[0].draft, history: c.commit.history.slice().reverse() };
     }
     function listDrafts() {
-      var rows = sheet.getRange(2, 1, C.DRAFT_ROWS - 1, 4).getValues(), result = [];
+      var extent = draftExtent(), rows = extent.usedRows ? sheet.getRange(2, 1, extent.usedRows, 4).getValues() : [], result = [];
       for (var i = 0; i < rows.length; i += C.BLOCK) {
         var group = rows.slice(i, i + C.BLOCK), keys = group.map(function (r) { return r[0]; }).filter(Boolean);
         if (!keys.length) continue;
@@ -164,7 +172,8 @@ var ToolsStoreRepository = (function () {
     }
     function lookupSave(input) {
       // 最新固定ブロックだけを検索。履歴全文の全走査は行わない。
-      var matches = sheet.getRange(2, 3, C.DRAFT_ROWS - 1, 1).createTextFinder(input.requestId).matchEntireCell(false).useRegularExpression(false).findAll();
+      var extent = draftExtent();
+      var matches = extent.usedRows ? sheet.getRange(2, 3, extent.usedRows, 1).createTextFinder(input.requestId).matchEntireCell(false).useRegularExpression(false).findAll() : [];
       var seen = {}, receipts = [];
       matches.forEach(function (range) {
         var row = 2 + Math.floor((range.getRow() - 2) / C.BLOCK) * C.BLOCK;

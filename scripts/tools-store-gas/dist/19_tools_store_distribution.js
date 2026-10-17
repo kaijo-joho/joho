@@ -185,7 +185,8 @@ var ToolsStoreDistribution = (function () {
     var c = ToolsStoreContract.constants;
     var current = ss.getSheetByName('Python'), history = ss.getSheetByName('Python履歴');
     assertHeader(current); assertHeader(history);
-    assert(current.getMaxRows() >= c.DRAFT_ROWS && history.getMaxRows() >= c.HISTORY_ROWS, 'store_invalid');
+    assert(current.getMaxRows() >= c.MIN_DRAFT_ROWS && history.getMaxRows() >= c.HISTORY_ROWS, 'store_invalid');
+    assert(current.getLastRow() <= 1 + ToolsStoreContract.draftCapacity(current.getMaxRows()) * c.BLOCK && history.getLastRow() <= c.HISTORY_ROWS, 'store_invalid');
     assert(current.isSheetHidden() && history.isSheetHidden() && !ss.getSheetByName(META_SHEET).isSheetHidden(), 'store_invalid');
   }
   function assertConfirmationLayout(ss) {
@@ -279,8 +280,14 @@ var ToolsStoreDistribution = (function () {
     protect(env, guide, guide.getRange(1, 1, 6, 2), 'tools-store:metadata:v1', c.teachers);
     [ ['Python', constants.DRAFT_ROWS], ['Python履歴', constants.HISTORY_ROWS] ].forEach(function (spec) {
       var sheet = ss.getSheetByName(spec[0]);
+      if (spec[0] === constants.SHEET && sheet && sheet.getMaxRows() < spec[1]) {
+        // 既存位置を保って末尾だけ増設する。古いbindingの書込を先に止める。
+        guide.getRange(3, 2).setValue(env.randomId());
+        env.flush();
+      }
       if (!sheet) sheet = ss.insertSheet(spec[0]);
       ensureGrid(sheet, spec[1], constants.HEADERS.length);
+      assert(sheet.getMaxRows() >= spec[1], 'store_invalid');
       if (sheet.getLastRow() === 0) sheet.getRange(1, 1, 1, constants.HEADERS.length).setValues([constants.HEADERS.slice()]);
       else assertHeader(sheet);
       sheet.setFrozenRows(1);
