@@ -55,7 +55,7 @@ node scripts/prepare-pythoneditor-trial-gas.mjs \
 5. `run_enableSchoolTrial` と専用 `trial-config.mjs` を有効にする。通常の保存/採点設定は無効のまま。
 6. 試用版の回収は所有教員が `run_collectSchoolTrial` を手動実行する。定期回収トリガーは設置しない。
 
-回収先が未設定なら回収はGSS接続前に停止し、回収トリガーも有効にしない。追加作成が承認された後の `run_prepareSchoolTrial` は既存3名分を再作成せず、中央GSSだけを作成して接続する。個人GSSID・scope・世代・署名鍵・受付履歴・有効状態を維持する。23時〜5時の利用制限は別途設計中。夜間の定期回収は本番向けの候補とし、試用版は手動回収を維持する。
+回収先が未設定なら回収はGSS接続前に停止し、回収トリガーも有効にしない。追加作成が承認された後の `run_prepareSchoolTrial` は既存3名分を再作成せず、中央GSSだけを作成して接続する。個人GSSID・scope・世代・署名鍵・受付履歴・有効状態を維持する。23時〜5時の利用制限は別途設計中。本運用は昼間も転記待ち要約をまとめて転記する方式を候補とし、頻度は実測で決める。試用版は手動回収を維持する。2027年1〜3月の本番切り替え・4月の授業利用予定と未実装項目は[ROLLOUT-PLAN.md](ROLLOUT-PLAN.md)に記録する。
 
 OAuthは既存の `spreadsheets` と `userinfo.email`、Webアプリは `USER_ACCESSING` / `DOMAIN` のまま。トリガーはGAS UIで設置し、実行時のeffective ownerと最初に記録したtrigger UIDを照合する。ScriptApp APIの追加権限を3名へ要求しない。
 
