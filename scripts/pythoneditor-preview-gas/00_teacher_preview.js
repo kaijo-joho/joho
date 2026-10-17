@@ -188,6 +188,7 @@ function teacherPythonPreviewRpc(action, input, expectedActorKey, origin) {
   catch (e) { return { ok: false, error: { code: e.previewCode || 'preview_unavailable', message: e.previewCode ? e.message : '問題データを取得できません。教員側の検証設定を確認してください。' } }; }
 }
 function doGet(e) {
+  if (e && e.parameter && e.parameter.kind === 'schooltrial' && typeof renderSchoolTrial_ === 'function') return renderSchoolTrial_(e);
   try {
     var boot = ToolsTeacherPreview.create(toolsTeacherPreviewEnvironment_()).boot(e && e.parameter), template = HtmlService.createTemplateFromFile('21_python_editor_bridge');
     template.bootJson = JSON.stringify(boot).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');

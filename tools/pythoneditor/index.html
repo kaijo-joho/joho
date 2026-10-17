@@ -20,7 +20,7 @@
   <script defer src="vendor/purify.min.js"></script>
   <script defer src="vendor/katex.min.js"></script>
   <script defer src="vendor/auto-render.min.js"></script>
-  <script type="module" src="editor.mjs?v=20261017-save-events1"></script>
+  <script type="module" src="editor.mjs?v=20261017-school-trial1"></script>
 </head>
 <body>
   <header class="topbar" id="topbar">
@@ -44,14 +44,14 @@
     </div>
     <div class="toolbar-group school-actions" aria-label="学校アカウントと提出">
       <button id="cloud-connect" class="toolbar-action" type="button" disabled aria-label="学校アカウントに接続" title="学校アカウントに接続"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3"/></svg><span id="cloud-connect-label" class="wide">学校アカウントに接続</span></button>
-      <button id="formal-submit" class="primary toolbar-action" type="button" disabled aria-label="提出（自動採点）" title="提出（自動採点）"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 3 18 9-18 9 3-9-3-9Zm3 9h15"/></svg><span class="wide">提出（自動採点）</span></button>
+      <button id="formal-submit" class="primary toolbar-action" type="button" disabled aria-label="提出（自動採点）" title="提出（自動採点）"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 3 18 9-18 9 3-9-3-9Zm3 9h15"/></svg><span id="formal-submit-label" class="wide">提出（自動採点）</span></button>
     </div>
     <span class="toolbar-spacer"></span>
     <details id="status-menu" class="menu"><summary aria-label="接続・採点結果とお知らせ" title="接続・採点結果とお知らせ"><span aria-hidden="true">ⓘ</span></summary><div class="menu-body status-body">
       <h2>接続・採点結果とお知らせ</h2>
       <div class="notice" id="notice" role="status">エディタを準備しています…</div>
       <section class="cloud-state" aria-label="学校アカウントとGSS保存"><div class="cloud-controls"><span id="cloud-account" role="status"></span><a id="cloud-login" hidden target="_blank" rel="noopener noreferrer">ログインを確認</a></div><p id="cloud-save-status" class="muted">GSS下書きは別途保存</p><p id="cloud-storage-warning" class="danger" hidden>ブラウザに送信控えを保存できません。クラウド保存は試みています。保存済みを確認するまで画面を閉じないでください。</p><p id="cloud-pending" class="muted"></p><p class="muted">クラウドへの下書き保存と正式提出は別の操作です。下書きを保存しても提出済みにはなりません。</p></section>
-      <section class="formal-state" aria-label="正式採点と提出"><div class="cell-heading"><h3>正式採点・提出</h3><span id="formal-status" role="status">接続前</span></div><p id="formal-note">今年度は従来のColabで提出してください。</p>
+      <section class="formal-state" aria-label="採点と提出"><div class="cell-heading"><h3 id="formal-title">正式採点・提出</h3><span id="formal-status" role="status">接続前</span></div><p id="trial-mode-note" class="advice" hidden>対象者限定の試用です。試用評価は本番成績へ反映しません。</p><p id="formal-note">今年度は従来のColabで提出してください。</p>
         <div class="cloud-controls"><button id="formal-query" type="button" disabled>結果を照会</button><button id="formal-resume" type="button" disabled>採点・保存を再試行</button></div>
         <p id="formal-score"></p><p id="formal-best"></p><p id="formal-time"></p><p id="formal-edited"></p><ul id="formal-checks"></ul><p id="formal-diagnostics"></p>
         <details id="formal-history-details" hidden><summary>再提出の履歴（最近20件）</summary><ol id="formal-history"></ol></details>
@@ -131,7 +131,7 @@
   <dialog id="tools-connect-dialog"><h2>学校アカウントに接続</h2><p id="tools-connect-status" role="status">学校アカウントとクラウドの保存先を確認します。</p><div id="tools-connect-frame"></div><p>初回は学校アカウントで利用を許可する必要がある場合があります。</p><p><a id="tools-login" target="_blank" rel="noopener noreferrer">別タブで学校アカウントにログイン</a></p><p><a id="tools-store-login" hidden target="_blank" rel="noopener noreferrer">別タブでクラウド保存の利用を確認</a></p><button id="tools-connect-retry" type="button">再接続</button><button type="button" data-close>閉じる</button></dialog>
   <dialog id="cloud-conflict"><h2 id="conflict-title">GSS保存の競合</h2><p>別の端末などで保存された内容と異なります。下はGSSの最新の内容です。GSSの履歴とローカルの控えで両方を保護してから選択を反映します。</p><pre id="conflict-preview"></pre><button id="conflict-cloud" type="button">GSSの続きを取り込む</button><button id="conflict-local" type="button">ローカルの続きをGSSに保存</button><button type="button" data-close>保留</button></dialog>
   <dialog id="confirmation-cloud-conflict" aria-labelledby="confirmation-cloud-title"><h2 id="confirmation-cloud-title">確認記録の続きを選ぶ</h2><p id="confirmation-cloud-summary"></p><h3>このブラウザの回答</h3><pre id="confirmation-cloud-local-preview"></pre><h3>クラウドの回答</h3><pre id="confirmation-cloud-remote-preview"></pre><button id="confirmation-cloud-local" type="button">このブラウザの回答を残す</button><button id="confirmation-cloud-remote" type="button">クラウドの回答を取り込む</button><button type="button" data-close>保留</button></dialog>
-  <dialog id="submit-dialog"><h2>正式提出の確認</h2><p id="submit-description"></p><p id="submit-run-note" class="advice"></p><pre id="submit-preview"></pre><button id="submit-confirm" type="button" class="primary">この全文を正式提出</button><button type="button" data-close>キャンセル</button></dialog>
+  <dialog id="submit-dialog"><h2 id="submit-title">正式提出の確認</h2><p id="submit-description"></p><p id="submit-run-note" class="advice"></p><pre id="submit-preview"></pre><button id="submit-confirm" type="button" class="primary">この全文を正式提出</button><button type="button" data-close>キャンセル</button></dialog>
   <dialog id="finish-dialog" aria-labelledby="finish-title"><h2 id="finish-title">保存して終了</h2><p>作業の区切りと終了前に、再編集できる保存ファイルをこのMacへ残してください。クラウド接続中は、変更したコードと確認記録も保存します。</p><p id="finish-status" role="status"></p><button id="finish-save" type="button" class="primary">ファイルに保存して終了</button><button type="button" data-close>作業へ戻る</button></dialog>
   <aside id="operation-help" hidden>
     <section data-help-topic="run" data-help-title="実行する"><h3>実行する</h3><ol><li>問題を選び、コードを入力します。</li><li>出力セル左の▶または⌘Enterで実行します。</li><li>input()で止まったら出力欄へ入力し、Enterで続けます。</li></ol><details><summary>停止と再実行</summary><p>実行中は同じ位置の■で計算を終了します。コードは残ります。再実行は共通の準備コードと現在の問題を新しい変数で実行します。</p></details><details><summary>入力を待っているとき</summary><p>Google Chromeでは、出力欄から1回ずつ入力を続けられます。⏏は入力終了（EOF）を渡します。逐次入力が使えない環境や、同じ値で繰り返し確認する場合は、設定の「確認用の入力値」を使用できます。</p></details></section>

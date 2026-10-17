@@ -7,8 +7,8 @@ const date = value => new Date(value).toLocaleString('ja-JP');
 const CACHE = 'joho.pythoneditor.tools-connection.v1.';
 
 export class ToolsDraftPanel {
-  constructor(host, render) {
-    this.host = host; this.update = render; this.loads = new Map(); this.conflicts = new Map(); this.generation = 0;
+  constructor(host, render, options = {}) {
+    this.host = host; this.update = render; this.options = options; this.loads = new Map(); this.conflicts = new Map(); this.generation = 0;
     $('tools-connect-retry').addEventListener('click', () => $('cloud-connect').click());
     $('tools-connect-dialog').addEventListener('cancel', () => this.connectBridge?.dispose());
     $('tools-connect-dialog').addEventListener('close', () => { this.connectBridge?.dispose(); $('cloud-connect').focus(); this.showConflict(); });
@@ -21,13 +21,14 @@ export class ToolsDraftPanel {
     addEventListener('pagehide', () => { this.auto?.dispose(); this.confirmation?.dispose(); this.bridge?.dispose(); this.connectBridge?.dispose(); });
   }
   storageWarning() { this.localWarning = true; this.update(); }
+  storage() { return this.options?.storage || localStorage; }
   cache(connection) {
-    try { localStorage.setItem(CACHE + connection.actorKey, JSON.stringify(connection)); localStorage.setItem(CACHE + 'last', connection.actorKey); }
+    try { const storage = this.storage(); storage.setItem(CACHE + connection.actorKey, JSON.stringify(connection)); storage.setItem(CACHE + 'last', connection.actorKey); }
     catch { this.storageWarning(); }
   }
   async resume() {
     let cached;
-    try { const key = localStorage.getItem(CACHE + 'last'); if (key) cached = validateConnection(JSON.parse(localStorage.getItem(CACHE + key))); } catch { return; }
+    try { const storage = this.storage(), key = storage.getItem(CACHE + 'last'); if (key) cached = validateConnection(JSON.parse(storage.getItem(CACHE + key))); } catch { return; }
     if (!cached) return;
     try { await this.attach(cached); } catch (e) { this.fail(e); }
   }
@@ -45,7 +46,7 @@ export class ToolsDraftPanel {
       if (this.client && this.client.session.actorKey !== connection.actorKey && this.unsaved())
         throw new Error('前のアカウントの未保存内容があります。元の学校アカウントへ再接続して保存してください。コードと送信番号は保持しています。');
       let previous;
-      try { previous = localStorage.getItem(CACHE + 'last'); } catch {}
+      try { previous = this.storage().getItem(CACHE + 'last'); } catch {}
       if (previous && previous !== connection.actorKey) {
         if (!confirm('接続する学校アカウントが変わります。ブラウザのコード・試行・回答を、新しいアカウントの保存先へ引き継ぎますか？')) throw new Error('アカウントの切り替えを中止しました。記録は保持しています。');
         this.host.archiveEntries('学校アカウント切り替え前');
@@ -59,7 +60,7 @@ export class ToolsDraftPanel {
   async attach(connection) {
     const generation = ++this.generation;
     this.connected = false; if (this.auto) this.auto.connected = false; this.confirmation?.dispose(); this.update();
-    const bridge = new ToolsBridge(connection.storeURL, { binding: connection.binding });
+    const bridge = this.options?.bridgeFactory ? this.options.bridgeFactory(connection) : new ToolsBridge(connection.storeURL, { binding: connection.binding });
     let session;
     try { session = await bridge.connect(); } catch (e) { bridge.dispose(); if (generation !== this.generation) return false; throw e; }
     if (generation !== this.generation) { bridge.dispose(); return false; }
@@ -72,7 +73,7 @@ export class ToolsDraftPanel {
       $('cloud-conflict').close(); $('confirmation-cloud-conflict').close();
     }
     this.bridge?.dispose(); this.bridge = bridge;
-    let storage;try{storage=localStorage;}catch{this.storageWarning();}
+    let storage;try{storage=this.storage();}catch{this.storageWarning();}
     // コードと確認記録のRPCを同じ列で送る。1人の保存処理を重ねない。
     let rpcQueue = Promise.resolve();
     const rpc = (...args) => { const task = rpcQueue.then(() => bridge.call(...args)); rpcQueue = task.catch(() => {}); return task; };

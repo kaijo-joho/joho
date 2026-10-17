@@ -31,14 +31,14 @@ var ToolsStoreService = (function () {
       if (input.baseStdin !== undefined) q.baseStdin = text(input.baseStdin, C.MAX_TEXT, true);
       return q;
     }
-    function protectedRange(sheet, row, column, rows, columns) {
+    function protectedRange(sheet, row, column, rows, columns, teacherTrial) {
       return sheet.getProtections(dep.protectionType || SpreadsheetApp.ProtectionType.RANGE).some(function (protection) {
         var range = protection.getRange();
-        return !protection.isWarningOnly() && !protection.canEdit() && range.getRow() <= row && range.getColumn() <= column &&
+        return !protection.isWarningOnly() && (teacherTrial || !protection.canEdit()) && range.getRow() <= row && range.getColumn() <= column &&
           range.getLastRow() >= row + rows - 1 && range.getLastColumn() >= column + columns - 1;
       });
     }
-    function verifyTable(sheet, rows, columns, maxUsedRows) {
+    function verifyTable(sheet, rows, columns, maxUsedRows, teacherTrial) {
       columns = columns || C.HEADERS;
       assertion(sheet && sheet.getMaxRows() >= rows && sheet.getMaxColumns() >= columns.length && sheet.getLastRow() <= (maxUsedRows === undefined ? rows : maxUsedRows), 'schema_mismatch');
       var header = sheet.getRange(1, 1, 1, columns.length);
@@ -47,7 +47,7 @@ var ToolsStoreService = (function () {
         var extra = sheet.getRange(1, columns.length + 1, 1, sheet.getMaxColumns() - columns.length);
         assertion(extra.getValues()[0].every(function (v) { return v === ''; }) && extra.getFormulas()[0].every(function (v) { return v === ''; }), 'schema_mismatch');
       }
-      assertion(protectedRange(sheet, 1, 1, 1, columns.length), 'protection_mismatch');
+      assertion(protectedRange(sheet, 1, 1, 1, columns.length, teacherTrial), 'protection_mismatch');
       assertion(sheet.isSheetHidden(), 'schema_mismatch');
       sheet.getProtections(dep.protectionType || SpreadsheetApp.ProtectionType.RANGE).forEach(function (p) {
         var range = p.getRange();
@@ -61,8 +61,12 @@ var ToolsStoreService = (function () {
       var owner = dep.owner ? dep.owner(binding.spreadsheetId) : book.getOwner();
       owner = typeof owner === 'string' ? owner : owner && owner.getEmail();
       owner = owner ? T.normalizeAccount(owner) : '';
-      assertion(owner && config.teacherOwners.map(T.normalizeAccount).indexOf(owner) >= 0 && owner !== account, 'owner_mismatch');
-      var editable = dep.canEdit ? dep.canEdit(binding.spreadsheetId, account) : book.getEditors().some(function (user) { return T.normalizeAccount(user.getEmail()) === account; });
+      assertion(owner && config.teacherOwners.map(T.normalizeAccount).indexOf(owner) >= 0, 'owner_mismatch');
+      // 試用wrapperのサーバー側だけが本人・role・専用GSSID・所有者を再照合する。
+      // 通常の生徒経路とclient入力/configのフラグから、この例外は有効にできない。
+      var teacherTrial = typeof dep.teacherTrialAccess === 'function' && dep.teacherTrialAccess({ account: account, owner: owner, spreadsheetId: binding.spreadsheetId }) === true;
+      assertion(owner !== account || teacherTrial, 'owner_mismatch');
+      var editable = teacherTrial && owner === account ? true : dep.canEdit ? dep.canEdit(binding.spreadsheetId, account) : book.getEditors().some(function (user) { return T.normalizeAccount(user.getEmail()) === account; });
       assertion(editable === true, 'permission_denied', '保存先の編集権限を確認できません。先生へ連絡してください。');
       var guide = book.getSheetByName(C.GUIDE);
       assertion(guide && !guide.isSheetHidden(), 'schema_mismatch');
@@ -73,11 +77,11 @@ var ToolsStoreService = (function () {
       assertion(values[1][1] === binding.actorKey, 'account_mismatch');
       assertion(values[2][1] === binding.generation, 'binding_stale', '保存先の構成が変わりました。学校アカウントへ接続し直してください。');
       assertion(values[3][1] === 'active', 'store_inactive', '保存先を更新中か利用停止中です。');
-      assertion(protectedRange(guide, 1, 1, 6, 2), 'protection_mismatch');
+      assertion(protectedRange(guide, 1, 1, 6, 2, teacherTrial), 'protection_mismatch');
       var drafts = book.getSheetByName(C.SHEET);
-      verifyTable(drafts, C.MIN_DRAFT_ROWS, C.HEADERS, 1 + T.draftCapacity(drafts ? drafts.getMaxRows() : 0) * C.BLOCK);
-      verifyTable(book.getSheetByName(C.HISTORY), C.HISTORY_ROWS);
-      return book;
+      verifyTable(drafts, C.MIN_DRAFT_ROWS, C.HEADERS, 1 + T.draftCapacity(drafts ? drafts.getMaxRows() : 0) * C.BLOCK, teacherTrial);
+      verifyTable(book.getSheetByName(C.HISTORY), C.HISTORY_ROWS, undefined, undefined, teacherTrial);
+      return { book: book, teacherTrial: teacherTrial };
     }
     function call(action, input, token, origin) {
       assertion(config.enabled === true, 'disabled', 'クラウド保存は準備中です。');
@@ -121,14 +125,14 @@ var ToolsStoreService = (function () {
       assertion(lock.tryLock(5000), 'busy', '保存処理中です。少し待って再試行してください。');
       try {
         // ロック取得後にも構成・世代・所有者・保護を確認する。教員による更新中は書き込まない。
-        var book = open(binding, account);
+        var access = open(binding, account), book = access.book;
         var extensionPresent = !!book.getSheetByName(C.CONFIRMATION.SHEET) && !!book.getSheetByName(C.CONFIRMATION.RECEIPTS);
         if (action === 'session') return { account: account, actorKey: binding.actorKey, spreadsheetId: binding.spreadsheetId, schemaVersion: C.SCHEMA_VERSION,
           confirmationJournal: { schema: 1, enabled: config.confirmationEnabled === true && extensionPresent, maxBytes: C.CONFIRMATION.MAX_BYTES, chunkSize: C.CONFIRMATION.CHUNK } };
         if (isJournal) {
           assertion(extensionPresent, 'confirmation_upgrade_required', '確認記録の保存先を教員が更新する必要があります。コード保存は継続できます。');
-          verifyTable(book.getSheetByName(C.CONFIRMATION.SHEET), C.CONFIRMATION.ROWS, C.CONFIRMATION.HEADERS);
-          verifyTable(book.getSheetByName(C.CONFIRMATION.RECEIPTS), C.CONFIRMATION.RECEIPT_ROWS, C.CONFIRMATION.RECEIPT_HEADERS);
+          verifyTable(book.getSheetByName(C.CONFIRMATION.SHEET), C.CONFIRMATION.ROWS, C.CONFIRMATION.HEADERS, undefined, access.teacherTrial);
+          verifyTable(book.getSheetByName(C.CONFIRMATION.RECEIPTS), C.CONFIRMATION.RECEIPT_ROWS, C.CONFIRMATION.RECEIPT_HEADERS, undefined, access.teacherTrial);
         }
         function recheck() {
           var values = book.getSheetByName(C.GUIDE).getRange(1, 1, 6, 2).getValues();

@@ -1,0 +1,21 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><base target="_top"></head><body>
+<p>Pythonエディタの3名限定試用へ接続します。</p>
+<script>
+(() => {
+  'use strict';
+  const boot = <?!= bootJson ?>, peer = window.top, pending = new Set();
+  const actions = new Set(['session','store','submit','lookup','questionStatus']);
+  const send = message => peer.postMessage({protocol:boot.protocol,channel:boot.channel,...message},boot.origin);
+  addEventListener('message', event => {
+    const data = event.data;
+    if(event.source !== peer || event.origin !== boot.origin || data?.protocol !== boot.protocol || data.channel !== boot.channel ||
+      data.type !== 'request' || !/^[a-f0-9]{32}$/.test(data.id) || !actions.has(data.action) || pending.has(data.id) || pending.size >= 8 ||
+      data.action !== 'session' && !/^[a-f0-9]{64}$/.test(data.actorKey || '')) return;
+    pending.add(data.id);
+    google.script.run.withSuccessHandler(result => {pending.delete(data.id);send({type:'response',id:data.id,result});})
+      .withFailureHandler(() => {pending.delete(data.id);send({type:'response',id:data.id,result:{ok:false,error:{code:'transport_failed',message:'限定試用の応答を確認できません。元の提出番号で結果を照会してください。'}}});})
+      .schoolPythonTrialRpc(data.action,data.input || {},data.actorKey,boot.origin);
+  });
+  send({type:'ready'});
+})();
+</script></body></html>

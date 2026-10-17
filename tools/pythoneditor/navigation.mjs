@@ -24,7 +24,7 @@ export function validateRating(raw) {
   if (!raw || !Number.isInteger(raw.total) || raw.total < 0 || raw.total > 10000
     || !(raw.earned === null || Number.isInteger(raw.earned) && raw.earned >= 0 && raw.earned <= raw.total)
     || raw.version && !validId(raw.version)) throw new Error('評価の形式を確認できません。');
-  return { earned: raw.earned, total: raw.total, version: raw.version || '', example: raw.example === true };
+  return { earned: raw.earned, total: raw.total, version: raw.version || '', example: raw.example === true, ...(raw.trial === true ? { trial: true } : {}) };
 }
 
 export function setRating(set, ratingFor) {
@@ -40,28 +40,30 @@ export function setRating(set, ratingFor) {
   const ratings = [...unique.values()];
   if (!ratings.length) return { earned: 0, total: 0, example: false };
   if (ratings.some(r => !r)) return null;
-  return { earned: ratings.reduce((sum, r) => sum + (r.earned ?? 0), 0), total: ratings.reduce((sum, r) => sum + r.total, 0), example: ratings.some(r => r.example) };
+  if (ratings.some(r => r.trial) && ratings.some(r => !r.trial)) return null;
+  return { earned: ratings.reduce((sum, r) => sum + (r.earned ?? 0), 0), total: ratings.reduce((sum, r) => sum + r.total, 0), example: ratings.some(r => r.example), ...(ratings.some(r => r.trial) ? { trial: true } : {}) };
 }
 
 export function renderRating(element, rating, compact = false) {
   element.replaceChildren();
   element.classList.toggle('rating-example', !!rating?.example);
-  const prefix = rating?.example ? '表示例：' : '正式：';
+  const prefix = rating?.trial ? '試用評価：' : rating?.example ? '表示例：' : '正式：';
   if (!rating) {
     element.textContent = '★—/—';
     element.setAttribute('aria-label', '採点結果は未取得');
     return;
   }
   if (!rating.total) {
-    element.textContent = '★対象なし';
+    element.textContent = `${rating.trial ? '試用評価 ' : ''}★対象なし`;
     element.setAttribute('aria-label', prefix + 'コードのチェック項目なし');
     return;
   }
   const earned = rating.earned ?? 0;
-  if (compact || rating.total > 48) element.textContent = `★${earned}/${rating.total}${rating.example ? '（表示例）' : ''}`;
+  if (compact || rating.total > 48) element.textContent = `${rating.trial ? '試用評価 ' : ''}★${earned}/${rating.total}${rating.example ? '（表示例）' : ''}`;
   else {
     const filled = document.createElement('span'), empty = document.createElement('span');
     filled.textContent = '★'.repeat(earned); empty.textContent = '☆'.repeat(rating.total - earned); empty.className = 'rating-empty';
+    if (rating.trial) element.append(document.createTextNode('試用評価 '));
     element.append(filled, empty);
     if (rating.earned === null) element.append(document.createTextNode(' 未採点'));
   }

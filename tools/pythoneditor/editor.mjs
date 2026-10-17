@@ -6,7 +6,7 @@ import { errorHints } from './diagnostics.mjs?v=20261015-errors';
 import { renderPrompt } from './prompt.mjs?v=20261016-prompt-structure1';
 import { CloudPanel } from './cloud-ui.mjs?v=20261017-save-events1';
 import { cloudConfig } from './cloud-config.mjs';
-import { questionGroups, questionStructure, setRating, renderRating } from './navigation.mjs?v=20261017-confirmation-sync1';
+import { questionGroups, questionStructure, setRating, renderRating } from './navigation.mjs?v=20261017-school-trial1';
 import { demoRatings } from './demo-ratings.mjs';
 import { TeacherPreviewPanel } from './teacher-preview.mjs?v=20261016-preview-no-expiry1';
 import { ConfirmationStore, CONFIRMATION_STORAGE_KEY, LEGACY_CONFIRMATION_STORAGE_KEY } from './confirmation-store.mjs?v=20261017-confirmation-sync1';
@@ -26,9 +26,10 @@ let catalogGeneration=0;
 let showDemoRatings=false;
 const params = new URLSearchParams(location.search);
 const teacherPreviewMode = params.get('mode') === 'teacher-preview';
+const schoolTrialMode = params.get('mode') === 'school-trial';
 const requested = { set: params.get('set'), question: params.get('question') || params.get('practice'), version: params.get('version') };
 for (const value of Object.values(requested)) if (value && !validId(value)) showNotice('URLのIDが不正です。問題一覧から選んでください。', true);
-pendingRequested=(teacherPreviewMode||cloudConfig.enabled)&&!!(requested.set||requested.question);
+pendingRequested=(teacherPreviewMode||schoolTrialMode||cloudConfig.enabled)&&!!(requested.set||requested.question);
 function showNotice(message, danger = false, reveal = false) {
   $('notice').textContent = message; $('notice').classList.toggle('danger', danger);
   $('status-menu').classList.toggle('has-alert', danger);
@@ -140,6 +141,7 @@ function selectQuestion(q, updateURL = true) {
   if (updateURL && !pendingRequested) {
     const url = new URL(location.href); url.search = new URLSearchParams({set: q.setId, question: q.questionId, version: q.version}).toString();
     if (teacherPreviewMode) url.searchParams.set('mode', 'teacher-preview');
+    if (schoolTrialMode) url.searchParams.set('mode', 'school-trial');
     history.replaceState(null, '', url);
   }
   try { store?.last({ set: q.setId, question: q.questionId, version: q.version }); } catch (e) { showNotice('再開位置の保存に失敗しました。コードは画面に保持しています。', true); }
@@ -150,7 +152,7 @@ function ratingFor(q) {
   if (q.kind === 'observation') return {earned:0,total:0};
   if (cloudPanel?.hasSchoolQuestion(q)) return cloudPanel.rating(q);
   if (q.kind === 'confirmation') return {earned:0,total:0};
-  return showDemoRatings ? demoRatings.get(questionKey(q)) || null : null;
+  return showDemoRatings && !schoolTrialMode ? demoRatings.get(questionKey(q)) || null : null;
 }
 function updateNavigationRatings() {
   if (!catalog) return;
@@ -177,7 +179,7 @@ function updateNavigationRatings() {
     $('set-trigger').setAttribute('aria-label',`問題セットを選択：${selectedSet.title}`);
     const rating=setRating(selectedSet,ratingFor);
     renderRating($('set-current-rating'),rating,true);
-    $('rating-note').textContent=teacherPreviewMode?'問題配布検証です。今回の接続では★評価を取得しません。':rating?.example?'★は表示例です。実行・編集では変わりません。':'★は締切内最高点の提出で満たしたチェック項目数です。';
+    $('rating-note').textContent=schoolTrialMode?'★は受理済みの試用評価です。本番成績へ反映しません。':teacherPreviewMode?'問題配布検証です。今回の接続では★評価を取得しません。':rating?.example?'★は表示例です。実行・編集では変わりません。':'★は締切内最高点の提出で満たしたチェック項目数です。';
   }
 }
 function buildSetPicker() {
@@ -579,7 +581,7 @@ async function init() {
     });
   }
   $('code').addEventListener('input', dirty); $('stdin').addEventListener('input', dirty);
-  const ConnectionPanel = teacherPreviewMode ? TeacherPreviewPanel : CloudPanel;
+  const ConnectionPanel = schoolTrialMode ? (await import('./trial-ui.mjs?v=20261017-school-trial1')).TrialPanel : teacherPreviewMode ? TeacherPreviewPanel : CloudPanel;
   cloudPanel=new ConnectionPanel({catalog:()=>catalog,confirmationStore,unrecordedConfirmation:q=>confirmationPanel.unrecorded(q),renderRatings:updateNavigationRatings,question:()=>question,entry:q=>({...currentEntry(q)}),run:q=>outputs.get(questionKey(q)),running:()=>!!runner.active,
     notice:(message,danger)=>showNotice(message,danger,true),closeMenus:()=>closeMenus(true),addCatalog:addCloudCatalog,importDraft:importCloudDraft,pendingRecords,
     archive:(e,reason)=>{if(!store)throw new Error('ローカルの控えを保存できません。コードをファイルに保存してください。');store.archive(e,reason);},
@@ -686,7 +688,7 @@ async function init() {
     const set = catalog.sets.find(s => s.setId === selection.set && (!selection.question || s.questions.some(matchesSelection)))
       || catalog.sets.find(s => s.questions.some(matchesSelection)) || catalog.sets.find(s => s.setId === selection.set) || catalog.sets[0];
     const selected = set.questions.find(q => q.questionId === selection.question && (!selection.version || q.version === selection.version));
-    pendingRequested=cloudConfig.enabled&&!!(requested.set||requested.question)&&(!catalog.sets.some(s=>(!requested.set||s.setId===requested.set)&&s.questions.some(q=>(!requested.question||q.questionId===requested.question)&&(!requested.version||q.version===requested.version))));
+    pendingRequested=(schoolTrialMode||teacherPreviewMode||cloudConfig.enabled)&&!!(requested.set||requested.question)&&(!catalog.sets.some(s=>(!requested.set||s.setId===requested.set)&&s.questions.some(q=>(!requested.question||q.questionId===requested.question)&&(!requested.version||q.version===requested.version))));
     if ((selection.version || selection.question) && !selected) showNotice('指定した問題・版がありません。別版の下書きを上書きせず、一覧を表示します。',true);
     selectSet(set,selected);
     await cloudPanel.resume();
