@@ -58,6 +58,16 @@
 :root[data-text-size="large"] { --ui-size: 16px; }
 :root[data-text-size="largest"] { --ui-size: 18px; }
 
+/* 端末内の確認とGASの受領は別表示。iframeの結果・受付状態を上書きしない。 */
+.local-grade-feedback { padding: 0 0 12px; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
+.local-grade-feedback h3 { font-size: 1rem; margin: 0 0 .6em; }
+.local-grade-feedback p { margin: .5em 0; overflow-wrap: anywhere; }
+.local-grade-feedback .note { color: var(--muted); font-size: .9rem; }
+.local-grade-rules { list-style: none; padding: 0; margin: .6em 0; }
+.local-grade-rules li { margin: .35em 0; overflow-wrap: anywhere; }
+.local-grade-star { font-weight: bold; }
+.local-grade-star.correct { color: #ffc107; }
+
 * { box-sizing: border-box; }
 html, body {
   margin: 0;

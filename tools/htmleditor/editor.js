@@ -614,7 +614,7 @@
         }
         function openForm() {
           submissionPanel = window.HtmlEditorSubmission.create({container:body, dialog:$('actionDialog'),
-            url:fixed.url, targetId:receipt.proof.assignmentId, isCurrent:unchanged, requestClose:() => finish('close'),
+            url:fixed.url, targetId:receipt.proof.assignmentId, proof:receipt.proof, isCurrent:unchanged, requestClose:() => finish('close'),
             savedFile:savedToFile ? {fileName:fixed.fileName, text:fixed.source, hintUsage:hintSnapshot} : null});
         }
         button('閉じる', 'close');

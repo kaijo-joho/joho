@@ -4,6 +4,7 @@
   const CHANNEL = 'joho-html-submission-v1';
   const ORIGIN = 'https://joho.kaijo.ed.jp';
   const TRANSFER = 'saved-html-v1';
+  let localGrader;
   const MESSAGES = Object.freeze({
     loading:'学校アカウントと提出条件を確認しています…',
     ready:'提出フォームで保存した実習ファイルを選択してください。まだ提出は完了していません。',
@@ -25,7 +26,7 @@
         url.searchParams.size === 3 && url.searchParams.get('kind') === 'html' && url.searchParams.get('flow') === 'normal' && url.searchParams.get('kadai') === targetId;
     } catch { return false; }
   }
-  function create({container, dialog, url, targetId, isCurrent, requestClose, savedFile = null}) {
+  function create({container, dialog, url, targetId, isCurrent, requestClose, savedFile = null, proof = null}) {
     if (!validUrl(url, targetId) || !isCurrent()) throw Error('提出先を確認できません。保存してから提出を準備し直してください。');
     if (savedFile && (savedFile.fileName !== targetId + '.html' || typeof savedFile.text !== 'string' || !savedFile.text.length ||
         new TextEncoder().encode(savedFile.text).length > 2 * 1024 * 1024)) throw Error('保存済みファイルを確認できません。');
@@ -46,6 +47,15 @@
       return true;
     }
     dialog.classList.add('download-open','submission-open'); container.replaceChildren();
+    // ローカル結果を先に示すが、受領状態・再送判断は従来フォームだけが確定する。
+    let localFeedback = null;
+    if (file && proof && root.HtmlEditorLocalGrading) {
+      try {
+        localGrader ||= root.HtmlEditorLocalGrading.create();
+        localFeedback = root.HtmlEditorLocalGrading.panel(container, {grader:localGrader,
+          input:{source:file.text,fileName:file.fileName,proof},isCurrent});
+      } catch { /* 任意の端末内確認が使えなくても既存の提出を妨げない。 */ }
+    }
     const help = root.HtmlEditorDownload.loginHelp(container, () => {
       if (disposed) return;
       if (protectedResult === 'pending') { help.say('提出処理中、または受領結果が不明です。フォーム内の「受領状況を再確認」を使ってください。自動再送はしません。'); return; }
@@ -128,7 +138,7 @@
     startFrame();
     status.focus();
     return {canClose, needsAttention, dispose() {
-      disposed = true; clearFrame(); dialog.classList.remove('download-open','submission-open');
+      disposed = true; localFeedback?.dispose(); clearFrame(); dialog.classList.remove('download-open','submission-open');
     }};
   }
   const api = Object.freeze({create, validUrl});
