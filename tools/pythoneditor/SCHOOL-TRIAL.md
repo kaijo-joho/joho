@@ -53,9 +53,9 @@ node scripts/prepare-pythoneditor-trial-gas.mjs \
 3. Driveの実permissionで所有者、本人以外の編集者なし、一般アクセスが制限付きであることを確認する。編集者の再共有を無効にする設定は、本人への編集権限付与とは別の承認事項として扱う。
 4. `run_inspectSchoolTrial` で全構成を読戻し、私有の `run_configureSchoolTrialEndpoint` で同じexecを固定する。
 5. `run_enableSchoolTrial` と専用 `trial-config.mjs` を有効にする。通常の保存/採点設定は無効のまま。
-6. 回収は所有教員の `run_collectSchoolTrial`。定期実行する場合はGASのUIから `schoolTrialCollectionTrigger` を設置する。
+6. 試用版の回収は所有教員が `run_collectSchoolTrial` を手動実行する。定期回収トリガーは設置しない。
 
-回収先が未設定なら回収はGSS接続前に停止し、回収トリガーも有効にしない。追加作成が承認された後の `run_prepareSchoolTrial` は既存3名分を再作成せず、中央GSSだけを作成して接続する。個人GSSID・scope・世代・署名鍵・受付履歴・有効状態を維持する。定期回収を準備するときは `run_enableSchoolTrial` を再実行してarmする。
+回収先が未設定なら回収はGSS接続前に停止し、回収トリガーも有効にしない。追加作成が承認された後の `run_prepareSchoolTrial` は既存3名分を再作成せず、中央GSSだけを作成して接続する。個人GSSID・scope・世代・署名鍵・受付履歴・有効状態を維持する。23時〜5時の利用制限は別途設計中。夜間の定期回収は本番向けの候補とし、試用版は手動回収を維持する。
 
 OAuthは既存の `spreadsheets` と `userinfo.email`、Webアプリは `USER_ACCESSING` / `DOMAIN` のまま。トリガーはGAS UIで設置し、実行時のeffective ownerと最初に記録したtrigger UIDを照合する。ScriptApp APIの追加権限を3名へ要求しない。
 
