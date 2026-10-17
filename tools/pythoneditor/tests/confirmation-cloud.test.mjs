@@ -86,6 +86,22 @@ class Store {
   }
 }
 const options = () => ({ minIntervalMs: 0, jitterMs: 0, setTimer: () => 1, clearTimer: () => {} });
+class Clock {
+  time = 1000; next = 0; jobs = new Map();
+  now = () => this.time;
+  set = (fn, ms) => { const id = ++this.next; this.jobs.set(id, { fn, at: this.time + ms }); return id; };
+  clear = id => this.jobs.delete(id);
+  async advance(ms) {
+    const end = this.time + ms; let count = 0;
+    while (true) {
+      const next = [...this.jobs].filter(([, job]) => job.at <= end).sort((a, b) => a[1].at - b[1].at)[0]; if (!next) break;
+      assert.ok(++count < 1000, 'timer loop'); this.time = next[1].at; this.jobs.delete(next[0]); await next[1].fn();
+    }
+    this.time = end;
+  }
+  options = () => ({ now: this.now, setTimer: this.set, clearTimer: this.clear, random: () => 0 });
+}
+const waitUntil = async check => { for (let index = 0; index < 100 && !check(); index++) await new Promise(resolve => setImmediate(resolve)); assert.ok(check()); };
 
 test('canonical object keys and chunks preserve Unicode surrogate pairs', () => {
   assert.equal(canonical({ z: [{ c: 1, a: 2 }], a: 'a' }), '{"a":"a","z":[{"a":2,"c":1}]}');
@@ -228,20 +244,20 @@ test('first connection with differing answers pauses until both sides are backed
   await sync.flush(); assert.equal(server.journal.trials.length, 2); sync.dispose();
 });
 
-test('CAS conflict automatically merges independent answers without losing either and saves on the next flush', async () => {
+test('force flush merges independent CAS changes and waits until the merged journal is saved', async () => {
   const server = new Server(), store = new Store(), c = client(server), sync = new ConfirmationSync(store, c, options()); await sync.connect();
   store.journal.responses['v1/local'] = { answer: 'left' }; sync.edit();
   server.journal.responses['v1/remote'] = { answer: 'right' }; server.revision = '9'.repeat(32);
-  await sync.flush(); assert.equal(sync.state().status, 'waiting'); assert.equal(c.pending(), null);
+  await sync.flush(); assert.equal(sync.state().status, 'saved'); assert.equal(c.pending(), null);
   assert.deepEqual(store.snapshot().responses, { 'v1/local': { answer: 'left' }, 'v1/remote': { answer: 'right' } });
   await sync.flush(); assert.deepEqual(server.journal.responses, store.snapshot().responses); assert.equal(sync.state().status, 'saved'); sync.dispose();
 });
 
-test('a late saved acknowledgment confirms only the sent snapshot and leaves newer edits dirty', async () => {
-  const server = new Server(), store = new Store(), sync = new ConfirmationSync(store, client(server), options()); await sync.connect();
+test('a late background acknowledgement confirms only the sent snapshot and leaves newer edits dirty', async () => {
+  const server = new Server(), store = new Store(), sync = new ConfirmationSync(store, client(server), { ...options(), idleMs: 0, maxWaitMs: 0 }); await sync.connect();
   const gate = deferred(); let blocked = false;
   server.before = async action => { if (action === 'saveConfirmationJournal') { blocked = true; await gate.promise; } };
-  store.journal = answer('first'); sync.edit(); const saving = sync.flush();
+  store.journal = answer('first'); sync.edit(); const saving = sync.flush({ force: false });
   while (!blocked) await new Promise(resolve => setTimeout(resolve, 0));
   store.journal = answer('newer'); sync.edit(); gate.resolve(); await saving;
   assert.deepEqual(server.journal, answer('first')); assert.deepEqual(store.snapshot(), answer('newer')); assert.equal(sync.state().dirty, true); sync.dispose();
@@ -400,4 +416,67 @@ test('authentication and permission rejection never trigger an alternative lates
     await assert.rejects(c.recover(), { code }); assert.deepEqual(c.pending(), pending);
     assert.equal(server.calls.filter(row => row.action === 'getConfirmationJournal').length, 0);
   }
+});
+
+test('confirmation insurance save defaults to ten minutes from first dirty despite continuous input and stays quiet when clean', async () => {
+  const server = new Server(), store = new Store(), clock = new Clock(), sync = new ConfirmationSync(store, client(server), clock.options()); await sync.connect();
+  store.journal = answer('first'); sync.edit();
+  for (let index = 1; index < 10; index++) { await clock.advance(60000); store.journal = answer('continued-' + index); sync.edit(); }
+  await clock.advance(59999); assert.deepEqual(server.journal, empty()); await clock.advance(1); assert.deepEqual(server.journal, answer('continued-9'));
+  const count = server.calls.filter(row => row.action === 'saveConfirmationJournal').length; await clock.advance(1200000);
+  assert.equal(server.calls.filter(row => row.action === 'saveConfirmationJournal').length, count); sync.dispose();
+});
+
+test('confirmation manual flush skips debounce and minimum interval for the next edit', async () => {
+  const server = new Server(), store = new Store(), clock = new Clock(), sync = new ConfirmationSync(store, client(server), clock.options()); await sync.connect();
+  store.journal = answer('one'); sync.edit(); await sync.flush(); store.journal = answer('two'); sync.edit();
+  assert.equal((await sync.flush({ force: true })).status, 'saved'); assert.deepEqual(server.journal, answer('two'));
+  assert.equal(server.calls.filter(row => row.action === 'saveConfirmationJournal').length, 2); sync.dispose();
+});
+
+test('confirmation force flush coalesces clicks and waits for edits made during its communication', async () => {
+  const server = new Server(), store = new Store(), sync = new ConfirmationSync(store, client(server), options()); await sync.connect();
+  const gate = deferred(); let blocked = false;
+  server.before = async action => { if (!blocked && action === 'saveConfirmationJournal') { blocked = true; await gate.promise; } };
+  store.journal = answer('before'); sync.edit(); const first = sync.flush(); await waitUntil(() => blocked);
+  store.journal = answer('after'); sync.edit(); const repeated = sync.flush(); assert.equal(first, repeated); let finished = false; first.then(() => { finished = true; });
+  await Promise.resolve(); assert.equal(finished, false); gate.resolve(); assert.equal((await first).status, 'saved'); assert.deepEqual(server.journal, answer('after'));
+  assert.equal(server.calls.filter(row => row.action === 'saveConfirmationJournal').length, 2); await sync.flush(); assert.equal(server.calls.filter(row => row.action === 'saveConfirmationJournal').length, 2); sync.dispose();
+});
+
+test('confirmation manual flush waits behind background communication and then sends the latest edit', async () => {
+  const server = new Server(), store = new Store(), sync = new ConfirmationSync(store, client(server), { ...options(), idleMs: 0, maxWaitMs: 0 }); await sync.connect();
+  const gate = deferred(); let blocked = false;
+  server.before = async action => { if (!blocked && action === 'saveConfirmationJournal') { blocked = true; await gate.promise; } };
+  store.journal = answer('before'); sync.edit(); const background = sync.flush({ force: false }); await waitUntil(() => blocked);
+  store.journal = answer('newest'); sync.edit(); const manual = sync.flush(); gate.resolve(); await background;
+  assert.equal((await manual).status, 'saved'); assert.deepEqual(server.journal, answer('newest')); sync.dispose();
+});
+
+test('confirmation flush returns a single lost response and recovers its immutable request using backoff', async () => {
+  const server = new Server(), store = new Store(), clock = new Clock(), c = client(server), sync = new ConfirmationSync(store, c, clock.options()); await sync.connect();
+  server.loseCommit = true; store.journal = answer('held'); sync.edit(); const first = sync.flush(), repeated = sync.flush(); assert.equal(first, repeated);
+  await assert.rejects(first, { code: 'timeout' }); assert.equal(sync.state().status, 'retry'); const requestId = c.pending().input.requestId;
+  assert.equal(server.calls.filter(row => row.action === 'saveConfirmationJournal').length, 1);
+  await clock.advance(20000); assert.equal(sync.state().status, 'saved'); assert.equal(c.pending(), null);
+  assert.equal(server.calls.filter(row => row.action === 'saveConfirmationJournal').length, 1);
+  assert.ok(server.calls.some(row => row.action === 'lookupConfirmationSave' && row.input.requestId === requestId)); sync.dispose();
+});
+
+test('confirmation manual flush queued behind a failed background save leaves retry to backoff', async () => {
+  const server = new Server(), store = new Store(), sync = new ConfirmationSync(store, client(server), { ...options(), idleMs: 0, maxWaitMs: 0 }); await sync.connect();
+  const gate = deferred(); let blocked = false;
+  server.before = async action => { if (action === 'saveConfirmationJournal') { blocked = true; await gate.promise; throw error('timeout'); } };
+  store.journal = answer('held'); sync.edit(); const background = sync.flush({ force: false }); await waitUntil(() => blocked); const manual = sync.flush(); gate.resolve();
+  await assert.rejects(background, { code: 'timeout' }); assert.equal((await manual).status, 'retry');
+  assert.equal(server.calls.filter(row => row.action === 'saveConfirmationJournal').length, 1); sync.dispose();
+});
+
+test('confirmation changes during insurance communication start a new ten minute window', async () => {
+  const server = new Server(), store = new Store(), clock = new Clock(), sync = new ConfirmationSync(store, client(server), clock.options()); await sync.connect();
+  const gate = deferred(); let blocked = false;
+  server.before = async action => { if (!blocked && action === 'saveConfirmationJournal') { blocked = true; await gate.promise; } };
+  store.journal = answer('first'); sync.edit(); const advancing = clock.advance(600000); await waitUntil(() => blocked);
+  store.journal = answer('next'); sync.edit(); gate.resolve(); await advancing; assert.deepEqual(server.journal, answer('first'));
+  await clock.advance(599999); assert.deepEqual(server.journal, answer('first')); await clock.advance(1); assert.deepEqual(server.journal, answer('next')); sync.dispose();
 });

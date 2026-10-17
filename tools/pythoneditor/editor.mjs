@@ -4,7 +4,7 @@ import { DraftStore, exportDraft } from './storage.mjs';
 import { PythonRunner } from './runner.mjs?v=20261016-confirmation1';
 import { errorHints } from './diagnostics.mjs?v=20261015-errors';
 import { renderPrompt } from './prompt.mjs?v=20261016-prompt-structure1';
-import { CloudPanel } from './cloud-ui.mjs?v=20261017-confirmation-sync1';
+import { CloudPanel } from './cloud-ui.mjs?v=20261017-save-events1';
 import { cloudConfig } from './cloud-config.mjs';
 import { questionGroups, questionStructure, setRating, renderRating } from './navigation.mjs?v=20261017-confirmation-sync1';
 import { demoRatings } from './demo-ratings.mjs';
@@ -13,7 +13,7 @@ import { ConfirmationStore, CONFIRMATION_STORAGE_KEY, LEGACY_CONFIRMATION_STORAG
 import { ConfirmationPanel } from './confirmation-ui.mjs?v=20261017-confirmation-sync1';
 import { AdvicePanel } from './advice-ui.mjs?v=20261017-advice1';
 const $ = id => document.getElementById(id);
-const entries = new Map(), outputs = new Map(), docs = new Map(), questionGroupTitles = new Map(), trialWrites = new Set();
+const entries = new Map(), outputs = new Map(), docs = new Map(), questionGroupTitles = new Map(), trialWrites = new Set(), trialRecordFailures = new Set();
 let catalog, selectedSet, question, cm, store, runSnapshot, busy = false, pendingImport;
 let saveFailed = false;
 let cloudPanel, confirmationStore, confirmationPanel, pendingConfirmationJournal, advicePanel;
@@ -21,6 +21,7 @@ const adviceDrafts = new Map();
 let markedErrors = false;
 let pendingRequested=false;
 let editGeneration=0;
+let runGeneration=0;
 let catalogGeneration=0;
 let showDemoRatings=false;
 const params = new URLSearchParams(location.search);
@@ -108,7 +109,12 @@ function updateProgress() {
   }
 }
 function selectQuestion(q, updateURL = true) {
+  const previous = question;
   if (runner.active) runner.stop('問題を切り替えたため停止しました。');
+  if (previous && questionKey(previous) !== questionKey(q)) {
+    // snapshotを待機前に渡す。問題切替は通信の完了を待たない。
+    cloudPanel?.flushDrafts?.(previous, { ...currentEntry(previous) }).catch(error => showNotice(error.message, true));
+  }
   clearErrorMarkers();
   busy = true; question = q;
   const e = currentEntry();
@@ -350,9 +356,10 @@ async function recordTrial(snapshot, result) {
     await confirmationStore.record({ source: snapshot.source, code: snapshot.code, inputs: result.inputs,
       stdout: result.programStdout, stderr: result.stderr + (result.error ? (result.stderr ? '\n' : '') + result.error : ''),
       outcome: result.outcome, truncated: result.truncated, at: new Date().toISOString() });
+    trialRecordFailures.delete(snapshot.runId);
     if (confirmationStore.lastError) showNotice(confirmationStore.lastError.message, true);
     updateProgress(); updateNavigationRatings();
-  } catch (error) { showNotice('試行記録を保存できません。' + error.message, true); }
+  } catch (error) { trialRecordFailures.add(snapshot.runId); showNotice('試行記録を保存できません。' + error.message, true); }
 }
 const runner = new PythonRunner(event => {
   if (!runSnapshot) return;
@@ -387,6 +394,7 @@ function run() {
   clearErrorMarkers();
   const source = effectiveSource(question);
   const setupCode = effectiveSetupCode(question) || '', runId = crypto.randomUUID();
+  runGeneration++;
   runSnapshot = { key: questionKey(question), code, stdin: e.stdin, runId, setupCode, source: { questionId: source.questionId, version: source.version }, recordTrial: referencedByConfirmation(source) && setupCode === (source.setupCode || '') };
   outputs.set(runSnapshot.key, { code, setupCode, runId, stdin: e.stdin, text: '', stdout:'',programStdout:'',inputs:[],inputEcho:'',stderr: '', error: '', outcome:'not_run',truncated:false,status: '準備中', files: [] });
   runner.run({ code, setupCode, stdin: stdinLines(e.stdin) });
@@ -436,14 +444,54 @@ function saveBrowser() {
   catch (e) { showNotice(e.message, true); }
   closeMenus(true);
 }
-async function saveFile() {
-  if (!question) return;
-  await Promise.all([...trialWrites]);
+async function pendingRecords() {
+  while (trialWrites.size) await Promise.all([...trialWrites]);
   await confirmationStore.idle();
-  if (confirmationPanel.unrecorded()) { showNotice('入力中の確認問題の回答があります。「回答を記録」を押してからファイルへ保存してください。', true); return; }
+}
+async function exportLocalFile() {
+  if (!question) throw new Error('問題を開いてからファイルに保存してください。');
+  await pendingRecords();
+  if (confirmationPanel.unrecorded()) throw new Error('入力中の確認問題の回答があります。「回答を記録」を押してからファイルへ保存してください。');
+  const snapshot = { edit: editGeneration, run: runGeneration, incompleteTrials: trialRecordFailures.size };
   download(new Blob([JSON.stringify({...exportDraft(entries.values()), confirmationJournal: confirmationStore.snapshot()}, null, 2)], {type:'application/json'}), 'python-draft.json');
+  return snapshot;
+}
+async function saveFile() {
   closeMenus(true);
-  showNotice('保存ファイルを作成しました。ダウンロード先を確認してください。ファイルメニューから取り込めます。');
+  try {
+    const saved = await exportLocalFile();
+    showNotice('保存ファイルのダウンロードを開始しました。このMacの保存先を確認してください。続きは「ファイルから開く」で取り込めます。' +
+      (saved.incompleteTrials ? '一部の試行記録は追加できていません。ファイルには現在のコードと記録済みの試行だけが含まれます。画面を閉じず、教員へ相談してください。' : ''), !!saved.incompleteTrials);
+  } catch (error) { showNotice(error.message, true); }
+}
+function finishDialog() {
+  closeMenus(true);
+  $('finish-status').textContent = 'このMacにファイルを保存し、保存先を確認してからタブを閉じてください。';
+  $('finish-status').classList.remove('danger');
+  openDialog($('finish-dialog'));
+}
+async function finishWork() {
+  const button = $('finish-save'); button.disabled = true;
+  let fileStarted = false;
+  $('finish-status').classList.remove('danger');
+  try {
+    if (runner.active) runner.stop('作業を終了するため停止しました。');
+    const saved = await exportLocalFile(); fileStarted = true;
+    $('finish-status').textContent = 'ファイルのダウンロードを開始しました。クラウドの保存状態を確認しています…';
+    const result = await cloudPanel?.flushDrafts?.();
+    if (saved.edit !== editGeneration || saved.run !== runGeneration || runner.active || trialWrites.size || confirmationStore.pending.size || confirmationPanel.unrecorded())
+      throw new Error('保存ファイル作成後に作業が再開されました。未記録の回答があれば記録し、もう一度ファイルに保存して最新の内容を残してください。');
+    if (trialRecordFailures.size)
+      throw new Error('一部の試行記録を追加できていません。ファイルには現在のコードと記録済みの試行だけが含まれます。画面を閉じず、教員へ相談してください。');
+    if (result && !result.saved && (result.connected || cloudPanel?.unsaved()))
+      throw new Error('クラウドには未保存・未確認の内容があります。保存先を確認し、必要なら再接続または競合を解決してください。');
+    $('finish-status').textContent = result?.connected
+      ? 'クラウドに保存済みです。ダウンロードしたファイルの保存先を確認してから、このタブを閉じてください。'
+      : 'ファイルのダウンロードを開始しました。保存先を確認してから、このタブを閉じてください。クラウドは未接続です。';
+  } catch (error) {
+    $('finish-status').textContent = (fileStarted ? 'ファイルのダウンロードは開始済みです。' : '') + error.message;
+    $('finish-status').classList.add('danger');
+  } finally { button.disabled = false; }
 }
 function restoreDialog() {
   closeMenus(true);
@@ -533,7 +581,7 @@ async function init() {
   $('code').addEventListener('input', dirty); $('stdin').addEventListener('input', dirty);
   const ConnectionPanel = teacherPreviewMode ? TeacherPreviewPanel : CloudPanel;
   cloudPanel=new ConnectionPanel({catalog:()=>catalog,confirmationStore,unrecordedConfirmation:q=>confirmationPanel.unrecorded(q),renderRatings:updateNavigationRatings,question:()=>question,entry:q=>({...currentEntry(q)}),run:q=>outputs.get(questionKey(q)),running:()=>!!runner.active,
-    notice:(message,danger)=>showNotice(message,danger,true),closeMenus:()=>closeMenus(true),addCatalog:addCloudCatalog,importDraft:importCloudDraft,
+    notice:(message,danger)=>showNotice(message,danger,true),closeMenus:()=>closeMenus(true),addCatalog:addCloudCatalog,importDraft:importCloudDraft,pendingRecords,
     archive:(e,reason)=>{if(!store)throw new Error('ローカルの控えを保存できません。コードをファイルに保存してください。');store.archive(e,reason);},
     archiveEntries:reason=>{if(!store)throw new Error('切り替え前の控えを保存できません。ファイルに保存してください。');for(const e of entries.values())store.archive(e,reason);},
     findQuestion:e=>catalog?.sets.flatMap(s=>s.questions).find(q=>questionKey(q)===questionKey(e)),
@@ -571,6 +619,8 @@ async function init() {
     if (!menu.open) for (const other of document.querySelectorAll('.topbar .menu')) if (other !== menu) other.open = false;
   });
   $('save-browser').addEventListener('click', saveBrowser); $('save-file').addEventListener('click', saveFile);
+  $('finish-work').addEventListener('click', finishDialog);
+  $('finish-save').addEventListener('click', finishWork);
   $('restore-browser').addEventListener('click', restoreDialog);
   $('open-file').addEventListener('click', () => {closeMenus(true); $('file-input').click();});
   $('file-input').addEventListener('change', async () => {
@@ -601,12 +651,12 @@ async function init() {
   document.addEventListener('keydown', e => {
     if (e.isComposing || help?.root.contains(e.target) || $('advice-panel').contains(e.target) || document.querySelector('dialog[open]')) return;
     if (e.key === 'Enter' && !e.altKey && (e.metaKey || e.ctrlKey || e.shiftKey) && !e.target.closest('#interactive-input')) {e.preventDefault();run();}
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {e.preventDefault();saveBrowser();}
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {e.preventDefault();saveFile();}
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'o') {e.preventDefault();$('file-input').click();}
     if (e.key === 'Escape') {closeMenus(true);closeSetPicker(true);}
   });
   document.addEventListener('click', e => {if (!e.target.closest('.menu')) closeMenus();if(!e.target.closest('.set-picker'))closeSetPicker();});
-  addEventListener('beforeunload', e => {if (saveFailed||trialWrites.size||confirmationStore.pending.size||confirmationStore.lastError||confirmationPanel.unrecorded()||cloudPanel?.unsaved()) {e.preventDefault();e.returnValue='';}});
+  addEventListener('beforeunload', e => {if (saveFailed||trialWrites.size||trialRecordFailures.size||confirmationStore.pending.size||confirmationStore.lastError||confirmationPanel.unrecorded()||cloudPanel?.unsaved()) {e.preventDefault();e.returnValue='';}});
   addEventListener('pagehide', () => { runner.dispose(); advicePanel.dispose(); });
   if (teacherPreviewMode) {
     catalog = validateCatalog({ schema: 'python-editor-catalog-v1', label: '問題配布検証', sets: [] });

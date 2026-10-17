@@ -2,5 +2,5 @@
 export const toolsStoreConfig = Object.freeze({
   enabled: false,
   distURL: '',
-  autosave: Object.freeze({ idleMs: 4000, minIntervalMs: 20000, maxWaitMs: 30000, jitterMs: 3000 })
+  autosave: Object.freeze({ idleMs: 600000, minIntervalMs: 20000, maxWaitMs: 600000, jitterMs: 0 })
 });

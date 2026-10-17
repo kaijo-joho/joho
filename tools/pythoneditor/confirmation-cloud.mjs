@@ -248,8 +248,8 @@ export class ConfirmationCloudClient {
 export class ConfirmationSync {
   constructor(store, client, options = {}) {
     Object.assign(this, { store, client, changed: options.changed || (() => {}), conflict: options.conflict || (() => {}), failed: options.failed || (() => {}),
-      backup: options.backup, idleMs: options.idleMs ?? 4000, minIntervalMs: options.minIntervalMs ?? 20000, maxWaitMs: options.maxWaitMs ?? 30000,
-      jitterMs: options.jitterMs ?? 3000, now: options.now || Date.now, random: options.random || Math.random,
+      backup: options.backup, idleMs: options.idleMs ?? 600000, minIntervalMs: options.minIntervalMs ?? 20000, maxWaitMs: options.maxWaitMs ?? 600000,
+      jitterMs: options.jitterMs ?? 0, now: options.now || Date.now, random: options.random || Math.random,
       setTimer: options.setTimer || ((fn, ms) => setTimeout(fn, ms)), clearTimer: options.clearTimer || (id => clearTimeout(id)) });
     this.status = 'disconnected'; this.connected = false; this.ready = false; this.dirty = false; this.generation = 0; this.lastWrite = -Infinity; this.queue = Promise.resolve(); this.failures = 0;
     this.firstDirty = this.lastEdit = this.now(); this.jitter = Math.floor(this.random() * this.jitterMs);
@@ -302,37 +302,49 @@ export class ConfirmationSync {
   edit() {
     const time = this.now();
     if (!this.dirty) { this.firstDirty = time; this.jitter = Math.floor(this.random() * this.jitterMs); }
+    if (this.active && this.firstAfterSend === undefined) this.firstAfterSend = time;
     this.dirty = true; this.lastEdit = time;
-    if (!['conflict', 'auth', 'error', 'loading', 'saving'].includes(this.status)) this.status = this.connected ? 'waiting' : 'disconnected';
+    if (!['conflict', 'auth', 'error', 'retry', 'loading', 'saving'].includes(this.status)) this.status = this.connected ? 'waiting' : 'disconnected';
     this.notify(); this.schedule();
   }
-  due() { return Math.max(this.lastWrite + this.minIntervalMs, this.retryAt || 0, Math.min((this.lastEdit ?? this.now()) + this.idleMs, (this.firstDirty ?? this.now()) + this.maxWaitMs) + (this.jitter || 0)); }
+  due() { return Math.max(this.lastWrite + this.minIntervalMs, this.retryAt || 0, this.status === 'retry' ? 0 : Math.min((this.lastEdit ?? this.now()) + this.idleMs, (this.firstDirty ?? this.now()) + this.maxWaitMs) + (this.jitter || 0)); }
   schedule() {
     this.clearTimer(this.timer);
     if (this.connected && !this.ready && this.status === 'retry' && !this.active) {
-      this.timer = this.setTimer(() => { this.connect().catch(() => {}); }, Math.max(0, this.retryAt - this.now())); return;
+      this.timer = this.setTimer(() => this.connect().catch(() => {}), Math.max(0, this.retryAt - this.now())); return;
     }
     if (!this.connected || !this.ready || !this.dirty || this.active || ['conflict', 'auth', 'error', 'loading'].includes(this.status)) return;
-    this.timer = this.setTimer(() => { this.flush({ force: false }).catch(() => {}); }, Math.max(0, this.due() - this.now()));
+    this.timer = this.setTimer(() => this.flush({ force: false }).catch(() => {}), Math.max(0, this.due() - this.now()));
   }
-  async flush({ force = true } = {}) {
-    return this.enqueue(async () => {
+  flush({ force = true } = {}) {
+    if (force && this.forcedFlush) return this.forcedFlush;
+    const failuresAtRequest = this.failures;
+    const promise = this.enqueue(async () => {
       this.clearTimer(this.timer);
       if (!this.connected || !this.ready || !this.dirty || ['conflict', 'auth', 'error', 'loading'].includes(this.status)) return this.state();
-      if (this.lastWrite + this.minIntervalMs > this.now() || !force && this.due() > this.now()) { this.schedule(); return this.state(); }
-      const generation = this.generation; this.active = true; this.status = 'saving'; this.lastWrite = this.now(); this.notify();
+      if (force && this.failures > failuresAtRequest && this.status === 'retry') return this.state();
+      if (!force && this.due() > this.now()) { this.schedule(); return this.state(); }
+      const generation = this.generation; this.active = true;
       try {
-        const sent = await this.local(), result = await this.client.save(sent, { expectedRevision: this.revision });
-        if (generation !== this.generation) return;
-        if (result.state === 'conflict') await this.adopt(result, generation, { requestId: result.requestId });
-        else {
-          await this.client.rememberBase({ journal: result.sent, revision: result.revision }); this.revision = result.revision;
-          this.dirty = !sameConfirmationJournal(await this.local(), result.sent); this.status = this.dirty ? 'waiting' : 'saved'; this.failures = 0; this.retryAt = 0; this.lastError = null; this.notify();
-        }
+        do {
+          this.status = 'saving'; this.lastWrite = this.now(); this.notify();
+          const sent = await this.local(); this.firstAfterSend = undefined;
+          const result = await this.client.save(sent, { expectedRevision: this.revision });
+          if (generation !== this.generation) return;
+          if (result.state === 'conflict') await this.adopt(result, generation, { requestId: result.requestId });
+          else {
+            await this.client.rememberBase({ journal: result.sent, revision: result.revision }); this.revision = result.revision;
+            this.dirty = !sameConfirmationJournal(await this.local(), result.sent);
+            if (this.dirty && sameConfirmationJournal(sent, result.sent) && this.firstAfterSend !== undefined) this.firstDirty = this.firstAfterSend;
+            this.status = this.dirty ? 'waiting' : 'saved'; this.failures = 0; this.retryAt = 0; this.lastError = null; this.notify();
+          }
+        } while (force && generation === this.generation && this.connected && this.dirty && this.status === 'waiting');
       } catch (error) { if (generation === this.generation) this.handle(error); throw error; }
       finally { this.active = false; this.schedule(); }
       return this.state();
     });
+    if (force) { this.forcedFlush = promise; const clear = () => { if (this.forcedFlush === promise) this.forcedFlush = null; }; promise.then(clear, clear); }
+    return promise;
   }
   async resolve(choice, { backup = this.backup } = {}) {
     if (!['local', 'cloud'].includes(choice)) throw fail('confirmation_conflict', '残す回答を選んでください。');

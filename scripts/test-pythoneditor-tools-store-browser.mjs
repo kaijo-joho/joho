@@ -28,7 +28,7 @@ async function context(options={}){
     if(action==='saveDraft'&&lose){lose=false;return {ok:false,error:{code:'transport_failed',message:'合成の応答消失'}};}
     return result;
   });
-  await context.route('**/tools-store-config.mjs',route=>route.fulfill({contentType:'text/javascript',body:"export const toolsStoreConfig={enabled:true,distURL:'https://script.google.com/macros/s/TOOLS_DIST_SYNTHETIC/exec',autosave:{idleMs:80,minIntervalMs:180,maxWaitMs:300,jitterMs:0}};"}));
+  await context.route(/\/tools-store-config\.mjs(?:\?.*)?$/,route=>route.fulfill({contentType:'text/javascript',body:"export const toolsStoreConfig={enabled:true,distURL:'https://script.google.com/macros/s/TOOLS_DIST_SYNTHETIC/exec',autosave:{idleMs:80,minIntervalMs:180,maxWaitMs:300,jitterMs:0}};"}));
   await context.route('https://script.google.com/**',route=>{
     const url=new URL(route.request().url()),mode=url.searchParams.has('type')?'dist':'store';
     return route.fulfill({contentType:'text/html',body:`<!doctype html><iframe src="https://n-tools-store-fixture-0lu-script.googleusercontent.com/${mode}?${url.searchParams}"></iframe>`});

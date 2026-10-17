@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ToolsBridge } from '../tools-store.mjs';
+import { ToolsBridge } from '../tools-store.mjs?v=20261017-save-events1';
 import { ToolsDraftPanel } from '../tools-store-ui.mjs';
 
 class Storage {
@@ -49,5 +49,41 @@ test('switching accounts protects and separates the previous account conflict pr
   } finally {
     panel.auto?.dispose(); panel.bridge?.dispose(); ToolsBridge.prototype.connect = original;
     for (const [name, descriptor] of previous) { if (descriptor) Object.defineProperty(globalThis, name, descriptor); else delete globalThis[name]; }
+  }
+});
+
+function savePanel(overrides = {}) {
+  return Object.assign(Object.create(ToolsDraftPanel.prototype), { generation: 1, connected: true, loads: new Map(),
+    update() {}, showConflict() {}, showConfirmationConflict() {},
+    host: { confirmationStore: { snapshot: () => ({ trials: [], responses: {} }) } },
+    auto: { edit() {}, flush: async () => ({ saved: true, statuses: [] }), unsaved: () => false }, ...overrides });
+}
+test('transition fixes the old question before awaiting trial writes, then flushes code and confirmation records', async () => {
+  const pending = deferred(), events = [], old = { questionId: 'old', version: 'v1', kind: 'code' };
+  const entry = { code: 'old snapshot', updatedAt: '2026-10-17T00:00:00Z' };
+  const panel = savePanel({ host: { pendingRecords: () => pending.promise },
+    auto: { edit: (q, value) => events.push(['edit', q.questionId, value.code]), flush: async () => { events.push(['code']); return { saved: true, statuses: [] }; }, unsaved: () => false },
+    confirmation: { flush: async () => { events.push(['confirmation']); return { status: 'saved' }; }, unsaved: () => false } });
+  const saving = panel.saveAll(old, entry);
+  assert.deepEqual(events, [['edit', 'old', 'old snapshot']]);
+  panel.host.question = () => { throw Error('must not read the new selection'); };
+  pending.resolve(); assert.deepEqual(await saving, { connected: true, saved: true });
+  assert.deepEqual(events, [['edit', 'old', 'old snapshot'], ['code'], ['confirmation']]);
+});
+test('a replaced connection and authentication failure cannot become finish-save success', async () => {
+  for (const cause of ['generation', 'auth']) {
+    let confirmationWrites = 0; const panel = savePanel();
+    panel.auto.flush = async () => { if (cause === 'generation') panel.generation++; else panel.connected = false; return { saved: true, statuses: [] }; };
+    panel.confirmation = { flush: async () => { confirmationWrites++; return { status: 'saved' }; }, unsaved: () => false };
+    assert.deepEqual(await panel.saveAll(), { connected: false, saved: false }); assert.equal(confirmationWrites, 0);
+  }
+});
+test('finish-save does not accept conflict, pending edits, or an unprepared confirmation store as saved', async () => {
+  for (const kind of ['conflict', 'pending', 'confirmation']) {
+    const panel = savePanel();
+    if (kind === 'conflict') panel.auto.flush = async () => ({ saved: true, statuses: [{ status: 'conflict', dirty: false }] });
+    if (kind === 'pending') panel.auto.unsaved = () => true;
+    if (kind === 'confirmation') { panel.confirmationUnavailable = true; panel.host.confirmationStore.snapshot = () => ({ trials: [{}], responses: {} }); }
+    assert.deepEqual(await panel.saveAll(), { connected: true, saved: false });
   }
 });

@@ -2,8 +2,8 @@ import { questionKey, validateCatalog } from './core.mjs';
 import { cloudConfig } from './cloud-config.mjs';
 import { validateRating, ratingKey } from './navigation.mjs?v=20261017-confirmation-sync1';
 import { GoogleBridge, CloudWorkspace, submissionText, confirmationSubmission, confirmationEvidenceHash, canonicalEvidence, codeHash, bridgeURL } from './cloud.mjs?v=20261017-confirmation-sync1';
-import { toolsStoreConfig } from './tools-store-config.mjs';
-import { ToolsDraftPanel } from './tools-store-ui.mjs?v=20261017-confirmation-sync1';
+import { toolsStoreConfig } from './tools-store-config.mjs?v=20261017-save-events1';
+import { ToolsDraftPanel } from './tools-store-ui.mjs?v=20261017-save-events1';
 const $ = id => document.getElementById(id);
 const score = n => n === null || n === undefined ? 'なし' : `${Math.round(n*1000)/10} 点`;
 const date = value => new Date(value).toLocaleString('ja-JP');
@@ -251,6 +251,8 @@ export class CloudPanel {
     if(!this.submission)return;
     const {q,input}=this.submission;$('submit-dialog').close();
     await this.withWork(async()=>{
+      // 提出要求の本文・受付時刻とは独立した下書き保存。提出を待たせない。
+      this.flushDrafts().catch(error=>this.host.notice(error.message,true));
       const result=await this.cloud.submit(input);this.revision(q);this.acceptState(q,result);
       this.host.notice(result.receipt?.state==='submitted'?`${q.title}の採点と結果・履歴の保存が完了しました。`:'受付記録を保持しています。結果保存を確認してください。');
     });
@@ -272,4 +274,5 @@ export class CloudPanel {
   draftBadge(q){return this.drafts?.badge(q);}
   resume(){return this.drafts?.resume();}
   unsaved(){return this.drafts?.unsaved()||false;}
+  flushDrafts(q,entry){return this.drafts?.saveAll(q,entry)||Promise.resolve({connected:false,saved:false});}
 }

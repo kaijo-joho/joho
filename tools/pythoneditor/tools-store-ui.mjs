@@ -1,7 +1,7 @@
 import { questionKey } from './core.mjs';
-import { toolsStoreConfig } from './tools-store-config.mjs';
-import { ToolsBridge, ToolsStoreClient, DraftAutosave, validateConnection, gasURL, authErrors } from './tools-store.mjs';
-import { ConfirmationCloudClient, ConfirmationSync } from './confirmation-cloud.mjs?v=20261017-confirmation-sync1';
+import { toolsStoreConfig } from './tools-store-config.mjs?v=20261017-save-events1';
+import { ToolsBridge, ToolsStoreClient, DraftAutosave, validateConnection, gasURL, authErrors } from './tools-store.mjs?v=20261017-save-events1';
+import { ConfirmationCloudClient, ConfirmationSync } from './confirmation-cloud.mjs?v=20261017-save-events1';
 const $ = id => document.getElementById(id);
 const date = value => new Date(value).toLocaleString('ja-JP');
 const CACHE = 'joho.pythoneditor.tools-connection.v1.';
@@ -18,7 +18,6 @@ export class ToolsDraftPanel {
     $('confirmation-cloud-conflict').addEventListener('close', () => { if (this.confirmationOpener?.isConnected) this.confirmationOpener.focus(); });
     for(const id of ['cloud-dialog','cloud-conflict'])$(id).addEventListener('close',()=>{if(this.opener?.isConnected)this.opener.focus();});
     addEventListener('online', () => { if (this.auto?.connected) { for (const s of this.auto.slots.values()) if (s.status === 'retry') s.retryAt = 0; this.auto.schedule(); } if (this.confirmation?.connected) this.confirmation.flush().catch(e => this.fail(e)); });
-    addEventListener('visibilitychange', () => { if (document.hidden) { this.auto?.pump(true); this.confirmation?.flush().catch(e => this.fail(e)); } });
     addEventListener('pagehide', () => { this.auto?.dispose(); this.confirmation?.dispose(); this.bridge?.dispose(); this.connectBridge?.dispose(); });
   }
   storageWarning() { this.localWarning = true; this.update(); }
@@ -120,9 +119,28 @@ export class ToolsDraftPanel {
   }
   async save() {
     const q = this.host.question(); if (!q || !this.connected) return;
-    if (q.kind === 'confirmation') { await this.confirmation?.flush(); this.update(); this.showConfirmationConflict(); return; }
-    this.auto.edit(q, this.host.entry(q), { force: true });
-    await this.auto.pump(true); this.update(); this.showConflict();
+    return this.saveAll(q, this.host.entry(q));
+  }
+  async saveAll(q, entry) {
+    const generation = this.generation;
+    if (!this.connected) return { connected: false, saved: false };
+    // 切替元は呼出側が固定する。待機後の選択中の問題で差し替えない。
+    if (q?.kind === 'code' && entry?.updatedAt) this.auto.edit(q, entry);
+    await this.host.pendingRecords?.();
+    await Promise.all([...this.loads.values()]);
+    if (generation !== this.generation || !this.connected) return { connected: false, saved: false };
+    const code = await this.auto.flush();
+    if (generation !== this.generation || !this.connected) return { connected: false, saved: false };
+    let confirmation;
+    if (this.confirmation) confirmation = await this.confirmation.flush({ force: true });
+    this.update(); this.showConflict(); this.showConfirmationConflict();
+    const journal = this.host.confirmationStore?.snapshot();
+    const missingConfirmation = this.confirmationUnavailable && journal && (journal.trials.length || Object.keys(journal.responses).length);
+    const blocked = status => ['conflict', 'auth', 'error', 'retry', 'loading', 'saving'].includes(status);
+    const saved = generation === this.generation && this.connected && code.saved && !this.auto.unsaved() &&
+      !code.statuses.some(state => blocked(state.status)) && !missingConfirmation &&
+      (!this.confirmation || !this.confirmation.unsaved() && !blocked(confirmation?.status));
+    return { connected: this.connected && generation === this.generation, saved: !!saved };
   }
   confirmationsEdited() { this.confirmation?.edit(); }
   unsaved() { return this.auto?.unsaved() || this.confirmation?.unsaved() || false; }

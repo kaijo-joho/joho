@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ToolsBridge, ToolsStoreClient, DraftAutosave, gasURL, validateConnection } from '../tools-store.mjs';
 import { codeHash, CloudError } from '../cloud.mjs';
+import { toolsStoreConfig } from '../tools-store-config.mjs';
 
 const q = { questionId: 'q1', version: 'v1', setId: 'practice', title: '問1', kind: 'code' };
 const entry = (code = 'print(1)') => ({ ...q, code, stdin: '', updatedAt: '2026-10-15T00:00:00.000Z' });
@@ -43,6 +44,8 @@ class Clock {
   }
   options = () => ({ now: this.now, setTimer: this.set, clearTimer: this.clear, random: () => 0, idleMs: 40, minIntervalMs: 200, maxWaitMs: 300, jitterMs: 0 });
 }
+const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
+const waitUntil = async check => { for (let i = 0; i < 100 && !check(); i++) await new Promise(resolve => setImmediate(resolve)); assert.ok(check()); };
 
 test('URLは固定したGAS execのみ、接続情報のIDを保存権限の代用にしない', () => {
   assert.match(gasURL('https://script.google.com/macros/s/EXAMPLE/exec', 'https://editor.test', 'b'.repeat(64), 'dist'), /type=toolsStore/);
@@ -117,6 +120,70 @@ test('GSSの書込結果不明も自動で照会し、受理済み本文を重�
   const client=new ToolsStoreClient(async(...args)=>{try{return await backend.rpc(...args);}catch(e){throw new CloudError('storage_write_uncertain',e.message);}},session,storage);
   const auto=new DraftAutosave(client,clock.options());auto.edit(q,entry('uncertain write'));await auto.pump(true);
   assert.equal(auto.state(q).status,'retry');await clock.advance(2200);assert.equal(auto.state(q).status,'saved');assert.equal(backend.draft.seq,1);assert.ok(backend.calls.some(c=>c.action==='lookupSave'));auto.dispose();
+});
+test('既定の保険保存は連続入力でも最初の変更から10分後、未変更の定期送信はない', async () => {
+  assert.equal(toolsStoreConfig.autosave.idleMs, 600000); assert.equal(toolsStoreConfig.autosave.maxWaitMs, 600000); assert.equal(toolsStoreConfig.enabled, false);
+  const clock = new Clock(), backend = server(), client = new ToolsStoreClient(backend.rpc.bind(backend), session, new Storage());
+  const auto = new DraftAutosave(client, { now: clock.now, setTimer: clock.set, clearTimer: clock.clear });
+  auto.edit(q, entry('start'));
+  for (let index = 1; index < 10; index++) { await clock.advance(60000); auto.edit(q, entry('continued-' + index)); }
+  await clock.advance(59999); assert.equal(backend.draft, null); await clock.advance(1); assert.equal(backend.draft.code, 'continued-9');
+  await clock.advance(1200000); assert.equal(backend.calls.filter(row => row.action === 'saveDraft').length, 1); auto.dispose();
+});
+test('節目のflushは待機と最低間隔を飛ばして全dirtyを保存し、連続呼出しをまとめる', async () => {
+  const clock = new Clock(), sent = [], client = { session, async save(value) { sent.push(value); return { state: 'saved', sent: value }; } };
+  const auto = new DraftAutosave(client, { now: clock.now, setTimer: clock.set, clearTimer: clock.clear });
+  auto.edit(q, entry('first')); await auto.flush(); auto.edit(q, entry('next'));
+  const other = { ...q, questionId: 'q2' }; auto.edit(other, { ...entry('other'), questionId: 'q2' });
+  const one = auto.flush(), two = auto.flush(); assert.equal(one, two); const result = await one;
+  assert.equal(result.saved, true); assert.equal(sent.length, 3); assert.equal(auto.state(q).ack.code, 'next'); assert.equal(auto.state(other).ack.code, 'other');
+  await auto.flush(); assert.equal(sent.length, 3); auto.dispose();
+});
+test('通信中の変更を含むflushは現在の通信完了後に最新内容まで保存してから解決する', async () => {
+  const clock = new Clock(), gate = deferred(), sent = []; let blocked = false;
+  const client = { session, async save(value) { sent.push(value.code); if (!blocked) { blocked = true; await gate.promise; } return { state: 'saved', sent: value }; } };
+  const auto = new DraftAutosave(client, clock.options()); auto.edit(q, entry('before'));
+  const background = auto.pump(true); await waitUntil(() => blocked); auto.edit(q, entry('after'));
+  const flushing = auto.flush(); let finished = false; flushing.then(() => { finished = true; }); await Promise.resolve(); assert.equal(finished, false);
+  gate.resolve(); await background; assert.equal((await flushing).saved, true); assert.deepEqual(sent, ['before', 'after']); assert.equal(auto.state(q).ack.code, 'after'); auto.dispose();
+});
+test('flushの通信中にさらに編集してもsavedまで追いつき、後続flushは重複送信しない', async () => {
+  const clock = new Clock(), gate = deferred(), sent = []; let blocked = false;
+  const client = { session, async save(value) { sent.push(value.code); if (!blocked) { blocked = true; await gate.promise; } return { state: 'saved', sent: value }; } };
+  const auto = new DraftAutosave(client, clock.options()); auto.edit(q, entry('before')); const flushing = auto.flush(); await waitUntil(() => blocked);
+  auto.edit(q, entry('latest')); const repeated = auto.flush(); assert.equal(flushing, repeated); gate.resolve();
+  assert.equal((await flushing).saved, true); assert.deepEqual(sent, ['before', 'latest']); await auto.flush(); assert.equal(sent.length, 2); auto.dispose();
+});
+test('flushは失敗時に一度で返し、不変要求を保持してbackoffから照会する', async () => {
+  const backend = server(), storage = new Storage(), clock = new Clock(), client = new ToolsStoreClient(backend.rpc.bind(backend), session, storage);
+  const auto = new DraftAutosave(client, { now: clock.now, setTimer: clock.set, clearTimer: clock.clear }); backend.lose(); auto.edit(q, entry('held'));
+  const one = auto.flush(), two = auto.flush(); assert.equal(one, two); assert.equal((await one).saved, false); assert.equal(auto.state(q).status, 'retry');
+  const requestId = client.pending(q).input.requestId; assert.equal(backend.calls.filter(row => row.action === 'saveDraft').length, 1);
+  await clock.advance(20000); assert.equal(auto.state(q).status, 'saved'); assert.equal(backend.draft.seq, 1);
+  assert.equal(backend.calls.find(row => row.action === 'lookupSave').input.requestId, requestId); auto.dispose();
+});
+test('通信中の失敗を待つflushはその場で再送せず、認証・競合でも保存完了としない', async () => {
+  const clock = new Clock(), gate = deferred(); let calls = 0;
+  const client = { session, async save() { calls++; await gate.promise; throw new CloudError('timeout', 'lost'); } };
+  const auto = new DraftAutosave(client, clock.options()); auto.edit(q, entry('held')); const active = auto.pump(true); const flushing = auto.flush();
+  gate.resolve(); await active; assert.equal((await flushing).saved, false); assert.equal(calls, 1); auto.dispose();
+  for (const mode of ['auth', 'conflict']) {
+    const next = new DraftAutosave({ session, async save(value) { if (mode === 'auth') throw new CloudError('binding_expired', 'expired'); return { state: 'conflict', draft: { ...value, revision: 'f'.repeat(32) } }; } }, clock.options());
+    next.edit(q, entry('local')); const result = await next.flush(); assert.equal(result.saved, false); assert.equal(next.state(q).status, mode); next.dispose();
+  }
+});
+test('再接続の同一内容はdirtyを解消し、送信せずsavedにする', async () => {
+  const backend = server(), storage = new Storage(), clock = new Clock(), client = new ToolsStoreClient(backend.rpc.bind(backend), session, storage);
+  await client.save(entry('same')); const auto = new DraftAutosave(client, clock.options()); auto.edit(q, entry('same')); await auto.inspect(q, entry('same'));
+  assert.equal(auto.state(q).dirty, false); assert.equal(auto.state(q).status, 'saved'); const count = backend.calls.filter(row => row.action === 'saveDraft').length;
+  assert.equal((await auto.flush()).saved, true); await clock.advance(1000); assert.equal(backend.calls.filter(row => row.action === 'saveDraft').length, count); auto.dispose();
+});
+test('保険送信中の変更は次の10分枠へ移り、20秒ごとの連続送信にならない', async () => {
+  const clock = new Clock(), gate = deferred(), sent = []; let blocked = false;
+  const client = { session, async save(value) { sent.push(value.code); if (!blocked) { blocked = true; await gate.promise; } return { state: 'saved', sent: value }; } };
+  const auto = new DraftAutosave(client, { now: clock.now, setTimer: clock.set, clearTimer: clock.clear }); auto.edit(q, entry('first'));
+  const advancing = clock.advance(600000); await waitUntil(() => blocked); auto.edit(q, entry('next')); gate.resolve(); await advancing;
+  assert.equal(sent.length, 1); await clock.advance(599999); assert.equal(sent.length, 1); await clock.advance(1); assert.deepEqual(sent, ['first', 'next']); auto.dispose();
 });
 test('二重iframeの子孫とnonce/origin/sourceを照合し、他のGAS枠を受け入れない', async () => {
   let listener, frame; const origin = 'https://script.googleusercontent.com', win = { location: { origin: 'https://editor.test' }, addEventListener(_t, fn) { listener = fn; }, removeEventListener() {} };

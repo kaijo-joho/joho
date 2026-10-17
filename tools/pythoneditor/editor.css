@@ -72,6 +72,9 @@
 #error-hint-dialog pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;background:var(--bg);padding:12px;margin:12px 0}
 #error-hint-dialog ol{padding-left:1.5em}
 #error-hint-dialog li+li{margin-top:10px}
+.file-save-guide{max-width:24em;white-space:normal;line-height:1.6;padding:4px 8px;margin:0 0 8px;font-size:.9em}
+#finish-dialog{overflow-wrap:anywhere}#finish-status{white-space:pre-wrap}
+@media(max-width:620px){#file-menu .menu-body{position:fixed;left:12px;right:12px;top:64px;max-height:calc(100dvh - 78px);overflow:auto}}
 #error{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(pointer:coarse){#code-cell .CodeMirror{line-height:max(1.7em,44px)}#code-cell .error-hint-marker{min-height:44px}}
 

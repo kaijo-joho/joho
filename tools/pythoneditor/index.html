@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex">
   <title>Pythonエディタ｜海城情報科</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="editor.css?v=20261017-confirmation-sync1">
+  <link rel="stylesheet" href="editor.css?v=20261017-save-events1">
   <link rel="stylesheet" href="advice.css?v=20261017-advice1">
   <link rel="stylesheet" href="../shared/ui-kit.css">
   <link rel="stylesheet" href="../shared/help-panel.css">
@@ -20,7 +20,7 @@
   <script defer src="vendor/purify.min.js"></script>
   <script defer src="vendor/katex.min.js"></script>
   <script defer src="vendor/auto-render.min.js"></script>
-  <script type="module" src="editor.mjs?v=20261017-confirmation-sync1"></script>
+  <script type="module" src="editor.mjs?v=20261017-save-events1"></script>
 </head>
 <body>
   <header class="topbar" id="topbar">
@@ -28,12 +28,14 @@
     <h1>Pythonエディタ</h1><span class="beta">0.1 BETA</span>
     <details id="file-menu" class="menu"><summary aria-label="ファイル・保存と読み込み"><span aria-hidden="true">▤</span><span class="wide"> ファイル ▾</span></summary>
       <div class="menu-body">
-        <button id="save-browser" type="button">ブラウザに保存</button>
         <button id="save-file" type="button">ファイルに保存…</button>
+        <p class="file-save-guide muted">作業の区切りと終了前に、このMacへファイルを保存してください（⌘S）。</p>
+        <button id="save-browser" type="button">ブラウザに保存</button>
         <button id="save-cloud" type="button" disabled>クラウドに下書き保存</button>
         <hr><button id="restore-browser" type="button">ブラウザから開く…</button>
         <button id="open-file" type="button">ファイルから開く…</button>
         <button id="open-cloud" type="button" disabled>クラウドから開く…</button>
+        <hr><button id="finish-work" type="button" aria-haspopup="dialog" aria-controls="finish-dialog">作業を終了…</button>
       </div>
     </details>
     <div class="toolbar-group question-actions" aria-label="問題の移動">
@@ -130,9 +132,17 @@
   <dialog id="cloud-conflict"><h2 id="conflict-title">GSS保存の競合</h2><p>別の端末などで保存された内容と異なります。下はGSSの最新の内容です。GSSの履歴とローカルの控えで両方を保護してから選択を反映します。</p><pre id="conflict-preview"></pre><button id="conflict-cloud" type="button">GSSの続きを取り込む</button><button id="conflict-local" type="button">ローカルの続きをGSSに保存</button><button type="button" data-close>保留</button></dialog>
   <dialog id="confirmation-cloud-conflict" aria-labelledby="confirmation-cloud-title"><h2 id="confirmation-cloud-title">確認記録の続きを選ぶ</h2><p id="confirmation-cloud-summary"></p><h3>このブラウザの回答</h3><pre id="confirmation-cloud-local-preview"></pre><h3>クラウドの回答</h3><pre id="confirmation-cloud-remote-preview"></pre><button id="confirmation-cloud-local" type="button">このブラウザの回答を残す</button><button id="confirmation-cloud-remote" type="button">クラウドの回答を取り込む</button><button type="button" data-close>保留</button></dialog>
   <dialog id="submit-dialog"><h2>正式提出の確認</h2><p id="submit-description"></p><p id="submit-run-note" class="advice"></p><pre id="submit-preview"></pre><button id="submit-confirm" type="button" class="primary">この全文を正式提出</button><button type="button" data-close>キャンセル</button></dialog>
+  <dialog id="finish-dialog" aria-labelledby="finish-title"><h2 id="finish-title">保存して終了</h2><p>作業の区切りと終了前に、再編集できる保存ファイルをこのMacへ残してください。クラウド接続中は、変更したコードと確認記録も保存します。</p><p id="finish-status" role="status"></p><button id="finish-save" type="button" class="primary">ファイルに保存して終了</button><button type="button" data-close>作業へ戻る</button></dialog>
   <aside id="operation-help" hidden>
     <section data-help-topic="run" data-help-title="実行する"><h3>実行する</h3><ol><li>問題を選び、コードを入力します。</li><li>出力セル左の▶または⌘Enterで実行します。</li><li>input()で止まったら出力欄へ入力し、Enterで続けます。</li></ol><details><summary>停止と再実行</summary><p>実行中は同じ位置の■で計算を終了します。コードは残ります。再実行は共通の準備コードと現在の問題を新しい変数で実行します。</p></details><details><summary>入力を待っているとき</summary><p>Google Chromeでは、出力欄から1回ずつ入力を続けられます。⏏は入力終了（EOF）を渡します。逐次入力が使えない環境や、同じ値で繰り返し確認する場合は、設定の「確認用の入力値」を使用できます。</p></details></section>
-    <section data-help-topic="save" data-help-title="保存と復元"><h3>保存と復元</h3><p>入力したコードを問題・版ごとにブラウザへ自動保存します。問題を切り替えても保持します。</p><p>試行を伴う確認問題では、参照元のコードを実行し、入力・出力・コードと確認状況をブラウザに記録します。コード変更前の結果は履歴に残ります。正式採点とは別です。</p><p>ファイルメニューから明示保存と復元ができます。接続・提出・前後移動は上部ツールバー、正式採点結果と提出履歴はⓘで確認します。自動保存と明示保存を別に保持します。ファイルにはコードと入力値を保存します。</p><details><summary>別の端末で続ける</summary><p>クラウド接続が有効な環境では、学校アカウントに接続するとコードと入力値を自動保存します。作業終了時は下部の「クラウドに保存済み」を確認してください。貸出機や自端末に別の続きがあれば、両方を保護してから選択します。ファイルメニューから保存と履歴の復元もできます。本番接続の設定が済むまではファイル保存を使えます。</p></details><details><summary>正式提出と結果照会</summary><p>コード全文・入力値・実行の表示テキスト・標準エラーを送ります。採点と結果・履歴の保存が完了してから提出済みになります。応答を確認できない場合は「結果を照会」し、必要なら同じ送信を再試行します。締切はサーバー受付時刻で判定し、問題ごとの締切内最高点を採用します。</p></details></section>
+    <section data-help-topic="save" data-help-title="保存と復元"><h3>保存と復元</h3>
+      <p><strong>作業の区切りと終了前に「ファイル → ファイルに保存」（⌘S）で、このMacへ保存してください。</strong>再編集できるJSONファイルを作ります。ダウンロード先を確認し、続きは「ファイルから開く」で取り込みます。</p>
+      <p>入力したコードは問題・版ごとにブラウザへ自動保存します。同じブラウザで再開するための控えです。自動保存と、ファイルメニューの「ブラウザに保存」は別に保持します。</p>
+      <p>試行を伴う確認問題では、入力・出力・コード・回答を記録します。入力した回答は「回答を記録」を押してから保存してください。ファイルにはコード・入力値・記録済みの試行と回答を含めます。</p>
+      <details><summary>クラウド保存と別の端末での続き</summary><p>接続が有効な環境では、問題や問題セットの切替・手動保存・提出・「作業を終了」の操作時に、変更をクラウドへ送ります。長時間同じ問題を開いている場合も、変更があるときだけ10分間隔を目安に送ります。保存完了の保証時間ではありません。</p><p>貸出機や自端末に別の続きがあれば、両方を保護してから選びます。ファイルメニューからクラウドの保存内容と履歴を取り込めます。本番接続の設定が済むまではファイル保存を使ってください。</p></details>
+      <details><summary>保存して終了</summary><p>「ファイル → 作業を終了」からファイルに保存します。クラウド接続中は、変更の保存状態も確認します。ダウンロード先と画面の結果を確認してからタブを閉じてください。タブの×を押す瞬間だけで、クラウド保存を完了させることは保証できません。</p></details>
+      <details><summary>正式提出と結果照会</summary><p>提出は下書き保存と別の操作です。接続・提出・前後移動は上部ツールバー、提出結果と履歴はⓘで確認します。今年度は従来のColabで提出してください。未確認の送信は結果照会から確認できます。</p></details>
+    </section>
     <section data-help-topic="errors" data-help-title="エラーを調べる"><h3>エラーを調べる</h3><p>まずエラー末尾の種類・説明と行番号を読んで見直します。必要なときにコード・出力欄の下にある「エラーを探す」を押すと、該当行の行番号に⚠が付きます。⚠をクリックすると修正を考えるヒントを開きます。編集すると印は消えます。</p><p>エラーの種類・本文・コードの呼び出し履歴をPython標準の形式で表示し、エディタとPyodideの内部実行行は省きます。ヒントは端末内で表示します。</p><details><summary>エラー相談室</summary><p>コード・出力欄の下の「エラー相談室」から、送るコード・エラー・相談文を確認できます。接続が有効な環境では、共有について確認してから送信します。相談と回答は他の生徒も相談例として閲覧できます。回答は修正を考えるヒントとして表示し、コードは自分で直します。</p><p>応答を確認できない場合は「結果を照会」を押します。同じ相談の結果だけを調べ、AIへ自動で再問い合わせは行いません。接続準備中は送信できません。</p></details></section>
     <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>Pythonエディタ 0.1 BETA・独立試作。海城中学高等学校 情報科 © 2026。</p><p>推奨環境：学校MacのGoogle Chrome。PythonはPyodideによりブラウザ内で実行します。GSS下書き保存・正式提出で明示したテキストを学校のGASへ送ります。Pythonと数値計算のライブラリはjsDelivrから取得し、日本語化パッケージとフォントは同梱しています。</p><p>ブラウザ保存は同じ端末・同じブラウザ内の控えです。正式提出・GSS保存とは別です。今年度のColab・従来の提出方法は引き続き使用できます。</p></section>
   </aside>

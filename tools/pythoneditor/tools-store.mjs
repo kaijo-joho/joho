@@ -145,10 +145,10 @@ export class ToolsStoreClient {
 }
 // 学生ごとに一度に1送信。遅れたackは送信時のsnapshotだけを確定する。
 export class DraftAutosave {
-  constructor(client, { idleMs = 4000, minIntervalMs = 20000, maxWaitMs = 30000, jitterMs = 3000, now = Date.now,
+  constructor(client, { idleMs = 600000, minIntervalMs = 20000, maxWaitMs = 600000, jitterMs = 0, now = Date.now,
     random = Math.random, setTimer = (fn,ms)=>setTimeout(fn,ms), clearTimer = id=>clearTimeout(id), changed = () => {}, conflict = () => {}, failed = () => {} } = {}) {
     Object.assign(this, { client, idleMs, minIntervalMs, maxWaitMs, jitterMs, now, random, setTimer, clearTimer, changed, conflict, failed });
-    this.slots = new Map(); this.lastWrite = -Infinity; this.generation = 0; this.active = false; this.connected = true;
+    this.slots = new Map(); this.lastWrite = -Infinity; this.generation = 0; this.active = false; this.connected = true; this.flushQueue = Promise.resolve();
   }
   state(q) { return this.slots.get(questionKey(q)); }
   edit(q, entry, { force = false } = {}) {
@@ -158,7 +158,9 @@ export class DraftAutosave {
     const slot = old || { q, firstDirty: time, jitter: Math.floor(this.random() * this.jitterMs), failures: 0 };
     slot.entry = structuredClone({ ...entry, setId: q.setId, title: q.title }); slot.dirty = true; slot.lastEdit = time;
     if (!old?.dirty) { slot.firstDirty = time; slot.jitter = Math.floor(this.random() * this.jitterMs); }
-    if (!slot.paused) slot.status = 'waiting'; this.slots.set(key, slot); this.changed(); this.schedule();
+    if (slot.status === 'saving' && slot.nextDirtyAt === undefined) slot.nextDirtyAt = time;
+    if (slot.ack && same(slot.entry, slot.ack) && !['saving', 'retry', 'auth', 'error', 'conflict'].includes(slot.status)) slot.dirty = false;
+    if (!slot.paused && !['saving', 'retry'].includes(slot.status)) slot.status = slot.dirty ? 'waiting' : 'saved'; this.slots.set(key, slot); this.changed(); this.schedule();
   }
   async inspect(q, entry) {
     if (q.kind === 'observation') return;
@@ -167,39 +169,68 @@ export class DraftAutosave {
     let slot = this.state(q);
     if (!slot) { slot = { q, entry: { ...snapshot, setId: q.setId, title: q.title }, firstDirty: this.now(), lastEdit: this.now(), failures: 0, jitter: 0 }; this.slots.set(questionKey(q), slot); }
     if (result.state === 'conflict') {
-      slot.paused = true; slot.status = 'conflict'; slot.remote = result.draft; this.changed(); this.conflict(q, result.draft); return;
+      slot.dirty = true; slot.paused = true; slot.status = 'conflict'; slot.remote = result.draft; this.changed(); this.conflict(q, result.draft); return;
     }
     slot.status = result.draft && same(snapshot, result.draft) && same(snapshot, slot.entry) ? 'saved' : slot.dirty ? 'waiting' : 'new';
-    if (slot.status === 'saved') slot.ack = structuredClone(snapshot);
+    if (slot.status === 'saved') { slot.ack = structuredClone(snapshot); slot.dirty = false; slot.paused = false; slot.failures = 0; slot.retryAt = 0; slot.error = null; }
     this.changed(); this.schedule();
   }
-  due(slot) { return Math.max(this.lastWrite + this.minIntervalMs, slot.retryAt || 0, Math.min(slot.lastEdit + this.idleMs, slot.firstDirty + this.maxWaitMs) + slot.jitter); }
+  due(slot) { return Math.max(this.lastWrite + this.minIntervalMs, slot.retryAt || 0, slot.status === 'retry' ? 0 : Math.min(slot.lastEdit + this.idleMs, slot.firstDirty + this.maxWaitMs) + slot.jitter); }
   schedule() {
     this.clearTimer(this.timer); if (!this.connected || this.active) return;
     const waiting = [...this.slots.values()].filter(s => s.dirty && !s.paused);
     if (waiting.length) this.timer = this.setTimer(() => this.pump(), Math.max(0, Math.min(...waiting.map(s => this.due(s))) - this.now()));
   }
   async pump(force = false) {
-    this.clearTimer(this.timer); if (this.active || !this.connected) return;
+    this.clearTimer(this.timer); if (this.active) return this.inflight;
+    if (!this.connected) return;
     const slot = [...this.slots.values()].filter(s => s.dirty && !s.paused).sort((a, b) => this.due(a) - this.due(b))[0];
     if (!slot) return;
-    if (!force && this.due(slot) > this.now() || force && this.lastWrite + this.minIntervalMs > this.now()) { this.schedule(); return; }
-    this.active = true; slot.status = 'saving'; this.changed(); const generation = this.generation, sent = structuredClone(slot.entry);
+    if (!force && this.due(slot) > this.now()) { this.schedule(); return; }
+    const operation = this.send(slot); this.inflight = operation;
+    try { return await operation; } finally { if (this.inflight === operation) this.inflight = null; }
+  }
+  async send(slot) {
+    this.active = true; slot.status = 'saving'; slot.nextDirtyAt = undefined; this.changed(); const generation = this.generation, sent = structuredClone(slot.entry);
     this.lastWrite = this.now();
     try {
-      const result = await this.client.save(sent, { preserveRevision: slot.preserveRevision }); if (generation !== this.generation) return;
+      const result = await this.client.save(sent, { preserveRevision: slot.preserveRevision }); if (generation !== this.generation) return { state: 'superseded' };
       if (result.state === 'conflict') { if(!result.draft)throw fail('draft_missing','クラウドの下書きを確認できません。現在のコードは保持しています。');slot.status = 'conflict'; slot.paused = true; slot.remote = result.draft; this.conflict(slot.q, result.draft); }
-      else { slot.ack = result.sent; slot.dirty = !same(slot.entry, result.sent); slot.status = slot.dirty ? 'waiting' : 'saved'; slot.failures = 0; slot.retryAt = 0; slot.preserveRevision = null; }
+      else { slot.ack = result.sent; slot.dirty = !same(slot.entry, result.sent); slot.status = slot.dirty ? 'waiting' : 'saved'; slot.failures = 0; slot.retryAt = 0; slot.preserveRevision = null; slot.error = null;
+        if (slot.dirty && same(sent, result.sent) && slot.nextDirtyAt !== undefined) slot.firstDirty = slot.nextDirtyAt;
+      }
+      return { state: slot.status };
     } catch (e) {
-      if (generation !== this.generation) return;
+      if (generation !== this.generation) return { state: 'superseded' };
       slot.failures++; slot.status = authErrors.has(e.code) ? 'auth' : retryErrors.has(e.code) || !e.code ? 'retry' : 'error';
       slot.paused = ['auth', 'error'].includes(slot.status); slot.retryAt = this.now() + Math.min(60000, 2000 * 2 ** Math.min(slot.failures - 1, 5)) + Math.floor(this.random() * this.jitterMs);
       if (slot.status === 'auth') this.connected = false;
+      slot.error = e;
       this.failed(e); // 全文・requestId・最新編集は保持したまま。
+      return { state: slot.status, error: e };
     } finally { this.active = false; this.changed(); this.schedule(); }
   }
+  // 節目の保存は保険timerを待たず、通信中のackとその間の編集も含めて直列に確認する。
+  flush() {
+    if (this.flushing) return this.flushing;
+    const task = async () => {
+      const generation = this.generation;
+      if (this.inflight) { const active = await this.inflight; if (active && !['saved', 'waiting'].includes(active.state)) return this.summary(); }
+      while (generation === this.generation && this.connected) {
+        const waiting = [...this.slots.values()].some(slot => slot.dirty && !slot.paused);
+        if (!waiting) break;
+        const result = await this.pump(true);
+        if (!result || result.state !== 'saved' && result.state !== 'waiting') break;
+      }
+      return this.summary();
+    };
+    const result = this.flushQueue.then(task); this.flushing = result; this.flushQueue = result.catch(() => {});
+    const clear = () => { if (this.flushing === result) this.flushing = null; }; result.then(clear, clear); return result;
+  }
+  summary() { return { saved: !this.unsaved() && ![...this.slots.values()].some(slot => ['conflict', 'auth', 'retry', 'error'].includes(slot.status)), connected: this.connected,
+    statuses: [...this.slots.values()].map(slot => ({ questionId: slot.q.questionId, version: slot.q.version, status: slot.status, dirty: slot.dirty })) }; }
   resolve(q, remote, entry) {
-    this.client.adopt(q, remote); const slot = this.state(q); if (slot) { slot.paused = false; slot.remote = null; slot.preserveRevision = remote.revision; }
+    this.client.adopt(q, remote); const slot = this.state(q); if (slot) { slot.paused = false; slot.remote = null; slot.preserveRevision = remote.revision; slot.ack = structuredClone(remote); }
     this.edit(q, entry, { force: true });
     const current = this.state(q); if (same(entry, remote)) { current.dirty = false; current.status = 'saved'; current.ack = structuredClone(entry); }
     this.changed(); this.schedule();
