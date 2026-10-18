@@ -102,6 +102,21 @@
     return {docId:doc.docId, fileName:doc.fileName, lessonId:doc.lessonId,
       mode:'lesson', kind, destination, content:content()};
   }
+  function recoverySaved(message) {
+    $('recoveryState').textContent = message;
+    if (!$('recoveryWarning').hidden && $('toast').textContent === $('recoveryWarning').textContent) {
+      clearTimeout(toastTimer); $('toast').style.display = 'none';
+    }
+    $('recoveryWarning').hidden = true;
+    $('recoveryWarning').textContent = '';
+  }
+  function recoveryFailed(message, error) {
+    $('recoveryState').textContent = message + (error ? ' ' + errorMessage(error) : '');
+    const warning = $('recoveryWarning');
+    if (!warning.hidden && warning.textContent === message) return;
+    warning.textContent = message; warning.hidden = false;
+    notify(message, 'warning');
+  }
   function autoSave() {
     clearTimeout(autoTimer);
     if (!doc || !doc.hasWork || doc.lastAutoContent === content()) return;
@@ -109,9 +124,9 @@
       if (!recovery) throw Error('ブラウザの保存領域を利用できません。');
       recovery.save(snapshot('auto'));
       doc.lastAutoContent = content();
-      $('recoveryState').textContent = '復旧用の控え：' + new Date().toLocaleTimeString('ja-JP');
+      recoverySaved('復旧用の控え：' + new Date().toLocaleTimeString('ja-JP'));
     } catch (error) {
-      $('recoveryState').textContent = '自動保存に失敗しました。Macへ保存してください。' + errorMessage(error);
+      recoveryFailed('復旧用の自動保存に失敗しました。編集内容は残っています。Macのファイルへ保存してください。', error);
     }
   }
   function replaceDocument(text, fileName, options = {}) {
@@ -497,12 +512,12 @@
     doc.verifiedSave = null; // 取消・権限喪失・書込失敗を以前の成功で隠さない。
     if (!fs.isConnected()) throw Error('書き込み可能なフォルダを接続してください。このブラウザではダウンロードで保存することもできます。');
     if (doc.binding !== fs.dirHandle && !explicit) throw Error('保存先を確認できません。「開く」から開き直すか、保存先フォルダを確認してください。');
-    const saved = {docId:doc.docId, fileName:doc.fileName, content:content(), binding:fs.dirHandle};
+    const saved = {docId:doc.docId, fileName:doc.fileName, content:content(), binding:fs.dirHandle,
+      diskContent:doc.diskContent, bound:doc.binding === fs.dirHandle};
     const exists = fs.fileEntries.has(saved.fileName);
-    if (doc.binding === fs.dirHandle && exists && await fs.readFile(saved.fileName) !== doc.diskContent) {
-      throw Error('Mac上のファイルが別の操作で変更されています。上書きせず、編集中の内容をダウンロードして比較してください。');
-    }
-    if (explicit && doc.binding !== fs.dirHandle) {
+    // 利用者の確認待ちで他タブをロックしない。確認した内容が変わったら保存を止める。
+    if (explicit && !saved.bound) {
+      saved.diskContent = exists ? await fs.readFile(saved.fileName, {activate:false}) : null;
       const yes = await modal('保存先を確認', (body, button) => {
         textNode(body, fs.getDirectoryName() + '/' + saved.fileName);
         textNode(body, exists ? '同名ファイルがあります。内容を上書きします。' : 'この場所にファイルを作成します。');
@@ -511,17 +526,29 @@
       });
       if (yes !== 'save') return false;
     }
-    if (doc.docId !== saved.docId || content() !== saved.content || fs.dirHandle !== saved.binding) throw Error('内容または保存先が変わりました。もう一度保存してください。');
-    await fs.writeFile(saved.fileName, saved.content);
-    if (doc.docId !== saved.docId) throw Error('文書が切り替わりました。保存内容を確認してください。');
-    doc.binding = saved.binding; doc.diskContent = saved.content; doc.savedContent = saved.content; doc.hasWork = true;
-    doc.verifiedSave = {directory:saved.binding, content:saved.content}; // writeFileはclose後に同じファイルを読み戻して照合済み。
+    await fs.withWriteLock(async () => {
+      const current = () => doc?.docId === saved.docId && content() === saved.content && fs.dirHandle === saved.binding;
+      if (!current()) throw Error('内容または保存先が変わりました。もう一度保存してください。');
+      if (saved.bound || exists) {
+        if (await fs.readFile(saved.fileName, {activate:false}) !== saved.diskContent) {
+          throw Error('Mac上のファイルが別の操作で変更されています。上書きせず、編集中の内容をダウンロードして比較してください。');
+        }
+      } else if (await fs.hasFile(saved.fileName, saved.binding)) {
+        throw Error('保存の確認後に同名ファイルが作成されました。上書きせず、「開く」から確認してください。');
+      }
+      if (!current()) throw Error('内容または保存先が変わりました。もう一度保存してください。');
+      await fs.writeFile(saved.fileName, saved.content);
+      if (!current()) throw Error('内容または保存先が変わりました。保存内容を確認してください。');
+      doc.binding = saved.binding; doc.diskContent = saved.content; doc.savedContent = saved.content; doc.hasWork = true;
+      doc.verifiedSave = {directory:saved.binding, content:saved.content}; // close後の読戻しまでロック内で確認済み。
+    });
     doc.saveMessage = 'Macのファイルに保存しました：' + saved.fileName;
+    displayState(); notify(doc.saveMessage, 'success');
     try {
       if (!recovery) throw Error('保存領域を利用できません。');
       recovery.save({...snapshot('manual', 'file'), content:saved.content});
-    } catch { $('recoveryState').textContent = 'Macへ保存できましたが、ブラウザの控えは保存できませんでした。'; }
-    displayState(); notify(doc.saveMessage, 'success');
+      recoverySaved('ファイル保存時の控え：' + new Date().toLocaleTimeString('ja-JP'));
+    } catch (error) { recoveryFailed('Macへ保存できましたが、復旧用の控えは保存できませんでした。Macのファイルは保持されています。', error); }
     return content() === saved.content;
   }
   function save() {

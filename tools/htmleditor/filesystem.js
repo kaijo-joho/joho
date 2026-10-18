@@ -18,6 +18,8 @@
   function imageName(name){const clean=safePath(name);if(clean.includes('/')||!/\.(?:jpe?g|png|gif|webp)$/i.test(clean))throw new Error('画像のファイル名を確認してください。');return clean;}
   const sameBytes=(a,b)=>a.length===b.length&&a.every((value,index)=>value===b[index]);
   const sameEntry=async(a,b)=>a===b||Boolean(a&&b&&typeof a.isSameEntry==='function'&&await a.isSameEntry(b));
+  // 既存の新規保存とも同じロックを使い、存在確認・競合確認から読戻しまで保護する。
+  const FILE_WRITE_LOCK = 'joho.htmleditor.new-file';
   const media=n=>/\.(?:jpg|jpeg|png|gif|svg|webp|mp3|mp4|woff2?|ttf|ico)$/i.test(n);
   const blob=f=>{try{return typeof URL!=='undefined'&&typeof URL.createObjectURL==='function'?URL.createObjectURL(f):null}catch(_){return null}};
   class HtmlFileSystem{
@@ -125,6 +127,11 @@
         this._notify('file-loaded', {path:rel, text});
       }
       return text;
+    }
+    async withWriteLock(action) {
+      const locks = typeof navigator === 'undefined' ? null : navigator.locks;
+      if (typeof locks?.request !== 'function') throw new Error('タブ間の保存競合を確認できません。Google Chromeで開き直すか、「設定」の保存の補助操作からコピーをダウンロードしてください。');
+      return locks.request(FILE_WRITE_LOCK, action);
     }
     async writeFile(path, content) {
       if (!this.isConnected()) throw new Error('書込可能なフォルダが接続されていません。');
@@ -250,7 +257,7 @@
       };
       // 同一サイトの複数タブからの新規保存も、存在確認と書込を直列化する。
       const locks = typeof navigator === 'undefined' ? null : navigator.locks;
-      return locks?.request ? locks.request('joho.htmleditor.new-file', write) : write();
+      return locks?.request ? locks.request(FILE_WRITE_LOCK, write) : write();
     }
     async _getOrCreateFileHandle(path){const parts=path.split('/');let d=this.dirHandle;for(let i=0;i<parts.length-1;i++)d=await d.getDirectoryHandle(parts[i],{create:true});return d.getFileHandle(parts[parts.length-1],{create:true})}
     disconnect(){this._clearBlobUrls();this.dirHandle=null;this.dirName='';this.readOnly=false;this.fileEntries.clear();this.newFileAttempts.clear();this.currentFilePath='';this._notify('disconnected')}

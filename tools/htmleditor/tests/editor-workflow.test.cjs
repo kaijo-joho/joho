@@ -39,9 +39,10 @@ class Node {
   close() { this.open = false; }
 }
 
-function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false, v3=false, localDownloads=null, failWrite=false, failReadAfterWrite=false, nativePicker=true} = {}) {
+function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false, v3=false, localDownloads=null, failWrite=false, failReadAfterWrite=false, nativePicker=true, recoveryFaults={}} = {}) {
   const nodes = Object.fromEntries([...htmlIds].map(id => [id, new Node()]));
   nodes.app = new Node(); nodes.actionDialog = new Node('dialog');
+  nodes.recoveryWarning.hidden = true; nodes.recoveryState.hidden = true;
   const documentEvents = new Map();
   const document = {
     body:new Node('body'), activeElement:null,
@@ -79,12 +80,14 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
       this.readOnly = true; this.dirHandle = null; return this.files;
     }
     async readFile(path) { if(failReadAfterWrite&&calls.writes)throw Error('synthetic read failure');return this.imported ? Buffer.from(await this.imported.arrayBuffer()).toString('utf8') : disk.get(path); }
+    async withWriteLock(action) { return action(); }
+    async hasFile(path) { return disk.has(path); }
     async writeFile(path,value) { if(failWrite)throw Error('synthetic write failure');disk.set(path,value);calls.writes++; }
     disconnect() { calls.disconnect++; this.dirHandle = null; this.files = []; this.readOnly = false; }
     onChange() { return () => {}; }
   }
   const wrapper = new Node();
-  const cm = {value:'', setOption() {}, getWrapperElement:() => wrapper, setValue(value) { this.value = value; }, getValue() { return this.value; }, clearHistory() {}, on() {}, refresh() {}, markText() {}, posFromIndex() { return {}; }, replaceSelection() {}, clearGutter() {}, setGutterMarker() {}};
+  const cm = {value:'', listeners:{}, setOption() {}, getWrapperElement:() => wrapper, setValue(value) { this.value = value; }, getValue() { return this.value; }, clearHistory() {}, on(name, fn) { this.listeners[name] = fn; }, refresh() {}, markText() {}, posFromIndex() { return {}; }, replaceSelection() {}, clearGutter() {}, setGutterMarker() {}};
   const memory = {async load() { return remembered ? handle : null; }, async save() {}, async forget() { calls.forget++; }};
   const testTimeout = (fn, delay) => {
     const timer = setTimeout(fn, delay);
@@ -97,7 +100,13 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     crypto:{randomUUID:() => 'test-document'}, indexedDB:{}, localStorage:{}, Blob:class {}, URL:{createObjectURL() { calls.downloads++; return 'blob:test'; }, revokeObjectURL() {}},
     CodeMirror:{fromTextArea:(node, options) => { calls.cmOptions = options; return cm; }}, HtmlFileSystem:FakeFs,
     HtmlEditorFolderMemory:{create:() => { if (memoryFails) throw Error('IndexedDB unavailable'); return memory; }},
-    HtmlEditorRecovery:{create:() => ({save() {}, list:() => ({items:recoveryItems, errors:[]})})},
+    HtmlEditorRecovery:{create:() => {
+      if (recoveryFaults.unavailable) throw Error('synthetic recovery unavailable');
+      return {save() {
+        calls.recoverySaves = (calls.recoverySaves || 0) + 1;
+        if (recoveryFaults.fail) throw Object.assign(Error('synthetic quota exceeded'), {name:'QuotaExceededError'});
+      }, list:() => ({items:recoveryItems, errors:[]})};
+    }},
     HtmlPreview:class extends require('../preview.js') {
       constructor(options) { super(options); calls.preview = this; calls.previewOptions = options; calls.previewUpdates = []; this.transform = value => value; }
       update(...args) { calls.previewUpdates.push(args); super.update(...args); }
@@ -315,6 +324,138 @@ test('v3モジュール準備失敗でも実エディタと既存ファイルを
  assert.equal(h.nodes.emptyState.hidden,false);assert.equal(h.calls.writes,0);
 });
 async function chooseSample(app){app.nodes.openFilesBtn.dispatch('click');await app.tick();await app.tick();}
+function triggerAutoSave(app, value) {
+  app.cm.setValue(value); app.cm.listeners.change();
+  const timer = app.calls.timers.filter(item => item.delay === 500).at(-1);
+  clearTimeout(timer.timer); timer.fn();
+}
+test('復旧の自動保存失敗は可視の警告にし、同じ失敗は連続通知せず、成功時に解除する', async () => {
+  const faults = {fail:true}, h = makeHarness({recoveryFaults:faults});
+  await h.tick(); await chooseSample(h);
+  const saved = h.disk.get('sample.html');
+  triggerAutoSave(h, 'unsaved recovery content');
+  assert.equal(h.nodes.recoveryWarning.hidden, false);
+  assert.match(h.nodes.recoveryWarning.textContent, /自動保存に失敗.*Macのファイルへ保存/);
+  assert.equal(h.nodes.toast.dataset.kind, 'warning');
+  assert.match(h.nodes.recoveryState.textContent, /synthetic quota/);
+  const notices = h.calls.timers.filter(item => item.delay === 5000).length;
+  triggerAutoSave(h, 'continued unsaved edits');
+  assert.equal(h.calls.timers.filter(item => item.delay === 5000).length, notices, '同じ障害でトーストを繰り返さない');
+  assert.equal(h.disk.get('sample.html'), saved);
+  assert.equal(h.cm.getValue(), 'continued unsaved edits');
+  assert.equal(h.nodes.dirtyMark.hidden, false);
+  faults.fail = false;
+  triggerAutoSave(h, 'continued unsaved edits');
+  assert.equal(h.nodes.recoveryWarning.hidden, true);
+  assert.equal(h.nodes.recoveryWarning.textContent, '');
+  assert.equal(h.nodes.toast.style.display, 'none', '復旧できたら直前の失敗トーストも残さない');
+  assert.match(h.nodes.recoveryState.textContent, /復旧用の控え/);
+  assert.equal(h.disk.get('sample.html'), saved, '復旧保存の成功でMacの保存済み状態を変えない');
+  assert.equal(h.nodes.dirtyMark.hidden, false);
+});
+test('復旧保存領域を使えない場合も編集内容を保持して警告する', async () => {
+  const h = makeHarness({recoveryFaults:{unavailable:true}});
+  await h.tick(); await chooseSample(h);
+  triggerAutoSave(h, 'kept without recovery storage');
+  assert.equal(h.nodes.recoveryWarning.hidden, false);
+  assert.match(h.nodes.recoveryState.textContent, /保存領域/);
+  assert.equal(h.cm.getValue(), 'kept without recovery storage');
+});
+test('Mac保存成功と控え保存失敗を区別し、Mac成功の通知で警告を隠さない', async () => {
+  const faults = {fail:true}, h = makeHarness({recoveryFaults:faults});
+  await h.tick(); await chooseSample(h);
+  h.cm.setValue('saved only on Mac'); h.nodes.saveBtn.click(); await h.tick();
+  assert.equal(h.disk.get('sample.html'), 'saved only on Mac');
+  assert.equal(h.nodes.dirtyMark.hidden, true);
+  assert.equal(h.nodes.recoveryWarning.hidden, false);
+  assert.match(h.nodes.recoveryWarning.textContent, /Macへ保存できましたが/);
+  assert.equal(h.nodes.toast.dataset.kind, 'warning');
+  faults.fail = false; h.nodes.saveBtn.click(); await h.tick();
+  assert.equal(h.nodes.recoveryWarning.hidden, true);
+  assert.equal(h.nodes.toast.dataset.kind, 'success');
+});
+function memorySaveRace() {
+  const state = {disk:'old saved content', writes:[], reads:0};
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const handle = {async getFile() { state.reads++; return new Blob([state.disk]); }, async createWritable() {
+    let pending;
+    return {async write(text) { pending = text; state.writes.push(text); if (text === 'edit A') await gate; },
+      async close() { if (state.fail) throw Error('synthetic close failed'); state.disk = pending; }, async abort() {}};
+  }};
+  return {state, release, attach(app) {
+    const real = require('../filesystem.js').prototype, f = app.calls.preview.fs;
+    f.fileEntries = new Map([['sample.html', {handle, kind:'file'}]]); f.blobUrlMap = new Map(); f._notify = () => {};
+    for (const method of ['readFile','writeFile','_verifyWrittenFile','withWriteLock']) f[method] = real[method];
+  }};
+}
+async function withMemoryWebLocks(run) {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'navigator'), names = [];
+  let tail = Promise.resolve();
+  Object.defineProperty(globalThis, 'navigator', {configurable:true, value:{locks:{request(name, action) {
+    names.push(name); const result = tail.then(action); tail = result.catch(() => {}); return result;
+  }}}});
+  try { await run(names); } finally {
+    if (previous) Object.defineProperty(globalThis, 'navigator', previous); else delete globalThis.navigator;
+  }
+}
+test('実editor/filesystemの同時保存は読取から読戻しまで排他し、後続の編集を成功扱いしない', async () => {
+  await withMemoryWebLocks(async names => {
+    const a = makeHarness(), b = makeHarness(), race = memorySaveRace();
+    for (const h of [a,b]) { await h.tick(); await chooseSample(h); race.attach(h); }
+    a.cm.setValue('edit A'); b.cm.setValue('edit B');
+    a.nodes.saveBtn.click(); b.nodes.saveBtn.click(); await a.tick();
+    assert.deepEqual(race.state.writes, ['edit A']); assert.equal(race.state.reads, 1, '後続の競合確認もロックの取得後に行う');
+    race.release(); await a.tick(); await b.tick();
+    assert.equal(race.state.disk, 'edit A'); assert.deepEqual(race.state.writes, ['edit A']);
+    assert.match(a.nodes.toast.textContent, /保存しました/); assert.equal(a.nodes.dirtyMark.hidden, true);
+    assert.match(b.nodes.toast.textContent, /別の操作で変更/); assert.equal(b.nodes.toast.dataset.kind, 'error');
+    assert.equal(b.cm.getValue(), 'edit B'); assert.equal(b.nodes.dirtyMark.hidden, false);
+    assert.deepEqual(names, ['joho.htmleditor.new-file','joho.htmleditor.new-file']);
+    b.nodes.saveBtn.click(); await b.tick();
+    assert.equal(race.state.disk, 'edit A'); assert.deepEqual(race.state.writes, ['edit A'], '競合後の再保存も無断で上書きしない');
+  });
+});
+test('ロック待機中に編集内容が変わったら旧内容を書かず、先行失敗後もロックを解放する', async () => {
+  await withMemoryWebLocks(async () => {
+    const a = makeHarness(), b = makeHarness(), race = memorySaveRace();
+    for (const h of [a,b]) { await h.tick(); await chooseSample(h); race.attach(h); }
+    a.cm.setValue('edit A'); b.cm.setValue('edit B'); race.state.fail = true;
+    a.nodes.saveBtn.click(); b.nodes.saveBtn.click(); await a.tick();
+    b.cm.setValue('edit B changed while waiting'); race.release(); await a.tick(); await b.tick();
+    assert.equal(race.state.disk, 'old saved content'); assert.deepEqual(race.state.writes, ['edit A']);
+    assert.match(a.nodes.toast.textContent, /synthetic close failed/); assert.match(b.nodes.toast.textContent, /内容または保存先が変わり/);
+    assert.equal(a.nodes.dirtyMark.hidden, false); assert.equal(b.nodes.dirtyMark.hidden, false);
+    race.state.fail = false; b.nodes.saveBtn.click(); await b.tick();
+    assert.equal(race.state.disk, 'edit B changed while waiting'); assert.equal(b.nodes.dirtyMark.hidden, true);
+  });
+});
+test('タブ間ロック非対応ならMacへ書かず、コピー保存を案内して編集内容を保つ', async () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  Object.defineProperty(globalThis, 'navigator', {configurable:true, value:{}});
+  try {
+    const h = makeHarness(), race = memorySaveRace(); await h.tick(); await chooseSample(h); race.attach(h);
+    h.cm.setValue('kept without locks'); h.nodes.saveBtn.click(); await h.tick();
+    assert.equal(race.state.disk, 'old saved content'); assert.equal(race.state.writes.length, 0);
+    assert.equal(h.cm.getValue(), 'kept without locks'); assert.equal(h.nodes.dirtyMark.hidden, false);
+    assert.match(h.nodes.toast.textContent, /保存競合.*コピーをダウンロード/);
+  } finally { if (previous) Object.defineProperty(globalThis, 'navigator', previous); else delete globalThis.navigator; }
+});
+for (const existing of [true,false]) test('保存先確認中はロックせず、確認後の'+(existing?'外部変更':'同名作成')+'を上書きしない', async () => {
+  const h = makeHarness({recoveryItems:[{fileName:'sample.html',content:'recovered content',kind:'auto',savedAt:0}]});
+  await h.tick(); h.nodes.restoreBtn.click(); await h.tick();
+  h.nodes.actionBody.children.find(node => node.className === 'recovery-list').children[0].click(); await h.tick();
+  if (!existing) h.disk.delete('sample.html');
+  let lockCalls = 0;
+  h.calls.preview.fs.withWriteLock = async action => { lockCalls++; return action(); };
+  h.nodes.folderSaveBtn.click(); await h.tick();
+  assert.equal(h.nodes.actionDialog.open, true); assert.equal(lockCalls, 0);
+  h.disk.set('sample.html', 'changed in another tab');
+  h.nodes.actionButtons.children.find(node => node.dataset.choice === 'save').click(); await h.tick();
+  assert.equal(lockCalls, 1); assert.equal(h.calls.writes, 0); assert.equal(h.disk.get('sample.html'), 'changed in another tab');
+  assert.equal(h.cm.getValue(), 'recovered content'); assert.equal(h.nodes.dirtyMark.hidden, false);
+  assert.match(h.nodes.toast.textContent, existing ? /別の操作で変更/ : /同名ファイルが作成/);
+});
 test('同じファイルを保存して開くと、Mac上とエディタの双方が新しい内容になる',async()=>{
  const h=makeHarness();await h.tick();await chooseSample(h);h.cm.setValue('edited content');await chooseSample(h);
  h.nodes.actionButtons.children.find(n=>n.dataset.choice==='save').click();await h.tick();await h.tick();
