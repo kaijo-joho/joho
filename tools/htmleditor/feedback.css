@@ -1,0 +1,17 @@
+/* ローカル採点と提出フォームで同じ表示。数値は表示せず星の順序を固定する。 */
+.html-grade-feedback { margin-block: .8rem; }
+.html-grade-feedback .html-grade-group { margin: 0 0 1.1rem; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.html-grade-feedback h4 { margin: .7rem 0 .35rem; font-size: 1rem; }
+.html-grade-feedback .html-grade-legend { margin: .3rem 0; color: var(--muted); font-size: .85rem; }
+.html-grade-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 1rem; }
+.html-grade-table th, .html-grade-table td { border: 1px solid var(--line); padding: .35rem .6rem; text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
+.html-grade-table thead th { background: var(--bg); font-size: .9rem; }
+.html-grade-table th:first-child { width: 56%; }
+.html-grade-table tbody th { font-weight: normal; }
+.html-grade-table .html-grade-check { display: inline-flex; align-items: center; justify-content: center; width: 2rem; min-width: 0; height: 2rem; min-height: 0; padding: 0; margin: 0; border: 0; border-radius: .25rem; background: transparent; color: var(--text); font: bold 1.3rem/1 sans-serif; cursor: pointer; }
+.html-grade-table .html-grade-check.correct { color: #ffc107; }
+.html-grade-check:hover, .html-grade-check[aria-expanded=true] { box-shadow: inset 0 0 0 1px var(--line); }
+.html-grade-check:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.html-grade-feedback .html-grade-detail { margin: .35rem 0; color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+@media (pointer:coarse) { .html-grade-table .html-grade-check { width: 44px; height: 44px; } }
+@media (max-width:440px) { .html-grade-table th, .html-grade-table td { padding: .3rem; } .html-grade-table th:first-child { width: 42%; } }

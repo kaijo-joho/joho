@@ -1,10 +1,10 @@
 /* 保存済みの固定テキストを端末内で確認する。受領・本人確認の代替にはしない。 */
 (function (root, factory) {
   'use strict';
-  const api = factory();
+  const api = factory(typeof module === 'object' && module.exports ? require('./feedback.js') : root.HtmlGradingFeedback);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.HtmlEditorLocalGrading = api;
-})(typeof window === 'undefined' ? globalThis : window, function () {
+})(typeof window === 'undefined' ? globalThis : window, function (feedback) {
   'use strict';
   const MAX_BYTES = 2 * 1024 * 1024;
   const canonical = value => value === null || typeof value !== 'object' ? JSON.stringify(value) : Array.isArray(value) ? '[' + value.map(canonical).join(',') + ']' : '{' + Object.keys(value).sort().map(k => JSON.stringify(k) + ':' + canonical(value[k])).join(',') + '}';
@@ -111,15 +111,16 @@
       if (value.status === 'receipt-only') { status.textContent = 'この課題は提出を受け付けた後に★がつきます。'; return value; }
       const result = value.receipt.result;
       status.textContent = result.state === 'graded' ? '保存した内容の確認が終わりました。' : '一部は自動確認できません。フォーム内の結果も確認してください。';
+      const view = feedback?.build(result), table = view && feedback.render(view,document);
       const list = document.createElement('ul'); list.className = 'local-grade-rules';
-      result.rules.forEach(rule => {
+      if (!table) result.rules.forEach(rule => {
         const li = document.createElement('li'), star = document.createElement('span');
         const graded = result.state === 'graded';
         star.className = graded && rule.passed ? 'local-grade-star correct' : 'local-grade-star';
         star.textContent = graded ? rule.passed ? '★ ' : '☆ ' : '';
         li.append(star, document.createTextNode((!graded ? '確認待ち：' : rule.passed ? '' : '要確認：') + rule.label)); list.append(li);
       });
-      section.insertBefore(list,note); return value;
+      section.insertBefore(table || list,note); return value;
     }).catch(() => {
       if (!disposed) status.textContent = '端末内での確認を利用できません。下の提出フォームはそのまま使えます。';
       return null;
