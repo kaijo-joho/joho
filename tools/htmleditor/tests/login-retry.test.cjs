@@ -38,16 +38,23 @@ function setup(kind, options = {}) {
   const find = text=>walk(container).find(n=>n.textContent === text);
   const savedFile = {fileName:targetId+'.html',text:'<html><body>保存済みの合成実習ファイル</body></html>'};
   const original = JSON.stringify(savedFile);
-  let panel;
+  let panel,finishLocal,localDisposed=false;
+  if(options.local)ctx.HtmlEditorLocalGrading={create:()=>({}),panel(host){
+    host.append(new Element('section'));
+    return {completed:new Promise(resolve=>{finishLocal=resolve;}),hasCompleteResult:()=>options.local==='complete',dispose(){localDisposed=true;}};
+  }};
   if (kind === 'download') {
     panel = ctx.HtmlEditorDownload.create({container,dialog,lesson:{title:'合成課題',files:[{id:targetId,fileName:targetId+'.html',title:'合成課題'}]},
       stateFor:()=>({item:current?{url:'https://script.google.com/macros/s/SYNTHETIC/exec?type=htmlPractice&target='+targetId}:null}),requestClose(){closed++;}});
     walk(container).find(n=>n.dataset.taskDownload).events.click({button:0,preventDefault(){}});
   } else {
     panel = ctx.HtmlEditorSubmission.create({container,dialog,targetId,url:'https://script.google.com/macros/s/SYNTHETIC/exec?kind=html&flow=normal&kadai='+targetId,
-      isCurrent:()=>current,requestClose(){closed++;},savedFile:options.manual?null:savedFile});
+      isCurrent:()=>current,requestClose(){closed++;},savedFile:options.manual?null:savedFile,proof:options.local?{assignmentId:targetId}:null});
   }
   const h = {ctx,container,dialog,panel,sent,timers,listeners,confirmations,savedFile,original,find,
+    finishLocal:()=>finishLocal?.(),get localDisposed(){return localDisposed;},
+    get localHost(){return walk(container).find(n=>n.className==='submission-local-results');},
+    get formStage(){return walk(container).find(n=>n.className==='submission-form-stage');},
     get frame(){return walk(container).find(n=>n.tag === 'iframe');},
     get retry(){return find('フォームだけを開き直す');},
     get help(){return walk(container).find(n=>n.tag === 'details');},
@@ -146,4 +153,48 @@ test('前回の受領は今回の提出完了にせず、閉じるときに未�
  assert.equal(h.panel.needsAttention(),true);assert.equal(h.panel.canClose(),false);assert.match(h.confirmations.at(-1),/今回のファイルはまだ提出/);
  h.allow(true);assert.equal(h.panel.canClose(),true);
  h.state(child,'sending');assert.equal(h.panel.needsAttention(),true);h.state(child,'received');assert.equal(h.panel.needsAttention(),false);
+});
+test('submission: 採点表示中もフォームを裏で準備し、結果表示後だけ操作部を見せる',async()=>{
+  const h=setup('submission',{local:'complete'}),child=h.connect();
+  assert.equal(h.formStage.hidden,true);assert.ok(h.frame);assert.equal(h.localHost.hidden,false);
+  assert.equal(h.sent[0].data.localFeedback,'');
+  h.message(h.event(child,{type:'layout',layout:'integrated-v1'}));
+  assert.equal(h.formStage.hidden,true);h.finishLocal();await Promise.resolve();
+  assert.equal(h.formStage.hidden,false);assert.equal(h.sent.at(-1).data.type,'local-feedback');
+  assert.equal(h.sent.at(-1).data.localFeedback,'complete-v1');assert.ok(!('result' in h.sent.at(-1).data));
+});
+test('submission: 結果が先に出た場合は初回接続で表示済みを伝え、失敗やHTML11は省略しない',async()=>{
+  for(const kind of ['complete','fallback','receipt-only']){
+    const h=setup('submission',{local:kind});h.finishLocal();await Promise.resolve();h.connect();
+    assert.equal(h.formStage.hidden,false);
+    assert.equal(h.sent[0].data.localFeedback,kind==='complete'?'complete-v1':'');
+  }
+});
+test('submission: 待機中に閉じた/内容が変わった場合は遅い採点応答でフォームを出さない',async()=>{
+  for(const mode of ['dispose','stale']){
+    const h=setup('submission',{local:'complete'}),stage=h.formStage;
+    if(mode==='dispose')h.panel.dispose();else h.setCurrent(false);
+    h.finishLocal();await Promise.resolve();assert.equal(stage.hidden,true);
+    assert.equal(h.sent.length,0);assert.equal(h.localDisposed,mode==='dispose');
+  }
+});
+test('submission: 信頼済みフォームの手動選択だけが旧ファイルのローカル結果を隠す',async()=>{
+  const h=setup('submission',{local:'complete'}),child=h.connect();h.finishLocal();await Promise.resolve();
+  const bad=h.event(child,{type:'file-mode',mode:'manual'});bad.data.bridge='bad';h.message(bad);assert.equal(h.localHost.hidden,false);
+  h.message(h.event(child,{type:'file-mode',mode:'manual'}));assert.equal(h.localHost.hidden,true);
+  const count=h.sent.length;h.message(h.event(child,{type:'file-request',requestId:'a'.repeat(32),transferId:1}));assert.equal(h.sent.length,count);
+});
+test('submission: 手動選択の通知が採点完了より先でも、後から表示済みへ戻さない',async()=>{
+  const h=setup('submission',{local:'complete'}),child=h.connect();
+  h.message(h.event(child,{type:'layout',layout:'integrated-v1'}));
+  h.message(h.event(child,{type:'file-mode',mode:'manual'}));const count=h.sent.length;
+  h.finishLocal();await Promise.resolve();assert.equal(h.localHost.hidden,true);assert.equal(h.formStage.hidden,false);
+  assert.equal(h.sent.length,count);
+});
+test('submission: 専用通知のない旧フォームでも選択済みから未選択へ戻れば旧結果を隠す',async()=>{
+  const h=setup('submission',{local:'complete'}),child=h.connect();
+  h.message(h.event(child,{type:'layout',layout:'integrated-v1'}));h.finishLocal();await Promise.resolve();
+  h.state(child,'ready');assert.equal(h.localHost.hidden,false,'最初の準備では隠さない');
+  h.state(child,'loading');h.state(child,'selected');assert.equal(h.localHost.hidden,false);
+  h.state(child,'ready');assert.equal(h.localHost.hidden,true);assert.equal(h.sent.at(-1).data.localFeedback,'');
 });

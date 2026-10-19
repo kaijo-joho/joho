@@ -32,7 +32,7 @@
         new TextEncoder().encode(savedFile.text).length > 2 * 1024 * 1024)) throw Error('保存済みファイルを確認できません。');
     const file = savedFile ? Object.freeze({fileName:savedFile.fileName, text:savedFile.text,
       hintUsage:root.HtmlEditorHintUsage ? root.HtmlEditorHintUsage.normalize(savedFile.hintUsage, targetId, savedFile.fileName) : {v:1,status:'unavailable'}}) : null;
-    let phase = 'loading', protectedResult = '', source = null, sourceOrigin = '', disposed = false, slowTimer, transfer = false, frame = null, bridge = '';
+    let phase = 'loading', protectedResult = '', source = null, sourceOrigin = '', disposed = false, slowTimer, transfer = false, frame = null, bridge = '', integrated = false, localComplete = false;
     const node = (parent, text, tag = 'p', className = '') => {
       const element = document.createElement(tag); element.textContent = text;
       if (className) element.className = className;
@@ -48,18 +48,21 @@
     }
     dialog.classList.add('download-open','submission-open'); container.replaceChildren();
     // ローカル結果を先に示すが、受領状態・再送判断は従来フォームだけが確定する。
-    let localFeedback = null;
+    let localFeedback = null, localHost = null;
     if (file && proof && root.HtmlEditorLocalGrading) {
       try {
         localGrader ||= root.HtmlEditorLocalGrading.create();
-        localFeedback = root.HtmlEditorLocalGrading.panel(container, {grader:localGrader,
+        localHost = node(container, '', 'div', 'submission-local-results');
+        localFeedback = root.HtmlEditorLocalGrading.panel(localHost, {grader:localGrader,
           input:{source:file.text,fileName:file.fileName,proof},isCurrent});
-      } catch { /* 任意の端末内確認が使えなくても既存の提出を妨げない。 */ }
+      } catch { localHost?.remove(); /* 任意の端末内確認が使えなくても既存の提出を妨げない。 */ }
     }
-    const help = root.HtmlEditorDownload.loginHelp(container, () => {
+    const formStage = node(container, '', 'div', 'submission-form-stage');
+    formStage.hidden = Boolean(localFeedback);
+    const help = root.HtmlEditorDownload.loginHelp(formStage, () => {
       if (disposed) return;
       if (protectedResult === 'pending') { help.say('提出処理中、または受領結果が不明です。フォーム内の「受領状況を再確認」を使ってください。自動再送はしません。'); return; }
-      if (protectedResult === 'receipt') { help.say('提出は受け付けています。フォーム内で採点結果や控えを確認してください。修正して再提出するときは、フォーム内の「もう一度提出する」から編集へ戻ります。'); return; }
+      if (protectedResult === 'receipt') { help.say('提出は受け付けています。フォーム内で受領状況や控えを確認してください。修正して再提出するときは、編集へ戻り、保存して提出を準備し直してください。'); return; }
       if (!isCurrent() || !canClose() || !isCurrent()) return;
       startFrame();
       help.say('フォームだけを開き直しました。ファイルは自動送信されません。フォーム内の案内を確認してください。');
@@ -72,7 +75,7 @@
       // 元フォームを残したまま二重操作を誘わない。クリックの新規タブ起動後に閉じる。
       phase = 'ready'; setTimeout(requestClose, 0);
     });
-    const status = node(container, '', 'p', 'download-status'); status.setAttribute('role', 'status'); status.tabIndex = -1;
+    const status = node(formStage, '', 'p', 'download-status'); status.setAttribute('role', 'status'); status.tabIndex = -1;
     const spinner = node(status, '', 'span', 'download-spinner'); spinner.setAttribute('aria-hidden', 'true');
     const label = node(status, '提出フォームを読み込んでいます…', 'span');
     const receive = event => {
@@ -86,6 +89,7 @@
         transfer = Boolean(file && data.fileTransfer === TRANSFER);
         source.postMessage({channel:CHANNEL,type:'connect',bridge,targetId,
           layout:'integrated-v1',fileTransfer:transfer ? TRANSFER : '',
+          localFeedback:localComplete ? 'complete-v1' : '',
           theme:document.documentElement.dataset.resolvedTheme,fontSize:document.documentElement.dataset.textSize}, event.origin);
         return;
       }
@@ -98,7 +102,14 @@
       }
       if (data.type === 'layout' && data.layout === 'integrated-v1') {
         // 以後の状態・スピナーは内側のフォームが担当。二重表示しない。
+        integrated = true; sendFeedbackState();
         status.hidden = true; clearTimeout(slowTimer); return;
+      }
+      if (data.type === 'file-mode' && data.mode === 'manual') {
+        // 選び直した別ファイルに、上の固定ファイルの結果を流用しない。
+        transfer = false; localComplete = false;
+        if (localHost) localHost.hidden = true;
+        return;
       }
       if (data.type === 'height' && Number.isInteger(data.height) && data.height >= 0 && data.height <= 20000) {
         frame.style.height = Math.max(200, Math.min(1600, data.height)) + 'px'; return;
@@ -107,6 +118,10 @@
       if (data.phase === 'edit') { requestClose(); return; }
       if (data.phase === 'escape') { requestClose(); return; }
       if (!Object.prototype.hasOwnProperty.call(MESSAGES, data.phase)) return;
+      // 旧フォームは手動選択の専用通知を持たない。選択済み→未選択なら旧結果を使わない。
+      if (phase === 'selected' && data.phase === 'ready') {
+        localComplete = false; if (localHost) localHost.hidden = true; sendFeedbackState();
+      }
       phase = data.phase; clearTimeout(slowTimer);
       if (['sending','uncertain','checking'].includes(phase)) protectedResult = 'pending';
       else if (['received','grading','downloading'].includes(phase)) protectedResult = 'receipt';
@@ -115,7 +130,11 @@
     };
     function clearFrame() {
       clearTimeout(slowTimer); root.removeEventListener('message', receive);
-      frame?.remove(); frame = null; source = null; sourceOrigin = ''; transfer = false; bridge = '';
+      frame?.remove(); frame = null; source = null; sourceOrigin = ''; transfer = false; bridge = ''; integrated = false;
+    }
+    function sendFeedbackState() {
+      if (integrated && transfer && source) source.postMessage({channel:CHANNEL,type:'local-feedback',bridge,targetId,
+        localFeedback:localComplete ? 'complete-v1' : ''}, sourceOrigin);
     }
     function startFrame() {
       clearFrame(); phase = 'loading'; protectedResult = ''; status.hidden = false; spinner.hidden = false;
@@ -133,10 +152,15 @@
         label.textContent = '表示に時間がかかっています。「表示・ログインで困ったとき」から学校アカウントを確認してください。';
         help.element.open = true;
       }, 20000);
-      frame.src = embedded.href; container.append(frame);
+      frame.src = embedded.href; formStage.append(frame);
     }
     startFrame();
-    status.focus();
+    if (localFeedback) localFeedback.completed.then(() => {
+      if (disposed || !isCurrent()) return;
+      localComplete = !localHost.hidden && Boolean(localFeedback.hasCompleteResult?.());
+      sendFeedbackState(); formStage.hidden = false;
+    });
+    else status.focus();
     return {canClose, needsAttention, dispose() {
       disposed = true; localFeedback?.dispose(); clearFrame(); dialog.classList.remove('download-open','submission-open');
     }};

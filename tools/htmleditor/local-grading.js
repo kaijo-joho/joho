@@ -103,7 +103,7 @@
     return Object.freeze({grade});
   }
   function panel(container, {grader,input,isCurrent,document = globalThis.document,timers = globalThis}) {
-    const controller = new AbortController(); let disposed = false, finishDelay, gradingReady = false, displayedTable = null;
+    const controller = new AbortController(); let disposed = false, finishDelay, gradingReady = false, displayedTable = null, completeResult = false;
     // 採点・GASフォームの準備はすぐ始め、結果の表示だけを最低5秒待つ。
     const delay = new Promise(resolve => { finishDelay = resolve; });
     const section = document.createElement('section'); section.className = 'local-grade-feedback';
@@ -145,15 +145,16 @@
         star.textContent = graded ? rule.passed ? '★ ' : '☆ ' : '';
         li.append(star, document.createTextNode((!graded ? '確認待ち：' : rule.passed ? '' : '要確認：') + rule.label)); list.append(li);
       });
-      section.insertBefore(table || list,note); return value;
+      section.insertBefore(table || list,note); completeResult = Boolean(table || result.state === 'graded'); return value;
     }).catch(() => {
+      completeResult = false;
       if (!disposed) status.textContent = '端末内での確認を利用できません。下の提出フォームはそのまま使えます。';
       return null;
     }).finally(() => {
       timers.clearTimeout(timer); finishDelay();
       if (!disposed) section.setAttribute('aria-busy','false');
     });
-    return {completed,dispose() { disposed = true; timers.clearTimeout(timer); finishDelay(); controller.abort(); feedback?.dispose(displayedTable); section.remove(); }};
+    return {completed,hasCompleteResult() { return !disposed && completeResult; },dispose() { disposed = true; timers.clearTimeout(timer); finishDelay(); controller.abort(); feedback?.dispose(displayedTable); section.remove(); }};
   }
   return Object.freeze({create,panel,select,canonical,hash,MAX_BYTES});
 });
