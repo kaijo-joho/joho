@@ -7,6 +7,7 @@
 })(typeof window === 'undefined' ? globalThis : window, function (feedback) {
   'use strict';
   const MAX_BYTES = 2 * 1024 * 1024;
+  const DISPLAY_WAIT_MS = 5000;
   const canonical = value => value === null || typeof value !== 'object' ? JSON.stringify(value) : Array.isArray(value) ? '[' + value.map(canonical).join(',') + ']' : '{' + Object.keys(value).sort().map(k => JSON.stringify(k) + ':' + canonical(value[k])).join(',') + '}';
   const hex = bytes => Array.from(new Uint8Array(bytes), n => n.toString(16).padStart(2,'0')).join('');
   async function hash(text, crypto = globalThis.crypto) { return hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))); }
@@ -102,27 +103,39 @@
     return Object.freeze({grade});
   }
   function panel(container, {grader,input,isCurrent,document = globalThis.document,timers = globalThis}) {
-    const controller = new AbortController(); let disposed = false, finishDelay;
+    const controller = new AbortController(); let disposed = false, finishDelay, gradingReady = false, displayedTable = null;
     // 採点・GASフォームの準備はすぐ始め、結果の表示だけを最低5秒待つ。
     const delay = new Promise(resolve => { finishDelay = resolve; });
-    const timer = timers.setTimeout(finishDelay, 5000);
     const section = document.createElement('section'); section.className = 'local-grade-feedback';
     section.setAttribute('aria-busy','true');
     const heading = document.createElement('h3'); heading.textContent = 'このファイルの確認結果（端末内）';
-    const status = document.createElement('p'); status.setAttribute('role','status');
-    status.className = 'download-status';
-    const spinner = document.createElement('span'); spinner.className = 'download-spinner'; spinner.setAttribute('aria-hidden','true');
-    status.append(spinner,document.createTextNode('保存した内容を採点しています…'));
+    const status = document.createElement('div'); status.setAttribute('role','status'); status.className = 'local-grade-status';
+    const message = document.createElement('span'); message.textContent = '保存した内容を採点しています…';
+    const progress = document.createElement('span'); progress.className = 'local-grade-progress';
+    progress.setAttribute('role','progressbar'); progress.setAttribute('aria-label','採点結果の表示準備');
+    progress.setAttribute('aria-valuetext','結果を表示する準備をしています。');
+    progress.setAttribute('style','--local-grade-wait:'+DISPLAY_WAIT_MS+'ms');
+    const fill = document.createElement('span'); fill.className = 'local-grade-progress-fill'; fill.setAttribute('aria-hidden','true');
+    progress.append(fill); status.append(message,progress);
+    const timer = timers.setTimeout(() => {
+      finishDelay();
+      if (!gradingReady && !disposed) {
+        message.textContent = '採点が続いています。このままお待ちください。';
+        progress.setAttribute('aria-valuetext','採点が完了するまでお待ちください。');
+      }
+    }, DISPLAY_WAIT_MS);
     const note = document.createElement('p'); note.className = 'note';
     note.textContent = 'この表示だけでは提出完了になりません。提出の完了はフォーム内の受領表示で確認してください。';
     section.append(heading,status,note); container.append(section);
     const completed = Promise.resolve().then(() => grader.grade({...input,signal:controller.signal})).then(async value => {
+      gradingReady = true;
       await delay;
       if (disposed) return null;
       if (!isCurrent()) { status.textContent = '内容が変わりました。保存して提出を準備し直してください。'; return null; }
       if (value.status === 'receipt-only') { status.textContent = 'この課題は提出を受け付けた後に★がつきます。'; return value; }
       const result = value.receipt.result;
       const view = feedback?.publicView(value.feedback,value.receipt.targetId) || feedback?.build(result), table = view && feedback.render(view,document);
+      displayedTable = table;
       status.textContent = table || result.state === 'graded' ? '保存した内容の確認が終わりました。' : '一部は自動確認できません。フォーム内の結果も確認してください。';
       const list = document.createElement('ul'); list.className = 'local-grade-rules';
       if (!table) result.rules.forEach(rule => {
@@ -140,7 +153,7 @@
       timers.clearTimeout(timer); finishDelay();
       if (!disposed) section.setAttribute('aria-busy','false');
     });
-    return {completed,dispose() { disposed = true; timers.clearTimeout(timer); finishDelay(); controller.abort(); section.remove(); }};
+    return {completed,dispose() { disposed = true; timers.clearTimeout(timer); finishDelay(); controller.abort(); feedback?.dispose(displayedTable); section.remove(); }};
   }
   return Object.freeze({create,panel,select,canonical,hash,MAX_BYTES});
 });

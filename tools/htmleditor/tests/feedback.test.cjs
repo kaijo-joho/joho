@@ -93,21 +93,74 @@ class Node {
   append(...n) { this.children.push(...n); }
   set textContent(v) { this.value = v; this.children = []; } get textContent() { return this.value+this.children.map(n=>n.textContent).join(''); }
   setAttribute(k,v) { this.attributes[k] = v; }
+  removeAttribute(k) { delete this.attributes[k]; }
+  contains(node) { return this===node || this.children.some(child=>child.contains?.(node)); }
+  getBoundingClientRect() { return this.rect || (this.className==='html-grade-tooltip' ? {width:260,height:60} : {left:330,top:700,bottom:732,width:32}); }
   addEventListener(k,fn) { this.events[k] = fn; }
 }
-test('表はテキストDOMだけで作り、ホバー・クリック・キーボードで各星の意味を示す',()=>{
+function documentMock() {
+  const events={},windowEvents={};
+  return {events,windowEvents,createElement:t=>new Node(t),
+    addEventListener(k,fn){events[k]=fn;},removeEventListener(k,fn){if(events[k]===fn)delete events[k];},
+    defaultView:{innerWidth:390,innerHeight:760,addEventListener(k,fn){windowEvents[k]=fn;},removeEventListener(k,fn){if(windowEvents[k]===fn)delete windowEvents[k];}}};
+}
+test('表はテキストDOMだけで作り、ホバー・クリック・キーボードで固定配置の説明を示す',()=>{
   const view = F.build(grade('html14-01',full)); view.groups[0].rows[0].label = '<img onerror=alert(1)>';
-  const doc = {createElement:t=>new Node(t)};
+  const doc = documentMock();
   const rendered = F.render(view,doc), section = rendered.children[0], table = section.children[1];
-  const button = table.children[1].children[0].children[1].children[1], detail = section.children[2];
+  const button = table.children[1].children[0].children[1].children[1], detail = rendered.children.at(-1);
   assert.equal(button.textContent,'★'); assert.equal(button.attributes['aria-label'],'<img onerror=alert(1)>：サイズ（width・height）：達成');
-  button.events.mouseenter(); assert.equal(detail.hidden,false); assert.match(detail.textContent,/サイズ/);
+  assert.equal(button.events.mouseenter,undefined,'スクロール由来のmouseenterでは開かない');
+  button.events.pointermove(); assert.equal(detail.hidden,false); assert.match(detail.textContent,/サイズ/);
+  const positioned = detail.attributes.style; button.events.pointermove(); assert.equal(detail.attributes.style,positioned);
+  assert.equal(detail.attributes.role,'tooltip'); assert.equal(button.attributes['aria-describedby'],detail.id);
+  assert.equal(button.attributes['aria-expanded'],undefined); assert.equal(section.children.length,2,'表の下へ説明の段落を作らない');
+  assert.match(detail.attributes.style,/left:122px;top:635px/); assert.equal(detail.attributes['data-placement'],'top');
   let stopped = 0, prevented = 0;
   const escape = {key:'Escape',preventDefault(){prevented++;},stopPropagation(){stopped++;}};
-  button.events.keydown(escape); assert.equal(detail.hidden,true); assert.equal(stopped,1); assert.equal(prevented,1);
-  button.events.keydown(escape); assert.equal(stopped,1); assert.equal(prevented,1,'説明が閉じた後のEscapeは提出画面へ渡す');
+  doc.events.keydown(escape); assert.equal(detail.hidden,true); assert.equal(stopped,1); assert.equal(prevented,1);
+  assert.equal(doc.events.keydown,undefined,'説明が閉じた後のEscapeは提出画面へ渡す');
   button.events.click(); assert.equal(detail.hidden,false); button.events.blur(); assert.equal(detail.hidden,true);
+  assert.equal(button.attributes['aria-describedby'],undefined);
   const unsafe = structuredClone(view); unsafe.groups[0].rows[0].checks[0].passed='yes'; assert.equal(F.publicView(unsafe,view.targetId),null);
+  F.dispose(rendered);
+});
+test('説明へのポインター移動は表示を保ち、外側タップ・スクロール・リサイズで閉じる',()=>{
+  const doc=documentMock(),root=F.render(F.build(grade('html14-01',full)),doc),tip=root.children.at(-1);
+  const buttons=root.children[0].children[1].children[1].children[0].children[1].children,button=buttons[0];
+  button.events.pointermove();button.events.mouseleave({relatedTarget:tip});assert.equal(tip.hidden,false);
+  tip.events.mouseleave({relatedTarget:new Node('p')});assert.equal(tip.hidden,true);
+  button.events.click();doc.events.pointerdown({target:button});assert.equal(tip.hidden,false);
+  doc.events.pointerdown({target:new Node('p')});assert.equal(tip.hidden,true);
+  doc.activeElement=button;button.events.focus();button.events.mouseleave({relatedTarget:null});assert.equal(tip.hidden,false);
+  doc.events.scroll({target:tip});assert.equal(tip.hidden,false);doc.activeElement=null;
+  doc.events.scroll({target:new Node('div')});assert.equal(tip.hidden,true);
+  button.events.focus();doc.windowEvents.resize();assert.equal(tip.hidden,true);
+  button.events.focus();buttons[1].events.pointermove();assert.equal(button.attributes['aria-describedby'],undefined);
+  assert.equal(buttons[1].attributes['aria-describedby'],tip.id);
+  F.dispose(root);assert.equal(tip.hidden,true);assert.equal(Object.keys(doc.events).length,0);assert.equal(Object.keys(doc.windowEvents).length,0);
+});
+test('Tabのfocus後の自動スクロールでは見えている星に追随し、画面外へ出たら閉じる',()=>{
+  const doc=documentMock(),root=F.render(F.build(grade('html14-01',full)),doc),tip=root.children.at(-1);
+  const button=root.children[0].children[1].children[1].children[0].children[1].children[0];
+  doc.activeElement=button;button.events.focus();doc.events.scroll({target:new Node('div')});assert.equal(tip.hidden,false);
+  button.rect={left:100,top:300,bottom:332,width:32};doc.events.scroll({target:new Node('div')});
+  assert.equal(tip.hidden,false);assert.match(tip.attributes.style,/top:337px/);
+  button.rect={left:100,top:800,bottom:832,width:32};doc.events.scroll({target:new Node('div')});assert.equal(tip.hidden,true);
+  F.dispose(root);
+});
+test('別の採点表を開くと旧説明を閉じ、モーダル終了・disposeでイベントを残さない',()=>{
+  const doc=documentMock(),view=F.build(grade('html14-01',full)),a=F.render(view,doc),b=F.render(view,doc);
+  const button=root=>root.children[0].children[1].children[1].children[0].children[1].children[0];
+  button(a).events.focus();button(b).events.focus();assert.equal(a.children.at(-1).hidden,true);
+  assert.equal(b.children.at(-1).hidden,false);doc.events.close();assert.equal(b.children.at(-1).hidden,true);
+  button(b).events.focus();F.dispose({querySelectorAll:()=>[a,b]});assert.equal(Object.keys(doc.events).length,0);
+});
+test('ツールチップは通常レイアウト外、進捗バーは5秒後も完了前に留め、動きを減らす設定に従う',()=>{
+  const css=fs.readFileSync(path.join(root,'tools/htmleditor/feedback.css'),'utf8');
+  assert.match(css,/\.html-grade-tooltip\s*\{[^}]*position:\s*fixed/);assert.doesNotMatch(css,/html-grade-detail/);
+  assert.match(css,/@keyframes local-grade-wait[^}]+scaleX\(0\)[\s\S]+scaleX\(\.95\)/);
+  assert.match(css,/@media \(prefers-reduced-motion: reduce\)[^}]*animation:\s*none/);
 });
 test('長い採点表でも提出モーダルの本文がスクロールし、フォームを縮めて隠さない',()=>{
   const css = fs.readFileSync(path.join(root,'tools/htmleditor/editor.css'),'utf8');

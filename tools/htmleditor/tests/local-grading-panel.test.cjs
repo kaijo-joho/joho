@@ -29,12 +29,16 @@ function setup(grade = async () => result) {
       await flush();
     }};
 }
-test('採点は即時に始め、最低5秒はスピナーを表示して結果・点数を先出ししない', async () => {
+test('採点は即時に始め、最低5秒は％なしの進捗バーを表示して結果・点数を先出ししない', async () => {
   const h = setup(), section = h.parent.children[0], status = section.children[1];
   await flush(); assert.equal(h.calls, 1);
   assert.equal(section.attributes['aria-busy'], 'true');
-  assert.equal(status.children[0].className, 'download-spinner');
-  assert.equal(status.children[0].attributes['aria-hidden'], 'true');
+  assert.equal(status.children[1].className, 'local-grade-progress');
+  assert.equal(status.children[1].attributes.role, 'progressbar');
+  assert.equal(status.children[1].attributes['aria-valuenow'], undefined,'実際の採点進度を架空の％で示さない');
+  assert.match(status.children[1].attributes.style,/5000ms/);
+  assert.equal(status.children[1].children[0].attributes['aria-hidden'],'true');
+  assert.doesNotMatch(h.parent.textContent,/%|％/);
   assert.match(h.parent.textContent, /保存した内容を採点しています/);
   await h.advance(4999); assert.doesNotMatch(h.parent.textContent, /★|確認が終わりました|10/);
   await h.advance(1); assert.equal(await h.panel.completed, result);
@@ -45,6 +49,9 @@ test('採点は即時に始め、最低5秒はスピナーを表示して結果�
 test('採点に5秒以上かかった場合は、完了後にさらに5秒待たせない', async () => {
   let finish; const h = setup(() => new Promise(resolve => { finish = resolve; }));
   await flush(); await h.advance(7000); assert.doesNotMatch(h.parent.textContent, /★/);
+  assert.match(h.parent.textContent,/採点が続いています/);
+  assert.equal(h.parent.children[0].attributes['aria-busy'],'true');
+  assert.equal(h.parent.children[0].children[1].children[1].attributes.role,'progressbar');
   finish(result); await flush(); assert.equal(await h.panel.completed, result);
   assert.match(h.parent.textContent, /★ 見出し/);
 });

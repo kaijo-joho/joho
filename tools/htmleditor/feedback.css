@@ -10,8 +10,18 @@
 .html-grade-table tbody th { font-weight: normal; }
 .html-grade-table .html-grade-check { display: inline-flex; align-items: center; justify-content: center; width: 2rem; min-width: 0; height: 2rem; min-height: 0; padding: 0; margin: 0; border: 0; border-radius: .25rem; background: transparent; color: var(--text); font: bold 1.3rem/1 sans-serif; cursor: pointer; }
 .html-grade-table .html-grade-check.correct { color: #ffc107; }
-.html-grade-check:hover, .html-grade-check[aria-expanded=true] { box-shadow: inset 0 0 0 1px var(--line); }
+.html-grade-check:hover, .html-grade-check[data-tip-open=true] { box-shadow: inset 0 0 0 1px var(--line); }
 .html-grade-check:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
-.html-grade-feedback .html-grade-detail { margin: .35rem 0; color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+.html-grade-tooltip { position: fixed; z-index: 10000; box-sizing: border-box; width: max-content; max-width: min(28rem,var(--html-grade-tooltip-max,calc(100vw - 16px))); padding: .5rem .7rem; margin: 0; border: 1px solid var(--line); border-radius: .4rem; background: var(--panel); color: var(--text); font-size: .9rem; line-height: 1.5; overflow-wrap: anywhere; box-shadow: 0 3px 14px rgb(0 0 0 / .22); }
+.html-grade-tooltip[hidden] { display: none; }
+/* 星と説明の5pxの隙間でも、説明の上へポインターを移動できる。 */
+.html-grade-tooltip::before { content: ''; position: absolute; inset: -6px 0 auto; height: 6px; }
+.html-grade-tooltip[data-placement=top]::before { top: auto; bottom: -6px; }
+.local-grade-status { display: flex; flex-direction: column; gap: .65rem; margin-block: 1rem; line-height: 1.6; }
+.local-grade-progress { display: block; height: .6rem; width: 100%; overflow: hidden; border-radius: 999px; background: var(--line); }
+.local-grade-progress-fill { display: block; height: 100%; background: var(--accent); border-radius: inherit; transform-origin: left; animation: local-grade-wait var(--local-grade-wait,5000ms) linear forwards; }
+/* 実際の採点が遅いときに「完了」と誤解させないよう、終端手前で待つ。 */
+@keyframes local-grade-wait { from { transform: scaleX(0); } to { transform: scaleX(.95); } }
+@media (prefers-reduced-motion: reduce) { .local-grade-progress-fill { animation: none; transform: scaleX(.95); } }
 @media (pointer:coarse) { .html-grade-table .html-grade-check { width: 44px; height: 44px; } }
 @media (max-width:440px) { .html-grade-table th, .html-grade-table td { padding: .3rem; } .html-grade-table th:first-child { width: 42%; } }

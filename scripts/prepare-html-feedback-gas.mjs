@@ -31,7 +31,7 @@ replace('48_html_assignment_presenter.js',
   "      feedback: graded ? HtmlGradingFeedback.publicView(record && record.result && record.result.feedback, text(record && record.assignmentId)) : null");
 replace('21_html_assignment_upload.html','<ul id="rules" class="stars"></ul>','<div id="checkpointResults"></div><ul id="rules" class="stars"></ul>');
 replace('21_html_assignment_upload.html',"      (record.rules||[]).forEach(function(rule){",
-  "      $('checkpointResults').replaceChildren();\n"+
+  "      HtmlGradingFeedback.dispose($('checkpointResults'));\n      $('checkpointResults').replaceChildren();\n"+
   "      var feedback = record.gradingState==='graded' && HtmlGradingFeedback.publicView(record.feedback,record.targetId);\n"+
   "      var table = feedback && HtmlGradingFeedback.render(feedback,document);\n"+
   "      if(table)$('checkpointResults').append(table);\n"+

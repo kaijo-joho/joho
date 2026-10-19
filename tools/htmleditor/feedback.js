@@ -4,6 +4,7 @@ var HtmlGradingFeedback = (function () {
   var ENGINE = 'html-normal-1.0.0-html-css-0.3.0-parse5-8.0.1-csstree-3.2.1';
   var VERSION = 'html-checkpoints-1';
   var serial = 0;
+  var dismissActive = null, dismissals = new WeakMap();
   function need(value) { if (!value) throw Error('feedback_unavailable'); }
   function check(label, values) {
     need(values.length && values.every(function (v) { return typeof v === 'boolean'; }));
@@ -136,6 +137,62 @@ var HtmlGradingFeedback = (function () {
   function render(view, document) {
     view = publicView(view,view && view.targetId); if (!view) return null;
     var root = document.createElement('div'); root.className = 'html-grade-feedback';
+    var tip = document.createElement('div'); tip.className = 'html-grade-tooltip'; tip.hidden = true;
+    tip.id = 'html-grade-tooltip-'+(++serial); tip.setAttribute('role','tooltip');
+    var active = null, listening = false, win = document.defaultView;
+    function hide() {
+      if (active) { active.removeAttribute('aria-describedby'); active.removeAttribute('data-tip-open'); }
+      active = null; tip.hidden = true;
+      if (dismissActive === hide) dismissActive = null;
+      if (!listening) return;
+      listening = false;
+      document.removeEventListener('pointerdown',outside,true); document.removeEventListener('keydown',escape,true);
+      document.removeEventListener('scroll',scroll,true); document.removeEventListener('close',hide,true);
+      if (win) win.removeEventListener('resize',hide);
+    }
+    function outside(event) { if (!active || (!active.contains(event.target) && !tip.contains(event.target))) hide(); }
+    function escape(event) {
+      if (event.key === 'Escape' && active) { hide(); event.preventDefault(); event.stopPropagation(); }
+    }
+    function scroll(event) {
+      if (tip.contains(event.target)) return;
+      // Tabの自動スクロールはfocusの後に発生する。見える星への説明を消さず追随する。
+      if (active && document.activeElement === active) {
+        var rect = active.getBoundingClientRect(), clip = active.closest && active.closest('#actionBody');
+        var bounds = clip && clip.getBoundingClientRect(), vh = win ? win.innerHeight : 768;
+        if (rect.bottom > Math.max(0,bounds ? bounds.top : 0) && rect.top < Math.min(vh,bounds ? bounds.bottom : vh)) {
+          position(active); return;
+        }
+      }
+      hide();
+    }
+    function position(button) {
+      var rect = button.getBoundingClientRect(), vw = win ? win.innerWidth : 1024, vh = win ? win.innerHeight : 768;
+      var modal = root.closest && root.closest('dialog'), bounds = modal && modal.getBoundingClientRect();
+      var leftEdge = Math.max(0,bounds ? bounds.left : 0)+8, rightEdge = Math.min(vw,bounds ? bounds.right : vw)-8;
+      var topEdge = Math.max(0,bounds ? bounds.top : 0)+8, bottomEdge = Math.min(vh,bounds ? bounds.bottom : vh)-8;
+      var css = '--html-grade-tooltip-max:'+Math.max(1,rightEdge-leftEdge)+'px;';
+      tip.setAttribute('style',css+'left:0;top:0;');
+      var size = tip.getBoundingClientRect(), left = Math.max(leftEdge,Math.min(rightEdge-size.width,rect.left+rect.width/2-size.width/2));
+      var top = rect.bottom+5, above = top+size.height > bottomEdge;
+      if (above) top = rect.top-size.height-5;
+      tip.setAttribute('data-placement',above ? 'top' : 'bottom');
+      tip.setAttribute('style',css+'left:'+left+'px;top:'+Math.max(topEdge,top)+'px;');
+    }
+    function show(button,label) {
+      if (active === button && !tip.hidden) return;
+      if (dismissActive) dismissActive();
+      active = button; tip.textContent = label; tip.hidden = false;
+      button.setAttribute('aria-describedby',tip.id); button.setAttribute('data-tip-open','true');
+      position(button); dismissActive = hide; listening = true;
+      document.addEventListener('pointerdown',outside,true); document.addEventListener('keydown',escape,true);
+      document.addEventListener('scroll',scroll,true); document.addEventListener('close',hide,true);
+      if (win) win.addEventListener('resize',hide);
+    }
+    tip.addEventListener('mouseleave',function (event) {
+      if (active && document.activeElement !== active && !active.contains(event.relatedTarget)) hide();
+    });
+    dismissals.set(root,hide);
     view.groups.forEach(function (g) {
       var section = document.createElement('section'); section.className = 'html-grade-group';
       if (g.title) { var heading = document.createElement('h4'); heading.textContent = g.title; section.append(heading); }
@@ -146,30 +203,35 @@ var HtmlGradingFeedback = (function () {
       ['対象','採点結果'].forEach(function (label) { var th = document.createElement('th'); th.setAttribute('scope','col'); th.textContent = label; tr.append(th); });
       head.append(tr); table.append(head);
       var body = document.createElement('tbody');
-      var detail = document.createElement('p'); detail.className = 'html-grade-detail'; detail.hidden = true; detail.id = 'html-grade-detail-'+(++serial); detail.setAttribute('role','status');
-      var active = null;
       g.rows.forEach(function (r) {
         var line = document.createElement('tr'), name = document.createElement('th'), cell = document.createElement('td');
         name.setAttribute('scope','row'); name.textContent = r.label; line.append(name,cell);
         r.checks.forEach(function (c) {
           var button = document.createElement('button'), label = r.label+'：'+c.label+'：'+(c.passed?'達成':'要確認');
           button.type = 'button'; button.className = 'html-grade-check'+(c.passed?' correct':'');
-          button.textContent = c.passed?'★':'☆'; button.setAttribute('aria-label',label); button.setAttribute('aria-controls',detail.id); button.setAttribute('aria-expanded','false');
-          function show() { if (active) active.setAttribute('aria-expanded','false'); active = button; button.setAttribute('aria-expanded','true'); detail.textContent = label; detail.hidden = false; }
-          function close() { if (active === button) { active = null; detail.hidden = true; button.setAttribute('aria-expanded','false'); } }
-          button.addEventListener('mouseenter',show); button.addEventListener('focus',show);
-          button.addEventListener('click',show); button.addEventListener('mouseleave',function () { if (document.activeElement !== button) close(); });
-          button.addEventListener('blur',close); button.addEventListener('keydown',function (event) {
-            if (event.key === 'Escape' && active === button) { close(); event.preventDefault(); event.stopPropagation(); }
+          button.textContent = c.passed?'★':'☆'; button.setAttribute('aria-label',label);
+          function open() { show(button,label); }
+          // スクロールで星が静止中のカーソル下へ来ても、キーボードの説明を奪わない。
+          button.addEventListener('pointermove',open); button.addEventListener('focus',open); button.addEventListener('click',open);
+          button.addEventListener('mouseleave',function (event) {
+            if (active === button && document.activeElement !== button && !tip.contains(event.relatedTarget)) hide();
           });
+          button.addEventListener('blur',function () { if (active === button) hide(); });
           cell.append(button);
         });
         body.append(line);
       });
-      table.append(body); section.append(table,detail); root.append(section);
+      table.append(body); section.append(table); root.append(section);
     });
+    root.append(tip);
     return root;
   }
-  return Object.freeze({build:build,publicView:publicView,render:render});
+  function dispose(container) {
+    if (!container) return;
+    var hide = dismissals.get(container);
+    if (hide) { hide(); dismissals.delete(container); }
+    if (container.querySelectorAll) Array.from(container.querySelectorAll('.html-grade-feedback')).forEach(dispose);
+  }
+  return Object.freeze({build:build,publicView:publicView,render:render,dispose:dispose});
 })();
 if (typeof module === 'object' && module.exports) module.exports = HtmlGradingFeedback;
