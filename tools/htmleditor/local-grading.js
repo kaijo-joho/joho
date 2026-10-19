@@ -26,29 +26,31 @@
         const input = event.data;
         if (input.engineVersion !== HtmlNormalConfiguredGrader.engineVersion || input.engineSourceHash !== HtmlNormalConfiguredGrader.engineSourceHash) throw Error('engine_mismatch');
         // gradeConfigured自身が凍結基準の構造を検査する（既存GASと同じ入口）。
-        self.postMessage({ok:true,result:HtmlNormalConfiguredGrader.gradeConfigured(input.source, input.compiled)});
+        const result = HtmlNormalConfiguredGrader.gradeConfigured(input.source, input.compiled);
+        const feedback = typeof HtmlImageCheckpoints === 'object' ? HtmlImageCheckpoints.inspect(input.source,input.compiled,result) : null;
+        self.postMessage({ok:true,result,feedback});
       } catch { self.postMessage({ok:false}); }
     };
   }
   function create(options = {}) {
     const env = options.env || globalThis, assets = options.assets || env.HtmlLocalGradingAssets;
     const base = options.base || new URL('.', env.location.href).href;
-    let loading;
+    let loading, imageLoading;
+    async function read(path, expected, limit) {
+      const url = new URL(path, base);
+      if (url.origin !== new URL(base).origin) throw Error('asset_origin');
+      const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 12000);
+      try {
+        const r = await env.fetch(url.href, {signal:controller.signal,credentials:'omit',referrerPolicy:'no-referrer'});
+        if (!r.ok || r.url !== url.href) throw Error('asset_unavailable');
+        const text = await r.text();
+        if (new TextEncoder().encode(text).length > limit || await hash(text, env.crypto) !== expected) throw Error('asset_changed');
+        return text;
+      } finally { clearTimeout(timer); }
+    }
     async function load() {
       if (!assets || assets.schema !== 1) throw Error('assets_unavailable');
       if (!loading) loading = (async () => {
-        async function read(path, expected, limit) {
-          const url = new URL(path, base);
-          if (url.origin !== new URL(base).origin) throw Error('asset_origin');
-          const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 12000);
-          try {
-            const r = await env.fetch(url.href, {signal:controller.signal,credentials:'omit',referrerPolicy:'no-referrer'});
-            if (!r.ok || r.url !== url.href) throw Error('asset_unavailable');
-            const text = await r.text();
-            if (new TextEncoder().encode(text).length > limit || await hash(text, env.crypto) !== expected) throw Error('asset_changed');
-            return text;
-          } finally { clearTimeout(timer); }
-        }
         const [json, engine] = await Promise.all([read(assets.catalog,assets.catalogSha256,300000),read(assets.engine,assets.engineSha256,1500000)]);
         return {catalog:JSON.parse(json),engine};
       })().catch(error => { loading = null; throw error; });
@@ -65,7 +67,14 @@
       // 導入課題の★は「受領」の項目。ブラウザで先に合格させない。
       if (binding.targetId === 'html11-01') return {status:'receipt-only',sourceSha256};
       if (binding.engineVersion !== assets.engineVersion || binding.engineSourceHash !== assets.engineSourceHash) throw Error('engine_unavailable');
-      const result = await new Promise((resolve,reject) => {
+      // 表示用の独立確認はHTML14だけ。失敗時は従来の凍結採点・確認待ちへ戻す。
+      let imageEngine = '';
+      if (binding.targetId === 'html14-01' && assets.imageCheckpoints && assets.imageCheckpointsSha256) {
+        if (!imageLoading) imageLoading = read(assets.imageCheckpoints,assets.imageCheckpointsSha256,400000).catch(() => { imageLoading=null; return ''; });
+        imageEngine = await imageLoading;
+      }
+      if (signal?.aborted) throw Error('cancelled');
+      const checked = await new Promise((resolve,reject) => {
         let worker, url, timer, done = false;
         const finish = (error, value) => {
           if (done) return; done = true; clearTimeout(timer); worker?.terminate();
@@ -74,18 +83,21 @@
         };
         const cancel = () => finish(Error('cancelled'));
         try {
-          url = env.URL.createObjectURL(new env.Blob([engine,'\n;(',workerMain.toString(),')();'],{type:'text/javascript'}));
+          url = env.URL.createObjectURL(new env.Blob([engine,'\n;',imageEngine,'\n;(',workerMain.toString(),')();'],{type:'text/javascript'}));
           worker = new env.Worker(url);
           signal?.addEventListener('abort',cancel,{once:true});
           if (signal?.aborted) { cancel(); return; }
           timer = setTimeout(() => finish(Error('grading_timeout')), options.timeoutMs || 10000);
-          worker.onmessage = e => e.data?.ok ? finish(null,e.data.result) : finish(Error('grading_failed'));
+          worker.onmessage = e => e.data?.ok ? finish(null,e.data) : finish(Error('grading_failed'));
           worker.onerror = () => finish(Error('grading_failed'));
           worker.postMessage({source,compiled:snapshot.body.rubric,engineVersion:binding.engineVersion,engineSourceHash:binding.engineSourceHash});
         } catch (error) { finish(error); }
       });
+      const result = checked.result;
       if (!result || !['graded','needs_review'].includes(result.state) || result.rubricId !== binding.targetId || result.rubricVersion !== binding.rubricVersion || result.engineVersion !== binding.engineVersion || !Array.isArray(result.rules) || result.rules.some(r => !snapshot.body.rubric.rules.some(rule => rule.ruleId === r.ruleId))) throw Error('result_invalid');
-      return {status:'checked',receipt:{kind:'html-local-result-v1',...binding,sourceSha256,result}};
+      // 旧得点・旧採点版はそのまま。表示用の表を受領用assessmentへ混ぜない。
+      const view = binding.targetId === 'html14-01' && feedback?.publicView(checked.feedback,binding.targetId);
+      return {status:'checked',receipt:{kind:'html-local-result-v1',...binding,sourceSha256,result},...(view ? {feedback:view} : {})};
     }
     return Object.freeze({grade});
   }
@@ -110,8 +122,8 @@
       if (!isCurrent()) { status.textContent = '内容が変わりました。保存して提出を準備し直してください。'; return null; }
       if (value.status === 'receipt-only') { status.textContent = 'この課題は提出を受け付けた後に★がつきます。'; return value; }
       const result = value.receipt.result;
-      status.textContent = result.state === 'graded' ? '保存した内容の確認が終わりました。' : '一部は自動確認できません。フォーム内の結果も確認してください。';
-      const view = feedback?.build(result), table = view && feedback.render(view,document);
+      const view = feedback?.publicView(value.feedback,value.receipt.targetId) || feedback?.build(result), table = view && feedback.render(view,document);
+      status.textContent = table || result.state === 'graded' ? '保存した内容の確認が終わりました。' : '一部は自動確認できません。フォーム内の結果も確認してください。';
       const list = document.createElement('ul'); list.className = 'local-grade-rules';
       if (!table) result.rules.forEach(rule => {
         const li = document.createElement('li'), star = document.createElement('span');

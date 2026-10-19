@@ -14,7 +14,7 @@ const reference=vm.createContext({});vm.runInContext(engine,reference);
 const referenceGrade=vm.runInContext('(source,compiled)=>HtmlNormalConfiguredGrader.gradeConfigured(source,JSON.parse(compiled))',reference);
 const mappings={'html12-01':'1-2','html13-01':'1-3_1','html13-02':'1-3_2','html14-01':'1-4','html15-01':'1-5_1','html15-02':'1-5_2','html16-01':'1-6','html17-01':'1-7','html22-01':'2-2_1','html22-02':'2-2_2','html23-01':'2-3','html24-01':'2-4'};
 const proof=b=>({assignmentId:b.targetId,templateVersion:b.templateVersion,templateSha256:b.templateSha256});
-function environment({brokenAsset=false, noReply=false}={}) {
+function environment({brokenAsset=false, brokenImages=false, noReply=false}={}) {
   const blobs=new Map(), stats={fetches:0,workers:0,terminated:0,revoked:0},base='https://joho.kaijo.ed.jp/tools/htmleditor/';
   class LocalURL extends URL {
     static createObjectURL(blob){const id='blob:synthetic-'+blobs.size;blobs.set(id,blob);return id;}
@@ -32,7 +32,7 @@ function environment({brokenAsset=false, noReply=false}={}) {
     fetch:async(url,options)=>{
       stats.fetches++;assert.equal(options.credentials,'omit');assert.equal(options.referrerPolicy,'no-referrer');
       let text=fs.readFileSync(path.join(root,new URL(url).pathname.slice(new URL(base).pathname.length)),'utf8');
-      if(brokenAsset)text+='changed';return {ok:true,url,text:async()=>text};
+      if(brokenAsset || brokenImages && url.endsWith('/image-checkpoints.js'))text+='changed';return {ok:true,url,text:async()=>text};
     }};
   return {env,stats};
 }
@@ -47,7 +47,7 @@ function fixture(b,kind) {
 
 test('公開採点資産のhash・40雛形・14凍結基準を検証し、非公開ID/鍵/本人情報を含めない',async()=>{
   assert.equal(catalog.bindings.length,40);assert.equal(Object.keys(catalog.snapshots).length,14);
-  for(const [file,key] of [[assets.catalog,'catalogSha256'],[assets.engine,'engineSha256']]) assert.equal(createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),assets[key]);
+  for(const [file,key] of [[assets.catalog,'catalogSha256'],[assets.engine,'engineSha256'],[assets.imageCheckpoints,'imageCheckpointsSha256']]) assert.equal(createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),assets[key]);
   for(const b of catalog.bindings){assert.deepEqual(Object.keys(b).sort(),['engineSourceHash','engineVersion','rubricSha256','rubricVersion','targetId','templateSha256','templateVersion']);const {snapshot}=G.select(catalog,proof(b));assert.equal(await G.hash(G.canonical(snapshot.body)),snapshot.hash);}
   assert.doesNotMatch(JSON.stringify(catalog),/FileId|FolderId|ParentId|storageFolder|@gfe|receiptKeys|spreadsheetId/);
   assert.doesNotMatch(engine,/\bfetch\s*\(|\bXMLHttpRequest\b|\bimportScripts\s*\(/);
@@ -66,7 +66,27 @@ test('全40雛形の空欄・編集例・構造エラーが凍結したGAS採点
       assert.equal(r.receipt.sourceSha256,await G.hash(source));count++;
     }
   }
-  assert.equal(h.stats.fetches,2);assert.equal(h.stats.workers,count);assert.equal(h.stats.terminated,count);assert.equal(h.stats.revoked,count);
+  assert.equal(h.stats.fetches,3);assert.equal(h.stats.workers,count);assert.equal(h.stats.terminated,count);assert.equal(h.stats.revoked,count);
+});
+
+test('HTML14のsrc誤記は表示だけ☆★★とし、凍結採点値・受領用assessmentは変更しない',async()=>{
+  const h=environment(),g=G.create({env:h.env,assets}),b=catalog.bindings.find(b=>b.targetId==='html14-01');
+  const source=fixture(b,'answer').replace('photo02.jpg','photo01.jpg');
+  const r=await g.grade({source,fileName:b.targetId+'.html',proof:proof(b)});
+  assert.deepEqual(r.feedback.groups[0].rows.map(row=>row.checks.map(c=>c.passed?'★':'☆').join('')),['★★★','☆★★','★★★','★★★','★★★']);
+  assert.equal(r.receipt.result.state,'needs_review');
+  assert.deepEqual(JSON.parse(JSON.stringify(r.receipt.result)),JSON.parse(JSON.stringify(referenceGrade(source,JSON.stringify(catalog.snapshots[b.rubricSha256].body.rubric)))));
+  assert.equal(r.receipt.feedback,undefined);
+  assert.equal(r.receipt.sourceSha256,await G.hash(source));
+});
+
+test('HTML14以外は追加parserを読み込まず、parserのhash不一致では旧確認待ちへ戻る',async()=>{
+  const ordinary=environment(),g=G.create({env:ordinary.env,assets}),b=catalog.bindings.find(b=>b.targetId==='html12-01');
+  await g.grade({source:fixture(b,'answer'),fileName:b.targetId+'.html',proof:proof(b)});
+  assert.equal(ordinary.stats.fetches,2);
+  const h=environment({brokenImages:true}),image=catalog.bindings.find(b=>b.targetId==='html14-01');
+  const r=await G.create({env:h.env,assets}).grade({source:fixture(image,'answer').replace('photo02.jpg','photo01.jpg'),fileName:image.targetId+'.html',proof:proof(image)});
+  assert.equal(r.feedback,undefined);assert.equal(r.receipt.result.state,'needs_review');
 });
 
 test('同じファイル名でも編集・再提出ごとに新しい本文hashと結果を得る',async()=>{

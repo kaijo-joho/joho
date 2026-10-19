@@ -8,6 +8,7 @@ class Node {
   append(...nodes) { this.children.push(...nodes); }
   insertBefore(node, before) { this.children.splice(this.children.indexOf(before), 0, node); }
   setAttribute(name, value) { this.attributes[name] = value; }
+  addEventListener() {}
   remove() { this.removed = true; }
 }
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
@@ -68,4 +69,15 @@ test('HTML11では5秒後にも未受領の★を付けない', async () => {
   const h = setup(async () => ({status:'receipt-only'})); await flush(); await h.advance(5000);
   await h.panel.completed; assert.match(h.parent.textContent, /受け付けた後に★がつきます/);
   assert.equal(h.parent.children[0].children.some(node => node.className === 'local-grade-rules'), false);
+});
+
+test('HTML14の独立チェック表を5秒後に表示し、旧採点の確認待ちを表へ混ぜない', async () => {
+  const value={status:'checked',receipt:{targetId:'html14-01',result:{state:'needs_review',rules:[{label:'画像ファイルの指定'}]}},
+    feedback:{schema:'html-checkpoints-1',targetId:'html14-01',groups:[{title:'',legend:['画像','サイズ','代替テキスト'],
+      rows:[{label:'写真02',checks:[{label:'画像',passed:false},{label:'サイズ',passed:true},{label:'alt',passed:true}]}]}]}};
+  const h=setup(async()=>value);await flush();await h.advance(4999);assert.doesNotMatch(h.parent.textContent,/写真02/);
+  await h.advance(1);await h.panel.completed;
+  assert.match(h.parent.textContent,/確認が終わりました/);assert.match(h.parent.textContent,/写真02☆★★/);
+  assert.doesNotMatch(h.parent.textContent,/確認待ち|自動確認できません/);
+  assert.match(h.parent.textContent,/この表示だけでは提出完了になりません/);
 });
