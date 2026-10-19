@@ -102,7 +102,15 @@ test('表はテキストDOMだけで作り、ホバー・クリック・キー�
   const button = table.children[1].children[0].children[1].children[1], detail = section.children[2];
   assert.equal(button.textContent,'★'); assert.equal(button.attributes['aria-label'],'<img onerror=alert(1)>：サイズ（width・height）：達成');
   button.events.mouseenter(); assert.equal(detail.hidden,false); assert.match(detail.textContent,/サイズ/);
-  button.events.keydown({key:'Escape',preventDefault(){}}); assert.equal(detail.hidden,true);
+  let stopped = 0, prevented = 0;
+  const escape = {key:'Escape',preventDefault(){prevented++;},stopPropagation(){stopped++;}};
+  button.events.keydown(escape); assert.equal(detail.hidden,true); assert.equal(stopped,1); assert.equal(prevented,1);
+  button.events.keydown(escape); assert.equal(stopped,1); assert.equal(prevented,1,'説明が閉じた後のEscapeは提出画面へ渡す');
   button.events.click(); assert.equal(detail.hidden,false); button.events.blur(); assert.equal(detail.hidden,true);
   const unsafe = structuredClone(view); unsafe.groups[0].rows[0].checks[0].passed='yes'; assert.equal(F.publicView(unsafe,view.targetId),null);
+});
+test('長い採点表でも提出モーダルの本文がスクロールし、フォームを縮めて隠さない',()=>{
+  const css = fs.readFileSync(path.join(root,'tools/htmleditor/editor.css'),'utf8');
+  assert.match(css,/#actionDialog\.submission-open #actionBody\s*\{[^}]*overflow-y:\s*auto/);
+  assert.match(css,/#actionDialog\.submission-open #actionBody > \*\s*\{[^}]*flex-shrink:\s*0/);
 });

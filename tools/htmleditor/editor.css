@@ -750,6 +750,8 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
 .download-frame { display: block; width: 100%; height: clamp(280px, 58dvh, 720px); border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
 #actionDialog:is(.submission-open,.distribution-open)[open] { display: flex; flex-direction: column; overflow: hidden; margin: max(12px, 4dvh) auto auto; max-height: calc(100dvh - max(24px, 8dvh)); }
 :is(.submission-open,.distribution-open) #actionBody { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+#actionDialog.submission-open #actionBody { overflow-y: auto; overscroll-behavior: contain; }
+#actionDialog.submission-open #actionBody > * { flex-shrink: 0; }
 :is(.submission-open,.distribution-open) .download-frame { flex: 0 1 auto; min-height: 100px; height: 430px; }
 :is(.submission-open,.distribution-integrated) .download-frame { border: 0; border-radius: 0; }
 :is(.submission-open,.distribution-open) #actionButtons { flex: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }

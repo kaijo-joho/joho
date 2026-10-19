@@ -159,7 +159,9 @@ var HtmlGradingFeedback = (function () {
           function close() { if (active === button) { active = null; detail.hidden = true; button.setAttribute('aria-expanded','false'); } }
           button.addEventListener('mouseenter',show); button.addEventListener('focus',show);
           button.addEventListener('click',show); button.addEventListener('mouseleave',function () { if (document.activeElement !== button) close(); });
-          button.addEventListener('blur',close); button.addEventListener('keydown',function (event) { if (event.key === 'Escape') { close(); event.preventDefault(); } });
+          button.addEventListener('blur',close); button.addEventListener('keydown',function (event) {
+            if (event.key === 'Escape' && active === button) { close(); event.preventDefault(); event.stopPropagation(); }
+          });
           cell.append(button);
         });
         body.append(line);
