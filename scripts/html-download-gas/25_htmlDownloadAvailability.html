@@ -1,0 +1,33 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>
+:root{color-scheme:light;--panel:#fff;--text:#1f2933;font-size:14px}
+:root[data-theme=dark]{color-scheme:dark;--panel:#1f2631;--text:#e6edf3}
+:root[data-size=large]{font-size:16px}:root[data-size=largest]{font-size:18px}
+html,body{margin:0;background:var(--panel);color:var(--text);font:1rem/1.6 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+p{margin:0;padding:4px;overflow-wrap:anywhere}
+</style></head><body><p id="status" role="status">エディタとの接続を確認しています…</p><script>
+(function(){'use strict';
+const boot=<?!= bootJson ?>,channel='joho-html-download-v3',origin='https://joho.kaijo.ed.jp',status=document.getElementById('status');
+let connection=null;
+function post(value){window.top.postMessage(Object.assign({channel,bridge:boot.bridge},value),origin);}
+function appearance(d){
+ if(['light','dark'].includes(d.theme))document.documentElement.dataset.theme=d.theme;
+ if(['standard','large','largest'].includes(d.fontSize))document.documentElement.dataset.size=d.fontSize;
+}
+const hello=setInterval(()=>{if(!connection)post({type:'hello'});},1000);
+window.addEventListener('message',event=>{
+ const d=event.data;
+ if(event.source!==window.top || event.origin!==origin || !d || d.channel!==channel || d.bridge!==boot.bridge)return;
+ if(connection){if(d.type==='appearance' && d.nonce===connection.nonce)appearance(d);return;}
+ if(d.type!=='connect' || !/^[a-f0-9]{32}$/.test(d.nonce||'') || typeof d.identity!=='string' || d.identity.length>=16384 || !/^html\d{2}-\d{2}$/.test(d.targetId||''))return;
+ connection={nonce:d.nonce};clearInterval(hello);appearance(d);
+ status.textContent='学校アカウントと最新の配付設定を確認しています…';
+ post({type:'checking',nonce:d.nonce});
+ google.script.run.withSuccessHandler(reply=>{
+   if(!reply || reply.nonce!==connection.nonce)return;
+   post({type:'result',nonce:connection.nonce,response:reply.result});
+ }).withFailureHandler(()=>post({type:'error',nonce:connection.nonce}))
+ .getHtmlDownloadAvailabilityV3({bridge:boot.bridge,nonce:d.nonce,identity:d.identity,targetId:d.targetId});
+});
+window.addEventListener('pagehide',()=>clearInterval(hello),{once:true});post({type:'hello'});
+})();
+</script></body></html>

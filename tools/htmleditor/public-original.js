@@ -59,14 +59,16 @@
       for (const chunk of chunks) {bytes.set(chunk,offset);offset+=chunk.byteLength;}
       try {return new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes);} catch(_) {fail('utf8_invalid');}
     }
-    async function obtain(assignmentId,signal) {
+    async function obtain(assignmentId,signal,beforeSource) {
       if (!/^html\d{2}-\d{2}$/.test(assignmentId)) fail('assignment_invalid');
       const raw=await get(MANIFEST_PATH,65536,signal);
       let manifest;try {manifest=JSON.parse(raw);} catch(_) {fail('public_manifest_invalid');}
       manifestShape(manifest);
       const matches=manifest.templates.filter(t=>t.assignmentId===assignmentId);
       if (matches.length!==1) fail('assignment_not_published');
-      const record=matches[0], source=await get(record.sourcePath,512*1024,signal);
+      const record=matches[0];
+      if(beforeSource)await beforeSource();
+      const source=await get(record.sourcePath,512*1024,signal);
       const actual=await options.sha256(source);
       if (actual!==record.templateSha256) fail('template_changed');
       const t={assignmentId:record.assignmentId,fileName:record.fileName,templateVersion:record.templateVersion,
@@ -78,9 +80,17 @@
     return {
       obtain,
       // Returns a new download candidate, never touches the current document or a filesystem handle.
-      generateFresh:async(assignmentId,identityCache,signal)=>{
+      generateFresh:async(assignmentId,identityCache,signal,authorize=options.authorize)=>{
         const identity=await identityCache.identityForGeneration();
-        const original=await obtain(assignmentId,signal);
+        if(typeof authorize!=='function')fail('availability_unavailable');
+        const original=await obtain(assignmentId,signal,async()=>{
+          const decision=await authorize({targetId:assignmentId,identity:identity.token});
+          if(!decision || decision.v!==1 || decision.targetId!==assignmentId || decision.allowed!==true ||
+            Object.keys(decision).sort().join(',')!=='allowed,targetId,v'){
+            const error=Error('availability_denied');error.downloadAvailability=decision && decision.allowed===false?decision:{reason:'availability_unavailable'};throw error;
+          }
+          if(signal?.aborted){const error=Error('download_canceled');error.name='AbortError';throw error;}
+        });
         const freshIdentity=await identityCache.identityForGeneration();
         if (freshIdentity.token!==identity.token) fail('identity_changed');
         const localFileId=options.randomId();

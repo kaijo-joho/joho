@@ -16,16 +16,17 @@ test('現在の教材の明示画像だけ扱い、外部・別教材・クエ�
   for(const href of [url+'?x',url+'#x',url.replace('joho.kaijo.ed.jp','example.org'),url.replace('photo01','private'),url.replace('photo01.jpg','x.svg'),'javascript:alert(1)'])assert.equal(Images.fromLink('html14',href,base),null);
   assert.equal(Images.fromLink('html15',url,base),null);assert.throws(()=>Images.assetUrl({...asset},base));
 });
-test('エディタのSRIは画像保存・対象別の採点表を含む全41資産の実内容と一致する',()=>{
+test('エディタのSRIは画像保存・対象別の採点表・配付可否確認を含む全42資産の実内容と一致する',()=>{
   const html=fs.readFileSync(path.join(root,'tools/htmleditor/index.html'),'utf8');let count=0;
   assert.match(html,/<script src="image-downloads\.js[^>]+integrity="sha384-[^"]+"/);
+  assert.match(html,/<script src="download-availability\.js[^>]+integrity="sha384-[^"]+"/);
   for(const tag of html.matchAll(/<(?:script|link)\b[^>]+>/g)){
     const integrity=/integrity="([^"]+)"/.exec(tag[0]),source=/(?:src|href)="([^"?]+)(?:\?[^"]*)?"/.exec(tag[0]);
     if(!integrity||!source)continue;
     const file=path.resolve(root,'tools/htmleditor',source[1]);
     assert.equal(integrity[1],'sha384-'+crypto.createHash('sha384').update(fs.readFileSync(file)).digest('base64'),source[1]);count++;
   }
-  assert.equal(count,41);
+  assert.equal(count,42);
 });
 test('取得は公開画像のみ、資格情報なし・redirect禁止・容量/ハッシュ検証',async()=>{
   const bytes=fs.readFileSync(path.join(root,'html/images',asset.name)),calls=[];

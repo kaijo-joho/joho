@@ -872,7 +872,7 @@
         button('閉じる','close');window.HtmlEditorLocalDownloads.confirmationBridge({container:body,dialog:$('actionDialog'),url:config.identityUrl,ticket,oldToken,signal:controller.signal}).then(r=>{response=r;finish('confirmed');}).catch(e=>{if(e.message!=='identity_confirmation_canceled')notify(errorMessage(e), 'error');finish('failed');});
       });}finally{controller.abort();}if(!response)throw Error('identity_confirmation_canceled');return response;}
       try {
-        localDownloads=window.HtmlEditorLocalDownloads.create({confirm:ticket=>bridge(ticket)});
+        localDownloads=window.HtmlEditorLocalDownloads.create({confirm:ticket=>bridge(ticket),availabilityUrl:config.identityUrl});
         confirmButton.addEventListener('click',()=>register(false));warningButton.addEventListener('click',()=>register(false));switchButton.addEventListener('click',()=>register(true));profileButton.addEventListener('click',()=>register(true));
         renewalButton.addEventListener('click',()=>exclusive(async()=>{
           if(submissionPanel?.needsAttention()){notify('提出処理を終えてから確認情報を更新してください。', 'warning');return;}
