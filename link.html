@@ -17,11 +17,13 @@
   <link rel="stylesheet" href="./css/css.css">
   <script defer src="./js/pages.js"></script>
   <script defer src="./js/main.js"></script>
-  <script defer src="./js/links.js"></script>
 </head>
 <body>
+<main id="main-content"></main>
 <script>
 (() => {
+  // 共通レイアウトが先に初期化されても、案内をフッターより前の本文へ挿入する。
+  const linkContent = document.getElementById('main-content');
   const params = new URL(location.href).searchParams;
   const getParam = (k) => {
     const v = params.get(k);
@@ -105,10 +107,58 @@
     message.textContent = 'この実習ファイルの配付リンクを確認できませんでした。教員の案内を確認してください。';
     article.appendChild(message);
     section.appendChild(article);
-    document.body.appendChild(section);
+    linkContent.appendChild(section);
   }
 
-  function createLinkFromParam() {
+  function showUnavailableLink(message) {
+    const section = document.createElement('section');
+    const article = document.createElement('article');
+    const paragraph = document.createElement('p');
+    paragraph.textContent = message;
+    article.appendChild(paragraph);
+    section.appendChild(article);
+    linkContent.appendChild(section);
+  }
+
+  function validLinkItem(item) {
+    if (!item || typeof item.title !== 'string' || !item.title.trim() || typeof item.url !== 'string') return false;
+    if (/[\\\u0000-\u0020\u007f]/.test(item.url)) return false;
+    try {
+      const url = new URL(item.url);
+      return url.protocol === 'https:' && !url.username && !url.password;
+    } catch { return false; }
+  }
+
+  async function loadLinkCollections() {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch('./data/links.json', { cache: 'no-cache', signal: controller.signal });
+      if (!response.ok) throw new Error('links.json: HTTP ' + response.status);
+      const data = await response.json();
+      const names = ['quizzes', 'submitForms', 'reviewForms', 'pubFiles', 'notices', 'files', 'urls'];
+      if (!data || data.schemaVersion !== 1 || typeof data.generatedAt !== 'string'
+          || !Number.isFinite(Date.parse(data.generatedAt))
+          || new Date(data.generatedAt).toISOString() !== data.generatedAt
+          || !data.collections || Array.isArray(data.collections)) {
+        throw new Error('links.json: unsupported schema');
+      }
+      const dictionaries = {};
+      for (const name of names) {
+        const collection = data.collections[name];
+        if (!collection || typeof collection !== 'object' || Array.isArray(collection)
+            || !Object.values(collection).every(validLinkItem)) {
+          throw new Error('links.json: invalid collection');
+        }
+        dictionaries[name] = collection;
+      }
+      return dictionaries;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async function createLinkFromParam() {
     const downloadId = getParam('dl');
     const download = params.has('dl') ? resolveHtmlPracticeDownload(downloadId) : null;
     if (params.has('dl') && !download) {
@@ -123,27 +173,31 @@
       return;
     }
 
-    const dicts = {
-      quizzes:      window.quizzes,
-      submitForms:  window.submitForms,
-      reviewForms:  window.reviewForms,
-      pubFiles:     window.pubFiles,
-      notices:      window.notices,
-      typing:       window.typing,
-      files:        window.files,
-      urls:         window.urls,
-    };
+    // dl専用入口は従来どおりpages.jsだけで解決し、JSON不達の影響を受けない。
+    let dicts = {};
+    if (!download) {
+      try {
+        dicts = await loadLinkCollections();
+      } catch (error) {
+        console.error('[links] リンク情報を読み込めませんでした', error);
+        showUnavailableLink('リンク情報を読み込めませんでした。時間をおいて再読み込みしてください。');
+        return;
+      }
+    }
+    const ownItem = (dictionary, key) => dictionary && Object.prototype.hasOwnProperty.call(dictionary, key)
+      ? dictionary[key] : undefined;
 
     // まず dictKey で検索、無ければ横断検索
-    let item = download || (dictKey ? dicts[dictKey]?.[id] : undefined);
+    let item = download || (dictKey ? ownItem(dicts[dictKey], id) : undefined);
     if (!item && !downloadId) {
       for (const k of Object.keys(dicts)) {
-        if (dicts[k]?.[id]) { item = dicts[k][id]; break; }
+        if (ownItem(dicts[k], id)) { item = dicts[k][id]; break; }
       }
     }
 
     if (!item || !item.url) {
       console.error(`[links] 指定IDが見つかりません: id="${id}", type="${dictKey||'(none)'}"`);
+      showUnavailableLink('指定されたリンクが見つかりませんでした。教員の案内を確認してください。');
       return;
     }
 
@@ -168,17 +222,12 @@
 
     const article = document.createElement('article');
     article.appendChild(h3);
-    if (item.description) {
-      const desc = document.createElement('p');
-      desc.textContent = item.description;
-      article.appendChild(desc);
-    }
     article.appendChild(p);
     article.appendChild(ul);
 
     const section = document.createElement('section');
     section.appendChild(article);
-    document.body.appendChild(section);
+    linkContent.appendChild(section);
 
     document.title = `${label} を開いています．．．`;
 

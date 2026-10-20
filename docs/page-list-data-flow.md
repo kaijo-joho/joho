@@ -96,6 +96,17 @@ impクイズ管理_cfg ───────────────────
 
 ブラウザ側の`js/script_pages.js`は展開済みの`window.pages`を利用する。各HTMLで同じURL生成や台帳結合を再実装しない。
 
+### 通常の中継リンク（links.json）
+
+`link.html`の通常リンクは、flの`generateLinksJson()`が生成した`data/links.json`を`fetch`で読み込む。`schemaVersion: 1`、`generatedAt`、`collections`を持ち、各辞書は既存IDをキーに`title`と`url`だけを格納する。JS変数や`window`への代入は行わない。
+
+- `collections`は`quizzes`、`submitForms`、`reviewForms`、`pubFiles`、`notices`、`files`、`urls`の7種類。旧typingは対象外。
+- `id`/`type`、q/s/r/p/n/f/uと長いID名など既存の指定方法、辞書横断検索の順序、`label`、`redirect=0`を維持する。
+- HTTP失敗・10秒の取得期限・JSON不正・未対応版・辞書不正ではエラーを表示して移動しない。旧links.jsへのフォールバックは行わない。
+- 2026-10-20の初回公開は、flの実GAS生成済み248件を検証して配置。公開中の旧links.jsにあった共通232件のtitle/urlは一致し、旧フォーム/typingの除外とHTML13件/SS3件の追加を含む。
+- 新管理表の`linkType`は掲載指定であり、配付権限・学年・開始日時・提出受付を変更しない。Colab/SSは従来の配付URL、通常HTMLは現行エディタ入口へ案内する。
+- 初回JSONの配置とlink.htmlの読込切替だけを行い、flからGitHubへのJSON自動公開はまだ未実装。更新時はflで再生成・検証して同じファイルへ公開する。旧links.jsとlinksシートは、pl等の残存利用側を確認してから別途退役する。
+
 ### Classroom用のHTML実習中継リンク
 
 `link.html?dl=html11-01`と`link.html?dl=html12-01`は、`pages.js`の公開済み`practiceFile`（`distributionMode=personal-html-v2`）を参照する。同じ配付先を学校ドメイン付きのGAS URLへ整形して移動する。URLや公開状態を別のリンク台帳へ重複登録しない。
@@ -104,6 +115,7 @@ impクイズ管理_cfg ───────────────────
 - `redirect=0`を加えると自動移動せず、配付先リンクを確認できる。
 - 中継・配付ページのGETだけでは実習ファイルを発行しない。学校アカウント・学年・配付期間等は従来どおりdistが確認し、発行は配付ページの明示操作で行う。
 - `pages.js`の直接編集、課題設定の変更、Classroomへの登録はこの中継処理に含まれない。
+- この`dl`専用経路はlinks.jsonを取得せず、JSONが不達でも従来どおり動作する。
 
 ## 更新手順
 
