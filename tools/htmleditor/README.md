@@ -34,6 +34,8 @@
 
 distの追加ソースは`scripts/html-download-gas/`、読取り済みソースへの適用は`scripts/prepare-html-download-availability-gas.mjs`。公開版と未公開HEADを別々に用意し、次期受付用の未公開93〜95を今回の公開版へ混入させない。実機・授業規模での通信時間は合成テストと区別して確認する。
 
+0.9.8の共通監査は、347回帰テスト・公開/HEAD候補各15の実module照合・SRI42の成功を確認した。配備要求の応答消失後に確認へ進めないP2は、要求前の試行記録を照合して再送せず読戻す方式へ修正し、独立17ケースの再監査で解消した。配付判定・本人照合・取得済み内容の保存再試行には未解消の指摘なし。実Google/GSSの取得時間、生徒Mac/Safari・40名負荷は未確認。
+
 ## 新しい受付の接続前候補
 
 `intake-client.js`と[`scripts/html-intake-gas`](../../scripts/html-intake-gas/README.md)は接続前の候補。`index.html`は新クライアントを読み込まない。GAS入口も既定で無効であり、設定フラグだけでは動かない。
