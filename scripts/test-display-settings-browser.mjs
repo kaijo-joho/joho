@@ -37,6 +37,16 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
       await page.waitForFunction(() => window.siteCodeExamples && document.querySelector('pre[data-code-example-enhanced]'));
       await page.evaluate(() => document.fonts.ready);
     };
+    const openCodeMenu = async tools => {
+      const button = tools.locator('[data-action="menu"]');
+      if (await button.getAttribute('aria-expanded') !== 'true') {
+        await button.scrollIntoViewIfNeeded();
+        await button.press('Enter');
+      }
+      const menu = page.locator('#' + await button.getAttribute('aria-controls'));
+      await expect(menu).toBeVisible();
+      return menu;
+    };
     await open('py21.html');
     const initial = await page.evaluate(() => siteDisplaySettings.getState());
     assert.equal(initial.textScale,110); assert.equal(initial.theme,'dark');
@@ -94,6 +104,7 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
     }
     await page.evaluate(() => siteDisplaySettings.reset());
     const originalSize = await pre.evaluate(node => parseFloat(getComputedStyle(node).fontSize));
+    await openCodeMenu(tools);
     await tools.locator('[data-action="increase"]').click();
     await expect(tools.locator('[data-action="reset"]')).toHaveText('105%');
     assert.ok(await pre.evaluate(node => parseFloat(getComputedStyle(node).fontSize)) > originalSize);
@@ -159,13 +170,14 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
     await page.setViewportSize({width:390,height:844});
     await page.evaluate(() => siteDisplaySettings.setPreferences({textScale:120,codeWrap:true,lineSpacing:'relaxed',theme:'dark'},{persist:false}));
     const restricted = page.locator('pre.python:not(.example)').first();
-    const restrictedTools = restricted.locator('xpath=following-sibling::*[1]');
+    const restrictedTools = restricted.locator('xpath=preceding-sibling::*[1]');
     const originalParent = await restricted.evaluate(node => { window.displayTestOriginalParent=node.parentNode; return node.textContent; });
     const copyCheck = node => {
       const event = new Event('copy',{bubbles:true,cancelable:true}); node.dispatchEvent(event); return event.defaultPrevented;
     };
     assert.equal(await restricted.evaluate(copyCheck),true);
-    await restrictedTools.locator('[data-action="enlarge"]').scrollIntoViewIfNeeded();
+    await restrictedTools.locator('[data-action="menu"]').scrollIntoViewIfNeeded();
+    await openCodeMenu(restrictedTools);
     await restrictedTools.locator('[data-action="enlarge"]').evaluate(node => {
       window.displayTestExpansions=[];
       document.addEventListener('joho:code-example-expanded',event => displayTestExpansions.push({...event.detail}));
@@ -177,9 +189,13 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
     await expect(page.locator('html')).toHaveClass(/code-example-modal-open/);
     assert.equal(await modal.locator('pre').evaluate(copyCheck),true,'copy restriction remains in expanded view');
     assert.equal(await modal.locator('pre').textContent(),originalParent);
+    await openCodeMenu(modal.locator('.code-example-tools'));
     await modal.locator('[data-action="increase"]').click();
     await modal.locator('[data-action="wrap"]').click();
     await page.screenshot({path:path.join(output,engine+'-390-code-dialog.png')});
+    await page.keyboard.press('Escape');
+    await expect(modal).toBeVisible();
+    await expect(modal.locator('[data-action="menu"]')).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(modal).not.toBeVisible();
     await page.waitForTimeout(180);
@@ -188,12 +204,14 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
     assert.deepEqual(await page.evaluate(() => displayTestExpansions),await page.evaluate(() => [
       {open:true,...displayTestReadingPosition},{open:false,...displayTestReadingPosition}
     ]),'expansion notifications carry the original reading position');
-    await expect(restrictedTools.locator('[data-action="enlarge"]')).toBeFocused();
+    await expect(restrictedTools.locator('[data-action="menu"]')).toBeFocused();
+    await openCodeMenu(restrictedTools);
     await restrictedTools.locator('[data-action="enlarge"]').press('Enter');
     await modal.evaluate(node => node.close());
     await expect(restricted).not.toHaveAttribute('data-code-example-dialog','true');
     await expect(page.locator('html')).not.toHaveClass(/code-example-modal-open/);
     await modal.evaluate(node => { node.savedShowModal=node.showModal; node.showModal=() => { throw new Error('synthetic showModal failure'); }; });
+    await openCodeMenu(restrictedTools);
     await restrictedTools.locator('[data-action="enlarge"]').click();
     assert.equal(await page.evaluate(() => displayTestExpansions.at(-1).open),false,'opening failure notifies the host after restoring');
     assert.equal(await restricted.evaluate(node => node.parentNode===window.displayTestOriginalParent),true);
@@ -210,7 +228,8 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
     });
     await expect(page.locator('#dynamic-code-test')).toHaveAttribute('data-code-example-enhanced','true');
     const dynamicText = await page.locator('#dynamic-code-test').textContent();
-    await page.locator('#dynamic-code-test + .code-example-tools [data-action="wrap"]').click();
+    const dynamicMenu = await openCodeMenu(page.locator('#dynamic-code-test').locator('xpath=preceding-sibling::*[1]'));
+    await dynamicMenu.locator('[data-action="wrap"]').click();
     assert.equal(await page.locator('#dynamic-code-test').textContent(),dynamicText);
 
     // A same-origin owned explanation gets the embedded default, without storing it globally.
@@ -231,6 +250,19 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
       return {state:api.getState(),preserved:before===JSON.stringify({...localStorage})};
     });
     assert.equal(inherited.state.textScale,119); assert.equal(inherited.state.codeWrap,false); assert.ok(inherited.preserved);
+    const frameTrigger = frame.locator('.code-example-menu-trigger').first();
+    await frameTrigger.scrollIntoViewIfNeeded();
+    await frameTrigger.press('Enter');
+    const frameMenu = frame.locator('#' + await frameTrigger.getAttribute('aria-controls'));
+    await expect(frameMenu).toBeVisible();
+    assert.ok(await frameMenu.evaluate(node => {
+      const rect = node.getBoundingClientRect();
+      return rect.left >= 7 && rect.right <= innerWidth - 7 && node.scrollWidth <= node.clientWidth;
+    }), 'code menu fits the owned 280px explanation iframe');
+    await frameMenu.locator('[data-action="increase"]').click();
+    await expect(frameMenu.locator('[data-action="reset"]')).toHaveText('105%');
+    await frameMenu.locator('[data-action="increase"]').press('Escape');
+    await expect(frameTrigger).toBeFocused();
     assert.deepEqual(failures,[],'no runtime errors or local 404');
     console.log(engine+': migration, persistence/reset scope, legacy API, detents, code preservation/copy protection, modal recovery, themes, responsive and owned iframe OK');
     await context.close();

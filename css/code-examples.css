@@ -1,17 +1,16 @@
 @charset "UTF-8";
 
-/* Controls are siblings of the original pre so source text and token spans stay untouched. */
+/* A zero-height anchor before pre leaves pre + result adjacent and the code untouched. */
 .code-example-tools {
+  position: relative;
+  z-index: 1;
   box-sizing: border-box;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem;
-  width: min(var(--code-width, 100%), 100%);
-  margin: -0.65em auto 1em;
-  padding: 0.25rem 0;
+  width: 100%;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
   color: var(--code-fg, CanvasText);
-  font-size: max(0.9rem, var(--font-size-p, 1rem));
 }
 
 .code-example-button {
@@ -21,22 +20,78 @@
   min-height: 44px;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem 0.65rem;
+  padding: .4rem .6rem;
   border: 1px solid var(--code-border, currentColor);
   border-radius: 0.45rem;
-  background: var(--code-bg, Canvas);
+  background: transparent;
   color: inherit;
-  font: inherit;
-  line-height: 1.2;
+  font: 400 .875rem/1.4 var(--font-sans, system-ui, sans-serif);
+  box-shadow: none;
+  transform: none;
   cursor: pointer;
 }
 
-.code-example-button:hover { filter: brightness(0.94); }
+.code-example-button:hover { background: color-mix(in srgb, currentColor 7%, transparent); box-shadow: none; transform: none; }
 .code-example-button:focus-visible { outline: 3px solid var(--focus-ring, #2878d0); outline-offset: 2px; }
-.code-example-tools [data-action="reset"] { min-width: 58px; font-variant-numeric: tabular-nums; }
 .code-example-button:disabled { cursor: not-allowed; opacity: 0.58; }
 
+.code-example-menu-trigger {
+  position: absolute;
+  top: var(--code-menu-top, 4px);
+  right: var(--code-menu-right, 4px);
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  scroll-margin-block: 80px;
+}
+.code-example-menu-trigger:hover,
+.code-example-menu-trigger[aria-expanded="true"] { background: transparent; }
+.code-example-menu-trigger svg {
+  box-sizing: content-box;
+  width: 18px;
+  height: 18px;
+  padding: 5px;
+  border-radius: 6px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  opacity: .65;
+}
+.code-example-menu-trigger:is(:hover, :focus-visible, [aria-expanded="true"]) svg {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  opacity: 1;
+}
+.code-example-menu-panel {
+  position: fixed;
+  inset: auto;
+  z-index: 1600;
+  box-sizing: border-box;
+  width: min(250px, calc(100vw - 16px));
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--code-border, #888);
+  border-radius: 9px;
+  background: var(--code-bg, Canvas);
+  color: var(--code-fg, CanvasText);
+  box-shadow: 0 5px 18px rgb(0 0 0 / .16);
+  font: .875rem/1.4 var(--font-sans, system-ui, sans-serif);
+  white-space: normal;
+  text-align: left;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.code-example-menu-panel[hidden] { display: none; }
+.code-example-menu-label { margin-bottom: 5px; font-weight: 600; }
+.code-example-menu-size { display: grid; grid-template-columns: 44px minmax(58px, 1fr) 44px; gap: 6px; margin-bottom: 6px; }
+.code-example-menu-panel [data-action="reset"] { font-variant-numeric: tabular-nums; }
+.code-example-menu-panel > .code-example-button { display: flex; width: 100%; justify-content: flex-start; margin-top: 6px; }
+.code-example-menu-panel [aria-pressed="true"] { background: color-mix(in srgb, var(--theme-color, #225386) 12%, transparent); }
+
 html body pre[data-code-example-enhanced="true"] {
+  padding-top: max(var(--code-pad, .8em), 2.75rem);
   font-size: calc(var(--code-font-size, 1rem) * var(--code-example-scale, 1));
   line-height: var(--code-example-line-height, var(--site-code-line-height, 1.7)) !important;
 }
@@ -74,15 +129,11 @@ html.code-example-modal-open { overflow: hidden; overflow-anchor: none; }
 .code-example-dialog-heading { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 0.75rem; font-weight: 700; }
 .code-example-dialog-content { min-width: 0; overflow: auto; }
 .code-example-dialog-content pre { width: 100%; max-width: none; max-height: 76dvh; margin: 0.5rem 0 0; }
-.code-example-dialog-content .code-example-tools { width: 100%; }
 
 @media print {
   .code-example-tools,
+  .code-example-menu-panel,
   .code-example-dialog { display: none !important; }
+  html body pre[data-code-example-enhanced="true"] { padding-top: var(--code-pad, .8em); }
   html.code-example-modal-open { overflow: auto; }
-}
-
-@media (max-width: 520px) {
-  .code-example-tools { gap: 0.25rem; }
-  .code-example-button { padding-inline: 0.45rem; }
 }

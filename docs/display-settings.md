@@ -63,11 +63,13 @@ HTMLエディタの`JohoUI.theme`との接続は、同エディタ担当が以�
 
 ## コード例
 
-HTML/CSS/Pythonの`pre`に、文字サイズ−/倍率（全体設定へ戻す）/＋、折り返し、閲覧用拡大の操作を添える。操作はコードの外へ置き、元のテキスト・改行・インデント・選択/コピー制限を維持する。例文ごとの倍率と折り返しは文書内だけに保持し、全体の文字サイズ・折り返し変更または表示リセット時に揃える。
+HTML/CSS/Pythonのコード枠内右上に、小さなハンバーガーボタンを表示する。クリック・タップ・Enter/Spaceで開閉し、メニュー内に文字サイズ−/倍率（全体設定へ戻す）/＋、折り返し、閲覧用拡大の操作をまとめる。通常はアイコンだけを表示し、ホバーでは開かない。Escape、メニュー外のクリック・フォーカス移動、コード枠が画面外になるまでのスクロールで閉じる。Escape時は開いたボタンへフォーカスを戻す。
+
+操作部品は高さ0の要素として`pre`の直前に置き、見た目だけを枠内へ配置する。コードのテキスト・改行・インデント・選択/コピー制限を変えず、`pre + pre.result` / `pre + div.result`の隣接も保つ。設定の操作列をコードと結果の間へ挟まない。メニューはPopover APIの最前面レイヤーへ表示し、非対応時は同じdocument内の固定配置へ切り替える。例文ごとの倍率と折り返しは文書内だけに保持し、全体の文字サイズ・折り返し変更または表示リセット時に揃える。
 
 `js/code_examples.js`の`window.siteCodeExamples.enhance(root=document)`は、ハイライト後の対応`pre`へ操作を追加する。再実行で重複しない。設定は`siteDisplaySettings.getState()`と変更イベントを使い、表示設定がない場合も通常のコード閲覧を妨げない。
 
-拡大はネイティブdialog内に同じコード要素を一時移動し、同じ操作を使う。閉じる/Escapeで元の場所・読んでいたスクロール位置・フォーカスへ戻し、表示上の折り返しだけを変更する。拡大中もコピー許可を増やさない。別のdialog内の例文では拡大を無効にし、元のdialogを勝手に閉じない。
+拡大はネイティブdialog内に同じコード要素を一時移動し、同じ右上メニューを使う。閉じる/Escapeで元の場所・読んでいたスクロール位置・ハンバーガーボタンのフォーカスへ戻し、表示上の折り返しだけを変更する。設定メニューが開いている間のEscapeはメニューだけを閉じ、その後のEscapeで拡大を終了する。拡大中もコピー許可を増やさない。別のdialog内の例文では拡大を無効にし、元のdialogを勝手に閉じない。
 
 拡大状態は`document`の`joho:code-example-expanded`で通知する。detailは`{open:boolean,scrollX:number,scrollY:number}`で、座標は拡大前に保持した読み取り位置。`open:true`は`showModal()`成功後、`open:false`は元のDOM位置・表示位置への復帰後に通知する。開く際の例外でも復帰してfalseを通知する。通常教材では受信者なしでも動作する。
 
@@ -84,5 +86,6 @@ node --check js/display_settings.js
 node --check js/display_settings_ui.js
 node --check js/code_examples.js
 JOHO_TEST_URL=http://127.0.0.1:8894/ node scripts/test-display-settings-browser.mjs
+JOHO_TEST_URL=http://127.0.0.1:8894/ node scripts/test-code-example-menu.mjs
 JOHO_TEST_URL=http://127.0.0.1:8894/ node scripts/test-header-navigation.mjs
 ```
