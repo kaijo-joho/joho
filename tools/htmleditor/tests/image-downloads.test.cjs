@@ -24,6 +24,7 @@ test('エディタのSRIは画像保存・採点表・配付可否確認・列�
   assert.match(html,/<script src="\.\.\/\.\.\/js\/display_settings\.js[^>]+integrity="sha384-[^"]+"/);
   assert.match(html,/<script src="\.\.\/\.\.\/js\/display_settings_ui\.js[^>]+integrity="sha384-[^"]+"/);
   assert.match(html,/<link[^>]+href="\.\.\/\.\.\/css\/display-settings\.css[^>]+integrity="sha384-[^"]+"/);
+  for(const file of ['editor.css','editor.js','navigation.js','layout.js'])assert(html.includes(file+'?v=html-editor-layout-20261026-r1'),'changed asset must not reuse an old cached URL: '+file);
   for(const tag of html.matchAll(/<(?:script|link)\b[^>]+>/g)){
     const integrity=/integrity="([^"]+)"/.exec(tag[0]),source=/(?:src|href)="([^"?]+)(?:\?[^"]*)?"/.exec(tag[0]);
     if(!integrity||!source)continue;
