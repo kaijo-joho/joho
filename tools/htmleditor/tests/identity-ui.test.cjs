@@ -23,7 +23,7 @@ test('本人確認iframeへテーマ・文字サイズを送信。照合済み�
  h.receive('layout',{layout:'integrated-v1',nonce:'wrong'});assert(!h.classes.has('identity-integrated'));
  h.receive('layout',{layout:'integrated-v1'});assert(h.classes.has('identity-integrated'));assert.equal(h.container.children[0].hidden,true);
  h.receive('height',{height:212});assert.equal(h.frame.style.height,'212px');h.receive('height',{height:50000});assert.equal(h.frame.style.height,'212px');
- h.document.documentElement.dataset.resolvedTheme='light';h.document.documentElement.dataset.textSize='largest';h.observe();assert.equal(h.sent.at(-1).data.type,'appearance');assert.equal(h.sent.at(-1).data.theme,'light');assert.equal(h.sent.at(-1).data.fontSize,'largest');assert(!('oldToken' in h.sent.at(-1).data));
+ h.document.documentElement.dataset.resolvedTheme='light';h.document.documentElement.dataset.textSize='xlarge';h.observe();assert.equal(h.sent.at(-1).data.type,'appearance');assert.equal(h.sent.at(-1).data.theme,'light');assert.equal(h.sent.at(-1).data.fontSize,'largest');assert(!('oldToken' in h.sent.at(-1).data));
  h.receive('proof',{response:{synthetic:true}});assert.deepEqual(await h.result,{synthetic:true});assert(h.disconnected());assert.equal(h.events.size,0);assert.equal(h.timers.size,0);assert.equal(h.classes.size,0);
 });
 test('取消時は通信監視・iframe・読み込み表示を破棄。別sourceからは接続しない',async()=>{

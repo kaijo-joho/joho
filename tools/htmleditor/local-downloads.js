@@ -25,8 +25,7 @@ function confirmationBridge({container,dialog,url,ticket,oldToken='',signal}){
      startFrame();help.say('本人確認画面だけを開き直しました。編集内容はそのままです。');
    },{identity:true});
    function appearance(type='appearance') { if(source)source.postMessage({channel:CHANNEL,bridge,type,nonce:ticket.nonce,
-     theme:document.documentElement.dataset.resolvedTheme || document.documentElement.dataset.theme,
-     fontSize:document.documentElement.dataset.textSize,...(type==='connect'?{oldToken,layout:'integrated-v1',profile:'display-name-v1'}:{})},sourceOrigin); }
+     ...root.HtmlEditorDownload.legacyAppearance(document),...(type==='connect'?{oldToken,layout:'integrated-v1',profile:'display-name-v1'}:{})},sourceOrigin); }
    const observer=typeof root.MutationObserver==='function'?new root.MutationObserver(()=>appearance()):null;
    observer?.observe(document.documentElement,{attributes:true,attributeFilter:['data-resolved-theme','data-theme','data-text-size']});
    function finish(error,response){if(settled)return;settled=true;clearTimeout(timer);clearTimeout(slowTimer);observer?.disconnect();root.removeEventListener('message',receive);if(signal)signal.removeEventListener('abort',cancel);frame?.remove();progress.remove();help.element.remove();dialog?.classList.remove('identity-open','identity-integrated');error?reject(error):resolve(response);}

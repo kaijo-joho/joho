@@ -69,6 +69,11 @@ function setup(kind, options = {}) {
   return h;
 }
 for (const kind of ['download','submission']) {
+  test(kind + ': 共通設定の特大をGASの従来名largestへ変換し、本人・提出データは追加しない',()=>{
+    const h=setup(kind);h.ctx.document.documentElement.dataset.textSize='xlarge';h.connect();
+    assert.equal(h.sent[0].data.fontSize,'largest');assert.equal(h.sent[0].data.theme,'dark');
+    assert.equal(h.ctx.document.documentElement.dataset.textSize,'xlarge');h.panel.dispose();
+  });
   test(kind + ': 公式ログインリンク・学校案内・対処の注意。自動ログアウトなし',()=>{
     const h=setup(kind), login=h.find('Googleにログイン');
     assert.equal(login.href,'https://accounts.google.com/'); assert.equal(login.target,'_blank'); assert.equal(login.rel,'noopener noreferrer');

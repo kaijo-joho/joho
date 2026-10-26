@@ -4,6 +4,11 @@
   const CHANNEL = 'joho-html-distribution-v1';
   const ORIGIN = 'https://joho.kaijo.ed.jp';
   const STATES = new Set(['loading','ready','issuing','uncertain','issued','download-started','error','escape']);
+  // GASフォームの表示契約は従来の3段階。共有APIのxlargeだけ名前を変換する。
+  function legacyAppearance(doc = root.document) {
+    const data = doc.documentElement.dataset;
+    return {theme:data.resolvedTheme || data.theme, fontSize:data.textSize === 'xlarge' ? 'largest' : data.textSize};
+  }
   function gasOrigin(origin) {
     return typeof origin === 'string' && /^https:\/\/[a-z0-9-]+-script\.googleusercontent\.com$/.test(origin);
   }
@@ -140,7 +145,7 @@
           source = event.source; sourceOrigin = event.origin;
           source.postMessage({channel:CHANNEL,type:'connect',bridge,targetId:task.id,
             layout:'integrated-v1',
-            theme:document.documentElement.dataset.resolvedTheme,fontSize:document.documentElement.dataset.textSize}, event.origin);
+            ...legacyAppearance(document)}, event.origin);
           return;
         }
         if (event.source !== source || event.origin !== sourceOrigin) return;
@@ -188,7 +193,7 @@
       }
     };
   }
-  const api = Object.freeze({create,gasOrigin,withinFrame,loginHelp});
+  const api = Object.freeze({create,gasOrigin,withinFrame,loginHelp,legacyAppearance});
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.HtmlEditorDownload = api;
 })(typeof window === 'undefined' ? globalThis : window);

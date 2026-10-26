@@ -4,13 +4,13 @@ function setup(){
  const events=new Map(),timers=new Map(),sent=[];let observe,disconnected=false,reload,helpText='';
  const source={postMessage:(data,origin)=>sent.push({data,origin})};
  class Element{constructor(tag){this.tag=tag;this.children=[];this.isConnected=true;this.style={};this.contentWindow=tag==='iframe'?source:null;}append(n){this.children.push(n);}setAttribute(){}remove(){this.isConnected=false;}}
- const document={documentElement:{dataset:{resolvedTheme:'dark',textSize:'largest'}},createElement:t=>new Element(t)};
+ const document={documentElement:{dataset:{resolvedTheme:'dark',textSize:'xlarge'}},createElement:t=>new Element(t)};
  const help=new Element('details'),container=new Element('div');
  const root={document,URL,Date,Intl,crypto:require('node:crypto').webcrypto,location:{origin:'https://joho.kaijo.ed.jp'},
   setTimeout:(f,n)=>{timers.set(n,f);return n;},clearTimeout:n=>timers.delete(n),
   addEventListener:(k,f)=>events.set(k,f),removeEventListener:k=>events.delete(k),
   MutationObserver:class{constructor(f){observe=f;}observe(){}disconnect(){disconnected=true;}},
-  HtmlEditorDownload:{gasOrigin:o=>o==='https://script.googleusercontent.com',withinFrame:(s,w)=>s===w,
+  HtmlEditorDownload:{legacyAppearance:require('../download.js').legacyAppearance,gasOrigin:o=>o==='https://script.googleusercontent.com',withinFrame:(s,w)=>s===w,
    loginHelp:(host,fn)=>{host.append(help);reload=fn;return {element:help,say:t=>helpText=t};}}};root.top=root;
  vm.createContext(root);vm.runInContext(sourceText,root);
  const controller=new AbortController(),request={targetId:'html14-01',identity:'synthetic-identity-not-in-url'};

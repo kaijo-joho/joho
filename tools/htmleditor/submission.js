@@ -90,7 +90,7 @@
         source.postMessage({channel:CHANNEL,type:'connect',bridge,targetId,
           layout:'integrated-v1',fileTransfer:transfer ? TRANSFER : '',
           localFeedback:localComplete ? 'complete-v1' : '',
-          theme:document.documentElement.dataset.resolvedTheme,fontSize:document.documentElement.dataset.textSize}, event.origin);
+          ...root.HtmlEditorDownload.legacyAppearance(document)}, event.origin);
         return;
       }
       if (event.source !== source || event.origin !== sourceOrigin) return;

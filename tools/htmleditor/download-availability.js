@@ -42,8 +42,7 @@ function bridge({container,url,request,signal}){
   function cancel(){const error=Error('download_canceled');error.name='AbortError';finish(error);}
   function appearance(type='appearance'){
    if(source)source.postMessage({channel:CHANNEL,bridge:bridgeId,type,nonce,
-    theme:document.documentElement.dataset.resolvedTheme || document.documentElement.dataset.theme,
-    fontSize:document.documentElement.dataset.textSize,...(type==='connect'?request:{})},sourceOrigin);
+    ...root.HtmlEditorDownload.legacyAppearance(document),...(type==='connect'?request:{})},sourceOrigin);
   }
   const observer=typeof root.MutationObserver==='function'?new root.MutationObserver(()=>appearance()):null;
   observer?.observe(document.documentElement,{attributes:true,attributeFilter:['data-resolved-theme','data-theme','data-text-size']});
