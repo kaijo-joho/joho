@@ -91,12 +91,14 @@
 .code-example-menu-panel [aria-pressed="true"] { background: color-mix(in srgb, var(--theme-color, #225386) 12%, transparent); }
 
 html body pre[data-code-example-enhanced="true"] {
-  padding-top: max(var(--code-pad, .8em), 2.75rem);
+  /* Reserve only a right-hand gutter; do not add a row above the source. */
+  padding-right: calc(var(--code-pad, .8em) + 44px);
   font-size: calc(var(--code-font-size, 1rem) * var(--code-example-scale, 1));
   line-height: var(--code-example-line-height, var(--site-code-line-height, 1.7)) !important;
 }
 
 html body pre[data-code-example-enhanced="true"] code {
+  overflow-x: auto;
   font-size: inherit !important;
   line-height: inherit !important;
 }
@@ -134,6 +136,7 @@ html.code-example-modal-open { overflow: hidden; overflow-anchor: none; }
   .code-example-tools,
   .code-example-menu-panel,
   .code-example-dialog { display: none !important; }
-  html body pre[data-code-example-enhanced="true"] { padding-top: var(--code-pad, .8em); }
+  html body pre[data-code-example-enhanced="true"] { padding-right: var(--code-pad, .8em); }
+  html body pre[data-code-example-enhanced="true"] code { overflow: visible; }
   html.code-example-modal-open { overflow: auto; }
 }

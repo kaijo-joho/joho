@@ -46,6 +46,17 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
             node.previousElementSibling?.classList.contains('code-example-tools');
         }), 'code remains directly joined to its result');
       };
+      const assertNoExtraTop = async () => {
+        assert.ok(await pre.evaluate(node => {
+          const enhancedPadding = parseFloat(getComputedStyle(node).paddingTop);
+          node.removeAttribute('data-code-example-enhanced');
+          const originalPadding = parseFloat(getComputedStyle(node).paddingTop);
+          node.dataset.codeExampleEnhanced = 'true';
+          const code = node.querySelector('code').getBoundingClientRect();
+          const button = node.previousElementSibling.querySelector('[data-action="menu"]').getBoundingClientRect();
+          return Math.abs(enhancedPadding - originalPadding) < .1 && code.right <= button.left - 2;
+        }), 'menu adds no top padding and keeps a separate right-hand gutter');
+      };
       const assertFits = async () => {
         assert.ok(await trigger.evaluate(node => {
           const button = node.getBoundingClientRect();
@@ -71,6 +82,7 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
 
       await trigger.scrollIntoViewIfNeeded();
       await assertJoined();
+      await assertNoExtraTop();
       await expect(menu).not.toBeVisible();
       await trigger.hover();
       await expect(menu).not.toBeVisible();
@@ -113,6 +125,7 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
             await openMenu('keyboard');
             await assertFits();
             await assertJoined();
+            await assertNoExtraTop();
             if (!fallback && width === 390 && textScale === 100 && theme !== 'system') {
               await page.screenshot({ path: path.join(output, `${engine}-390-menu-${theme}.png`) });
             }
@@ -120,6 +133,7 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
           }
         }
       }
+      await page.setViewportSize({ width: 390, height: 844 });
       await page.evaluate(() => siteDisplaySettings.reset({ persist: false }));
       await trigger.scrollIntoViewIfNeeded();
       if (!fallback) await snapshotPair('390-code-closed');
@@ -155,6 +169,24 @@ for (const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split('
         return result.matches('.result') && Math.abs(node.getBoundingClientRect().bottom - result.getBoundingClientRect().top) < 1 &&
           getComputedStyle(node).borderBottomLeftRadius === '0px' && getComputedStyle(result).borderTopLeftRadius === '0px';
       })), 'normal/example/error code and pre/div results retain their joined geometry');
+
+      assert.ok(await page.evaluate(() => {
+        const fixture = document.createElement('pre'); fixture.className = 'python example';
+        fixture.dataset.syntaxHighlighted = 'true';
+        const token = document.createElement('span'); token.className = 'token-string'; token.textContent = 'long_code_' + 'x'.repeat(300);
+        fixture.append(token); document.querySelector('section article').append(fixture);
+        const source = fixture.textContent;
+        siteCodeExamples.enhance(fixture); siteCodeExamples.enhance(fixture);
+        const code = fixture.querySelector('code');
+        fixture.dataset.codeExampleWrap = 'false';
+        const scrollable = code.scrollWidth > code.clientWidth && fixture.scrollWidth <= fixture.clientWidth;
+        code.scrollLeft = code.scrollWidth;
+        const scrolled = code.scrollLeft > 0;
+        fixture.dataset.codeExampleWrap = 'true';
+        const wrapped = code.scrollWidth <= code.clientWidth + 1 && fixture.scrollWidth <= fixture.clientWidth;
+        return source === fixture.textContent && token.parentNode === code && fixture.querySelectorAll('code').length === 1 &&
+          scrollable && scrolled && wrapped;
+      }), 'legacy PRE tokens are preserved; long lines scroll/wrap inside the code viewport, not behind the menu');
 
       // Existing FAQ/other dialogs must remain open; nested enlargement is not offered.
       await page.evaluate(() => {

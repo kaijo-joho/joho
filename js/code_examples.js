@@ -374,6 +374,12 @@
       const code = getCode(pre);
       if (!SUPPORTED_LANGUAGES.has(getLanguage(pre, code))) return;
       if (pre.dataset.syntaxHighlighted !== 'true') return;
+      if (code === pre) {
+        // 旧形式のPREも同じスクロール領域に揃える。本文・トークンは移すだけで再生成しない。
+        const content = document.createElement('code');
+        content.append(...pre.childNodes);
+        pre.append(content);
+      }
       pre.dataset.codeExampleEnhanced = 'true';
       buildToolbar(pre);
     });
