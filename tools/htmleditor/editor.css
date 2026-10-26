@@ -387,13 +387,15 @@ body:not(.has-document) #splitRight { display: none !important; }
 
 /* スプリッター（境界線のドラッグバー） */
 .splitter {
-  width: 6px;
+  width: 10px;
   cursor: col-resize;
   background: var(--bg);
   transition: background 0.15s;
   flex: none;
   z-index: 10;
   position: relative;
+  touch-action: none;
+  user-select: none;
 }
 
 .splitter:hover, .splitter.active {
@@ -411,6 +413,15 @@ body:not(.has-document) #splitRight { display: none !important; }
   background: var(--muted);
   border-radius: 1px;
 }
+.splitter-arrow {
+  position: absolute; top: calc(50% + 22px); left: 0; width: 100%;
+  color: var(--text); font: 700 19px/1 sans-serif; text-align: center;
+  pointer-events: none;
+}
+.splitter[data-collapsed="true"] { background: var(--accent-soft); }
+.splitter[data-collapsed="true"]::after { background: var(--accent); }
+body.pane-resizing, body.pane-resizing * { cursor: col-resize !important; user-select: none !important; }
+body.pane-resizing iframe { pointer-events: none; }
 
 /* ペインヘッダー */
 .pane-header {
@@ -483,12 +494,8 @@ body:not(.has-document) #splitRight { display: none !important; }
 body.mode-free #lessonIframe { display: none; }
 body.mode-free #fileTreeContainer { display: block; }
 
-/* 左ペイン折りたたみ */
-body.left-collapsed #leftPane {
-  display: none !important;
-}
-
-body.left-collapsed #splitLeft {
+/* パネルを閉じても復帰用の境界は残す。iframe・文書は作り直さない。 */
+body.left-collapsed #leftPane, body.right-collapsed #rightPane {
   display: none !important;
 }
 
@@ -780,7 +787,7 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
   #workspace { width: 100%; }
   #mainContainer .pane { display: none !important; width: 100% !important; min-width: 0; flex: 1 !important; }
   body[data-pane="left"] #leftPane, body[data-pane="center"] #centerPane, body[data-pane="right"] #rightPane { display: flex !important; }
-  #toggleLessonBtn { display: none; }
+  #toggleLessonBtn, #togglePreviewBtn { display: none; }
 }
 /* アイコンと操作名は省略しない。アプリ名を先に縮める。 */
 #workspace { container-type: inline-size; }
@@ -803,6 +810,7 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
 }
 @media (pointer: coarse) {
   #toolbar .btn { min-height: 44px; min-width: 44px; }
+  .splitter { width: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }

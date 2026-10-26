@@ -26,6 +26,14 @@
 .html-practice-embedded #page_header p:has(+ .html-practice-list) {
   display: none !important;
 }
+/* 細い解説列では、通常教材の重なった左右余白だけを圧縮する。 */
+html.html-practice-embedded {
+  --content-gutter: 8px;
+  --card-pad: 10px;
+  --code-width: 100%;
+}
+html.html-practice-embedded section pre { width: 100%; padding: 8px; }
+html.html-practice-embedded section pre code.hljs { padding-inline: 0; }
 #htmlPracticeEntry :is(a,button):focus-visible {
   outline: 3px solid var(--theme-color, #225386); outline-offset: 2px;
 }

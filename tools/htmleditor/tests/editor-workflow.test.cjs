@@ -123,6 +123,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     },
     HtmlLessons:{LESSONS:[]}, pages:{}, htmlPracticeLinks:{},
     JohoUI:{theme() {}, tooltip() {}}, JohoToolHelp:{create() {}},
+    HtmlEditorLayout:{mount:() => ({refresh() {}, toggle() {}, setCollapsed() {}, reset() {}})},
     addEventListener:(name, fn) => { (windowEvents.get(name) || windowEvents.set(name, []).get(name)).push(fn); }
   };
   context.window = context;

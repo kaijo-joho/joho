@@ -11,7 +11,7 @@
   let cm, fs, preview, recovery, doc, selectedLesson, navigation, busy = false, replacing = false;
   let autoTimer, toastTimer, issuedMarker = null, submissionPanel = null;
   let folderMemory = null, rememberedFolder = null, folderMemoryIssue = '';
-  let localDownloads=null, updateFileIdentity=()=>{};
+  let localDownloads=null, updateFileIdentity=()=>{}, paneLayout=null;
   let diagnostics = null, hintUsage = null;
   const editable = path => /\.(html?|css)$/i.test(path);
   const content = () => cm.getValue();
@@ -71,6 +71,7 @@
       'このブラウザでは上書き保存できません。「保存」からコピーをダウンロードできます。画像の確認にはフォルダ全体を読み込みます。';
     updateSubmission();
     updateFileIdentity();
+    paneLayout?.refresh();
   }
   const catalogState = () => window.HtmlEditorStartup.catalogState();
   function preparationState() {
@@ -668,29 +669,17 @@
     document.body.dataset.pane = name;
     document.querySelectorAll('[data-pane]').forEach(node => { if (node.tagName === 'BUTTON') node.setAttribute('aria-pressed', String(node.dataset.pane === name)); });
     if (name === 'left') {
-      document.body.classList.remove('left-collapsed');
-      $('toggleLessonBtn').setAttribute('aria-pressed', 'false');
-      $('toggleLessonBtn').textContent = 'エディタを広く表示';
+      paneLayout?.setCollapsed('left', false);
     }
+    if (name === 'right') paneLayout?.setCollapsed('right', false);
     requestAnimationFrame(() => cm.refresh());
   }
   function initSplitters() {
-    for (const [id, paneId, sign] of [['splitLeft','leftPane',1],['splitRight','rightPane',-1]]) {
-      const splitter = $(id), pane = $(paneId);
-      let x = null;
-      function move(delta) {
-        const maximum = id === 'splitLeft' ? $('mainContainer').clientWidth * .5 : $('editingPanes').clientWidth - 186;
-        const width = Math.max(id === 'splitLeft' ? 220 : 180, Math.min(maximum, pane.offsetWidth + delta * sign));
-        pane.style.width = width + 'px'; pane.style.flex = 'none'; cm.refresh();
-      }
-      splitter.addEventListener('pointerdown', event => { event.preventDefault(); x = event.clientX; splitter.setPointerCapture(event.pointerId); });
-      splitter.addEventListener('pointermove', event => { if (x === null) return; move(event.clientX - x); x = event.clientX; });
-      for (const name of ['pointerup','pointercancel','lostpointercapture']) splitter.addEventListener(name, () => { x = null; });
-      splitter.addEventListener('keydown', event => {
-        if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
-        event.preventDefault(); move(event.key === 'ArrowLeft' ? -20 : 20);
-      });
-    }
+    let storage = null;
+    try { storage = window.localStorage; } catch { /* 記憶できなくても列の操作は利用できる。 */ }
+    paneLayout = window.HtmlEditorLayout.mount({document, window, storage,
+      onChange:() => { cm.refresh(); positionNotice(); },
+      onStorageError:() => notify('列配置を記憶できませんでした。今回の表示・編集・保存は続けられます。', 'warning')});
   }
   function closeMenus(trigger = document.activeElement) {
     const owner = trigger?.closest('.menu-wrap[open]');
@@ -791,10 +780,11 @@
     $('findErrorsBtn').addEventListener('click', findErrors);
     $('openPreviewTabBtn').addEventListener('click', () => { if (doc && !busy) { runPreview(); preview.openInNewTab(); } });
     $('toggleLessonBtn').addEventListener('click', event => {
-      const collapsed = document.body.classList.toggle('left-collapsed');
-      event.currentTarget.setAttribute('aria-pressed', String(collapsed));
-      event.currentTarget.textContent = collapsed ? '解説とエディタを並べて表示' : 'エディタを広く表示';
-      closeMenus(event.currentTarget); cm.refresh();
+      paneLayout.toggle('left'); closeMenus(event.currentTarget);
+    });
+    $('togglePreviewBtn').addEventListener('click', event => { paneLayout.toggle('right'); closeMenus(event.currentTarget); });
+    $('resetLayoutBtn').addEventListener('click', event => {
+      paneLayout.reset(); closeMenus(event.currentTarget); notify('列配置を初期値に戻しました。編集内容や接続先は変更していません。');
     });
     document.querySelectorAll('#paneNav button').forEach(button => button.addEventListener('click', () => setPane(button.dataset.pane)));
     document.addEventListener('click', event => { if (!event.target.closest('.menu-wrap')) closeMenus(); });

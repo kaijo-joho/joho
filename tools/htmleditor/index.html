@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-download-start-20261020-r1">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-layout-20261026-r1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-v3-20261002-enabled" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
   <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-v3-20261002-enabled" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
   <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
-  <link rel="stylesheet" href="editor.css?v=html-checkpoints-20261019-r2" data-editor-required integrity="sha384-rX6TDZlVHGiPV97+N+jX1kRG9s4xdSmL+S0rM3DwyfJYzHS9IG1oh6uQCTrXpUcW" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-editor-layout-20261026-r1" data-editor-required integrity="sha384-mCX3jnlU4ZokjyD44PSF4TWlOrkUqCsHkC3llEDC9leWCbIwvuLfcqmZzpPfR+oZ" crossorigin="anonymous">
   <link rel="stylesheet" href="feedback.css?v=html-feedback-ui-20261019-r1" integrity="sha384-Ov5wZ7lOrI+NZAc5XSoXa3+aK9Po+xzt9s8nQGwdld02fJQQ1Vg/MJ8L50I9OmKw" crossorigin="anonymous">
 </head>
 <body class="mode-lesson" data-pane="center">
@@ -51,7 +51,7 @@
       <p id="lessonNotice" hidden></p>
       <div id="leftPaneContent"><iframe id="lessonIframe" title="教材ページビューア"></iframe></div>
     </section>
-    <div class="splitter" id="splitLeft" role="separator" aria-label="教材と編集領域の幅" aria-orientation="vertical" tabindex="0"></div>
+    <div class="splitter" id="splitLeft" role="separator" aria-label="解説を折りたたむ。左右矢印キーで幅を調整" aria-controls="leftPane" aria-orientation="vertical" tabindex="0"><span class="splitter-arrow" aria-hidden="true">‹</span></div>
     <section id="workspace" aria-label="HTML・CSSの編集">
   <header id="toolbar" aria-label="エディタの操作">
     <a class="brand" href="../index.html" aria-label="ツール一覧へ戻る"><img class="brand-icon" src="icon.svg" alt=""><span>HTMLエディタ</span></a>
@@ -62,9 +62,11 @@
     <div class="practice-support-actions" role="group" aria-label="手順と表示">
     <button class="btn" id="practiceStepsBtn" type="button" data-tip="フォルダ接続・取得・編集・保存・提出の手順を確認します。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M2 5l1 1 2-3M2 12l1 1 2-3M2 19l1 1 2-3"/></svg><span>手順</span></button>
     <details class="menu-wrap" id="viewMenu">
-      <summary class="btn" data-tip="エディタを広く表示したり、解説を別タブで開いたりします。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM9 4v16"/></svg><span>表示</span></summary>
+      <summary class="btn" data-tip="解説・プレビューを開閉し、列配置を初期値に戻せます。解説を別タブで開くこともできます。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM9 4v16"/></svg><span>表示</span></summary>
       <div class="menu-dropdown">
-        <button class="menu-item" id="toggleLessonBtn" type="button" aria-pressed="false">エディタを広く表示</button>
+        <button class="menu-item" id="toggleLessonBtn" type="button" aria-pressed="false">解説を折りたたむ</button>
+        <button class="menu-item" id="togglePreviewBtn" type="button" aria-pressed="false">プレビューを折りたたむ</button>
+        <button class="menu-item" id="resetLayoutBtn" type="button" data-tip="列幅と開閉だけを初期値に戻します。編集内容や本人情報、接続先は変更しません。">列配置を初期値に戻す</button>
         <a class="menu-item" id="lessonOnlyLink" target="_blank" rel="noopener noreferrer">解説を別タブで開く</a>
       </div>
     </details>
@@ -130,7 +132,7 @@
       <p id="hintNotice" hidden></p>
       <div id="editorContainer"><textarea id="codeEditor" aria-label="HTML・CSSコード"></textarea></div>
     </section>
-    <div class="splitter" id="splitRight" role="separator" aria-label="コードとプレビューの幅" aria-orientation="vertical" tabindex="0"></div>
+    <div class="splitter" id="splitRight" role="separator" aria-label="プレビューを折りたたむ。左右矢印キーで幅を調整" aria-controls="rightPane" aria-orientation="vertical" tabindex="0"><span class="splitter-arrow" aria-hidden="true">›</span></div>
     <section class="pane" id="rightPane" aria-label="プレビュー">
       <div class="pane-header"><div class="pane-header-content"><div class="preview-heading"><div class="pane-title">プレビュー</div><span id="previewTitle" hidden></span></div><div class="pane-actions">
         <button class="btn icon-only" id="runBtn" type="button" aria-label="プレビューを更新" data-tip="プレビューのみを更新します（⌘Enter）。Macのファイルには保存しません。" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.364-6.364L21 8.272m0-4v4h-4M21 12a9 9 0 0 1-15.364 6.364L3 15.728m0 4v-4h4"/></svg></button>
@@ -184,6 +186,12 @@
     <p>ブラウザの控えはクラウドバックアップではありません。データ消去・プロファイル変更・容量不足では控えを失うことがあります。作業の終わりにはファイルへ保存し、画像も含むフォルダ全体をバックアップしてください。</p>
     <details><summary>保存できない・違う内容を開いてしまったとき</summary><p>編集内容が残っていれば、まずダウンロードして控えを確保します。保存を取り消した場合や保存エラーでは、そのまま編集を続けられます。復元する場合は、自動保存と明示保存の日時を見比べて選んでください。学校へ提出済みのHTMLは提出画面から取得できますが、未提出の変更や画像一式の控えにはなりません。</p></details>
   </section>
+  <section data-help-topic="layout" data-help-title="表示と列の配置">
+    <h3>表示と列の配置</h3>
+    <p>編集領域の左の境界線をクリックすると解説を、右の境界線をクリックするとプレビューを開閉できます。閉じた後も細い境界線が残り、もう一度クリックすると直前の幅へ戻ります。左右とも閉じると、編集領域だけを広く使えます。</p>
+    <p>境界線のドラッグで幅を調整し、端まで寄せると完全に折りたためます。列幅と開閉状態はこのブラウザに記憶します。「表示」→「列配置を初期値に戻す」は配置だけを戻し、編集内容・本人情報・フォルダ接続は変更しません。</p>
+    <p>狭い画面では上部の「解説／コード／プレビュー」で切り替えます。解説に埋め込んだ通常の教材ページでは、学校名のヘッダーを残しながら左右の余白を少なくしています。</p>
+  </section>
   <section data-help-topic="preview" data-help-title="画像・CSS・リンク">
     <h3>画像・CSS・リンク</h3>
     <p>画像や別ファイルのCSSを使うときは、フォルダ全体を読み込みます。<code>images/photo.jpg</code>はHTMLのある場所からの相対パスです。読み込んだフォルダ外は参照できません。</p>
@@ -211,11 +219,11 @@
   <section data-help-topic="shortcuts" data-help-title="ショートカット">
     <h3>ショートカット</h3>
     <p>Command+S：保存・プレビュー更新、Command+O：ファイルを開く、Command+Enter：プレビュー更新。WindowsではCommandをCtrlに読み替えます。</p>
-    <p>幅の境界線にTabで移動し、左右キーでもペイン幅を調整できます。未保存確認はEscapeでキャンセルできます。</p>
+    <p>幅の境界線にTabで移動し、Enter／Spaceで開閉、左右キーで幅を調整できます。Homeで閉じ、外へ広げる矢印キーでも再表示できます。未保存確認はEscapeでキャンセルできます。</p>
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.9.8（2026年10月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>HTMLエディタ 0.10.0（2026年10月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
     <p>通常の編集はこの端末とブラウザで処理します。「提出」を押すと、保存確認済みの内容をモーダル内の学校アカウント用フォームへ渡します。提出記録の作成は、フォーム内の「提出する」を押したときだけです。ログインや表示がうまくいかない場合は「表示・ログインで困ったとき」から「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
@@ -257,6 +265,7 @@
 <script src="preview.js?v=html-preview-local-feedback-20261017" data-editor-required integrity="sha384-DXU1kP7mHiTdKDsk4vh1QfLCzfCtsW/ci/Fli4Q5dIshsZR0d169Ze7bBqBDEyhv" crossorigin="anonymous"></script>
 <script src="onboarding.js?v=html-editor-onboarding-guide-20261016" data-editor-required integrity="sha384-1wpU/42emmfLcuGx2FSev2ERHgOXKd0MahTbNGDssi+Hx1UPSveOptJMhxwuzu+5" crossorigin="anonymous"></script>
 <script src="clipboard.js?v=html-editor-copy-status-20261008" data-editor-required integrity="sha384-pIZWyXvpzypp+4Phg7thVMcAANiPEi74SXZCQAP8w8XspUx+5xaNfKsA3/IThSAc" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-download-start-20261020-r1" data-editor-required integrity="sha384-BoUfM54wq4bhxruRnRCMjoM60Do3WUZKV8RVrc7gduFuHC5+CFU5TD0taTL+Smqz" crossorigin="anonymous"></script>
+<script src="layout.js?v=html-editor-layout-20261026-r1" data-editor-required integrity="sha384-csRTSr5/UXGn3iE3qsVjgqRpXLjlyKpL0+uUsmxgk01NFZ2sME6qN3Te/q7Bh6aW" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-editor-layout-20261026-r1" data-editor-required integrity="sha384-3ba4h0JHdKbP4ZyqSbgGUwt4dC8iNBvl6IQ5F5S034McGGwyJ5N+B0im6WMY9/BH" crossorigin="anonymous"></script>
 </body>
 </html>
