@@ -142,10 +142,11 @@ test('iframe reading position survives collapse, but late restoration never scro
   assert.deepEqual(scrolls,[{left:12,top:700,behavior:'instant'}]);
   const queue=[];h.window.requestAnimationFrame=callback=>queue.push(callback);
   frame.contentWindow.scrollY=900;pointerClick(h);pointerClick(h);
-  frame.contentDocument={};queue.splice(0).forEach(callback=>callback());
+  const flush=()=>{while(queue.length)queue.splice(0).forEach(callback=>callback());};
+  frame.contentDocument={};flush();
   assert.equal(scrolls.length,1);
   frame.contentWindow.scrollY=400;pointerClick(h);pointerClick(h);h.instance.dispose();
-  queue.splice(0).forEach(callback=>callback());assert.equal(scrolls.length,1);
+  flush();assert.equal(scrolls.length,1);
 });
 
 test('sub-five-pixel pointer jitter toggles; five pixels starts resizing and persists on pointerup', () => {
@@ -184,6 +185,16 @@ test('vertical or diagonal drag is never treated as a click and small horizontal
     pointer(bar,'pointerdown',{x:100,y:0}); pointer(bar,'pointermove',{x,y}); pointer(bar,'pointerup',{x,y});
     assert.deepEqual(h.instance.state,before);
     assert.equal(h.instance.state.leftCollapsed,false);
+  }
+});
+test('after a horizontal drag, returning within the initial threshold still applies the final pointer position', () => {
+  for(const side of ['left','right']) {
+    const h=fixture(),bar=h.nodes[side==='left'?'splitLeft':'splitRight'],pane=h.nodes[side+'Pane'];
+    const before=pane.getBoundingClientRect().width,sign=side==='left'?1:-1;
+    pointer(bar,'pointerdown',{x:100});pointer(bar,'pointermove',{x:180});pointer(bar,'pointermove',{x:102});pointer(bar,'pointerup',{x:102});
+    assert.equal(h.instance.state[side+'Collapsed'],false);
+    assert(Math.abs(pane.getBoundingClientRect().width-(before+2*sign))<.1);
+    assert.equal(h.calls.set.length,1);
   }
 });
 test('Escape cancels an active drag without saving and aria-valuetext includes the current width', () => {

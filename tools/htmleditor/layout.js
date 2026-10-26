@@ -138,7 +138,7 @@
         if (gesture || compact() || event.button !== 0 || event.isPrimary === false) return;
         event.preventDefault(); control.bar.focus({preventScroll:true});
         gesture = {side, bar:control.bar, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY || 0,
-          width:state[side + 'Collapsed'] ? 0 : control.pane.getBoundingClientRect().width, before:{...state}, dragged:false};
+          width:state[side + 'Collapsed'] ? 0 : control.pane.getBoundingClientRect().width, before:{...state}, dragged:false, horizontal:false};
         try { control.bar.setPointerCapture(event.pointerId); } catch { /* 合成イベントにはcaptureがない。 */ }
       });
       listen(control.bar, 'pointermove', event => {
@@ -147,7 +147,8 @@
         if (Math.hypot(delta, (event.clientY || 0) - gesture.startY) >= 5) gesture.dragged = true;
         if (!gesture.dragged) return;
         body.classList.add('pane-resizing');
-        if (Math.abs(delta) >= 5) resize(side, gesture.width + delta * control.sign);
+        if (Math.abs(delta) >= 5) gesture.horizontal = true;
+        if (gesture.horizontal) resize(side, gesture.width + delta * control.sign);
       });
       listen(control.bar, 'pointerup', event => finish(event));
       listen(control.bar, 'pointercancel', event => finish(event, true));

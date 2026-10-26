@@ -139,6 +139,13 @@ try {
   await dragBar('#splitRight', -290);
   assert.equal(await page.locator('#rightPane').isVisible(), true);
   check('drag resizes without click-toggle; edge drag folds and outward drag restores');
+  for(const [barId,paneId,sign] of [['#splitLeft','#leftPane',1],['#splitRight','#rightPane',-1]]){
+    const bar=await page.locator(barId).boundingBox(),before=(await page.locator(paneId).boundingBox()).width;
+    const x=bar.x+bar.width/2,y=bar.y+140;
+    await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+80,y,{steps:8});await page.mouse.move(x+2,y,{steps:8});await page.mouse.up();
+    assert(Math.abs((await page.locator(paneId).boundingBox()).width-(before+2*sign))<2);
+  }
+  check('out-and-back horizontal dragging applies the final position even inside the original click threshold');
   await page.locator('#splitLeft').focus(); await page.keyboard.press('Enter');
   assert.equal(await page.locator('#leftPane').isVisible(), false);
   await page.keyboard.press('ArrowRight');
