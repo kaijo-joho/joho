@@ -12,7 +12,7 @@ const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 class Node {
   constructor(tag = 'div') {
     this.tagName = tag.toUpperCase(); this.children = []; this.listeners = new Map();
-    this.style = {display:'', setProperty() {}}; this.dataset = {}; this.hidden = false;
+    this.style = {display:'', setProperty(key, value) { this[key] = value; }}; this.dataset = {}; this.hidden = false;
     this.disabled = false; this.open = false; this.value = ''; this.textContent = '';
     this.className = ''; this.files = []; this.isConnected = true;
     this.classList = {toggle() {}, add() {}, remove() {}};
@@ -39,13 +39,13 @@ class Node {
   close() { this.open = false; }
 }
 
-function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false, v3=false, localDownloads=null, failWrite=false, failReadAfterWrite=false, nativePicker=true, recoveryFaults={}} = {}) {
+function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false, v3=false, localDownloads=null, failWrite=false, failReadAfterWrite=false, nativePicker=true, recoveryFaults={}, sharedDisplay=null} = {}) {
   const nodes = Object.fromEntries([...htmlIds].map(id => [id, new Node()]));
   nodes.app = new Node(); nodes.actionDialog = new Node('dialog');
   nodes.recoveryWarning.hidden = true; nodes.recoveryState.hidden = true;
   const documentEvents = new Map();
   const document = {
-    body:new Node('body'), activeElement:null,
+    body:new Node('body'), documentElement:new Node('html'), activeElement:null,
     getElementById:id => {
       if (!nodes[id]) throw Error(`index.html にない #${id} が参照されました`);
       return nodes[id];
@@ -118,6 +118,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     HtmlEditorOnboarding:{assess:() => ({active:false, ready:false, steps:[], message:''})},
     HtmlEditorStartup:{ready:() => true, catalogState:() => 'ready', fail() { throw Error('startup failed'); }},
     HtmlEditorNavigationMount:options => {
+      calls.navigationOptions = options;
       options.onSelect({lessonId:'html11', taskId:'', hash:''});
       return {selection:{lessonId:'html11', taskId:''}, navigate(value) { options.onSelect(value); }, request:async () => {}};
     },
@@ -127,6 +128,25 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     addEventListener:(name, fn) => { (windowEvents.get(name) || windowEvents.set(name, []).get(name)).push(fn); }
   };
   context.window = context;
+  if (sharedDisplay) {
+    const data = new Map(sharedDisplay.legacy ? [['joho.htmleditor.ui.v1', JSON.stringify(sharedDisplay.legacy)]] : []);
+    data.set('unrelated','keep');
+    context.localStorage = {getItem:key => data.get(key) ?? null, setItem:(key,value) => data.set(key,value)};
+    const state = {version:1,textScale:117,textSize:'large',codeWrap:false,codeWrapExplicit:false,lineSpacing:'standard',theme:'dark',resolvedTheme:'dark',...sharedDisplay.state};
+    const api = {
+      version:1,getState:() => ({...state}),hasStoredPreferences:() => sharedDisplay.stored !== false,
+      setContext() { if (!state.codeWrapExplicit) state.codeWrap = true; },
+      setPreferences(patch) {
+        Object.assign(state,patch);
+        state.textSize = state.textScale >= 115 ? 'xlarge' : state.textScale > 105 ? 'large' : 'standard';
+        for (const listener of documentEvents.get('joho:display-settings-change') || []) listener({detail:{state:{...state}}});
+      },
+      reset() { this.setPreferences({textScale:100,lineSpacing:'standard',theme:'system',codeWrap:true,codeWrapExplicit:false}); }
+    };
+    context.siteDisplaySettings = api;
+    context.siteDisplaySettingsUI = {createPanel:() => sharedDisplay.noPanel ? null : {element:new Node()}};
+    calls.sharedDisplay = {api,data,root:document.documentElement};
+  }
   if (nativePicker) context.showOpenFilePicker = async options => {
     calls.pickers.push(options);
     if (picker.mode === 'cancel') throw Object.assign(Error('picker canceled'), {name:'AbortError'});
@@ -157,6 +177,48 @@ test('プレビューのtitleはテキスト表示し、未設定・構造不足
   app.calls.previewOptions.onTitle('');
   assert.equal(app.nodes.previewTitle.textContent, '');
   assert.equal(app.nodes.previewTitle.hidden, true);
+});
+
+test('共通表示パネルを再利用し、微調整値・行間を編集表示だけに適用する', async () => {
+  const app = makeHarness({remembered:false,sharedDisplay:{}}); await app.tick();
+  assert.equal(app.nodes.editorDisplaySettings.hidden,false);
+  assert.equal(app.nodes.legacyDisplaySettings.hidden,true);
+  assert.equal(app.calls.sharedDisplay.root.dataset.editorDisplay,'shared');
+  assert.equal(app.calls.sharedDisplay.root.style['--ui-size'],'17.4px');
+  app.calls.sharedDisplay.api.setPreferences({textScale:137,lineSpacing:'relaxed'});
+  assert.equal(app.calls.sharedDisplay.root.style['--ui-size'],'21.4px');
+  assert.equal(app.calls.sharedDisplay.root.style['--editor-code-line-height'],'1.9');
+  assert.equal(app.calls.writes,0); assert.equal(app.cm.value,'');
+});
+test('共通表示の保存値がない初回だけ旧設定を引継ぎ、初期値復帰後は古い表示を復活させない', async () => {
+  const app = makeHarness({remembered:false,sharedDisplay:{stored:false,legacy:{theme:'light',textSize:'largest'}}}); await app.tick();
+  assert.equal(app.calls.sharedDisplay.api.getState().textScale,120);
+  assert.equal(app.calls.sharedDisplay.api.getState().theme,'light');
+  app.calls.sharedDisplay.api.reset();
+  assert.deepEqual(JSON.parse(app.calls.sharedDisplay.data.get('joho.htmleditor.ui.v1')),{theme:'auto',textSize:'standard'});
+  assert.equal(app.calls.sharedDisplay.data.get('unrelated'),'keep');
+  assert.equal(app.calls.forget,0); assert.equal(app.calls.writes,0);
+  const existing = makeHarness({remembered:false,sharedDisplay:{legacy:{theme:'light',textSize:'largest'}}}); await existing.tick();
+  assert.equal(existing.calls.sharedDisplay.api.getState().textScale,117,'共通の微調整値を旧プリセットで上書きしない');
+});
+test('共通パネルだけが欠けても既存の表示選択と編集・保存の入口を残す', async () => {
+  const app = makeHarness({remembered:false,sharedDisplay:{noPanel:true}}); await app.tick();
+  assert.equal(app.nodes.legacyDisplaySettings.hidden,false);
+  assert.equal(app.nodes.displayNotice.hidden,false);
+  app.nodes.sizeSelect.value='large'; app.nodes.sizeSelect.dispatch('change');
+  assert.equal(app.calls.sharedDisplay.api.getState().textScale,110);
+  assert.equal(app.nodes.openFilesBtn.disabled,false);
+});
+test('例文の一時拡大は外側操作だけをinertにし、閉じると元の状態と読書位置へ戻す', async () => {
+  const app=makeHarness({remembered:false}); await app.tick();
+  const scroll=[];
+  app.nodes.lessonIframe.contentDocument={}; app.nodes.lessonIframe.contentWindow={scrollTo:(...args) => scroll.push(args)};
+  app.nodes.workspace.inert=false; app.nodes.paneNav.inert=true; app.nodes.splitLeft.inert=false;
+  app.calls.navigationOptions.onExampleExpanded({open:true,scrollX:0,scrollY:240});
+  assert.equal(app.nodes.workspace.inert,true); assert.equal(app.nodes.splitLeft.inert,true);
+  app.calls.navigationOptions.onExampleExpanded({open:false,scrollX:0,scrollY:240});
+  assert.equal(app.nodes.workspace.inert,false); assert.equal(app.nodes.paneNav.inert,true); assert.equal(app.nodes.splitLeft.inert,false);
+  assert.deepEqual(scroll,[[0,240]]); assert.equal(app.calls.writes,0); assert.equal(app.cm.value,'');
 });
 
 test('起動時は許可済みフォルダだけを再接続し、文書・復旧候補は自動で開かない', async () => {

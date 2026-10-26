@@ -27,7 +27,7 @@
   --ui-size: 14px;
 }
 
-:root[data-theme="dark"] {
+:root[data-theme="dark"], :root[data-editor-display="shared"][data-resolved-theme="dark"] {
   color-scheme: dark;
   --bg: #151b23;
   --panel: #1f2631;
@@ -57,6 +57,14 @@
 
 :root[data-text-size="large"] { --ui-size: 16px; }
 :root[data-text-size="largest"] { --ui-size: 18px; }
+:root[data-editor-display="shared"] .CodeMirror {
+  font-size: calc(13px * var(--site-text-scale, 1));
+  line-height: var(--editor-code-line-height, 1.6);
+}
+#editorDisplaySettings {
+  --ld-fg: var(--text); --ld-border: var(--line); --theme-color: var(--accent); --font-sans: var(--font-ui);
+}
+#editorDisplaySettings .site-display-settings__panel { width: 100%; padding: 0; }
 
 /* 端末内の確認とGASの受領は別表示。iframeの結果・受付状態を上書きしない。 */
 .local-grade-feedback { padding: 0 0 12px; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
@@ -858,6 +866,14 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
 .local-download-retry:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
 @media(pointer:coarse) { .local-download-retry { min-height:44px; } }
 .local-download-file p { overflow-wrap:anywhere; }
+/* 例文の拡大中だけ、所有する教材iframeを広げる。記憶した列配置は変更しない。 */
+body.lesson-example-expanded #leftPane {
+  display: flex !important; position: fixed; inset: 8px; z-index: 2400;
+  width: calc(100vw - 16px) !important; height: calc(100dvh - 16px);
+  border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow);
+}
+body.lesson-example-expanded::after { content: ''; position: fixed; inset: 0; z-index: 2399; background: rgb(0 0 0 / .4); }
+body.lesson-example-expanded #toast { display: none !important; }
 .local-download-file p[aria-busy="true"] { display:flex; align-items:center; gap:10px; }
 .local-download-file p[aria-busy="true"]::before { content:""; flex:none; width:18px; height:18px; border:3px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:download-spin .9s linear infinite; }
 @media(prefers-reduced-motion:reduce) { .local-download-file p[aria-busy="true"]::before { animation:none; } }

@@ -1,7 +1,7 @@
 // 教材選択だけの履歴。文書・保存先・Undo・本人用の配付情報には触れない。
 (function () {
   'use strict';
-  function mount({iframe, onSelect, onError, beforeVisit = async () => true, hasUnsaved = () => false, openExternal, onImage}) {
+  function mount({iframe, onSelect, onError, beforeVisit = async () => true, hasUnsaved = () => false, openExternal, onImage, onExampleExpanded = () => {}}) {
     const routes = window.HtmlEditorRouting.create(location.href);
     let current, frameLesson = '', loadingTimer, displayedDocument, displayedHash, displayedScrollY, keepReadingPosition = false;
     let readingDocument, observedScrollY = 0, visiting = false;
@@ -9,9 +9,37 @@
     const notice = document.getElementById('lessonNotice');
     const explanation = document.getElementById('lessonOnlyLink');
     const message = text => { notice.textContent = text; notice.hidden = !text; };
-    function theme() {
+    let syncingDisplay = false;
+    function displayPreferences(api) {
+      const state = api?.getState?.();
+      if (!state || state.version !== 1 || !Number.isInteger(state.textScale) || state.textScale < 90 || state.textScale > 150 ||
+        typeof state.codeWrap !== 'boolean' || typeof state.codeWrapExplicit !== 'boolean' ||
+        !['standard','relaxed'].includes(state.lineSpacing) || !['system','light','dark'].includes(state.theme)) return null;
+      return {textScale:state.textScale, codeWrap:state.codeWrapExplicit ? state.codeWrap : null,
+        lineSpacing:state.lineSpacing, theme:state.theme};
+    }
+    function syncDisplay(from, to, detail = {}) {
+      if (syncingDisplay || !from?.setPreferences || !to?.setPreferences) return;
+      const source = displayPreferences(from), target = displayPreferences(to);
+      if (!source || !target) return;
+      syncingDisplay = true;
+      try {
+        if (detail.source === 'reset') { to.reset?.({persist:false}); return; }
+        const force = detail.source === 'ui' && Array.isArray(detail.changed) ? detail.changed : [];
+        const patch = Object.fromEntries(Object.entries(source).filter(([key,value]) => value !== target[key] || force.includes(key)));
+        if (Object.keys(patch).length) to.setPreferences(patch, {persist:false, source:detail.source === 'ui' ? 'ui' : 'html-editor'});
+      } finally { syncingDisplay = false; }
+    }
+    function theme(detail) {
       try {
         const win = iframe.contentWindow;
+        const displayed = routes.fromLesson(win.location.href);
+        if (!displayed || displayed.selection.lessonId !== current?.lessonId) return;
+        if (window.siteDisplaySettings?.version === 1 && win.siteDisplaySettings?.version === 1) {
+          win.siteDisplaySettings.setContext({embeddedLesson:true});
+          syncDisplay(window.siteDisplaySettings, win.siteDisplaySettings, detail);
+          return;
+        }
         const preference = document.documentElement.dataset.theme || 'auto';
         const size = document.documentElement.dataset.textSize || 'standard';
         const sitePreference = preference === 'auto' ? 'system' : preference;
@@ -78,6 +106,7 @@
       document.title = window.HtmlEditorRouting.catalog.find(row => row.id === next.lessonId).title + ' — HTMLエディタ';
       onSelect(next);
       if (frameLesson !== next.lessonId) {
+        onExampleExpanded({open:false});
         frameLesson = next.lessonId; keepReadingPosition = false;
         readingDocument = null; displayedDocument = null; displayedHash = undefined;
         message('解説を読み込んでいます。');
@@ -145,6 +174,21 @@
       }
       frameDocument.addEventListener('click', followLink, true);
       frameDocument.addEventListener('auxclick', followLink, true);
+      frameDocument.addEventListener('joho:display-settings-change', event => {
+        // 所有中の教材だけ。古い文書・任意のpostMessage・表示プレビューは対象にしない。
+        if (iframe.contentDocument !== frameDocument || syncingDisplay) return;
+        try { syncDisplay(iframe.contentWindow.siteDisplaySettings, window.siteDisplaySettings, event.detail); }
+        catch { /* 任意の表示連携が失敗しても教材と編集中の文書を維持。 */ }
+      });
+      frameDocument.addEventListener('joho:code-example-expanded', event => {
+        if (iframe.contentDocument !== frameDocument) return;
+        const detail = event.detail;
+        if (!detail || typeof detail.open !== 'boolean' || !Number.isFinite(detail.scrollX) || !Number.isFinite(detail.scrollY)) return;
+        try {
+          const displayed = routes.fromLesson(frameDocument.URL);
+          if (displayed?.selection.lessonId === current.lessonId) onExampleExpanded({open:detail.open, scrollX:detail.scrollX, scrollY:detail.scrollY});
+        } catch { /* 現在の所有中教材だけに一時拡大を許可する。 */ }
+      });
     }
     function loaded() {
       try {
@@ -182,7 +226,8 @@
     }
     window.addEventListener('popstate', historyChanged);
     window.addEventListener('hashchange', historyChanged);
-    new MutationObserver(theme).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme','data-resolved-theme','data-text-size']});
+    new MutationObserver(() => theme()).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme','data-resolved-theme','data-text-size']});
+    document.addEventListener?.('joho:display-settings-change', event => { if (!syncingDisplay) theme(event.detail); });
     // 同一originの、現在の教材iframeだけから操作できる窓口。postMessageは受け付けない。
     window.HtmlEditorNavigation = Object.freeze({
       owns(win) { return win === iframe.contentWindow; },

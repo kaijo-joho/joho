@@ -59,9 +59,13 @@ function fixture({compact = false, hasDocument = true, stored = null, storageThr
   nodes.leftPane.width = 420;
   nodes.rightPane.width = 440;
   nodes.splitLeft.width = nodes.splitRight.width = 10;
+  const documentEvents = new FixtureNode('document');
   const document = {
     body, activeElement:null,
-    getElementById(id) { assert.ok(nodes[id], `missing fixture node: ${id}`); return nodes[id]; }
+    getElementById(id) { assert.ok(nodes[id], `missing fixture node: ${id}`); return nodes[id]; },
+    addEventListener:(...args) => documentEvents.addEventListener(...args),
+    removeEventListener:(...args) => documentEvents.removeEventListener(...args),
+    emit:(...args) => documentEvents.emit(...args)
   };
   const window = new FixtureNode('window');
   window.matchMedia = () => ({matches:compact});
@@ -81,8 +85,8 @@ function fixture({compact = false, hasDocument = true, stored = null, storageThr
   return {body, nodes, document, window, data, calls, instance, storage};
 }
 
-function pointer(node, type, {id = 7, x = 100, button = 0, isPrimary = true} = {}) {
-  return node.emit(type, {pointerId:id, clientX:x, button, isPrimary});
+function pointer(node, type, {id = 7, x = 100, y = 0, button = 0, isPrimary = true} = {}) {
+  return node.emit(type, {pointerId:id, clientX:x, clientY:y, button, isPrimary});
 }
 function pointerClick(h, side = 'left') {
   const bar = h.nodes[side === 'left' ? 'splitLeft' : 'splitRight'];
@@ -130,6 +134,20 @@ test('arrow keys resize by 20px in the side-specific direction and Home collapse
   assert.ok(h.instance.state.rightRatio > layout.defaults.rightRatio);
 });
 
+test('iframe reading position survives collapse, but late restoration never scrolls a replaced document', () => {
+  const h=fixture(), scrolls=[], frameDocument={}, frame={contentDocument:frameDocument,
+    contentWindow:{scrollX:12,scrollY:700,scrollTo:options=>scrolls.push(options)}};
+  h.nodes.leftPane.querySelector=selector=>selector==='iframe'?frame:null;
+  pointerClick(h); frame.contentWindow.scrollY=0; pointerClick(h);
+  assert.deepEqual(scrolls,[{left:12,top:700,behavior:'instant'}]);
+  const queue=[];h.window.requestAnimationFrame=callback=>queue.push(callback);
+  frame.contentWindow.scrollY=900;pointerClick(h);pointerClick(h);
+  frame.contentDocument={};queue.splice(0).forEach(callback=>callback());
+  assert.equal(scrolls.length,1);
+  frame.contentWindow.scrollY=400;pointerClick(h);pointerClick(h);h.instance.dispose();
+  queue.splice(0).forEach(callback=>callback());assert.equal(scrolls.length,1);
+});
+
 test('sub-five-pixel pointer jitter toggles; five pixels starts resizing and persists on pointerup', () => {
   const h = fixture();
   const bar = h.nodes.splitLeft;
@@ -158,6 +176,25 @@ test('dragging to the edge collapses and dragging outward from collapsed restore
   pointer(bar, 'pointermove', {id:8,x:250});
   assert.equal(h.instance.state.leftCollapsed, false);
   pointer(bar, 'pointerup', {id:8,x:250});
+});
+
+test('vertical or diagonal drag is never treated as a click and small horizontal jitter does not resize', () => {
+  for (const [x,y] of [[100,60],[102,60],[104,4]]) {
+    const h = fixture(), bar=h.nodes.splitLeft, before=h.instance.state;
+    pointer(bar,'pointerdown',{x:100,y:0}); pointer(bar,'pointermove',{x,y}); pointer(bar,'pointerup',{x,y});
+    assert.deepEqual(h.instance.state,before);
+    assert.equal(h.instance.state.leftCollapsed,false);
+  }
+});
+test('Escape cancels an active drag without saving and aria-valuetext includes the current width', () => {
+  const h=fixture(), bar=h.nodes.splitLeft, before=h.instance.state;
+  const text=bar.getAttribute('aria-valuetext');
+  pointer(bar,'pointerdown',{x:100}); pointer(bar,'pointermove',{x:250});
+  assert.notEqual(bar.getAttribute('aria-valuetext'),text);
+  assert.match(bar.getAttribute('aria-valuetext'),/\d+ピクセル/);
+  h.document.emit('keydown',{key:'Escape'}); pointer(bar,'pointerup',{x:250});
+  assert.deepEqual(h.instance.state,before); assert.equal(h.calls.set.length,0);
+  assert.equal(h.body.classList.contains('pane-resizing'),false);
 });
 
 test('pointercancel, lost capture, blur, and resize cancel a gesture back to its starting state without storage writes', () => {

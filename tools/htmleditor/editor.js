@@ -13,6 +13,7 @@
   let folderMemory = null, rememberedFolder = null, folderMemoryIssue = '';
   let localDownloads=null, updateFileIdentity=()=>{}, paneLayout=null;
   let diagnostics = null, hintUsage = null;
+  let expandedLesson = null;
   const editable = path => /\.(html?|css)$/i.test(path);
   const content = () => cm.getValue();
   const dirty = () => doc && content() !== doc.savedContent;
@@ -715,6 +716,74 @@
       });
     }
   }
+  function setupDisplay() {
+    const api = window.siteDisplaySettings;
+    if (api?.version === 1 && api.getState && api.setPreferences) {
+      // 共有設定がまだない場合だけ、従来のエディタ専用表示値を引き継ぐ。
+      try {
+        const legacy = JSON.parse(localStorage.getItem('joho.htmleditor.ui.v1'));
+        if (api.hasStoredPreferences?.() === false && legacy) {
+          const patch = {};
+          if (['auto','light','dark'].includes(legacy.theme)) patch.theme = legacy.theme === 'auto' ? 'system' : legacy.theme;
+          if (['standard','large','largest'].includes(legacy.textSize)) patch.textScale = {standard:100,large:110,largest:120}[legacy.textSize];
+          api.setPreferences(patch, {persist:false, source:'html-editor-legacy'});
+        }
+      } catch { /* 設定の記憶がなくても表示操作を利用できる。 */ }
+      api.setContext({embeddedLesson:true});
+      const apply = () => {
+        const state = api.getState(), root = document.documentElement;
+        const uiSize = 14 + (state.textScale - 100) * .2;
+        root.dataset.editorDisplay = 'shared';
+        root.style.setProperty('--ui-size', uiSize + 'px');
+        root.style.setProperty('--ui-k', String(uiSize / 14));
+        root.style.setProperty('--editor-code-line-height', state.lineSpacing === 'relaxed' ? '1.9' : '1.6');
+        $('themeSelect').value = state.theme === 'system' ? 'auto' : state.theme;
+        $('sizeSelect').value = state.textSize === 'xlarge' ? 'largest' : state.textSize;
+        // 旧UIへのフォールバックにも、リセット後の古い設定を再適用しない。
+        try {
+          const legacy = JSON.stringify({theme:$('themeSelect').value, textSize:$('sizeSelect').value});
+          if (localStorage.getItem('joho.htmleditor.ui.v1') !== legacy) localStorage.setItem('joho.htmleditor.ui.v1', legacy);
+        } catch { /* 表示の変更だけを継続する。 */ }
+        cm.refresh();
+      };
+      document.addEventListener('joho:display-settings-change', apply);
+      $('themeSelect').addEventListener('change', event => api.setPreferences({theme:event.target.value === 'auto' ? 'system' : event.target.value}, {source:'ui'}));
+      $('sizeSelect').addEventListener('change', event => api.setPreferences({textScale:{standard:100,large:110,largest:120}[event.target.value]}, {source:'ui'}));
+      try {
+        const panel = window.siteDisplaySettingsUI?.createPanel({idPrefix:'html-editor-display', controller:api});
+        if (!panel) throw Error('display panel unavailable');
+        $('editorDisplaySettings').append(panel.element);
+        $('editorDisplaySettings').hidden = false; $('legacyDisplaySettings').hidden = true;
+      } catch {
+        $('displayNotice').textContent = '表示パネルを読み込めませんでした。テーマと従来の文字サイズは変更できます。';
+        $('displayNotice').hidden = false;
+      }
+      apply();
+      return;
+    }
+    if (!window.JohoUI?.theme) throw Error('theme unavailable');
+    window.JohoUI.theme({storageKey:'joho.htmleditor.ui.v1', themeSelect:$('themeSelect'), sizeSelect:$('sizeSelect'), onChange:() => cm.refresh()});
+  }
+  function showLessonExample({open, scrollX, scrollY}) {
+    if (open && !expandedLesson) {
+      const hiddenControls = ['workspace','paneNav','splitLeft'].map(id => ({node:$(id), inert:$(id).inert}));
+      expandedLesson = {document:$('lessonIframe').contentDocument, hiddenControls};
+      hiddenControls.forEach(({node}) => { node.inert = true; });
+      document.body.classList.add('lesson-example-expanded');
+      return;
+    }
+    if (!open && expandedLesson) {
+      const previous = expandedLesson; expandedLesson = null;
+      previous.hiddenControls.forEach(({node,inert}) => { node.inert = inert; });
+      document.body.classList.remove('lesson-example-expanded');
+      paneLayout?.refresh();
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (!expandedLesson && $('lessonIframe').contentDocument === previous.document && Number.isFinite(scrollX) && Number.isFinite(scrollY)) {
+          $('lessonIframe').contentWindow.scrollTo(scrollX, scrollY);
+        }
+      }));
+    }
+  }
   function init() {
     fs = new window.HtmlFileSystem();
     try { recovery = window.HtmlEditorRecovery.create(localStorage); } catch { recovery = null; }
@@ -741,7 +810,7 @@
       const option = document.createElement('option'); option.value = lesson.id; option.textContent = lesson.title; $('lessonSelect').append(option);
     }
     navigation = window.HtmlEditorNavigationMount({iframe:$('lessonIframe'), onSelect:renderLesson, onError:message => notify(message, 'error'),
-      beforeVisit:beforeLessonVisit, hasUnsaved:dirty, openExternal:externalLessonVisit, onImage:asset => distributionDialog(asset)});
+      beforeVisit:beforeLessonVisit, hasUnsaved:dirty, openExternal:externalLessonVisit, onImage:asset => distributionDialog(asset), onExampleExpanded:showLessonExample});
     // 起動時は空のまま。ローカルファイルも復旧候補も自動では開かない。
     displayState();
     cm.on('change', () => {
@@ -801,8 +870,7 @@
     }
     window.addEventListener('resize', positionMenus);
     try {
-      if (!window.JohoUI?.theme) throw Error('theme unavailable');
-      window.JohoUI.theme({storageKey:'joho.htmleditor.ui.v1', themeSelect:$('themeSelect'), sizeSelect:$('sizeSelect'), onChange:() => cm.refresh()});
+      setupDisplay();
     } catch {
       $('themeSelect').disabled = true; $('sizeSelect').disabled = true; $('displayNotice').hidden = false;
     }
@@ -897,7 +965,7 @@
     window.addEventListener('beforeunload', event => { autoSave(); if (dirty() || submissionPanel?.needsAttention()) { event.preventDefault(); event.returnValue = ''; } });
     window.addEventListener('pagehide', autoSave);
     if (!window.HtmlEditorStartup.ready()) return;
-    requestAnimationFrame(() => cm.refresh());
+    requestAnimationFrame(() => { paneLayout.refresh(); cm.refresh(); });
     restoreFolderConnection();
   }
   window.addEventListener('DOMContentLoaded', () => {

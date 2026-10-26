@@ -28,7 +28,7 @@
     };
     let state = {...DEFAULTS}, gesture = null, queued = false, failed = false, disposed = false;
     const listeners = [];
-    const listen = (node, type, action) => { node.addEventListener(type, action); listeners.push(() => node.removeEventListener(type, action)); };
+    const listen = (node, type, action, options) => { node.addEventListener(type, action, options); listeners.push(() => node.removeEventListener(type, action, options)); };
     function storageFailed() { if (!failed) { failed = true; onStorageError(); } }
     try { if (storage) state = parse(storage.getItem(KEY)); } catch { storageFailed(); }
     function persist(reset = false) {
@@ -52,12 +52,37 @@
       value = String(value);
       if (node.getAttribute(key) !== value) node.setAttribute(key, value);
     }
+    function rememberReading(control) {
+      try {
+        const frame = control.pane.querySelector('iframe'), frameDocument = frame?.contentDocument;
+        if (!frameDocument || control.reading?.document === frameDocument) return;
+        control.reading = {frame, document:frameDocument, x:frame.contentWindow.scrollX, y:frame.contentWindow.scrollY};
+      } catch { /* 読取不可のプレビューには触れない。 */ }
+    }
+    function restoreReading(side, control) {
+      const saved = control.reading;
+      if (!saved) return;
+      // 親だけでなく、再表示したiframeのレイアウトも確定してから戻す。
+      win.requestAnimationFrame(() => win.requestAnimationFrame(() => {
+        if (disposed || state[side + 'Collapsed'] || control.reading !== saved) return;
+        try {
+          if (saved.frame.contentDocument === saved.document) {
+            saved.frame.contentWindow.scrollTo({left:saved.x, top:saved.y, behavior:'instant'});
+          }
+        } catch { /* 文書が変わった場合や読取不可のiframeへ復元しない。 */ }
+        control.reading = null;
+      }));
+    }
     function render() {
       if (disposed) return;
       for (const [side, control] of Object.entries(controls)) {
         const collapsed = state[side + 'Collapsed'];
         const className = side + '-collapsed';
-        if (body.classList.contains(className) !== collapsed) body.classList.toggle(className, collapsed);
+        if (body.classList.contains(className) !== collapsed) {
+          if (collapsed) rememberReading(control);
+          body.classList.toggle(className, collapsed);
+          if (!collapsed) restoreReading(side, control);
+        }
         const size = bounds(side);
         if (!compact() && size.extent > 0 && !collapsed) {
           const width = clamp(size.extent * state[side + 'Ratio'], size.minimum, size.maximum);
@@ -69,8 +94,9 @@
         attribute(control.bar, 'aria-controls', control.pane.id);
         attribute(control.bar, 'aria-valuemin', 0);
         attribute(control.bar, 'aria-valuemax', Math.round(size.maximum));
-        attribute(control.bar, 'aria-valuenow', collapsed ? 0 : Math.min(Math.round(control.pane.getBoundingClientRect().width), Math.round(size.maximum)));
-        attribute(control.bar, 'aria-valuetext', collapsed ? '折りたたみ中' : '表示中。Enterで折りたたむ');
+        const actualWidth = Math.min(Math.round(control.pane.getBoundingClientRect().width), Math.round(size.maximum));
+        attribute(control.bar, 'aria-valuenow', collapsed ? 0 : actualWidth);
+        attribute(control.bar, 'aria-valuetext', collapsed ? '折りたたみ中' : actualWidth + 'ピクセル。Enterで折りたたむ');
         control.bar.dataset.collapsed = String(collapsed);
         control.bar.dataset.tip = action + '（クリック／Enter）。ドラッグで幅を調整し、端へ寄せると折りたたみます。';
         const arrow = control.bar.querySelector('.splitter-arrow');
@@ -111,17 +137,17 @@
       listen(control.bar, 'pointerdown', event => {
         if (gesture || compact() || event.button !== 0 || event.isPrimary === false) return;
         event.preventDefault(); control.bar.focus({preventScroll:true});
-        gesture = {side, bar:control.bar, pointerId:event.pointerId, startX:event.clientX,
+        gesture = {side, bar:control.bar, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY || 0,
           width:state[side + 'Collapsed'] ? 0 : control.pane.getBoundingClientRect().width, before:{...state}, dragged:false};
         try { control.bar.setPointerCapture(event.pointerId); } catch { /* 合成イベントにはcaptureがない。 */ }
       });
       listen(control.bar, 'pointermove', event => {
         if (!gesture || gesture.side !== side || gesture.pointerId !== event.pointerId) return;
         const delta = event.clientX - gesture.startX;
-        if (Math.abs(delta) >= 5) gesture.dragged = true;
+        if (Math.hypot(delta, (event.clientY || 0) - gesture.startY) >= 5) gesture.dragged = true;
         if (!gesture.dragged) return;
         body.classList.add('pane-resizing');
-        resize(side, gesture.width + delta * control.sign);
+        if (Math.abs(delta) >= 5) resize(side, gesture.width + delta * control.sign);
       });
       listen(control.bar, 'pointerup', event => finish(event));
       listen(control.bar, 'pointercancel', event => finish(event, true));
@@ -141,6 +167,11 @@
         else { resize(side, width + 20 * direction); persist(); }
       });
     }
+    listen(doc, 'keydown', event => {
+      if (!gesture || event.key !== 'Escape') return;
+      event.preventDefault(); event.stopImmediatePropagation?.();
+      finish({pointerId:gesture.pointerId}, true);
+    }, true);
     listen(win, 'blur', () => { if (gesture) finish({pointerId:gesture.pointerId}, true); });
     listen(win, 'resize', () => { if (gesture) finish({pointerId:gesture.pointerId}, true); render(); });
     const observer = win.ResizeObserver ? new win.ResizeObserver(render) : null;
