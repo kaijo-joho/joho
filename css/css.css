@@ -19,5 +19,7 @@
 @import url("override.css");
 @import url("theme.css");
 @import url("preferences.css");
+@import url("display-settings.css");
+@import url("code-examples.css");
 
 

@@ -8,6 +8,9 @@ const { chromium, webkit } = require('playwright');
 const { expect } = require('playwright/test');
 const baseURL = process.env.JOHO_TEST_URL || 'http://127.0.0.1:8884/';
 const searchIndex = JSON.parse(await readFile(new URL('../data/search-index.json', import.meta.url), 'utf8'));
+const searchCore = require('../js/site_search_core.js');
+const sharedSearchQuery = 'インデント エラー';
+const expectedSharedSearchCount = searchCore.searchDocuments(searchIndex.documents, sharedSearchQuery).length;
 const courseOrder = ['dr', 'cp', 'lc', 'nw', 'html', 'il', 'ss', 'py'];
 const indexedCourses = new Set(searchIndex.documents.map(document => document.course));
 const expectedCourseFilters = ['', ...courseOrder.filter(course => indexedCourses.has(course))];
@@ -110,14 +113,15 @@ async function scrollHeader(page) {
   await headerPosition(page, true);
 
   // A mouse-picked preference must not pin the header after its menu closes.
-  await page.locator('.site-theme-menu__trigger').click();
-  await page.getByRole('menuitemradio', {name:'ライトモード',exact:true}).click();
+  await page.locator('.site-display-settings__trigger').click();
+  await page.locator('.site-display-settings__panel').getByRole('button', {name:'ライト',exact:true}).click();
+  await page.locator('.site-display-settings__trigger').click();
   await page.mouse.move(10, 400);
   await scrollPage(page, 2100);
   await headerPosition(page, false);
   await page.keyboard.press('Enter');
   await headerPosition(page, true);
-  await expect(page.locator('.site-theme-menu__options')).toBeVisible();
+  await expect(page.locator('.site-display-settings__panel')).toBeVisible();
   await page.keyboard.press('Escape');
   await page.evaluate(() => document.activeElement.blur());
   await scrollPage(page, 2200);
@@ -271,8 +275,8 @@ for (const name of selectedBrowsers) {
     await page.keyboard.press('Escape');
     await expect(materials).toBeFocused();
     await materials.click();
-    await page.locator('.site-theme-menu__trigger').hover();
-    await expect(page.locator('.site-theme-menu__options')).toBeVisible();
+    await page.locator('.site-display-settings__trigger').hover();
+    await expect(page.locator('.site-display-settings__panel')).toBeVisible();
     await expect(page.locator('#lesson-dock-panel-menu')).toBeHidden();
     const search = page.locator('.lesson-dock__btn--search');
     const searchDialog = page.locator('#site-search-dialog');
@@ -281,7 +285,7 @@ for (const name of selectedBrowsers) {
     await expect(searchDialog).toBeHidden();
     await search.click();
     await expect(searchDialog).toBeVisible();
-    await expect(page.locator('.site-theme-menu__options')).toBeHidden();
+    await expect(page.locator('.site-display-settings__panel')).toBeHidden();
     await fits(page, '#site-search-dialog .site-search__panel');
     await expect(searchDialog.locator('#site-search-tab-faq')).toHaveAttribute('aria-selected', 'true');
     assert.equal(searchIndexRequests, 0, 'empty initial FAQ view does not fetch the site-search index');
@@ -295,9 +299,9 @@ for (const name of selectedBrowsers) {
     await page.mouse.move(700, 400);
     await page.waitForTimeout(400);
     await expect(searchDialog).toBeVisible();
-    await searchInput.fill('インデント エラー');
+    await searchInput.fill(sharedSearchQuery);
     await expect(searchDialog.locator('#site-search-tab-faq')).toHaveText('FAQ（2件）');
-    await expect(searchDialog.locator('#site-search-tab-site')).toHaveText('教材（3件）');
+    await expect(searchDialog.locator('#site-search-tab-site')).toHaveText(`教材（${expectedSharedSearchCount}件）`);
     assert.equal(searchIndexRequests, 1, 'typing in the shared input loads the site-search index once');
     const matchingFaqs = searchDialog.locator('.site-search__faq-content .faq-card');
     await expect(matchingFaqs).toHaveCount(2);
@@ -306,7 +310,7 @@ for (const name of selectedBrowsers) {
     await searchDialog.locator('#site-search-tab-site').press('Enter');
     await expect(searchDialog.locator('#site-search-tab-site')).toHaveAttribute('aria-selected', 'true');
     await expect(searchInput).toHaveValue('インデント エラー');
-    await expect(searchDialog.locator('#site-search-view-site .site-search__status')).toContainText('3件中');
+    await expect(searchDialog.locator('#site-search-view-site .site-search__status')).toContainText(`${expectedSharedSearchCount}件中`);
     await searchDialog.locator('#site-search-tab-faq').press('Enter');
     await expect(searchDialog.locator('#site-search-tab-faq')).toHaveAttribute('aria-selected', 'true');
     await expect(searchInput).toHaveValue('インデント エラー');

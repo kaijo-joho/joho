@@ -545,6 +545,9 @@ function highlightEmbeddedCodeBlocks(root = document) {
     code.innerHTML = highlightLinesForLanguage(lines, lang).join('\n');
     pre.dataset.syntaxHighlighted = 'true';
   });
+
+  // 操作部はpreの外へ追加し、コードの内容・識別コメントを再処理しない。
+  window.siteCodeExamples?.enhance(root);
 }
 
 // ===== メイン関数 =====

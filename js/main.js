@@ -2,132 +2,6 @@
 (() => {
   "use strict";
 
-  const SITE_THEME_STORAGE_KEY = 'joho.siteTheme';
-  const SITE_THEME_OPTIONS = ['system', 'light', 'dark'];
-  const SITE_TEXT_SIZE_STORAGE_KEY = 'joho.textSize';
-  const SITE_TEXT_SIZE_OPTIONS = ['standard', 'large', 'xlarge'];
-
-  function initializeSiteTheme() {
-    const root = document.documentElement;
-    const systemDark = typeof window.matchMedia === 'function'
-      ? window.matchMedia('(prefers-color-scheme: dark)')
-      : { matches: false };
-    let preference = 'system';
-
-    try {
-      const stored = localStorage.getItem(SITE_THEME_STORAGE_KEY);
-      if (SITE_THEME_OPTIONS.includes(stored)) preference = stored;
-    } catch {}
-
-    const resolvedTheme = () =>
-      preference === 'system' ? (systemDark.matches ? 'dark' : 'light') : preference;
-
-    const applyPreference = () => {
-      const resolved = resolvedTheme();
-      root.dataset.themePreference = preference;
-
-      if (preference === 'system') {
-        delete root.dataset.theme;
-        root.style.colorScheme = 'light dark';
-      } else {
-        root.dataset.theme = preference;
-        root.style.colorScheme = preference;
-      }
-
-      let themeColor = document.head.querySelector('meta[name="theme-color"]');
-      if (!themeColor) {
-        themeColor = document.createElement('meta');
-        themeColor.name = 'theme-color';
-        document.head.appendChild(themeColor);
-      }
-      themeColor.content = resolved === 'dark' ? '#0b0b0b' : '#f3f3f3';
-
-      document.dispatchEvent(new CustomEvent('joho:theme-change', {
-        detail: { preference, resolvedTheme: resolved }
-      }));
-    };
-
-    const setPreference = (value, { persist = true } = {}) => {
-      preference = SITE_THEME_OPTIONS.includes(value) ? value : 'system';
-
-      if (persist) {
-        try {
-          if (preference === 'system') localStorage.removeItem(SITE_THEME_STORAGE_KEY);
-          else localStorage.setItem(SITE_THEME_STORAGE_KEY, preference);
-        } catch {}
-      }
-
-      applyPreference();
-    };
-
-    const handleSystemThemeChange = () => {
-      if (preference === 'system') applyPreference();
-    };
-    if (typeof systemDark.addEventListener === 'function') {
-      systemDark.addEventListener('change', handleSystemThemeChange);
-    } else if (typeof systemDark.addListener === 'function') {
-      systemDark.addListener(handleSystemThemeChange);
-    }
-
-    window.addEventListener('storage', event => {
-      if (event.key !== SITE_THEME_STORAGE_KEY) return;
-      setPreference(event.newValue || 'system', { persist: false });
-    });
-
-    applyPreference();
-
-    return {
-      get preference() { return preference; },
-      get resolvedTheme() { return resolvedTheme(); },
-      setPreference
-    };
-  }
-
-  if (!window.siteTheme) window.siteTheme = initializeSiteTheme();
-
-  function initializeSiteTextSize() {
-    const root = document.documentElement;
-    let preference = 'standard';
-
-    try {
-      const stored = localStorage.getItem(SITE_TEXT_SIZE_STORAGE_KEY);
-      if (SITE_TEXT_SIZE_OPTIONS.includes(stored)) preference = stored;
-    } catch {}
-
-    const applyPreference = () => {
-      root.dataset.textSize = preference;
-      document.dispatchEvent(new CustomEvent('joho:text-size-change', {
-        detail: { preference }
-      }));
-    };
-
-    const setPreference = (value, { persist = true } = {}) => {
-      preference = SITE_TEXT_SIZE_OPTIONS.includes(value) ? value : 'standard';
-
-      if (persist) {
-        try {
-          if (preference === 'standard') localStorage.removeItem(SITE_TEXT_SIZE_STORAGE_KEY);
-          else localStorage.setItem(SITE_TEXT_SIZE_STORAGE_KEY, preference);
-        } catch {}
-      }
-
-      applyPreference();
-    };
-
-    window.addEventListener('storage', event => {
-      if (event.key !== SITE_TEXT_SIZE_STORAGE_KEY) return;
-      setPreference(event.newValue || 'standard', { persist: false });
-    });
-
-    applyPreference();
-
-    return {
-      get preference() { return preference; },
-      setPreference
-    };
-  }
-
-  if (!window.siteTextSize) window.siteTextSize = initializeSiteTextSize();
 
   if (window.__johoMainBootstrapped) return;
   window.__johoMainBootstrapped = true;
@@ -254,18 +128,21 @@
 
   /** ---------- パス定義（必要なら調整） ---------- */
   const PATH = {
+    displaySettings: "./js/display_settings.js?v=display-settings-20261026", // 単独利用可能な表示設定
+    displaySettingsUI: "./js/display_settings_ui.js?v=display-settings-20261026", // 共通の設定パネル
     head: "./js/head.js",                 // フォント/CDN/MathJax/CSS 等（即時実行）
     pages: "./js/pages.js",               // window.pages を定義
     faqShared: "./js/faq_shared.js",       // FAQ検索・表示・AI導線の共通処理
     faq: "./js/faq.js",                   // FAQ_DATA / FAQ_CATEGORY_DATA を定義
     nav: "./js/nav.js",                   // window.initNav()
     scriptPages: "./js/script_pages.js?v=html-entry-1e8c1a0dba1571e8",  // window.initPageScripts()
-    highlightLocal: "./js/highlight.js",  // 自前のハイライト
+    highlightLocal: "./js/highlight.js?v=display-settings-20261026",  // 自前のハイライト
+    codeExamples: "./js/code_examples.js?v=display-settings-20261026", // コード例の表示操作
     searchCore: "./js/site_search_core.js", // window.__siteSearchCore
     siteSearch: "./js/site_search.js",     // window.initSiteSearch()
     lessonDock: "./js/lesson_dock.js?v=html-entry-1e8c1a0dba1571e8",    // フローティングドック
     htmlPracticeLinks: "./js/html_practice_links.js?v=practice-file-20260927", // 通常HTMLの取得・提出リンク
-    script: "./js/script.js?v=html-entry-1e8c1a0dba1571e8"              // レイアウトやその他の共通初期化
+    script: "./js/script.js?v=display-settings-20261026"              // レイアウトやその他の共通初期化
   };
 
   /** ---------- 起動シーケンス ---------- */
@@ -273,6 +150,12 @@
     try {
       // 1) 共通設定とデータを並列で準備する。どれか1つの失敗では全体を止めない。
       await Promise.all([
+        loadOptionalScript(PATH.displaySettings, {
+          ready: () => window.siteDisplaySettings?.version === 1
+        }),
+        loadOptionalScript(PATH.displaySettingsUI, {
+          ready: () => typeof window.siteDisplaySettingsUI?.createPanel === 'function'
+        }),
         loadOptionalScript(PATH.head, {
           ready: () => window.__headInitialized === true
         }),
@@ -306,6 +189,9 @@
         }),
         loadOptionalScript(PATH.highlightLocal, {
           ready: () => typeof window.highlightCodeBlocksWithIds === 'function'
+        }),
+        loadOptionalScript(PATH.codeExamples, {
+          ready: () => typeof window.siteCodeExamples?.enhance === 'function'
         }),
         loadOptionalScript(PATH.searchCore, {
           ready: () => Boolean(window.__siteSearchCore?.searchDocuments)

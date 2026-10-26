@@ -1,0 +1,88 @@
+@charset "UTF-8";
+
+/* Controls are siblings of the original pre so source text and token spans stay untouched. */
+.code-example-tools {
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  width: min(var(--code-width, 100%), 100%);
+  margin: -0.65em auto 1em;
+  padding: 0.25rem 0;
+  color: var(--code-fg, CanvasText);
+  font-size: max(0.9rem, var(--font-size-p, 1rem));
+}
+
+.code-example-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--code-border, currentColor);
+  border-radius: 0.45rem;
+  background: var(--code-bg, Canvas);
+  color: inherit;
+  font: inherit;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.code-example-button:hover { filter: brightness(0.94); }
+.code-example-button:focus-visible { outline: 3px solid var(--focus-ring, #2878d0); outline-offset: 2px; }
+.code-example-tools [data-action="reset"] { min-width: 58px; font-variant-numeric: tabular-nums; }
+.code-example-button:disabled { cursor: not-allowed; opacity: 0.58; }
+
+html body pre[data-code-example-enhanced="true"] {
+  font-size: calc(var(--code-font-size, 1rem) * var(--code-example-scale, 1));
+  line-height: var(--code-example-line-height, var(--site-code-line-height, 1.7)) !important;
+}
+
+html body pre[data-code-example-enhanced="true"] code {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+html body pre[data-code-example-enhanced="true"] code * { line-height: inherit; }
+
+html body pre[data-code-example-wrap="true"] {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+html body pre[data-code-example-wrap="true"] code { white-space: inherit; }
+
+.code-example-dialog {
+  width: min(96vw, 90rem);
+  max-width: none;
+  max-height: 94dvh;
+  padding: 0;
+  border: 1px solid var(--code-border, #888);
+  border-radius: 0.8rem;
+  background: var(--code-bg, Canvas);
+  color: var(--code-fg, CanvasText);
+}
+
+.code-example-dialog::backdrop { background: rgb(0 0 0 / 0.62); }
+html.code-example-modal-open { overflow: hidden; overflow-anchor: none; }
+.code-example-placeholder { display: block; box-sizing: border-box; padding: 0; border: 0; pointer-events: none; }
+.code-example-dialog-panel { display: flex; max-height: 94dvh; flex-direction: column; padding: clamp(0.65rem, 2vw, 1.25rem); }
+.code-example-dialog-heading { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 0.75rem; font-weight: 700; }
+.code-example-dialog-content { min-width: 0; overflow: auto; }
+.code-example-dialog-content pre { width: 100%; max-width: none; max-height: 76dvh; margin: 0.5rem 0 0; }
+.code-example-dialog-content .code-example-tools { width: 100%; }
+
+@media print {
+  .code-example-tools,
+  .code-example-dialog { display: none !important; }
+  html.code-example-modal-open { overflow: auto; }
+}
+
+@media (max-width: 520px) {
+  .code-example-tools { gap: 0.25rem; }
+  .code-example-button { padding-inline: 0.45rem; }
+}

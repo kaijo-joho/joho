@@ -12,7 +12,6 @@
   };
 
   let inited = false;
-  let preferenceMenuSequence = 0;
   const pageLinkBaseUrl = document.currentScript?.src
     ? new URL('../', document.currentScript.src)
     : new URL('./', document.baseURI);
@@ -254,213 +253,30 @@
     });
   }
 
-  function createPreferenceMenu({
-    idPrefix,
-    className,
-    preferenceName,
-    panelLabel,
-    options,
-    controller,
-    changeEvent
-  }) {
-    const menu = document.createElement('div');
-    menu.className = `site-header-menu site-preference-menu ${className}`;
-
-    const trigger = document.createElement('button');
-    trigger.type = 'button';
-    trigger.className = `site-header-button site-preference-menu__trigger ${className}__trigger`;
-    trigger.setAttribute('aria-haspopup', 'menu');
-    trigger.setAttribute('aria-expanded', 'false');
-
-    const optionPanel = document.createElement('div');
-    optionPanel.className = `site-header-panel site-preference-menu__options ${className}__options`;
-    optionPanel.id = `site-${idPrefix}-options-${++preferenceMenuSequence}`;
-    optionPanel.setAttribute('role', 'menu');
-    optionPanel.setAttribute('aria-label', panelLabel);
-    optionPanel.hidden = true;
-    trigger.setAttribute('aria-controls', optionPanel.id);
-
-    const optionButtons = options.map(option => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = `site-preference-menu__option ${className}__option`;
-      button.dataset.preferenceValue = option.value;
-      button.dataset.label = option.label;
-      button.setAttribute('role', 'menuitemradio');
-      button.setAttribute('aria-label', option.ariaLabel);
-      button.setAttribute('aria-checked', 'false');
-      button.innerHTML = option.icon;
-      button.tabIndex = -1;
-      optionPanel.appendChild(button);
-      return button;
-    });
-
-    menu.append(trigger, optionPanel);
-
-    let currentValue = options[0].value;
-
-    const visibleOptionButtons = () => optionButtons.filter(button => !button.hidden);
-
-    const syncCurrentPreference = value => {
-      currentValue = options.some(option => option.value === value) ? value : options[0].value;
-      const current = options.find(option => option.value === currentValue);
-
-      trigger.innerHTML = current.icon;
-      trigger.dataset.label = current.label;
-      trigger.setAttribute(
-        'aria-label',
-        `現在の${preferenceName}：${current.ariaLabel}。ほかの${preferenceName}を選ぶ`
-      );
-
-      optionButtons.forEach(button => {
-        const selected = button.dataset.preferenceValue === currentValue;
-        button.classList.toggle('is-selected', selected);
-        button.setAttribute('aria-checked', String(selected));
-        button.tabIndex = -1;
-      });
-
-      if (trigger.getAttribute('aria-expanded') === 'true') {
-        const visible = visibleOptionButtons();
-        if (visible[0]) visible[0].tabIndex = 0;
-      }
-    };
-
-    const popup = bindHeaderMenu({
-      root: menu, trigger, panel: optionPanel,
-      onOpen: () => {
-        visibleOptionButtons().forEach((button, index) => { button.tabIndex = index === 0 ? 0 : -1; });
-      },
-      onClose: () => optionButtons.forEach(button => { button.tabIndex = -1; })
-    });
-
-    if (controller && typeof controller.setPreference === 'function') {
-      trigger.addEventListener('keydown', event => {
-        if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
-        event.preventDefault();
-        popup.open({ focus: ['ArrowLeft', 'End'].includes(event.key) ? 'last' : 'first' });
-      });
-      optionButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          controller.setPreference(button.dataset.preferenceValue);
-          popup.close({ restoreFocus: true });
-        });
-      });
-
-      optionPanel.addEventListener('keydown', event => {
-        const visible = visibleOptionButtons();
-        const currentIndex = visible.indexOf(document.activeElement);
-        if (currentIndex < 0) return;
-
-        let nextIndex = null;
-        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-          nextIndex = (currentIndex + 1) % visible.length;
-        } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-          nextIndex = (currentIndex - 1 + visible.length) % visible.length;
-        } else if (event.key === 'Home') {
-          nextIndex = 0;
-        } else if (event.key === 'End') {
-          nextIndex = visible.length - 1;
-        } else if (event.key === 'Escape') {
-          event.preventDefault();
-          popup.close({ restoreFocus: true });
-          return;
-        }
-
-        if (nextIndex === null) return;
-        event.preventDefault();
-        visible.forEach(button => { button.tabIndex = -1; });
-        visible[nextIndex].tabIndex = 0;
-        visible[nextIndex].focus();
-      });
-
-      syncCurrentPreference(controller.preference);
-      document.addEventListener(changeEvent, event => {
-        syncCurrentPreference(event.detail?.preference || options[0].value);
-      });
-    } else {
-      trigger.disabled = true;
-      syncCurrentPreference(options[0].value);
-    }
-
-    return menu;
-  }
-
-  function createThemeMenu() {
-    return createPreferenceMenu({
-      idPrefix: 'theme',
-      className: 'site-theme-menu',
-      preferenceName: '表示テーマ',
-      panelLabel: '表示テーマを変更',
-      controller: window.siteTheme,
-      changeEvent: 'joho:theme-change',
-      options: [
-        {
-          value: 'system',
-          label: '自動',
-          ariaLabel: '自動：端末の設定に合わせる',
-          icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <rect x="3" y="4" width="18" height="13" rx="2"></rect>
-            <path d="M8 21h8M12 17v4"></path>
-          </svg>`
-        },
-        {
-          value: 'light',
-          label: 'ライト',
-          ariaLabel: 'ライトモード',
-          icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <circle cx="12" cy="12" r="3.5"></circle>
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path>
-          </svg>`
-        },
-        {
-          value: 'dark',
-          label: 'ダーク',
-          ariaLabel: 'ダークモード',
-          icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M20 15.2A8 8 0 0 1 8.8 4 8 8 0 1 0 20 15.2Z"></path>
-          </svg>`
-        }
-      ]
-    });
-  }
-
-  function createTextSizeMenu() {
-    return createPreferenceMenu({
-      idPrefix: 'text-size',
-      className: 'site-text-size-menu',
-      preferenceName: '文字サイズ',
-      panelLabel: '文字サイズを変更',
-      controller: window.siteTextSize,
-      changeEvent: 'joho:text-size-change',
-      options: [
-        {
-          value: 'standard',
-          label: '標準',
-          ariaLabel: '標準',
-          icon: '<span class="site-text-size-icon site-text-size-icon--standard" aria-hidden="true">A</span>'
-        },
-        {
-          value: 'large',
-          label: '大',
-          ariaLabel: '大きい',
-          icon: '<span class="site-text-size-icon site-text-size-icon--large" aria-hidden="true">A</span>'
-        },
-        {
-          value: 'xlarge',
-          label: '特大',
-          ariaLabel: '特大',
-          icon: '<span class="site-text-size-icon site-text-size-icon--xlarge" aria-hidden="true">A</span>'
-        }
-      ]
-    });
-  }
-
   function createSitePreferenceControls() {
     const controls = document.createElement('div');
     controls.className = 'site-preference-controls';
-    controls.setAttribute('role', 'group');
-    controls.setAttribute('aria-label', '表示設定');
-    controls.append(createTextSizeMenu(), createThemeMenu());
+    let widget;
+    try { widget = window.siteDisplaySettingsUI?.createPanel?.(); }
+    catch (error) {
+      console.warn('[display_settings] Could not build the settings panel:', error);
+      return controls;
+    }
+    if (!widget) return controls;
+    const menu = document.createElement('div');
+    menu.className = 'site-header-menu site-preference-menu site-display-settings';
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'site-header-button site-preference-menu__trigger site-display-settings__trigger';
+    trigger.dataset.label = '表示設定';
+    trigger.setAttribute('aria-label', '表示設定');
+    trigger.setAttribute('aria-haspopup', 'dialog');
+    trigger.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/><circle cx="9" cy="18" r="2" fill="currentColor"/></svg>';
+    widget.element.classList.add('site-header-panel');
+    widget.element.setAttribute('role', 'dialog');
+    menu.append(trigger, widget.element);
+    controls.append(menu);
+    bindHeaderMenu({root:menu, trigger, panel:widget.element, onOpen:widget.sync});
     return controls;
   }
 
