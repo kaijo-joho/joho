@@ -334,3 +334,4 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .buf-panel .tp-body{gap:10px}
 .buf-panel .slrow{width:100%}
 .buf-panel .slrow input[type=range]{flex:1;min-width:80px}
+.tp-row .indbar{padding:0}

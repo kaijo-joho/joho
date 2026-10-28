@@ -55,7 +55,8 @@ const SAMPLES = [
     note: '弱塩基を強酸で滴定。NH₄⁺ の pKa は 9.25（pKb 4.75）。当量点は酸性。'},
   {key: 'vinegar', group: '実験', name: '食酢の滴定（濃度が未知）', kind: 'acid', formula: 'CH₃COOH', label: '食酢（10 倍にうすめた液）', n: 1, pKa: [4.76], z0: -1, forms: ['CH₃COO⁻', 'CH₃COOH'], cX: 0, cM: 0, unknown: true,
     titrant: 'naoh', C0: 0.0700, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
-    note: 'うすめた食酢 10.0 mL を NaOH で滴定して、酢酸の濃度を求める。濃度は、出題ごとにちがう。'},
+    note: 'うすめた食酢 10.0 mL を NaOH で滴定して、酢酸の濃度を求める。濃度は、出題ごとにちがう。',
+    unkSub: '酢酸', unkWhat: 'うすめた液', unkEq: 'CH₃COOH + NaOH → CH₃COONa + H₂O', unkOrig: 10},
   {key: 'gly', group: 'アミノ酸', name: 'グリシン（塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Gly', label: 'グリシン塩酸塩', n: 2, pKa: [2.34, 9.60], z0: -1, forms: ['H₂NCH₂COO⁻', 'H₃N⁺CH₂COO⁻', 'H₃N⁺CH₂COOH'], cX: 1, cM: 0, ionX: 'Cl⁻',
     titrant: 'naoh', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp', pIform: true,
     note: '陽イオン → 双性イオン → 陰イオン。第 1 当量点の pH が等電点（pKa₁ と pKa₂ の平均）。'},
@@ -90,6 +91,18 @@ const SAMPLES = [
     titrant: 'naoh', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
     note: 'とても弱い 2 価の酸（pKa 7.0・13.9）。'}
 ];
+// 未知試料の滴定で出題する酸・塩基（濃度は出題ごとにちがう。滴下液と比は 1 : 1）。同じ種類の既存の試料から作る
+{
+  const UNK = [
+    ['hcl', 'unk_hcl', '塩酸', '塩酸 HCl（濃度が未知）', 'HCl + NaOH → NaCl + H₂O'],
+    ['naoh', 'unk_naoh', '水酸化ナトリウム水溶液', '水酸化ナトリウム NaOH（濃度が未知）', 'NaOH + HCl → NaCl + H₂O'],
+    ['nh3', 'unk_nh3', 'アンモニア水', 'アンモニア水 NH₃（濃度が未知）', 'NH₃ + HCl → NH₄Cl']
+  ];
+  const at = SAMPLES.findIndex(s => s.key === 'vinegar') + 1;
+  SAMPLES.splice(at, 0, ...UNK.map(([src, key, sub, label, eq]) => { const b = SAMPLES.find(s => s.key === src);
+    return Object.assign({}, b, {key, group: '実験', name: sub + 'の滴定（濃度が未知）', label, unknown: true, unkSub: sub, unkWhat: '', unkEq: eq,
+      note: sub + ' ' + b.V0.toFixed(1) + ' mL を ' + (b.kind === 'acid' ? 'NaOH' : 'HCl') + ' で滴定して、濃度を求める。濃度は、出題ごとにちがう。'}); }));
+}
 
 
 SAMPLES.push(customSample({kind: 'acid', n: 1}));
