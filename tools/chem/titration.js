@@ -16,9 +16,9 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, typeof v === 'string' ? 
 
 // ---- 状態（選んだ試料・変えた条件・設定。ブラウザに自動で保存する） ----
 const SPEEDS = [0.5, 1, 2, 4];
-const TABS = ['main', 'buf', 'ind', 'read'];
+const TABS = ['main', 'buf', 'unk'];
 const state = {tab: 'main', sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1, approx: true, eq: true, band: true, buf: true, reveal: false, detail: false,
-  custom: {kind: 'acid', n: 1}, compare: [], titKey: null, customT: {n: 1}, readSeed: 1, readMode: 'single', score: {ok: 0, total: 0}, unkSeed: 1, unkReveal: false};
+  custom: {kind: 'acid', n: 1}, compare: [], titKey: null, customT: {n: 1}, unkSeed: 1, prevSample: null, unkReveal: false};
 const CMP_COLORS = ['#8b5cf6', '#0d9488', '#be185d', '#65a30d', '#0891b2'];
 const MAX_CMP = 5;
 const hideCmp = new Set();   // 凡例で隠した比較対象の id（画面だけの状態で、保存しない）
@@ -32,13 +32,13 @@ function getSample(key){ return key === 'custom' ? T.customSample(state.custom) 
 (function restore(){
   const s = lsGet(KEY.state); if (!s) return;
   if (TABS.includes(s.tab)) state.tab = s.tab;
+  if (s.tab === 'ind' || s.tab === 'read') state.tab = 'main';
   if (T.sampleByKey(s.sample)) state.sample = s.sample;
   if (s.over && typeof s.over === 'object') state.over = s.over;
   if (s.inds && typeof s.inds === 'object') state.inds = s.inds;
   if (s.cap === 25 || s.cap === 50) state.cap = s.cap;
-  if (s.readMode === 'single' || s.readMode === 'diff') state.readMode = s.readMode;
-  for (const k of ['readSeed', 'unkSeed']) if (Number.isInteger(s[k]) && s[k] > 0) state[k] = s[k];
-  if (s.score && Number.isInteger(s.score.ok) && Number.isInteger(s.score.total)) state.score = s.score;
+  for (const k of ['unkSeed']) if (Number.isInteger(s[k]) && s[k] > 0) state[k] = s[k];
+  if (typeof s.prevSample === 'string' && T.sampleByKey(s.prevSample) && !T.sampleByKey(s.prevSample).unknown) state.prevSample = s.prevSample;
   if (typeof s.unkReveal === 'boolean') state.unkReveal = s.unkReveal;
   if (Array.isArray(s.compare)) state.compare = s.compare.map(e => typeof e === 'string' ? {key: e} : e)
     .filter(e => e && typeof e.key === 'string' && e.key !== 'vinegar' && e.key !== 'custom' && T.sampleByKey(e.key))
@@ -187,7 +187,7 @@ function drawChart(ex){
     for (const pk of sys.pKa){ const a = r.Y(Math.min(14, pk + 1)), b = r.Y(Math.max(0, pk - 1)); if (pk > -1 && pk < 15) ctx.fillRect(r.plot.x, a, r.plot.w, b - a); }
     ctx.globalAlpha = 1;
   }
-  if (state.band) for (const id of indsOf()){
+  if (state.band && state.tab !== 'buf') for (const id of indsOf()){
     const y0 = r.Y(id.hi), y1 = r.Y(id.lo), gr = ctx.createLinearGradient(0, y1, 0, y0);
     gr.addColorStop(0, id.acid === T.WATER ? '#9ec5e8' : id.acid); gr.addColorStop(1, id.base);
     ctx.globalAlpha = .28; ctx.fillStyle = gr; ctx.fillRect(r.plot.x, y0, r.plot.w, y1 - y0); ctx.globalAlpha = 1;
@@ -252,10 +252,14 @@ function renderKp(){
 // ---- タブ：緩衝液・指示薬 ----
 function renderTabs(){
   document.querySelectorAll('#tabSeg [data-tab]').forEach(b => { const on = b.dataset.tab === state.tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
-  const rd = state.tab === 'read';
-  $('tabBuf').hidden = state.tab !== 'buf'; $('tabInd').hidden = state.tab !== 'ind'; $('tabRead').hidden = !rd;
-  $('tabUnk').hidden = !(sys.unknown && state.tab === 'main');
-  $('headBox').hidden = rd; $('stageBox').hidden = rd; $('kpPanel').hidden = rd || hideAns(); $('procPanel').hidden = rd || hideAns();
+  const m = state.tab, unk = m === 'unk', buf = m === 'buf', main = m === 'main', hide = hideAns();
+  $('bufCtl').hidden = !buf; $('appPanel').hidden = buf;
+  $('tabBuf').hidden = !buf;
+  $('tabUnk').hidden = !unk; $('tabUnk').classList.toggle('unk-wide', unk && !hide);
+  $('chartPanel').hidden = unk && hide;                   // 未知試料は答え合わせまでグラフを隠す
+  $('indBar').hidden = !main;
+  $('btnDetail').hidden = !main; $('btnSmp').hidden = unk;
+  $('kpPanel').hidden = !main || hide; $('procPanel').hidden = !main || hide; $('tabInd').hidden = !main || hide;
 }
 function renderBuf(ex){
   const smp = getSample(state.sample), one = sys.n === 1;
@@ -297,10 +301,8 @@ function drawAlpha(){
 }
 function renderInd(ex){
   const sel = indsOf(), cur = sel.map(i => i.key);
-  $('indChips').innerHTML = T.INDICATORS.filter(i => i.lo != null).map(i => `<button type="button" role="checkbox" aria-checked="${cur.includes(i.key)}" class="chip-btn${cur.includes(i.key) ? ' on' : ''}" data-ind="${i.key}"><span class="sw2" style="background:linear-gradient(90deg,${i.acid === T.WATER ? '#ffffff' : i.acid} 50%,${i.base} 50%)"></span>${esc(i.name)}（${i.lo}–${i.hi}）</button>`).join('');
   $('indMsg').textContent = sel.length ? sel.map(id => `${id.name}：pH ${id.lo} 以下は${id.accidName}、${id.hi} 以上は${id.baseName}。`).join('') + '選んだら ▶ で滴下して、フラスコの色が変わる滴下量を当量点（縦の点線）と比べましょう。' : '指示薬を選んでください（複数選べます。試料を決める画面でも選べます）。';
   $('optReveal').checked = state.reveal; $('optReveal').disabled = hideAns();
-  if (hideAns()) $('indMsg').textContent += '（食酢の滴定では、答え合わせをするまで答えの表は見られません）';
   const tb = $('indTable'); tb.hidden = !state.reveal || hideAns();
   if (state.reveal && !hideAns()){
     const gl = {good: '適切', fair: 'ややずれる', bad: '不適切'};
@@ -311,11 +313,28 @@ function renderInd(ex){
         <td><span class="q ${e.grade}">${e.changes ? gl[e.grade] : '色が変わらない'}</span></td></tr>`).join('')).join('') + '</tbody>';
   }
 }
-$('indChips').onclick = e => { const b = e.target.closest('[data-ind]'); if (b) toggleInd(b.dataset.ind); };
 function toggleInd(k){ const cur = indsOf().map(i => i.key); setInds(T.INDICATORS.map(i => i.key).filter(x => x === k ? !cur.includes(x) : cur.includes(x))); }
 $('optReveal').onchange = e => { state.reveal = e.target.checked; save(); renderAll(); };
 $('optBuf').onchange = e => { state.buf = e.target.checked; save(); renderAll(); };
-$('tabSeg').onclick = e => { const b = e.target.closest('[data-tab]'); if (!b) return; state.tab = b.dataset.tab; save(); renderAll(); };
+// 画面の切り替え：「未知試料の滴定」は食酢（濃度が未知）に固定し、出るときは元の試料・滴下試料・比較対象へ戻す
+let stash = null;
+function setMode(m){
+  if (!TABS.includes(m) || m === state.tab) return;
+  if (running) setRunning(false);
+  const from = state.tab;
+  state.tab = m;
+  if (m === 'unk'){
+    stash = {compare: state.compare.slice(), titKey: state.titKey};
+    state.prevSample = state.sample;
+    selectSample('vinegar');
+  } else if (from === 'unk'){
+    switchSample(state.prevSample && T.sampleByKey(state.prevSample) ? state.prevSample : 'hcl');
+    if (stash){ state.titKey = stash.titKey; rebuild(); state.compare = stash.compare.filter(e => canCompare(e.key)); stash = null; rebuild(); renderStatic(); }
+  } else { renderStatic(); }
+  save(); renderAll();
+}
+$('tabSeg').onclick = e => { const b = e.target.closest('[data-tab]'); if (b) setMode(b.dataset.tab); };
+$('seekB').oninput = e => setV(+e.target.value);
 $('pkaSl').oninput = e => {
   const v = Math.round(+e.target.value * 100) / 100, o = Object.assign({}, state.over[state.sample] || {}, {pKa: [v]});
   state.over[state.sample] = o; rebuild(); renderStatic(); save(); renderAll();
@@ -328,50 +347,6 @@ $('btnGhost').onclick = () => {
   renderAll(); toast('いまの曲線を残しました。条件を変えると、見比べられます');
 };
 $('btnGhostClear').onclick = () => { ghosts = []; renderAll(); };
-
-// ---- 目盛りを読む ----
-let readQ = null, readDone = false;
-function readSvg(level, label, reveal){
-  const cap = state.cap, w0 = Math.max(0, Math.min(cap - 3, Math.round(level - 1.5))), Y = v => 14 + (v - w0) / 3 * 270, y = Y(level);
-  let g = '';
-  for (let i = 0; i <= 30; i++){
-    const v = w0 + i / 10, yy = Y(v).toFixed(2), whole = i % 10 === 0, half = i % 5 === 0;
-    g += `<line class="tick" x1="80" x2="${80 + (whole ? 24 : half ? 17 : 10)}" y1="${yy}" y2="${yy}"/>`;
-    if (whole) g += `<text class="tlab" x="72" y="${(Y(v) + 4).toFixed(2)}" text-anchor="end" style="font-size:13px">${Math.round(v)}</text>`;
-  }
-  const mk = reveal ? `<line x1="40" x2="140" y1="${y.toFixed(2)}" y2="${y.toFixed(2)}" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="4 3"/>
-    <text class="readlab" x="146" y="${(y + 4).toFixed(2)}">${level.toFixed(2)}</text>` : '';
-  return `<figure><svg viewBox="0 0 200 300" role="img" aria-label="${esc(label)}：ビュレットの目盛りと液面（拡大）"><rect x="81" y="${(y - 5).toFixed(2)}" width="48" height="${(290 - y + 5).toFixed(2)}" fill="${T.WATER}" opacity="0"/>
-    <path d="M81 ${(y - 5).toFixed(2)} Q105 ${(y + 5).toFixed(2)} 129 ${(y - 5).toFixed(2)} V292 H81 Z" fill="${T.WATER}" opacity=".85"/>
-    <path class="menis" d="M81 ${(y - 5).toFixed(2)} Q105 ${(y + 5).toFixed(2)} 129 ${(y - 5).toFixed(2)}" style="stroke-width:1.6"/>
-    ${g}<path class="glass" d="M80 4 V294 M130 4 V294"/>${mk}</svg><figcaption>${esc(label)}</figcaption></figure>`;
-}
-function drawRead(){
-  if (!readQ) return;
-  const q = readQ;
-  $('readFig').innerHTML = q.mode === 'diff' ? readSvg(q.a, '滴定の前（始め）', readDone) + readSvg(q.b, '滴定の後（終わり）', readDone) : readSvg(q.a, '液面', readDone);
-  $('readLbl').textContent = q.mode === 'diff' ? '滴下した量' : '液面の読み';
-  document.querySelectorAll('#readMode [data-mode]').forEach(b => { const on = b.dataset.mode === state.readMode; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
-  $('readScore').textContent = state.score.total ? `これまで ${state.score.total} 問中 ${state.score.ok} 問 正解` : '';
-}
-function newRead(){
-  readQ = T.readingQuestion(state.readSeed, state.cap, state.readMode); readDone = false;
-  $('readAns').value = ''; $('readRes').textContent = ''; drawRead();
-}
-$('readNew').onclick = () => { state.readSeed++; save(); newRead(); $('readAns').focus(); };
-$('readMode').onclick = e => { const b = e.target.closest('[data-mode]'); if (!b) return; state.readMode = b.dataset.mode; state.readSeed++; save(); newRead(); };
-function checkRead(){
-  if (!readQ) return;
-  const ans = parseFloat($('readAns').value);
-  if (!isFinite(ans)){ $('readRes').innerHTML = '数を入れてください。'; return; }
-  const r = T.checkReading(readQ, ans);
-  if (!readDone){ state.score.total++; if (r.ok) state.score.ok++; save(); }
-  readDone = true; drawRead();
-  const how = readQ.mode === 'diff' ? `（終わり ${readQ.b.toFixed(2)} − 始め ${readQ.a.toFixed(2)}）` : '';
-  $('readRes').innerHTML = (r.ok ? '<span class="ok">正解です。</span>' : '<span class="ng">おしい。</span>') + ` 正しい値は ${r.correct.toFixed(2)} mL${how}。あなたの答えは ${ans.toFixed(2)} mL（差 ${(r.diff >= 0 ? '+' : '−') + Math.abs(r.diff).toFixed(2)}）。` + (r.ok ? '' : ' 凹面のいちばん下の位置を、もう一度見てみましょう。');
-}
-$('readCheck').onclick = checkRead;
-$('readAns').onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); checkRead(); } };
 
 // ---- 食酢の滴定（濃度が未知） ----
 function unkRefresh(){ rebuild(); renderStatic(); save(); renderAll(); }
@@ -388,7 +363,8 @@ $('unkNew').onclick = () => { state.unkSeed++; state.unkReveal = false; V = 0; i
 function renderAll(){
   const ex = T.solveExact(sys, V), ap = T.approx(sys, V);
   syncApproxBtn(); renderTabs(); renderApparatus(ex); drawChart(ex); renderProcess(ex, ap); renderKp();
-  if (state.tab === 'buf') renderBuf(ex); else if (state.tab === 'ind') renderInd(ex);
+  if (state.tab === 'buf') renderBuf(ex); else if (state.tab === 'main') renderInd(ex);
+  $('seekB').max = xmax; $('seekB').value = V; $('seekBVal').textContent = V.toFixed(2) + ' mL';
   $('seek').value = V;
   $('evRead').textContent = `目盛り ${V.toFixed(2)} mL`;
   $('chipPH').textContent = `pH ${ex.pH.toFixed(2)}`;
@@ -427,7 +403,7 @@ function renderStatic(){
   $('dlgNote').textContent = noteT;
   // 試料の種類（価数・pKa は種類で決まる）
   let sh = '', grp = '';
-  for (const x of T.SAMPLES){ if (x.group !== grp){ if (grp) sh += '</optgroup>'; grp = x.group; sh += `<optgroup label="${esc(grp)}">`; } sh += `<option value="${x.key}">${esc(x.key === 'custom' ? '架空の酸・塩基（価数・pKa を自作）' : x.label)}</option>`; }
+  for (const x of T.SAMPLES){ if (x.unknown) continue; if (x.group !== grp){ if (grp) sh += '</optgroup>'; grp = x.group; sh += `<optgroup label="${esc(grp)}">`; } sh += `<option value="${x.key}">${esc(x.key === 'custom' ? '架空の酸・塩基（価数・pKa を自作）' : x.label)}</option>`; }
   $('selSpecies').innerHTML = sh + '</optgroup>'; $('selSpecies').value = state.sample;
   // 滴下液の種類（酸には塩基、塩基には酸）
   const tl = T.titrantsFor(smp.kind), opp = smp.kind === 'acid' ? 'base' : 'acid';
@@ -492,6 +468,7 @@ $('kpTable').onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ const t
 function buildSampleMenu(){
   let html = '', grp = '';
   for (const s of T.SAMPLES){
+    if (s.unknown) continue;
     if (s.group !== grp){ grp = s.group; html += `<div class="gl">${esc(grp)}</div>`; }
     html += `<button type="button" class="mi" role="option" data-key="${s.key}"><span class="dot"></span><span>${esc(s.name)}<small>${esc(s.note)}</small></span></button>`;
   }
@@ -596,7 +573,7 @@ $('pkaBox').onclick = e => {
   pkaEdit = a === 'edit'; renderStatic();
   const f = pkaEdit ? $('pkaBox').querySelector('input') : $('pkaBox').querySelector('[data-pkact]'); if (f) f.focus();
 };
-$('capSeg').onclick = e => { const b = e.target.closest('[data-cap]'); if (!b) return; state.cap = +b.dataset.cap; rebuild(); buildApparatus(); renderStatic(); save(); newRead(); renderAll(); };
+$('capSeg').onclick = e => { const b = e.target.closest('[data-cap]'); if (!b) return; state.cap = +b.dataset.cap; rebuild(); buildApparatus(); renderStatic(); save(); renderAll(); };
 $('indBar').onclick = e => { const b = e.target.closest('[data-ind]'); if (b){ const k = b.dataset.ind; toggleInd(k); const n = $('indBar').querySelector(`[data-ind=${k}]`); if (n) n.focus(); } };
 $('indSel').onchange = e => { const c = e.target.closest('[data-ind]'); if (c) toggleInd(c.dataset.ind); };
 $('btnDefault').onclick = () => { delete state.over[state.sample]; delete state.inds[state.sample]; V = 0; rebuild(); renderStatic(); save(); renderAll(); };
@@ -704,9 +681,11 @@ try {
   $('sizeSeg').onclick = e => { const b = e.target.closest('[data-size]'); if (b) view.set({textSize: b.dataset.size}); };
 } catch { document.querySelectorAll('#themeSeg, #sizeSeg').forEach(n => { n.previousElementSibling.hidden = true; n.hidden = true; }); }
 
+// 保存された画面と試料が食い違うときは、画面に合わせる
+if (state.tab === 'unk') state.sample = 'vinegar';
+else if (T.sampleByKey(state.sample).unknown) state.sample = state.prevSample || 'hcl';
 buildSampleMenu();
 rebuild();
-newRead();
 buildApparatus();
 renderStatic();
 onResize();
@@ -714,5 +693,5 @@ renderAll();
 if (!hasUI) setTimeout(() => alert('共通部品（../shared/ui-kit.js）を読み込めませんでした。ページを再読み込みしてください。'), 200);
 
 // 検証用（最後まで読み込めたことの印にもする）
-window.__titration = {T, get ghosts(){ return ghosts; }, get cmp(){ return cache.cmp; }, get indRep(){ return indRep; }, state, get sys(){ return sys; }, get V(){ return V; }, get xmax(){ return xmax; }, get kp(){ return kp; }, setV, setRunning, selectSample, renderAll, get readQ(){ return readQ; }, checkRead, newRead, get plot(){ return plotInfo; }};
+window.__titration = {T, get ghosts(){ return ghosts; }, get cmp(){ return cache.cmp; }, get indRep(){ return indRep; }, state, get sys(){ return sys; }, get V(){ return V; }, get xmax(){ return xmax; }, get kp(){ return kp; }, setV, setRunning, selectSample, renderAll, setMode, get plot(){ return plotInfo; }};
 })();
