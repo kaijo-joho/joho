@@ -299,3 +299,14 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
   .dlg-set + .dlg-set{border-left:0;border-top:1px solid var(--line)}
   .dlg-bar{flex-wrap:wrap}
 }
+
+/* ==== 0.9：指示薬（複数選択）・pKa は種類の値（自作のときだけ編集） ==== */
+.indsel{display:flex;flex-direction:column;gap:4px}
+.indsel .chk{display:flex;align-items:center;gap:8px;min-height:36px;padding:2px 4px;border-radius:8px;cursor:pointer}
+.indsel .chk:hover{background:var(--hover)}
+.indsel .chk input{width:16px;height:16px;margin:0;accent-color:var(--accent)}
+.indsel .chk small{color:var(--muted);margin-left:.3em}
+.pk input[readonly]{background:var(--hover);color:var(--muted);cursor:default;border-style:dashed}
+.fld > small.mut,.pk + small.mut{display:block;margin-top:4px;font-size:11px;line-height:1.5}
+.indsel .sw2{flex:none;display:inline-block;width:16px;height:16px;border-radius:50%;border:1px solid var(--line)}
+.indsel .chk small{display:inline}

@@ -32,6 +32,7 @@ function getSample(key){ return key === 'custom' ? T.customSample(state.custom) 
   if (T.sampleByKey(s.sample)) state.sample = s.sample;
   if (s.over && typeof s.over === 'object') state.over = s.over;
   if (s.inds && typeof s.inds === 'object') state.inds = s.inds;
+  if (s.over && typeof s.over === 'object') for (const [k, o] of Object.entries(s.over)) if (o && typeof o === 'object' && k !== 'custom') delete o.pKa;      // 種類ごとの pKa は変えられない（自作だけ）
   if (s.cap === 25 || s.cap === 50) state.cap = s.cap;
   if (s.readMode === 'single' || s.readMode === 'diff') state.readMode = s.readMode;
   for (const k of ['readSeed', 'unkSeed']) if (Number.isInteger(s[k]) && s[k] > 0) state[k] = s[k];
@@ -64,11 +65,17 @@ function overOf(key, tt){
   if (smp.unknown) r.C0 = T.unknownConc(state.unkSeed);
   if (num(o.V0, 1, 100)) r.V0 = o.V0;
   if (num(o.Ct, 1e-5, 2)) r.Ct = o.Ct;
-  if (Array.isArray(o.tpKa) && o.tpKa.length === t.n && o.tpKa.every(v => num(v, -5, 16))) r.tpKa = o.tpKa.slice().sort((a, b) => a - b);
-  if (Array.isArray(o.pKa) && o.pKa.length === smp.n && o.pKa.every(v => num(v, -5, 16))) r.pKa = o.pKa.slice().sort((a, b) => a - b);
+  if (t.key === 'custom' && Array.isArray(o.tpKa) && o.tpKa.length === t.n && o.tpKa.every(v => num(v, -5, 16))) r.tpKa = o.tpKa.slice().sort((a, b) => a - b);
+  if (key === 'custom' && Array.isArray(o.pKa) && o.pKa.length === smp.n && o.pKa.every(v => num(v, -5, 16))) r.pKa = o.pKa.slice().sort((a, b) => a - b);
   return r;
 }
-function indOf(){ const k = state.inds[state.sample]; return T.INDICATORS.some(i => i.key === k) ? k : sys.ind; }
+// 指示薬は複数選べる（保存は種類ごとの配列。旧版の文字列は 1 件の配列とみなす）。未選択のときは試料の標準の指示薬
+const IND_SHORT = {mo: 'MO', mr: 'MR', bt: 'BTB', pp: 'PP'};
+function indsOf(){
+  const v = state.inds[state.sample], arr = Array.isArray(v) ? v : typeof v === 'string' ? [v] : [sys.ind];
+  return T.INDICATORS.filter(i => i.lo != null && arr.includes(i.key));
+}
+function setInds(arr){ state.inds[state.sample] = arr; save(); renderStatic(); renderAll(); }
 // 重ねて比べられる試料：いまの滴下液で滴定できる種類（酸には塩基、塩基には酸）で、濃度が未知でないもの
 function canCompare(k){ if (k === 'custom') return false; const sm = getSample(k); return !!sm && !sm.unknown && sm.kind === (sys.titrant.type === 'base' ? 'acid' : 'base'); }
 function rebuild(){
@@ -89,7 +96,6 @@ function rebuild(){
   alphaSeries = sys.n > 0 ? T.alphaCurve(sys, xmax) : [];
   alphaPh = sys.n > 0 ? T.alphaVsPH(sys) : [];
 }
-const ind = () => T.indicatorByKey(indOf());
 const hideAns = () => !!sys && sys.unknown && !state.unkReveal;     // 食酢の滴定：濃度・当量点は答え合わせまで隠す
 let alphaSeries = [], alphaPh = [];
 
@@ -121,7 +127,7 @@ function buildApparatus(){
   <path class="glass" d="M128.5 ${BY1 + 9} L137.5 ${BY1 + 9} L135 ${BY1 + 26} L131 ${BY1 + 26} Z"/>
   <g id="readMark"><path d="" fill="var(--accent)" id="readArrow"/><text class="readlab" id="readText" x="166" y="0"></text></g>
   <g id="dropG"><circle class="dropc" cx="133" cy="${BY1 + 34}" r="3"/></g>
-  <g clip-path="url(#fclip)"><rect id="fLiquid" x="60" y="440" width="180" height="60" fill="${T.WATER}"/></g>
+  <g clip-path="url(#fclip)" id="fLiqG"></g>
   <path class="glass" d="${flask}"/>
   <path class="glass" d="M112 380 H154"/>
   <text class="tlab" id="fName" x="133" y="498" text-anchor="middle" style="font-size:11px;fill:var(--muted)"></text>
@@ -136,10 +142,12 @@ function renderApparatus(ex){
   el('readArrow').setAttribute('d', `M${BX2 + 4} ${y.toFixed(2)} l10 -5 v10 z`);
   const rt = el('readText'); rt.setAttribute('y', (y + 4).toFixed(2)); rt.textContent = V.toFixed(2);
   const vt = sys.V0 + V, q = Math.min(1, vt / (sys.V0 + state.cap)), h = 30 + 36 * q;
-  el('fLiquid').setAttribute('y', (476 - h).toFixed(2)); el('fLiquid').setAttribute('fill', T.indicatorColor(ind(), ex.pH));
+  const inds = indsOf(), liq = el('fLiqG'), cols = inds.length ? inds.map(i => T.indicatorColor(i, ex.pH)) : [T.WATER], wd = 126 / cols.length;
+  if (liq.childElementCount !== cols.length){ liq.innerHTML = cols.map(() => `<rect y="440" height="60" x="0" width="0"/>`).join(''); }
+  Array.from(liq.children).forEach((r, i) => { r.setAttribute('x', (70 + i * wd).toFixed(2)); r.setAttribute('width', (wd + .5).toFixed(2)); r.setAttribute('y', (476 - h).toFixed(2)); r.setAttribute('fill', cols[i]); });
   el('bName').textContent = `${sys.titrant.name} ${fmt(sys.Ct)} mol/L`;
   el('fName').textContent = `${sys.name.split(' ')[0]} ${hideAns() ? '（濃度は未知）' : fmt(sys.C0) + ' mol/L'} ${sys.V0} mL`;
-  el('fInd').textContent = ind().lo != null ? '指示薬：' + ind().name : '';
+  el('fInd').textContent = inds.length ? '指示薬：' + inds.map(i => IND_SHORT[i.key]).join('・') : '';
   svg.classList.toggle('dripping', running);
   svg.querySelector('#dropG').style.display = running ? '' : 'none';
 }
@@ -177,8 +185,7 @@ function drawChart(ex){
     for (const pk of sys.pKa){ const a = r.Y(Math.min(14, pk + 1)), b = r.Y(Math.max(0, pk - 1)); if (pk > -1 && pk < 15) ctx.fillRect(r.plot.x, a, r.plot.w, b - a); }
     ctx.globalAlpha = 1;
   }
-  const id = ind();
-  if (state.band && id.lo != null){
+  if (state.band) for (const id of indsOf()){
     const y0 = r.Y(id.hi), y1 = r.Y(id.lo), gr = ctx.createLinearGradient(0, y1, 0, y0);
     gr.addColorStop(0, id.acid === T.WATER ? '#9ec5e8' : id.acid); gr.addColorStop(1, id.base);
     ctx.globalAlpha = .28; ctx.fillStyle = gr; ctx.fillRect(r.plot.x, y0, r.plot.w, y1 - y0); ctx.globalAlpha = 1;
@@ -282,22 +289,23 @@ function drawAlpha(){
   $('alphaLegend').innerHTML = alphaSeries.map((se, i) => `<span style="color:${ALPHA_COLORS[i % 4]}"><i></i>${esc(se.name)}</span>`).join('');
 }
 function renderInd(ex){
-  const cur = indOf(), id = T.indicatorByKey(cur);
-  $('indChips').innerHTML = T.INDICATORS.map(i => `<button type="button" role="radio" aria-checked="${i.key === cur}" class="chip-btn${i.key === cur ? ' on' : ''}" data-ind="${i.key}">${i.lo != null ? `<span class="sw2" style="background:linear-gradient(90deg,${i.acid === T.WATER ? '#ffffff' : i.acid} 50%,${i.base} 50%)"></span>` : ''}${esc(i.name)}${i.lo != null ? `（${i.lo}–${i.hi}）` : ''}</button>`).join('');
-  $('indMsg').textContent = id.lo != null ? `${id.name}：pH ${id.lo} 以下は${id.accidName}、${id.hi} 以上は${id.baseName}。選んだら ▶ で滴下して、フラスコの色が変わる滴下量を当量点（縦の点線）と比べましょう。` : '指示薬を選んでください。';
+  const sel = indsOf(), cur = sel.map(i => i.key);
+  $('indChips').innerHTML = T.INDICATORS.filter(i => i.lo != null).map(i => `<button type="button" role="checkbox" aria-checked="${cur.includes(i.key)}" class="chip-btn${cur.includes(i.key) ? ' on' : ''}" data-ind="${i.key}"><span class="sw2" style="background:linear-gradient(90deg,${i.acid === T.WATER ? '#ffffff' : i.acid} 50%,${i.base} 50%)"></span>${esc(i.name)}（${i.lo}–${i.hi}）</button>`).join('');
+  $('indMsg').textContent = sel.length ? sel.map(id => `${id.name}：pH ${id.lo} 以下は${id.accidName}、${id.hi} 以上は${id.baseName}。`).join('') + '選んだら ▶ で滴下して、フラスコの色が変わる滴下量を当量点（縦の点線）と比べましょう。' : '指示薬を選んでください（複数選べます。試料を決める画面でも選べます）。';
   $('optReveal').checked = state.reveal; $('optReveal').disabled = hideAns();
   if (hideAns()) $('indMsg').textContent += '（食酢の滴定では、答え合わせをするまで答えの表は見られません）';
   const tb = $('indTable'); tb.hidden = !state.reveal || hideAns();
   if (state.reveal && !hideAns()){
     const gl = {good: '適切', fair: 'ややずれる', bad: '不適切'};
     tb.innerHTML = '<thead><tr><th>指示薬</th><th>変色域</th><th>当量点</th><th>色が変わる滴下量 (mL)</th><th>当量点とのずれ (mL)</th><th>判定</th></tr></thead><tbody>' +
-      indRep.map(r => r.events.map((e, i) => `<tr class="${r.key === cur ? 'mine' : ''}"><td>${i === 0 ? esc(r.name) : ''}</td><td>${i === 0 ? r.lo + '–' + r.hi : ''}</td>
+      indRep.map(r => r.events.map((e, i) => `<tr class="${cur.includes(r.key) ? 'mine' : ''}"><td>${i === 0 ? esc(r.name) : ''}</td><td>${i === 0 ? r.lo + '–' + r.hi : ''}</td>
         <td>${sys.Veq.length > 1 ? `第 ${e.eq + 1}（${e.ve.toFixed(1)} mL）` : e.ve.toFixed(1) + ' mL'}</td>
         <td>${e.changes ? e.V.toFixed(2) : '—'}</td><td>${e.changes ? (e.err >= 0 ? '+' : '−') + Math.abs(e.err).toFixed(2) : '—'}</td>
         <td><span class="q ${e.grade}">${e.changes ? gl[e.grade] : '色が変わらない'}</span></td></tr>`).join('')).join('') + '</tbody>';
   }
 }
-$('indChips').onclick = e => { const b = e.target.closest('[data-ind]'); if (b){ state.inds[state.sample] = b.dataset.ind; save(); renderAll(); } };
+$('indChips').onclick = e => { const b = e.target.closest('[data-ind]'); if (b) toggleInd(b.dataset.ind); };
+function toggleInd(k){ const cur = indsOf().map(i => i.key); setInds(T.INDICATORS.map(i => i.key).filter(x => x === k ? !cur.includes(x) : cur.includes(x))); }
 $('optReveal').onchange = e => { state.reveal = e.target.checked; save(); renderAll(); };
 $('optBuf').onchange = e => { state.buf = e.target.checked; save(); renderAll(); };
 $('tabSeg').onclick = e => { const b = e.target.closest('[data-tab]'); if (!b) return; state.tab = b.dataset.tab; save(); renderAll(); };
@@ -377,8 +385,7 @@ function renderAll(){
   $('seek').value = V;
   $('evRead').textContent = `目盛り ${V.toFixed(2)} mL`;
   $('chipPH').textContent = `pH ${ex.pH.toFixed(2)}`;
-  const id = ind();
-  $('chipV').innerHTML = `滴下量 ${V.toFixed(2)} mL` + (id.lo != null ? ` <span class="swatch" style="background:${T.indicatorColor(id, ex.pH)}"></span>${esc(id.name)}` : '');
+  $('chipV').innerHTML = `滴下量 ${V.toFixed(2)} mL` + indsOf().map(id => ` <span class="swatch" style="background:${T.indicatorColor(id, ex.pH)}"></span>${esc(IND_SHORT[id.key])}`).join('');
   const nearEq = hideAns() ? -1 : sys.Veq.findIndex(v => Math.abs(V - v) < 0.0005);
   $('status').textContent = nearEq >= 0 ? (sys.Veq.length > 1 ? `第 ${nearEq + 1} 当量点です` : '当量点です') : (Math.abs(V - xmax) < 1e-9 ? 'グラフの終わりまで滴下しました' : '');
 }
@@ -401,10 +408,9 @@ function renderStatic(){
   const pk = $('pkaBox');
   pk.hidden = smp.n === 0;
   pk.innerHTML = smp.n === 0 ? '' : '<span>pKa（電離のしやすさ。小さいほど強い酸）</span><div class="pk">' +
-    sys.pKa.map((v, i) => `<label>${smp.n === 1 ? (smp.kind === 'base' ? (smp.key === 'custom' ? 'BH⁺ の pKa' : 'NH₄⁺ の pKa') : 'pKa') : 'pKa' + '₁₂₃'[i]}<input type="number" step="any" min="-5" max="16" data-pk="${i}" value="${v}" aria-label="pKa ${i + 1}"></label>`).join('') + '</div>';
-  const sel = $('selInd');
-  sel.innerHTML = T.INDICATORS.map(i => `<option value="${i.key}">${esc(i.name)}${i.lo != null ? `（${i.lo}–${i.hi}）` : ''}</option>`).join('');
-  sel.value = indOf();
+    sys.pKa.map((v, i) => `<label>${smp.n === 1 ? (smp.kind === 'base' ? (smp.key === 'custom' ? 'BH⁺ の pKa' : 'NH₄⁺ の pKa') : 'pKa') : 'pKa' + '₁₂₃'[i]}<input type="number" step="any" min="-5" max="16" data-pk="${i}" value="${v}" aria-label="pKa ${i + 1}"${smp.key === 'custom' ? '' : ' readonly'}></label>`).join('') + '</div>' + (smp.key === 'custom' ? '' : '<small class="mut">この種類の値です。自由に変えるときは、種類で「架空の酸・塩基」を選びます。</small>');
+  const isel = indsOf().map(i => i.key);
+  $('indSel').innerHTML = T.INDICATORS.filter(i => i.lo != null).map(i => `<label class="chk inl"><input type="checkbox" data-ind="${i.key}"${isel.includes(i.key) ? ' checked' : ''}><span class="sw2" style="background:linear-gradient(90deg,${i.acid === T.WATER ? '#ffffff' : i.acid} 50%,${i.base} 50%)"></span><span>${esc(i.name)}<small>（${i.lo}–${i.hi}）</small></span></label>`).join('');
   $('custBox').hidden = state.sample !== 'custom';
   document.querySelectorAll('#custKind [data-kind]').forEach(b => { const on = b.dataset.kind === state.custom.kind; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
   document.querySelectorAll('#custN [data-n]').forEach(b => { const on = +b.dataset.n === state.custom.n; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
@@ -414,7 +420,6 @@ function renderStatic(){
   let sh = '', grp = '';
   for (const x of T.SAMPLES){ if (x.group !== grp){ if (grp) sh += '</optgroup>'; grp = x.group; sh += `<optgroup label="${esc(grp)}">`; } sh += `<option value="${x.key}">${esc(x.key === 'custom' ? '架空の酸・塩基（価数・pKa を自作）' : x.label)}</option>`; }
   $('selSpecies').innerHTML = sh + '</optgroup>'; $('selSpecies').value = state.sample;
-  $('btnToCustom').hidden = state.sample === 'custom' || !!smp.unknown;
   // 滴下液の種類（酸には塩基、塩基には酸）
   const tl = T.titrantsFor(smp.kind), opp = smp.kind === 'acid' ? 'base' : 'acid';
   $('selTit').innerHTML = tl.map(t => `<option value="${t.key}">${esc(t.label)}</option>`).join('') + `<option value="custom">${esc(opp === 'acid' ? '自作の酸（弱酸）' : '自作の塩基（弱塩基）')}</option>`;
@@ -423,7 +428,7 @@ function renderStatic(){
   document.querySelectorAll('#custTN [data-n]').forEach(b => { const on = +b.dataset.n === state.customT.n; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
   const tp = $('tpkaBox'), tt = sys.titrant;
   tp.hidden = !(tt.n > 0);
-  tp.innerHTML = tt.n > 0 ? `<span>pKa（${tt.type === 'base' ? '共役酸の pKa。大きいほど強い塩基' : '小さいほど強い酸'}）</span><div class="pk">` + tt.pKa.map((v, i) => `<label>${tt.n === 1 ? 'pKa' : 'pKa' + '₁₂₃'[i]}<input type="number" step="any" min="-5" max="16" data-tpk="${i}" value="${v}" aria-label="滴下液の pKa ${i + 1}"></label>`).join('') + '</div>' : '';
+  tp.innerHTML = tt.n > 0 ? `<span>pKa（${tt.type === 'base' ? '共役酸の pKa。大きいほど強い塩基' : '小さいほど強い酸'}）</span><div class="pk">` + tt.pKa.map((v, i) => `<label>${tt.n === 1 ? 'pKa' : 'pKa' + '₁₂₃'[i]}<input type="number" step="any" min="-5" max="16" data-tpk="${i}" value="${v}" aria-label="滴下液の pKa ${i + 1}"${tt.key === 'custom' ? '' : ' readonly'}></label>`).join('') + '</div>' + (tt.key === 'custom' ? '' : '<small class="mut">この種類の値です。自由に変えるときは、種類で「自作」を選びます。</small>') : '';
   // 目印の滴下量へ移るボタン
   const jb = [];
   if (!hideAns()) sys.Veq.forEach((v, i) => jb.push({v, t: (sys.Veq.length > 1 ? `第 ${i + 1} 当量点` : '当量点') + ` ${fmt(v, 3)} mL`}));
@@ -538,7 +543,9 @@ function switchSample(key){
 }
 // 試料の種類を選ぶ：価数・pKa は種類で決まる。変えた体積・濃度は、種類を替えても残す
 function chooseSpecies(key){
-  const prev = overOf(state.sample), so = {};
+  const prev = overOf(state.sample), so = {}, cur = getSample(state.sample);
+  // 「架空の酸・塩基」を選ぶと、いまの試料の価数・pKa を写して始める（写した直後の曲線は同じ）
+  if (key === 'custom' && state.sample !== 'custom' && !cur.unknown){ state.custom = {kind: cur.kind, n: Math.max(1, cur.n)}; if (cur.n > 0) so.pKa = sys.pKa.slice(); }
   if (prev.V0 != null) so.V0 = prev.V0;
   if (prev.C0 != null && !getSample(key).unknown) so.C0 = prev.C0;
   if (prev.Ct != null) so.Ct = prev.Ct;
@@ -570,7 +577,7 @@ $('pkaBox').onchange = e => {
   setOver({pKa: arr});
 };
 $('capSeg').onclick = e => { const b = e.target.closest('[data-cap]'); if (!b) return; state.cap = +b.dataset.cap; rebuild(); buildApparatus(); renderStatic(); save(); newRead(); renderAll(); };
-$('selInd').onchange = e => { state.inds[state.sample] = e.target.value; save(); renderAll(); };
+$('indSel').onchange = e => { const c = e.target.closest('[data-ind]'); if (c) toggleInd(c.dataset.ind); };
 $('btnDefault').onclick = () => { delete state.over[state.sample]; delete state.inds[state.sample]; V = 0; rebuild(); renderStatic(); save(); renderAll(); };
 // ---- 試料を選ぶ・条件を決めるモーダル ----
 const dlg = $('smpDlg'); $('selSpecies').onchange = e => chooseSpecies(e.target.value);
@@ -581,13 +588,6 @@ $('tpkaBox').onchange = e => {
   const arr = Array.from($('tpkaBox').querySelectorAll('[data-tpk]')).map(i => parseFloat(i.value));
   if (!arr.every(v => v >= -5 && v <= 16)){ toast('pKa は −5 〜 16 の間で入れてください'); renderStatic(); return; }
   const o = state.over[state.sample] || (state.over[state.sample] = {}); o.tpKa = arr; V = 0; rebuild(); renderStatic(); save(); renderAll();
-};
-// 試料を「自作」に写して、種類・価数・pKa を自由に変えられるようにする（pH の計算結果は、写した直後は同じ）
-$('btnToCustom').onclick = () => {
-  const smp = getSample(state.sample), prev = overOf(state.sample), keepPKa = smp.n > 0 ? sys.pKa.slice() : null;
-  state.custom = {kind: smp.kind, n: Math.max(1, smp.n)};
-  const o = {C0: prev.C0 ?? smp.C0, V0: prev.V0 ?? smp.V0}; if (prev.Ct != null) o.Ct = prev.Ct; if (keepPKa) o.pKa = keepPKa; state.over.custom = o;
-  state.sample = 'custom'; ghosts = []; V = 0; rebuild(); renderStatic(); save(); renderAll(); toast('自作の酸・塩基に写しました。種類・価数・pKa を変えられます');
 };
 let dlgOpener = null;
 function openDlg(opener){
