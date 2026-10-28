@@ -337,3 +337,10 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .tp-row .indbar{padding:0}
 .unk-prob{margin:0;font-size:14px;line-height:1.7;padding:8px 10px;border-left:3px solid var(--accent);background:var(--panel2,transparent)}
 #unkCompNums{gap:8px 16px}
+
+/* 未知試料：問題の試料を上のツールバーに、指示薬はビュレットの近くに置く。式の組み立ては共通の式ビルダー */
+.top > .topsel{flex:0 1 190px;min-width:84px;height:30px;padding:0 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--text);font-size:12.5px}
+.unk-ind{padding:2px 12px 8px}
+.unk-formula{display:block;min-width:0}
+.top.tighter > .topsel{flex-basis:150px}
+.top.tightest > .topsel{flex-basis:110px;padding:0 3px}
