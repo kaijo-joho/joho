@@ -266,3 +266,12 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .cmpcb.dis{opacity:.4;cursor:not-allowed}
 .cmpcb input{margin:0;width:16px;height:16px;accent-color:var(--accent)}
 .cmpbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:2px 4px 6px;border-bottom:1px solid var(--line);margin-bottom:2px}
+
+/* ==== 0.7：試料・滴下液・プリセット ==== */
+.card1{border:1px solid var(--line);border-radius:10px;padding:8px 12px 12px;margin:0 0 12px;min-width:0}
+.card1 legend{font-weight:700;font-size:13px;padding:0 6px}
+.dlg-set .card1 .detail{gap:10px}
+.fld select{width:100%;max-width:none}
+.q.none{color:var(--muted)}
+.dlg-cur .arr{font-weight:400;margin:0 .2em}
+.sbtn:disabled{opacity:.5;cursor:not-allowed}

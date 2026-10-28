@@ -18,7 +18,7 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, typeof v === 'string' ? 
 const SPEEDS = [0.5, 1, 2, 4];
 const TABS = ['main', 'buf', 'ind', 'read'];
 const state = {tab: 'main', sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1, approx: true, eq: true, band: true, buf: true, reveal: false, detail: false,
-  custom: {kind: 'acid', n: 1}, compare: [], readSeed: 1, readMode: 'single', score: {ok: 0, total: 0}, unkSeed: 1, unkReveal: false};
+  custom: {kind: 'acid', n: 1}, compare: [], titKey: null, customT: {n: 1}, readSeed: 1, readMode: 'single', score: {ok: 0, total: 0}, unkSeed: 1, unkReveal: false};
 const CMP_COLORS = ['#8b5cf6', '#0d9488', '#be185d', '#65a30d', '#0891b2'];
 const MAX_CMP = 5;
 const GHOST_COLORS = ['#8b5cf6', '#0d9488', '#be185d'];
@@ -37,6 +37,8 @@ function getSample(key){ return key === 'custom' ? T.customSample(state.custom) 
   if (s.score && Number.isInteger(s.score.ok) && Number.isInteger(s.score.total)) state.score = s.score;
   if (typeof s.unkReveal === 'boolean') state.unkReveal = s.unkReveal;
   if (Array.isArray(s.compare)) state.compare = s.compare.filter(k => typeof k === 'string' && k !== 'vinegar' && T.sampleByKey(k)).slice(0, MAX_CMP);
+  if (typeof s.titKey === 'string' && (s.titKey === 'custom' || T.TITRANTS.some(t => t.key === s.titKey))) state.titKey = s.titKey;
+  if (s.customT && [1, 2, 3].includes(s.customT.n)) state.customT = {n: s.customT.n};
   if (s.custom && (s.custom.kind === 'acid' || s.custom.kind === 'base') && [1, 2, 3].includes(s.custom.n)) state.custom = {kind: s.custom.kind, n: s.custom.n};
   if (SPEEDS.includes(s.speed)) state.speed = s.speed;
   for (const k of ['approx', 'eq', 'band', 'buf', 'reveal', 'detail']) if (typeof s[k] === 'boolean') state[k] = s[k];
@@ -45,25 +47,36 @@ const save = () => lsSet(KEY.state, state);
 
 // ---- いまの系 ----
 let sys = null, xmax = 20, chartX = 20, cache = null, kp = [], indRep = [];
-function overOf(key){
-  const o = state.over[key] || {}, smp = getSample(key), r = {};
+// 試料に合う滴下液（酸を中和するのは塩基、塩基を中和するのは酸）。選んでいない・合わないときは、試料の標準の滴下液
+function titrantFor(smp, key){
+  const opp = smp.kind === 'acid' ? 'base' : 'acid';
+  const t = key ? T.titrantByKey(key, state.customT.n, opp) : null;
+  return t && t.type === opp && !smp.unknown ? t : T.titrantByKey(smp.titrant);
+}
+const curTitrant = () => titrantFor(getSample(state.sample), state.titKey);
+function overOf(key, tt){
+  const o = state.over[key] || {}, smp = getSample(key), r = {}, t = tt || (key === state.sample ? curTitrant() : titrantFor(smp, null));
   const num = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
   if (num(o.C0, 1e-5, 2)) r.C0 = o.C0;
   if (smp.unknown) r.C0 = T.unknownConc(state.unkSeed);
   if (num(o.V0, 1, 100)) r.V0 = o.V0;
   if (num(o.Ct, 1e-5, 2)) r.Ct = o.Ct;
+  if (Array.isArray(o.tpKa) && o.tpKa.length === t.n && o.tpKa.every(v => num(v, -5, 16))) r.tpKa = o.tpKa.slice().sort((a, b) => a - b);
   if (Array.isArray(o.pKa) && o.pKa.length === smp.n && o.pKa.every(v => num(v, -5, 16))) r.pKa = o.pKa.slice().sort((a, b) => a - b);
   return r;
 }
 function indOf(){ const k = state.inds[state.sample]; return T.INDICATORS.some(i => i.key === k) ? k : sys.ind; }
+// 重ねて比べられる試料：いまの滴下液で滴定できる種類（酸には塩基、塩基には酸）で、濃度が未知でないもの
+function canCompare(k){ const sm = getSample(k); return !!sm && !sm.unknown && sm.kind === (sys.titrant.type === 'base' ? 'acid' : 'base'); }
 function rebuild(){
   const smp = getSample(state.sample);
-  sys = T.makeSys(smp, overOf(state.sample));
+  const tNow = curTitrant();
+  sys = T.makeSys(smp, overOf(state.sample, tNow), tNow);
   xmax = Math.min(state.cap, sys.Vmax);
   V = Math.min(V, xmax);
   // 同じ滴下液で滴定する別の試料を重ねて比べる：横軸は、比べるものの最大に合わせる（ビュレットの容量まで）
-  const cmpSys = state.compare.filter(k => k !== state.sample && getSample(k) && getSample(k).titrant.name === sys.titrant.name)
-    .map((k, i) => ({key: k, sys: T.makeSys(getSample(k), overOf(k)), color: CMP_COLORS[i % CMP_COLORS.length]}));
+  const cmpSys = state.compare.filter(k => k !== state.sample && canCompare(k))
+    .map((k, i) => ({key: k, sys: T.makeSys(getSample(k), Object.assign(overOf(k, tNow), {Ct: sys.Ct, tpKa: sys.titrant.pKa.slice()}), tNow), color: CMP_COLORS[i % CMP_COLORS.length]}));
   chartX = Math.min(state.cap, Math.max(sys.Vmax, ...cmpSys.map(c => c.sys.Vmax)));
   xmax = chartX; V = Math.min(V, xmax);
   cache = {curve: T.curve(sys, chartX), cmp: cmpSys.map(c => ({key: c.key, label: c.sys.name.split(' ')[0] + (c.sys.n === 1 && getSample(c.key).key === 'custom' ? ` pKa ${c.sys.pKa[0]}` : ''), color: c.color, pts: T.curve(c.sys, chartX).exact}))};
@@ -145,7 +158,7 @@ function drawChart(ex){
   const series = ghosts.map(g => ({color: g.color, pts: g.pts, width: 2, dash: [2, 4]}));
   cache.cmp.forEach(c => series.push({color: c.color, pts: c.pts, width: 2.2}));
   series.push({color: accent, pts: cache.curve.exact, width: 2.6});
-  if (state.approx) series.push({color: apC, pts: cache.curve.approx, width: 2, dash: [6, 4]});
+  if (state.approx && sys.approxOK) series.push({color: apC, pts: cache.curve.approx, width: 2, dash: [6, 4]});
   const r = CH.lineChart(ctx, {x: 0, y: 0, w, h}, {x: {min: 0, max: xmax, label: '滴下量（mL）', n: 8}, y: {min: 0, max: 14, label: 'pH', n: 7}, colors: C, series, hlines: hl, vlines: vl});
   plotInfo = r;
   ctx.save();
@@ -169,10 +182,10 @@ function drawChart(ex){
   }
   // いまの点
   const ap = T.approx(sys, V).pH;
-  if (state.approx){ ctx.strokeStyle = apC; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(r.X(V), r.Y(Math.max(0, Math.min(14, ap))), 6, 0, Math.PI * 2); ctx.stroke(); }
+  if (state.approx && sys.approxOK && ap != null){ ctx.strokeStyle = apC; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(r.X(V), r.Y(Math.max(0, Math.min(14, ap))), 6, 0, Math.PI * 2); ctx.stroke(); }
   ctx.fillStyle = danger; ctx.strokeStyle = C.bg; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(r.X(V), r.Y(ex.pH), 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   ctx.restore();
-  $('chartLegend').innerHTML = (cache.cmp.length ? `<span><i></i>${esc(sys.name.split(' ')[0])}（いまの試料）</span>` + cache.cmp.map(c => `<span><i style="border-top-color:${c.color}"></i>${esc(c.label)}</span>`).join('') : '<span><i></i>厳密な計算</span>') + (state.approx ? '<span><i class="ap"></i>近似の計算</span>' : '') + ghosts.map(g => `<span style="color:${g.color}"><i class="gh"></i>${esc(g.label)}</span>`).join('') + '<span><i class="pt"></i>いまの点</span>';
+  $('chartLegend').innerHTML = (cache.cmp.length ? `<span><i></i>${esc(sys.name.split(' ')[0])}（いまの試料）</span>` + cache.cmp.map(c => `<span><i style="border-top-color:${c.color}"></i>${esc(c.label)}</span>`).join('') : '<span><i></i>厳密な計算</span>') + (state.approx && sys.approxOK ? '<span><i class="ap"></i>近似の計算</span>' : '') + ghosts.map(g => `<span style="color:${g.color}"><i class="gh"></i>${esc(g.label)}</span>`).join('') + '<span><i class="pt"></i>いまの点</span>';
 }
 
 // ---- 計算の過程 ----
@@ -192,16 +205,17 @@ function speciesTable(ex){
     rows.map(s => `<tr><td>${esc(s.name)}</td><td>${fmt(s.conc)}</td></tr>`).join('') + '</tbody></table>';
 }
 function renderProcess(ex, ap){
-  const exl = T.exactLines(sys, V), diff = ap.pH - ex.pH, q = T.quality(diff);
-  $('procHead').textContent = `滴下量 ${V.toFixed(2)} mL・${ap.label}`;
+  const exl = T.exactLines(sys, V), na = ap.pH == null, diff = na ? null : ap.pH - ex.pH, q = T.quality(diff);
+  $('procHead').textContent = `滴下量 ${V.toFixed(2)} mL` + (ap.label ? `・${ap.label}` : '');
   $('colA').className = 'pcol ap';
   $('colA').innerHTML = `<h4>近似の計算<span class="tag">教科書の式</span></h4><ol>${ap.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ol>`;
   $('colE').className = 'pcol ex';
   $('colE').innerHTML = `<h4>厳密な計算<span class="tag">電荷のつり合いを解く</span></h4><ol>${exl.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ol>
     <p class="sub">そのときの濃度（大きい順）</p>${speciesTable(ex)}`;
   // 見出しの下に結果を置く
-  $('colA').insertAdjacentHTML('beforeend', `<p class="res">pH ≒ ${ap.pH.toFixed(2)}</p>`);
+  if (!na) $('colA').insertAdjacentHTML('beforeend', `<p class="res">pH ≒ ${ap.pH.toFixed(2)}</p>`);
   $('colE').insertAdjacentHTML('beforeend', `<p class="res">pH = ${ex.pH.toFixed(2)}</p>`);
+  if (na){ $('cmpBar').innerHTML = `<span>厳密 <b>${ex.pH.toFixed(2)}</b></span><span class="q none">近似なし</span><span class="mut">弱い酸・塩基どうしの滴定は、教科書の近似式では扱えません。電荷のつり合いから解いた値です。</span>`; return; }
   const why = q.level === 'good' ? '近似の条件が成り立っている点です。' : (WHY[ap.role] || '');
   $('cmpBar').innerHTML = `<span>近似 <b>${ap.pH.toFixed(2)}</b></span><span>厳密 <b>${ex.pH.toFixed(2)}</b></span><span>差 <b>${sdiff(diff)}</b></span>
     <span class="q ${q.level}">${q.text}</span><span class="mut">${esc(why)}</span>`;
@@ -211,8 +225,8 @@ function renderKp(){
   if (!tb.dataset.key || tb.dataset.key !== state.sample + '|' + JSON.stringify(overOf(state.sample)) + '|' + state.cap){
     tb.dataset.key = state.sample + '|' + JSON.stringify(overOf(state.sample)) + '|' + state.cap;
     tb.innerHTML = '<thead><tr><th>場面</th><th>滴下量 (mL)</th><th>近似</th><th>厳密</th><th>差</th><th>判定</th></tr></thead><tbody>' +
-      kp.map((p, i) => `<tr tabindex="0" data-i="${i}" title="クリックすると、この滴下量に移ります"><td>${esc(p.label)}</td><td>${p.V.toFixed(p.V < 1 ? 3 : 2)}</td><td>${p.approx.toFixed(2)}</td><td>${p.exact.toFixed(2)}</td>
-        <td>${sdiff(p.diff)}</td><td><span class="q ${p.q.level}">${p.q.text}</span></td></tr>`).join('') + '</tbody>';
+      kp.map((p, i) => `<tr tabindex="0" data-i="${i}" title="クリックすると、この滴下量に移ります"><td>${esc(p.label)}</td><td>${p.V.toFixed(p.V < 1 ? 3 : 2)}</td><td>${p.approx == null ? '—' : p.approx.toFixed(2)}</td><td>${p.exact.toFixed(2)}</td>
+        <td>${p.diff == null ? '—' : sdiff(p.diff)}</td><td><span class="q ${p.q.level}">${p.q.text}</span></td></tr>`).join('') + '</tbody>';
   }
   tb.querySelectorAll('tbody tr').forEach(tr => tr.classList.toggle('cur', Math.abs(kp[+tr.dataset.i].V - V) < 0.0005));
 }
@@ -367,7 +381,8 @@ function renderAll(){
 function renderStatic(){
   const smp = getSample(state.sample);
   $('smpName').textContent = smp.name;
-  $('smpNote').textContent = smp.note + (sys.pI != null ? ` 等電点 pI = ${sys.pI.toFixed(2)}。` : '') + (sys.Veq[0] > state.cap ? '（当量点がビュレットの容量を超えます。濃度や体積を変えてください）' : '');
+  const noteT = sys.titrant.key === smp.titrant ? smp.note : '標準とは別の滴下液（' + sys.titrant.name + '）で滴定しています。';
+  $('smpNote').textContent = noteT + (sys.pI != null ? ` 等電点 pI = ${sys.pI.toFixed(2)}。` : '') + (sys.Veq[0] > state.cap ? '（当量点がビュレットの容量を超えます。濃度や体積を変えてください）' : '');
   $('eqn').innerHTML = `${esc(hideAns() ? sys.name + '（濃度は未知）' : sys.name)} <span class="arr">←</span> ${esc(sys.titrant.name)}`;
   syncCompare();
   document.querySelectorAll('#smpList .mi').forEach(b => { const on = b.dataset.key === state.sample; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
@@ -376,8 +391,9 @@ function renderStatic(){
   $('seek').max = xmax; $('seek').setAttribute('aria-valuetext', '');
   $('spdSel').value = String(state.speed);
   const o = overOf(state.sample);
-  $('inC0').disabled = !!smp.unknown; $('inC0').value = smp.unknown ? '' : (o.C0 ?? smp.C0); $('inV0').value = o.V0 ?? smp.V0; $('inCt').value = o.Ct ?? smp.Ct;
+  $('inC0').disabled = !!smp.unknown; $('inC0').value = smp.unknown ? '' : (o.C0 ?? smp.C0); $('inV0').value = o.V0 ?? smp.V0; $('inCt').value = sys.Ct;
   $('lbCt').firstChild.textContent = `${sys.titrant.name} の濃度 `;
+  $('lbCap').textContent = '容量（ビュレットの目盛りの最大）';
   const pk = $('pkaBox');
   pk.hidden = smp.n === 0;
   pk.innerHTML = smp.n === 0 ? '' : '<span>pKa（電離のしやすさ。小さいほど強い酸）</span><div class="pk">' +
@@ -388,11 +404,26 @@ function renderStatic(){
   $('custBox').hidden = state.sample !== 'custom';
   document.querySelectorAll('#custKind [data-kind]').forEach(b => { const on = b.dataset.kind === state.custom.kind; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
   document.querySelectorAll('#custN [data-n]').forEach(b => { const on = +b.dataset.n === state.custom.n; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
-  $('dlgName').textContent = smp.name; $('dlgNote').textContent = smp.note;
+  $('dlgName').innerHTML = `${esc(sys.name)}${hideAns() ? '（濃度は未知）' : ' ' + fmt(sys.C0) + ' mol/L'} ${fmt(sys.V0, 3)} mL <span class="arr">←</span> ${esc(sys.titrant.name)} ${fmt(sys.Ct)} mol/L`;
+  $('dlgNote').textContent = noteT;
+  // 試料の種類（価数・pKa は種類で決まる）
+  let sh = '', grp = '';
+  for (const x of T.SAMPLES){ if (x.group !== grp){ if (grp) sh += '</optgroup>'; grp = x.group; sh += `<optgroup label="${esc(grp)}">`; } sh += `<option value="${x.key}">${esc(x.key === 'custom' ? '架空の酸・塩基（価数・pKa を自作）' : x.label)}</option>`; }
+  $('selSpecies').innerHTML = sh + '</optgroup>'; $('selSpecies').value = state.sample;
+  $('btnToCustom').hidden = state.sample === 'custom' || !!smp.unknown;
+  // 滴下液の種類（酸には塩基、塩基には酸）
+  const tl = T.titrantsFor(smp.kind), opp = smp.kind === 'acid' ? 'base' : 'acid';
+  $('selTit').innerHTML = tl.map(t => `<option value="${t.key}">${esc(t.label)}</option>`).join('') + `<option value="custom">${esc(opp === 'acid' ? '自作の酸（弱酸）' : '自作の塩基（弱塩基）')}</option>`;
+  $('selTit').value = sys.titrant.key; $('selTit').disabled = !!smp.unknown; $('inCt').disabled = !!smp.unknown;
+  $('custTBox').hidden = sys.titrant.key !== 'custom';
+  document.querySelectorAll('#custTN [data-n]').forEach(b => { const on = +b.dataset.n === state.customT.n; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+  const tp = $('tpkaBox'), tt = sys.titrant;
+  tp.hidden = !(tt.n > 0);
+  tp.innerHTML = tt.n > 0 ? `<span>pKa（${tt.type === 'base' ? '共役酸の pKa。大きいほど強い塩基' : '小さいほど強い酸'}）</span><div class="pk">` + tt.pKa.map((v, i) => `<label>${tt.n === 1 ? 'pKa' : 'pKa' + '₁₂₃'[i]}<input type="number" step="any" min="-5" max="16" data-tpk="${i}" value="${v}" aria-label="滴下液の pKa ${i + 1}"></label>`).join('') + '</div>' : '';
   // 目印の滴下量へ移るボタン
   const jb = [];
   if (!hideAns()) sys.Veq.forEach((v, i) => jb.push({v, t: (sys.Veq.length > 1 ? `第 ${i + 1} 当量点` : '当量点') + ` ${fmt(v, 3)} mL`}));
-  if (sys.n > 0 && !hideAns()) sys.Veq.forEach((v, i) => jb.push({v: v - sys.N0 / sys.Ct / 2, t: '半当量点' + (sys.Veq.length > 1 ? `（第 ${i + 1} 段）` : '')}));
+  if (sys.n > 0 && !hideAns()) sys.Veq.forEach((v, i) => jb.push({v: v - sys.dVeq / 2, t: '半当量点' + (sys.Veq.length > 1 ? `（第 ${i + 1} 段）` : '')}));
   jb.sort((a, b) => a.v - b.v);
   $('jumpBox').innerHTML = jb.filter(b => b.v <= xmax + 1e-9).map(b => `<button type="button" data-v="${b.v}">${esc(b.t)}</button>`).join('');
   $('kpTable').dataset.key = '';
@@ -451,13 +482,13 @@ function buildSampleMenu(){
 }
 function syncCompare(){
   document.querySelectorAll('#smpList .cmp-cb').forEach(cb => {
-    const k = cb.dataset.key, smp = getSample(k), same = smp.titrant.name === sys.titrant.name, dis = k === state.sample || k === 'vinegar' || !same;
+    const k = cb.dataset.key, smp = getSample(k), ok = canCompare(k), dis = k === state.sample || !ok;
     cb.disabled = dis; cb.checked = !dis && state.compare.includes(k);
-    cb.parentElement.title = k === state.sample ? 'いまの試料です（いつも表示されます）' : k === 'vinegar' ? '濃度が未知の試料は、比べられません' : !same ? `滴下液が ${smp.titrant.name} なので、${sys.titrant.name} で滴定する試料とは比べられません` : 'いまの試料の曲線に重ねて表示します';
+    cb.parentElement.title = k === state.sample ? 'いまの試料です（いつも表示されます）' : smp.unknown ? '濃度が未知の試料は、比べられません' : !ok ? `${sys.titrant.name} では滴定できない種類（${smp.kind === 'acid' ? '酸' : '塩基'}）です` : 'いまの試料の曲線に重ねて表示します（滴下液・濃度はいまのものを使います）';
     cb.parentElement.classList.toggle('dis', dis);
   });
   const n = cache ? cache.cmp.length : 0;
-  $('cmpInfo').textContent = `${sys.titrant.name} で滴定する試料を、重ねて比べられます（最大 ${MAX_CMP} 件）。` + (n ? ` いま ${n} 件を重ねています。` : '');
+  $('cmpInfo').textContent = `${sys.titrant.name}（${fmt(sys.Ct)} mol/L）で滴定する試料を、重ねて比べられます（最大 ${MAX_CMP} 件）。` + (n ? ` いま ${n} 件を重ねています。` : '');
   $('cmpClear').disabled = !n;
 }
 $('smpList').onchange = e => {
@@ -468,9 +499,30 @@ $('smpList').onchange = e => {
   save(); rebuild(); renderStatic(); renderAll();
 };
 $('smpList').addEventListener('click', e => { if (e.target.closest('#cmpClear')){ state.compare = []; save(); rebuild(); renderStatic(); renderAll(); } });
+// プリセット：試料と滴下液を、標準の組み合わせ・標準の条件にまとめて設定する
 function selectSample(key){
-  state.compare = state.compare.filter(k => k !== key && getSample(k).titrant.name === getSample(key).titrant.name);
+  delete state.over[key]; state.titKey = null;
+  switchSample(key);
+}
+function switchSample(key){
   state.sample = key; ghosts = []; V = 0; running = false; $('btnRun').classList.remove('on');
+  const t = curTitrant(); if (state.titKey && t.key !== state.titKey) state.titKey = null;
+  rebuild(); state.compare = state.compare.filter(k => k !== key && canCompare(k));
+  rebuild(); renderStatic(); save(); renderAll();
+}
+// 試料の種類を選ぶ：価数・pKa は種類で決まる。変えた体積・濃度は、種類を替えても残す
+function chooseSpecies(key){
+  const prev = overOf(state.sample), so = {};
+  if (prev.V0 != null) so.V0 = prev.V0;
+  if (prev.C0 != null && !getSample(key).unknown) so.C0 = prev.C0;
+  if (prev.Ct != null) so.Ct = prev.Ct;
+  state.over[key] = so;
+  switchSample(key);
+}
+// 滴下液の種類を選ぶ：濃度・pKa はその種類の標準に戻る
+function chooseTitrant(key){
+  state.titKey = key; const o = state.over[state.sample] || (state.over[state.sample] = {}); delete o.Ct; delete o.tpKa;
+  V = 0; ghosts = []; if (running) setRunning(false);
   rebuild(); renderStatic(); save(); renderAll();
 }
 $('smpList').onclick = e => { const b = e.target.closest('.mi'); if (b) selectSample(b.dataset.key); };
@@ -495,7 +547,23 @@ $('capSeg').onclick = e => { const b = e.target.closest('[data-cap]'); if (!b) r
 $('selInd').onchange = e => { state.inds[state.sample] = e.target.value; save(); renderAll(); };
 $('btnDefault').onclick = () => { delete state.over[state.sample]; delete state.inds[state.sample]; V = 0; rebuild(); renderStatic(); save(); renderAll(); };
 // ---- 試料を選ぶ・条件を決めるモーダル ----
-const dlg = $('smpDlg'); let dlgOpener = null;
+const dlg = $('smpDlg'); $('selSpecies').onchange = e => chooseSpecies(e.target.value);
+$('selTit').onchange = e => chooseTitrant(e.target.value);
+$('custTBox').onclick = e => { const n = e.target.closest('[data-n]'); if (!n) return; state.customT.n = +n.dataset.n; const o = state.over[state.sample]; if (o) delete o.tpKa; V = 0; rebuild(); renderStatic(); save(); renderAll(); };
+$('tpkaBox').onchange = e => {
+  if (!e.target.matches('[data-tpk]')) return;
+  const arr = Array.from($('tpkaBox').querySelectorAll('[data-tpk]')).map(i => parseFloat(i.value));
+  if (!arr.every(v => v >= -5 && v <= 16)){ toast('pKa は −5 〜 16 の間で入れてください'); renderStatic(); return; }
+  const o = state.over[state.sample] || (state.over[state.sample] = {}); o.tpKa = arr; V = 0; rebuild(); renderStatic(); save(); renderAll();
+};
+// 試料を「自作」に写して、種類・価数・pKa を自由に変えられるようにする（pH の計算結果は、写した直後は同じ）
+$('btnToCustom').onclick = () => {
+  const smp = getSample(state.sample), prev = overOf(state.sample), keepPKa = smp.n > 0 ? sys.pKa.slice() : null;
+  state.custom = {kind: smp.kind, n: Math.max(1, smp.n)};
+  const o = {C0: prev.C0 ?? smp.C0, V0: prev.V0 ?? smp.V0}; if (prev.Ct != null) o.Ct = prev.Ct; if (keepPKa) o.pKa = keepPKa; state.over.custom = o;
+  state.sample = 'custom'; ghosts = []; V = 0; rebuild(); renderStatic(); save(); renderAll(); toast('自作の酸・塩基に写しました。種類・価数・pKa を変えられます');
+};
+let dlgOpener = null;
 function openDlg(opener){
   dlgOpener = opener || $('btnSmp');
   try { dlg.showModal(); } catch { dlg.setAttribute('open', ''); }
@@ -509,7 +577,7 @@ $('btnSmp').onclick = () => openDlg($('btnSmp'));
 $('btnDetail').onclick = () => openDlg($('btnDetail'));
 $('smpDlgX').onclick = closeDlg; $('smpDlgOk').onclick = closeDlg;
 // 近似の曲線の表示・非表示（グラフの見出しのボタン）
-function syncApproxBtn(){ const b = $('btnApproxTgl'); b.setAttribute('aria-pressed', state.approx); b.textContent = '近似の曲線：' + (state.approx ? '表示' : '非表示'); $('optApprox').checked = state.approx; }
+function syncApproxBtn(){ const b = $('btnApproxTgl'); b.disabled = !sys.approxOK; $('optApprox').disabled = !sys.approxOK; b.setAttribute('aria-pressed', state.approx && sys.approxOK); b.textContent = !sys.approxOK ? '近似の曲線：なし（弱い滴下液）' : '近似の曲線：' + (state.approx ? '表示' : '非表示'); b.title = !sys.approxOK ? '滴下液が弱い酸・塩基のときは、教科書の近似式がないため、近似の曲線は出せません' : '近似の計算の曲線（点線）を出す／隠す'; $('optApprox').checked = state.approx; }
 $('btnApproxTgl').onclick = () => { state.approx = !state.approx; save(); renderAll(); };
 for (const [id, k] of [['optApprox', 'approx'], ['optEq', 'eq'], ['optBand', 'band']]) $(id).onchange = e => { state[k] = e.target.checked; save(); renderAll(); };
 

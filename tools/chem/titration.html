@@ -165,41 +165,58 @@
 </div>
 
 <dialog id="smpDlg" aria-labelledby="smpDlgT">
-  <div class="dlg-head"><h2 id="smpDlgT">試料を選ぶ・条件を決める</h2><button type="button" class="ic dlg-x" id="smpDlgX" aria-label="閉じる" title="閉じる（Esc）">×</button></div>
+  <div class="dlg-head"><h2 id="smpDlgT">試料と滴下液を決める</h2><button type="button" class="ic dlg-x" id="smpDlgX" aria-label="閉じる" title="閉じる（Esc）">×</button></div>
   <div class="dlg-body">
-    <div class="dlg-list" id="smpList" role="listbox" aria-label="酸と塩基の組み合わせ（プリセット）"></div>
+    <div class="dlg-list" id="smpList" role="listbox" aria-label="プリセット（試料と滴下液の組み合わせ）"></div>
     <div class="dlg-set">
       <p class="dlg-cur"><b id="dlgName"></b><br><span class="mut" id="dlgNote"></span></p>
-      <div class="detail" id="detail">
-      <label class="fld"><span>試料の濃度 <small>mol/L</small></span><input type="number" id="inC0" min="0.00001" max="2" step="any" inputmode="decimal"></label>
-      <label class="fld"><span>試料の体積 <small>mL</small></span><input type="number" id="inV0" min="1" max="100" step="any" inputmode="decimal"></label>
-      <label class="fld"><span id="lbCt">滴下する液の濃度 <small>mol/L</small></span><input type="number" id="inCt" min="0.00001" max="2" step="any" inputmode="decimal"></label>
-      <div class="fld" id="custBox" hidden><span>架空の酸・塩基</span>
-        <div class="tp-row">
-          <div class="seg" id="custKind" role="radiogroup" aria-label="酸か塩基か">
-            <button type="button" role="radio" data-kind="acid" title="酸（NaOH で滴定）">酸</button>
-            <button type="button" role="radio" data-kind="base" title="塩基（HCl で滴定）">塩基</button>
+      <fieldset class="card1"><legend>試料（フラスコの液）</legend>
+        <div class="detail" id="detail">
+          <label class="fld"><span>種類（価数・pKa が決まります）</span><select id="selSpecies" aria-label="試料の種類"></select></label>
+          <div class="fld" id="custBox" hidden><span>架空の酸・塩基</span>
+            <div class="tp-row">
+              <div class="seg" id="custKind" role="radiogroup" aria-label="酸か塩基か">
+                <button type="button" role="radio" data-kind="acid" title="酸（塩基で滴定）">酸</button>
+                <button type="button" role="radio" data-kind="base" title="塩基（酸で滴定）">塩基</button>
+              </div>
+              <div class="seg" id="custN" role="radiogroup" aria-label="価数（段数）">
+                <button type="button" role="radio" data-n="1" title="1 価">1 価</button>
+                <button type="button" role="radio" data-n="2" title="2 価">2 価</button>
+                <button type="button" role="radio" data-n="3" title="3 価">3 価</button>
+              </div>
+            </div>
           </div>
-          <div class="seg" id="custN" role="radiogroup" aria-label="段数">
-            <button type="button" role="radio" data-n="1" title="1 段（1 価）">1 段</button>
-            <button type="button" role="radio" data-n="2" title="2 段（2 価）">2 段</button>
-            <button type="button" role="radio" data-n="3" title="3 段（3 価）">3 段</button>
+          <div class="fld" id="pkaBox"></div>
+          <button type="button" class="sbtn" id="btnToCustom" title="この試料の種類・価数・pKa を、自由に変えられる「自作」にする">価数・pKa を自由に変える（自作にする）</button>
+          <label class="fld"><span>濃度 <small>mol/L</small></span><input type="number" id="inC0" min="0.00001" max="2" step="any" inputmode="decimal"></label>
+          <label class="fld"><span>体積 <small>mL</small></span><input type="number" id="inV0" min="1" max="100" step="any" inputmode="decimal"></label>
+          <label class="fld"><span>指示薬</span><select id="selInd" aria-label="指示薬"></select></label>
+        </div>
+      </fieldset>
+      <fieldset class="card1"><legend>滴下液（ビュレットの液）</legend>
+        <div class="detail">
+          <label class="fld"><span>種類</span><select id="selTit" aria-label="滴下液の種類"></select></label>
+          <div class="fld" id="custTBox" hidden><span>自作の滴下液の価数</span>
+            <div class="seg" id="custTN" role="radiogroup" aria-label="滴下液の価数">
+              <button type="button" role="radio" data-n="1" title="1 価">1 価</button>
+              <button type="button" role="radio" data-n="2" title="2 価">2 価</button>
+              <button type="button" role="radio" data-n="3" title="3 価">3 価</button>
+            </div>
+          </div>
+          <div class="fld" id="tpkaBox"></div>
+          <label class="fld"><span id="lbCt">滴下液の濃度 <small>mol/L</small></span><input type="number" id="inCt" min="0.00001" max="2" step="any" inputmode="decimal"></label>
+          <div class="fld"><span id="lbCap">ビュレットの容量</span>
+            <div class="seg" id="capSeg" role="radiogroup" aria-label="ビュレットの容量">
+              <button type="button" role="radio" data-cap="25" title="25 mL のビュレット">25 mL</button>
+              <button type="button" role="radio" data-cap="50" title="50 mL のビュレット">50 mL</button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="fld" id="pkaBox"></div>
-      <div class="fld"><span>ビュレットの容量</span>
-        <div class="seg" id="capSeg" role="radiogroup" aria-label="ビュレットの容量">
-          <button type="button" role="radio" data-cap="25" title="25 mL のビュレット">25 mL</button>
-          <button type="button" role="radio" data-cap="50" title="50 mL のビュレット">50 mL</button>
-        </div>
-      </div>
-      <label class="fld"><span>指示薬</span><select id="selInd" aria-label="指示薬"></select></label>
-      <button type="button" class="sbtn" id="btnDefault" title="この試料の標準の値に戻す">標準の値に戻す</button>
-    </div>
+      </fieldset>
+      <button type="button" class="sbtn" id="btnDefault" title="この試料と滴下液の、標準の条件に戻す">標準の値に戻す</button>
     </div>
   </div>
-  <div class="dlg-foot"><span class="mut">選ぶとすぐに反映されます。</span><button type="button" class="sbtn primary" id="smpDlgOk">閉じて滴定する</button></div>
+  <div class="dlg-foot"><span class="mut">左のプリセットは、試料と滴下液をまとめて入れます。右で、自分で決めることもできます。変更はすぐに反映されます。</span><button type="button" class="sbtn primary" id="smpDlgOk">閉じて滴定する</button></div>
 </dialog>
 
 <!-- 使い方（共通部品の非モーダル小窓。tools/shared/help-panel.js） -->
@@ -215,8 +232,9 @@
     <details><summary>タブ：緩衝液・指示薬</summary><p><b>緩衝液</b>タブでは、弱酸の pKa をつまみで変えたり、いまの曲線を残して見比べたり、少量の酸・塩基を加えたときの pH の変化を純水と比べられます。<b>指示薬</b>タブでは、指示薬を選んで滴下し、色が変わる点と当量点を比べます。「答えを見る」で、全部の指示薬の結果が出ます。</p></details>
     <details><summary>目盛りを読む・食酢の滴定</summary><p><b>目盛りを読む</b>タブで、ビュレットの液面の読み方を練習します（0.01 mL の位まで。±0.02 mL なら正解）。試料のメニューの<b>食酢の滴定</b>では、うすめた食酢の濃度が未知です。滴定の終点の読みから、自分で濃度を計算して答え合わせをします。</p></details>
     <details><summary>架空の酸・塩基と、pH–割合のグラフ</summary><p>試料のメニューの<b>架空の酸・塩基</b>を選び、「条件を変える」で酸か塩基か、段数（1〜3）、pKa を決めると、自分で決めた酸・塩基の滴定を調べられます。<b>緩衝液</b>タブの下には、横軸を pH にした各化学種の<b>モル分率</b>のグラフがあります。隣り合う 2 つの形が等しくなる pH が pKa です。</p></details>
-    <details><summary>複数の試料を重ねて比べる</summary><p>試料を選ぶ画面の「比べる」にチェックを入れると、<b>同じ滴下液</b>（例：NaOH）で滴定する別の試料の曲線を、いまの試料のグラフに重ねて表示します（最大 5 件）。酢酸と塩酸、pKa のちがう酸、アミノ酸などを同じグラフで見比べて、当量点の位置・pH のジャンプ・半当量点（pKa）のちがいを調べましょう。横軸は、重ねた試料のうちいちばん長い滴下量に合わせます。</p></details>
-    <details><summary>試料を変える・条件を決める</summary><p>上の試料のボタンを押すと、試料を選ぶ画面が開きます。強酸×強塩基からはじめ、弱酸・弱塩基、2 段階以上の酸（炭酸ナトリウム・硫酸・シュウ酸・リン酸・硫化水素）、アミノ酸へ進みましょう。同じ画面で、濃度・体積・pKa・ビュレットの容量・指示薬も変えられます。</p></details>
+    <details><summary>複数の試料を重ねて比べる</summary><p>試料を選ぶ画面の「比べる」にチェックを入れると、いまの滴下液（種類・濃度）で滴定できる別の試料の曲線を、いまの試料のグラフに重ねて表示します（最大 5 件）。酢酸と塩酸、pKa のちがう酸、アミノ酸などを同じグラフで見比べて、当量点の位置・pH のジャンプ・半当量点（pKa）のちがいを調べましょう。横軸は、重ねた試料のうちいちばん長い滴下量に合わせます。</p></details>
+    <details><summary>試料と滴下液を決める</summary><p>上の試料のボタンを押すと、決める画面が開きます。<b>左のプリセット</b>は、試料と滴下液の組み合わせをまとめて入れます（強酸×強塩基からはじめ、弱酸・弱塩基、2 価以上の酸、アミノ酸へ進みましょう）。<b>右</b>では、自分で決めます。試料は種類を選ぶと価数と pKa が決まり、濃度・体積は種類ごとの標準の値から変えられます。滴下液も、NaOH・Ba(OH)₂・HCl のほか、弱塩基（NH₃・Na₂CO₃）や弱酸（CH₃COOH）、価数と pKa を自分で決めた架空のものを選べます。ビュレットの容量・指示薬もここで変えます。</p></details>
+    <details><summary>弱い滴下液のとき</summary><p>滴下液が弱い酸・塩基のときは、教科書の近似式がないので、近似の欄とグラフの近似の曲線は出さず、厳密な計算だけを出します。弱酸と弱塩基の滴定では、当量点で pH が急に変わらない（ジャンプしない）ことに注目しましょう。</p></details>
     <details><summary>濃度・pKa を変える</summary><p>「条件を変える」で、濃度・体積・pKa を変えられます。弱酸の pKa を変えると、半当量点の pH も当量点の位置もどう動くかがわかります。</p></details>
   </section>
   <section data-help-topic="curve" data-help-title="滴定曲線を見る">
@@ -251,7 +269,7 @@
     <h3>このアプリについて</h3>
     <p><b>推奨環境</b>：macOS ＋ Google Chrome。</p>
     <p><b>ご利用にあたって</b>：教育用のアプリです。内容の正確さは保証しません。選んだ試料や設定は、このブラウザの中に自動で保存し、外部へ送信しません。著作権は海城中学高等学校に帰属し、改変・再配布はご遠慮ください。</p>
-    <p class="credit">中和滴定　バージョン <span id="appVer">0.6</span> BETA（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">中和滴定　バージョン <span id="appVer">0.7</span> BETA（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 

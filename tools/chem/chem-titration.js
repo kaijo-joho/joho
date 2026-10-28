@@ -18,55 +18,55 @@ const EPS = 1e-9;
 // steps: 滴定曲線に出す当量点の数。rMax: 横軸の終わりを、最初の当量点の何倍にするか。
 const SAMPLES = [
   {key: 'hcl', group: '強酸×強塩基', name: '塩酸 × 水酸化ナトリウム', kind: 'acid', formula: 'HCl', label: '塩酸 HCl', n: 0, pKa: [], cX: 1, cM: 0, ionX: 'Cl⁻',
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
+    titrant: 'naoh', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
     note: '強酸を強塩基で滴定。当量点は pH 7。'},
   {key: 'naoh', group: '強酸×強塩基', name: '水酸化ナトリウム × 塩酸', kind: 'base', formula: 'NaOH', label: '水酸化ナトリウム NaOH', n: 0, pKa: [], cX: 0, cM: 1, ionM: 'Na⁺',
-    titrant: {name: 'HCl', ion: 'Cl⁻', type: 'acid'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
+    titrant: 'hcl', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
     note: '強塩基を強酸で滴定。曲線は右下がり。'},
   {key: 'hcl-dilute', group: '強酸×強塩基', name: 'とても薄い塩酸 × 水酸化ナトリウム', kind: 'acid', formula: 'HCl', label: '塩酸 HCl（1.0×10⁻⁴ mol/L）', n: 0, pKa: [], cX: 1, cM: 0, ionX: 'Cl⁻',
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.000100, V0: 10.0, Ct: 0.000100, steps: 1, rMax: 2, ind: 'bt',
+    titrant: 'naoh', C0: 0.000100, V0: 10.0, Ct: 0.000100, steps: 1, rMax: 2, ind: 'bt',
     note: '濃度が薄いと、当量点のまわりの変化がゆるやか。水の電離（10⁻⁷ mol/L）を無視した近似がずれる。'},
   {key: 'ch3cooh', group: '弱酸・弱塩基', name: '酢酸 × 水酸化ナトリウム', kind: 'acid', formula: 'CH₃COOH', label: '酢酸 CH₃COOH', n: 1, pKa: [4.76], z0: -1, forms: ['CH₃COO⁻', 'CH₃COOH'], cX: 0, cM: 0,
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
+    titrant: 'naoh', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
     note: '弱酸を強塩基で滴定。半当量点で pH = pKa。当量点は塩基性。'},
   {key: 'nh3', group: '弱酸・弱塩基', name: 'アンモニア × 塩酸', kind: 'base', formula: 'NH₃', label: 'アンモニア NH₃', n: 1, pKa: [9.25], z0: 0, forms: ['NH₃', 'NH₄⁺'], cX: 0, cM: 0,
-    titrant: {name: 'HCl', ion: 'Cl⁻', type: 'acid'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'mo',
+    titrant: 'hcl', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'mo',
     note: '弱塩基を強酸で滴定。NH₄⁺ の pKa は 9.25（pKb 4.75）。当量点は酸性。'},
   {key: 'vinegar', group: '実験', name: '食酢の滴定（濃度が未知）', kind: 'acid', formula: 'CH₃COOH', label: '食酢（10 倍にうすめた液）', n: 1, pKa: [4.76], z0: -1, forms: ['CH₃COO⁻', 'CH₃COOH'], cX: 0, cM: 0, unknown: true,
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.0700, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
+    titrant: 'naoh', C0: 0.0700, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
     note: 'うすめた食酢 10.0 mL を NaOH で滴定して、酢酸の濃度を求める。濃度は、出題ごとにちがう。'},
   {key: 'gly', group: 'アミノ酸', name: 'グリシン（塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Gly', label: 'グリシン塩酸塩', n: 2, pKa: [2.34, 9.60], z0: -1, forms: ['H₂NCH₂COO⁻', 'H₃N⁺CH₂COO⁻', 'H₃N⁺CH₂COOH'], cX: 1, cM: 0, ionX: 'Cl⁻',
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp', pIform: true,
+    titrant: 'naoh', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp', pIform: true,
     note: '陽イオン → 双性イオン → 陰イオン。第 1 当量点の pH が等電点（pKa₁ と pKa₂ の平均）。'},
   {key: 'ala', group: 'アミノ酸', name: 'アラニン（塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Ala', label: 'アラニン塩酸塩', n: 2, pKa: [2.34, 9.69], z0: -1, forms: ['Ala⁻', 'Ala±（双性イオン）', 'Ala⁺'], cX: 1, cM: 0, ionX: 'Cl⁻',
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
+    titrant: 'naoh', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
     note: 'グリシンに近い 2 段階の滴定。'},
   {key: 'asp', group: 'アミノ酸', name: 'アスパラギン酸（塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Asp', label: 'アスパラギン酸塩酸塩', n: 3, pKa: [1.88, 3.65, 9.60], z0: -2, forms: ['Asp²⁻', 'Asp⁻', 'Asp±（電荷 0）', 'Asp⁺'], cX: 1, cM: 0, ionX: 'Cl⁻',
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
+    titrant: 'naoh', C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
     note: '酸性アミノ酸。側鎖のカルボキシ基があるので 3 段階。等電点は pKa₁ と pKa₂ の平均。'},
   {key: 'glu', group: 'アミノ酸', name: 'グルタミン酸（塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Glu', label: 'グルタミン酸塩酸塩', n: 3, pKa: [2.19, 4.25, 9.67], z0: -2, forms: ['Glu²⁻', 'Glu⁻', 'Glu±（電荷 0）', 'Glu⁺'], cX: 1, cM: 0, ionX: 'Cl⁻',
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
+    titrant: 'naoh', C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
     note: '酸性アミノ酸。3 段階。第 2 当量点のあたり（電荷 0 の形が最も多い）が等電点。'},
   {key: 'lys', group: 'アミノ酸', name: 'リシン（2 塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Lys', label: 'リシン塩酸塩', n: 3, pKa: [2.18, 8.95, 10.53], z0: -1, forms: ['Lys⁻', 'Lys±（電荷 0）', 'Lys⁺', 'Lys²⁺'], cX: 2, cM: 0, ionX: 'Cl⁻',
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
+    titrant: 'naoh', C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
     note: '塩基性アミノ酸。側鎖のアミノ基があるので 3 段階（2 つの Cl⁻ つき）。等電点は pKa₂ と pKa₃ の平均で塩基性。'},
   {key: 'his', group: 'アミノ酸', name: 'ヒスチジン（2 塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'His', label: 'ヒスチジン塩酸塩', n: 3, pKa: [1.82, 6.00, 9.17], z0: -1, forms: ['His⁻', 'His±（電荷 0）', 'His⁺', 'His²⁺'], cX: 2, cM: 0, ionX: 'Cl⁻',
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
+    titrant: 'naoh', C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
     note: '塩基性アミノ酸。イミダゾール環が pKa 6.0 で働く。等電点は pKa₂ と pKa₃ の平均。'},
   {key: 'na2co3', group: '多段階', name: '炭酸ナトリウム × 塩酸', kind: 'base', formula: 'Na₂CO₃', label: '炭酸ナトリウム Na₂CO₃', n: 2, pKa: [6.35, 10.33], z0: -2, forms: ['CO₃²⁻', 'HCO₃⁻', 'H₂CO₃'], cX: 0, cM: 2, ionM: 'Na⁺',
-    titrant: {name: 'HCl', ion: 'Cl⁻', type: 'acid'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
+    titrant: 'hcl', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
     note: '2 段階。第 1 当量点は NaHCO₃（フェノールフタレイン）、第 2 当量点は H₂CO₃（メチルオレンジ）。'},
   {key: 'h2so4', group: '多段階', name: '硫酸 × 水酸化ナトリウム', kind: 'acid', formula: 'H₂SO₄', label: '硫酸 H₂SO₄', n: 2, pKa: [-3, 1.99], z0: -2, forms: ['SO₄²⁻', 'HSO₄⁻', 'H₂SO₄'], cX: 0, cM: 0,
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
+    titrant: 'naoh', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
     note: '第 1 段は完全電離、第 2 段（HSO₄⁻）は弱い酸（pKa 1.99）。'},
   {key: 'oxalic', group: '多段階', name: 'シュウ酸 × 水酸化ナトリウム', kind: 'acid', formula: '(COOH)₂', label: 'シュウ酸 (COOH)₂', n: 2, pKa: [1.27, 4.27], z0: -2, forms: ['C₂O₄²⁻', 'HC₂O₄⁻', 'H₂C₂O₄'], cX: 0, cM: 0,
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
+    titrant: 'naoh', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
     note: '2 価の弱酸。2 つの pKa の差が 3 しかなく、第 1 当量点がゆるやか。'},
   {key: 'h3po4', group: '多段階', name: 'リン酸 × 水酸化ナトリウム', kind: 'acid', formula: 'H₃PO₄', label: 'リン酸 H₃PO₄', n: 3, pKa: [2.15, 7.20, 12.35], z0: -3, forms: ['PO₄³⁻', 'HPO₄²⁻', 'H₂PO₄⁻', 'H₃PO₄'], cX: 0, cM: 0,
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
+    titrant: 'naoh', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
     note: '3 価の酸。高校では第 2 当量点まで。第 3 段（pKa 12.35）は水の電離と区別しにくい。'},
   {key: 'h2s', group: '多段階', name: '硫化水素 × 水酸化ナトリウム', kind: 'acid', formula: 'H₂S', label: '硫化水素 H₂S', n: 2, pKa: [7.0, 13.9], z0: -2, forms: ['S²⁻', 'HS⁻', 'H₂S'], cX: 0, cM: 0,
-    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
+    titrant: 'naoh', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
     note: 'とても弱い 2 価の酸（pKa 7.0・13.9）。'}
 ];
 
@@ -98,18 +98,45 @@ function indicatorColor(ind, pH){
   return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * p).toString(16).padStart(2, '0')).join('');
 }
 
-// ---- 系（試料＋条件）を作る ----
-// over = {C0, V0, Ct, pKa:[...]}（画面で変えた値）。
-function makeSys(sample, over = {}){
+// ---- 滴下液（ビュレットの液）。強塩基・強酸のほか、弱塩基・弱酸・多価のものも選べる ----
+// type：'base'（試料の酸を中和）／'acid'（試料の塩基を中和）。strong：完全電離（教科書の近似式が使える）。
+// m：1 mol あたり中和できる H⁺（OH⁻）の数（Ba(OH)₂ は 2）。弱いものは n・pKa・z0・forms（試料と同じ書き方）をもつ。
+// ionM・ionX：滴下液が持ち込む陽イオン・陰イオン（z：電荷、per：1 単位あたりの個数）。
+const TITRANTS = [
+  {key: 'naoh', name: 'NaOH', label: '水酸化ナトリウム NaOH', type: 'base', strong: true, m: 1, n: 0, pKa: [], z0: 0, forms: [], ionM: {name: 'Na⁺', z: 1, per: 1}, C: 0.100},
+  {key: 'baoh2', name: 'Ba(OH)₂', label: '水酸化バリウム Ba(OH)₂（2 価の強塩基）', type: 'base', strong: true, m: 2, n: 0, pKa: [], z0: 0, forms: [], ionM: {name: 'Ba²⁺', z: 2, per: 1}, C: 0.0500},
+  {key: 'nh3t', name: 'NH₃', label: 'アンモニア水 NH₃（弱塩基）', type: 'base', strong: false, m: 1, n: 1, pKa: [9.25], z0: 0, forms: ['NH₃', 'NH₄⁺'], C: 0.100},
+  {key: 'na2co3t', name: 'Na₂CO₃', label: '炭酸ナトリウム Na₂CO₃（2 価の弱塩基）', type: 'base', strong: false, m: 2, n: 2, pKa: [6.35, 10.33], z0: -2, forms: ['CO₃²⁻', 'HCO₃⁻', 'H₂CO₃'], ionM: {name: 'Na⁺', z: 1, per: 2}, C: 0.100},
+  {key: 'hcl', name: 'HCl', label: '塩酸 HCl', type: 'acid', strong: true, m: 1, n: 0, pKa: [], z0: 0, forms: [], ionX: {name: 'Cl⁻', z: 1, per: 1}, C: 0.100},
+  {key: 'acoht', name: 'CH₃COOH', label: '酢酸 CH₃COOH（弱酸）', type: 'acid', strong: false, m: 1, n: 1, pKa: [4.76], z0: -1, forms: ['CH₃COO⁻', 'CH₃COOH'], C: 0.100}
+];
+// 自作の滴下液：弱い酸（type 'acid'）か弱い塩基（'base'）、価数 n（1〜3）。pKa は画面で決める
+function customTitrant(type, n){
+  const sm = customSample({kind: type === 'acid' ? 'acid' : 'base', n}), re = type === 'acid' ? [/A/g, 'X'] : [/B/g, 'Y'];
+  return {key: 'custom', name: type === 'acid' ? '自作の酸 ' + sm.formula.replace(...re) : '自作の塩基 Y', label: type === 'acid' ? '自作の酸（弱酸）' : '自作の塩基（弱塩基）', type, strong: false, m: sm.n, n: sm.n,
+    pKa: sm.pKa.slice(), z0: sm.z0, forms: sm.forms.map(f => f.replace(...re)), C: 0.100};
+}
+const titrantByKey = (key, customN = 1, customType = 'base') => key === 'custom' ? customTitrant(customType, customN) : (TITRANTS.find(t => t.key === key) || null);
+const titrantsFor = kind => TITRANTS.filter(t => t.type === (kind === 'acid' ? 'base' : 'acid'));      // 酸を中和するのは塩基、塩基を中和するのは酸
+
+// ---- 系（試料＋滴下液＋条件）を作る ----
+// over = {C0, V0, Ct, pKa:[...], tpKa:[...]}（画面で変えた値）。titrant を省くと、試料の標準の滴下液。
+function makeSys(sample, over = {}, titrant = null){
+  const T0 = titrant || titrantByKey(sample.titrant);
   const s = Object.assign({}, sample, over);
   const pKa = (over.pKa && over.pKa.length === sample.n) ? over.pKa.slice() : sample.pKa.slice();
+  const tpKa = (over.tpKa && over.tpKa.length === T0.n) ? over.tpKa.slice() : (T0.pKa || []).slice();
+  const Ct = over.Ct != null ? over.Ct : (T0.key === sample.titrant ? sample.Ct : T0.C);
   const sys = {key: sample.key, name: sample.label, formula: sample.formula, kind: sample.kind, n: sample.n, pKa, z0: sample.z0 || 0, forms: sample.forms || [],
-    cM: sample.cM || 0, cX: sample.cX || 0, ionM: sample.ionM || 'M⁺', ionX: sample.ionX || 'X⁻', titrant: sample.titrant,
-    unknown: !!sample.unknown, C0: s.C0, V0: s.V0, Ct: s.Ct, steps: sample.steps, rMax: sample.rMax, ind: sample.ind, note: sample.note};
+    cM: sample.cM || 0, cX: sample.cX || 0, ionM: sample.ionM || 'M⁺', ionX: sample.ionX || 'X⁻',
+    titrant: {key: T0.key, name: T0.name, label: T0.label, type: T0.type, strong: T0.strong, m: T0.m, n: T0.n || 0, pKa: tpKa, z0: T0.z0 || 0, forms: T0.forms || [], ionM: T0.ionM || null, ionX: T0.ionX || null},
+    tm: T0.m, approxOK: !!T0.strong,
+    unknown: !!sample.unknown, C0: s.C0, V0: s.V0, Ct, steps: sample.steps, rMax: sample.rMax, ind: sample.ind, note: sample.note};
   // 等電点：電荷が 0 の形が H を j 個もつとき（j = −z0）、その形が出入りする 2 つの pKa の平均（2 つ以上の形をもつ酸で、電荷 0 の形が両端でないとき）
   { const j0 = -sys.z0; sys.pI = (sys.kind === 'acid' && sys.n >= 2 && j0 >= 1 && j0 <= sys.n - 1 && sys.z0 !== -sys.n) ? (sys.pKa[sys.n - j0] + sys.pKa[sys.n - j0 - 1]) / 2 : null; }
   sys.N0 = sys.C0 * sys.V0;                                           // mmol
-  sys.Veq = Array.from({length: sys.steps}, (_, i) => (i + 1) * sys.N0 / sys.Ct);   // mL
+  sys.dVeq = sys.N0 / (sys.Ct * sys.tm);                              // 1 当量の滴下量（mL）
+  sys.Veq = Array.from({length: sys.steps}, (_, i) => (i + 1) * sys.dVeq);   // mL
   sys.Vmax = sys.Veq[0] * sys.rMax;
   return sys;
 }
@@ -125,24 +152,29 @@ function fractions(pKa, pH){
   for (let m = 0; m <= n; m++) alpha[n - m] = w[m] / sum;       // m 個はずれた形は、H が n − m 個
   return alpha;
 }
-// 滴下量 V（mL）のときの溶液を、電荷のつり合いから解く。
+// 滴下量 V（mL）のときの溶液を、電荷のつり合いから解く。試料の化学種と、滴下液の化学種（弱い滴下液のとき）の両方を数える。
 function solveExact(sys, V){
-  const Vt = sys.V0 + V, N0 = sys.N0, Nt = sys.Ct * V, base = sys.titrant.type === 'base';
-  const Cfam = sys.n > 0 ? N0 / Vt : 0;
-  const cM = (sys.cM * N0 + (base ? Nt : 0)) / Vt, cX = (sys.cX * N0 + (base ? 0 : Nt)) / Vt;
+  const Vt = sys.V0 + V, N0 = sys.N0, Nt = sys.Ct * V, t = sys.titrant;
+  const CA = sys.n > 0 ? N0 / Vt : 0, CT = t.n > 0 ? Nt / Vt : 0;
+  const fam = (n, pKa, z0, C, pH) => { if (!(n > 0) || !(C > 0)) return 0; const a = fractions(pKa, pH); let mean = 0; for (let j = 0; j <= n; j++) mean += j * a[j]; return C * (z0 + mean); };
+  // 陽イオン・陰イオン（滴下液が持ち込むものを含む）の電荷の濃度
+  const posSpec = sys.cM * N0 / Vt + (t.ionM ? t.ionM.z * t.ionM.per * Nt / Vt : 0);
+  const negSpec = sys.cX * N0 / Vt + (t.ionX ? t.ionX.z * t.ionX.per * Nt / Vt : 0);
   const balance = pH => {
     const h = Math.pow(10, -pH);
-    let q = h + cM - KW / h - cX;
-    if (sys.n > 0){ const a = fractions(sys.pKa, pH); let mean = 0; for (let j = 0; j <= sys.n; j++) mean += j * a[j]; q += Cfam * (sys.z0 + mean); }
-    return q;
+    return h + posSpec - KW / h - negSpec + fam(sys.n, sys.pKa, sys.z0, CA, pH) + fam(t.n, t.pKa, t.z0, CT, pH);
   };
   const pH = S.bisect(balance, -2, 16);
   const h = Math.pow(10, -pH), alpha = sys.n > 0 ? fractions(sys.pKa, pH) : [];
-  const species = [{name: 'H⁺', conc: h, z: 1}];
-  if (cM > 0) species.push({name: sys.titrant.type === 'base' ? sys.titrant.ion : sys.ionM, conc: cM, z: 1});
-  for (let j = 0; j <= sys.n && sys.n > 0; j++) species.push({name: sys.forms[j], conc: Cfam * alpha[j], z: sys.z0 + j, family: true});
-  species.push({name: 'OH⁻', conc: KW / h, z: -1});
-  if (cX > 0) species.push({name: sys.titrant.type === 'acid' ? sys.titrant.ion : sys.ionX, conc: cX, z: -1});
+  const raw = [{name: 'H⁺', conc: h, z: 1}, {name: 'OH⁻', conc: KW / h, z: -1}];
+  if (sys.cM > 0) raw.push({name: sys.ionM, conc: sys.cM * N0 / Vt, z: 1});
+  if (sys.cX > 0) raw.push({name: sys.ionX, conc: sys.cX * N0 / Vt, z: -1});
+  if (t.ionM) raw.push({name: t.ionM.name, conc: t.ionM.per * Nt / Vt, z: t.ionM.z});
+  if (t.ionX) raw.push({name: t.ionX.name, conc: t.ionX.per * Nt / Vt, z: -t.ionX.z});
+  for (let j = 0; j <= sys.n && sys.n > 0; j++) raw.push({name: sys.forms[j], conc: CA * alpha[j], z: sys.z0 + j, family: true});
+  if (t.n > 0){ const a = fractions(t.pKa, pH); for (let j = 0; j <= t.n; j++) raw.push({name: t.forms[j], conc: CT * a[j], z: t.z0 + j, family: true}); }
+  const species = [];                                              // 同じ名前（Na⁺ など）は 1 つにまとめる
+  for (const sp of raw){ const m = species.find(x => x.name === sp.name && x.z === sp.z); if (m) m.conc += sp.conc; else species.push(Object.assign({}, sp)); }
   let pos = 0, neg = 0;
   for (const sp of species){ if (sp.z > 0) pos += sp.z * sp.conc; else neg += -sp.z * sp.conc; }
   return {pH, h, oh: KW / h, Vt, species, alpha, pos, neg, residual: (pos - neg) / Math.max(pos, neg, 1e-300)};
@@ -152,7 +184,8 @@ function solveExact(sys, V){
 // 戻り値：{pH, label, lines:[文], formula:'使った式', role}
 // r = 滴下した H⁺（OH⁻）の物質量 ÷ 試料の物質量。整数なら当量点（または出発点）。
 function approx(sys, V){
-  const N0 = sys.N0, Vt = sys.V0 + V, Nt = sys.Ct * V, n = sys.n, acid = sys.kind === 'acid';
+  const N0 = sys.N0, Vt = sys.V0 + V, Ntm = sys.Ct * V, Nt = Ntm * sys.tm, n = sys.n, acid = sys.kind === 'acid';   // Nt：滴下した H⁺（OH⁻）の物質量 mmol
+  if (!sys.approxOK) return {pH: null, label: '', lines: ['滴下液が弱い酸・塩基（' + sys.titrant.name + '）なので、教科書の近似式はありません。厳密な計算の結果だけを出しています。'], role: 'none'};
   const r = N0 > 0 ? Nt / N0 : 0;
   const L = [], aName = sys.name, tName = sys.titrant.name;
   const H = acid ? 'H⁺' : 'OH⁻', T = acid ? 'OH⁻' : 'H⁺';
@@ -190,7 +223,7 @@ function approx(sys, V){
   let k = k0, f = f0;
   if (f > 1 - EPS){ k += 1; f = 0; }
   if (f < EPS) f = 0;
-  L.push(`物質量：${aName} ${left(N0)}、${tName} ${left(Nt)}（比 ${fmt(r, 3)}）、${vol}`);
+  L.push(`物質量：${aName} ${left(N0)}、${tName} ${left(Ntm)}${sys.tm > 1 ? `（${T} ${left(Nt)}）` : ''}（比 ${fmt(r, 3)}）、${vol}`);
 
   if (r > n + EPS){
     const rest = Nt - n * N0, c = rest / Vt;
@@ -245,6 +278,7 @@ function approx(sys, V){
 
 // 近似の良さ：差（pH）で 3 段階
 function quality(diff){
+  if (diff == null || !isFinite(diff)) return {level: 'none', text: '近似なし'};
   const d = Math.abs(diff);
   return d < 0.05 ? {level: 'good', text: 'ほぼ一致'} : d < 0.3 ? {level: 'fair', text: 'おおよそ合う'} : {level: 'bad', text: '近似がずれる'};
 }
@@ -277,13 +311,13 @@ function curve(sys, xmax, N = 400){
   const grid = volumeGrid(sys, xmax, N);
   return {
     exact: grid.map(v => [v, solveExact(sys, v).pH]),
-    approx: grid.map(v => [v, Math.max(-1, Math.min(15, approx(sys, v).pH))])
+    approx: sys.approxOK ? grid.map(v => [v, Math.max(-1, Math.min(15, approx(sys, v).pH))]) : []
   };
 }
 
 // ---- 代表点（近似と厳密を見比べる表） ----
 function keyPoints(sys, xmax){
-  const pts = [], add = (r, label) => { const V = r * sys.N0 / sys.Ct; if (V <= xmax + 1e-9) pts.push({r, V, label}); };
+  const pts = [], add = (r, label) => { const V = r * sys.dVeq; if (V <= xmax + 1e-9) pts.push({r, V, label}); };
   for (let k = 0; k < sys.steps; k++){
     add(k, k === 0 ? '滴下前' : `第 ${k} 当量点`);
     if (sys.n > 0 || k === 0){ if (k === 0 || sys.n > 0) add(k + 0.5, sys.n > 0 ? '半当量点' + (sys.steps > 1 ? `（第 ${k + 1} 段）` : '') : '当量点の 50 %'); }
@@ -291,7 +325,7 @@ function keyPoints(sys, xmax){
   }
   add(sys.steps, sys.steps > 1 ? `第 ${sys.steps} 当量点` : '当量点');
   add(sys.steps + 0.001, '当量点の少し後（+0.1 %）'); add(sys.steps + 0.5, '当量点の後（+50 %）');
-  return pts.map(p => { const a = approx(sys, p.V), e = solveExact(sys, p.V); return Object.assign(p, {approx: a.pH, exact: e.pH, diff: a.pH - e.pH, q: quality(a.pH - e.pH), scene: a.label}); });
+  return pts.map(p => { const a = approx(sys, p.V), e = solveExact(sys, p.V); const df = a.pH == null ? null : a.pH - e.pH; return Object.assign(p, {approx: a.pH, exact: e.pH, diff: df, q: quality(df), scene: a.label}); });
 }
 
 
@@ -318,9 +352,8 @@ function indicatorReport(sys, xmax){
 // ---- 緩衝液のはたらき：いまの液に titrant を dV mL 加えたときの pH の変化を、純水に同じ量を加えたときと比べる ----
 function bufferTest(sys, V, dV = 0.5){
   const before = solveExact(sys, V).pH, after = solveExact(sys, V + dV).pH;
-  const Vt = sys.V0 + V + dV, c = sys.Ct * dV / Vt, base = sys.titrant.type === 'base';
-  const x = (c + Math.sqrt(c * c + 4 * KW)) / 2;            // 純水に強塩基（強酸）を加えたあとの [OH⁻]（[H⁺]）
-  const water = base ? 14 + Math.log10(x) : -Math.log10(x);
+  const w = Object.assign({}, sys, {n: 0, cM: 0, cX: 0, C0: 0, N0: 0, V0: sys.V0 + V});       // 試料の入っていない、同じ体積の純水
+  const water = solveExact(w, dV).pH;
   return {dV, before, after, d: after - before, water, dWater: water - 7};
 }
 
@@ -361,7 +394,7 @@ function customSample(spec){
   const forms = acid ? [['A⁻', 'HA'], ['A²⁻', 'HA⁻', 'H₂A'], ['A³⁻', 'HA²⁻', 'H₂A⁻', 'H₃A']][n - 1] : [['B', 'BH⁺'], ['B', 'BH⁺', 'BH₂²⁺'], ['B', 'BH⁺', 'BH₂²⁺', 'BH₃³⁺']][n - 1];
   const formula = acid ? (n === 1 ? 'HA' : 'H' + '₂₃'[n - 2] + 'A') : 'B';
   return {key: 'custom', group: '架空の酸・塩基', name: '架空の酸・塩基（pKa を自由に決める）', kind, formula, label: (acid ? '架空の酸 ' : '架空の塩基 ') + formula, n, pKa, z0: acid ? -n : 0, forms, cX: 0, cM: 0,
-    titrant: acid ? {name: 'NaOH', ion: 'Na⁺', type: 'base'} : {name: 'HCl', ion: 'Cl⁻', type: 'acid'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: n, rMax: n === 1 ? 2 : n + 0.5, ind: acid ? 'pp' : 'mo',
+    titrant: acid ? 'naoh' : 'hcl', C0: 0.100, V0: 10.0, Ct: 0.100, steps: n, rMax: n === 1 ? 2 : n + 0.5, ind: acid ? 'pp' : 'mo',
     note: '右の設定で、酸か塩基か・段数・pKa を決められる。pKa を変えると、曲線・半当量点・割合のグラフがどう変わるかを調べよう。'};
 }
 // pH と各化学種のモル分率（滴下量に関係なく、pKa だけで決まる）
@@ -372,7 +405,7 @@ function alphaVsPH(sys, step = 0.05){
   return series;
 }
 
-const api = {customSample, alphaVsPH, alphaCurve, readingQuestion, checkReading, unknownConc, indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
+const api = {TITRANTS, titrantByKey, titrantsFor, customTitrant, customSample, alphaVsPH, alphaCurve, readingQuestion, checkReading, unknownConc, indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemTitration = api;
 })(typeof window !== 'undefined' ? window : globalThis);
