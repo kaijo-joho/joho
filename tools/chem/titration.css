@@ -257,3 +257,12 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
   .dlg-body{grid-template-columns:1fr;grid-template-rows:minmax(120px,38%) minmax(0,1fr)}
   .dlg-list{border-right:0;border-bottom:1px solid var(--line)}
 }
+
+/* ==== 0.6：同じ滴下液の試料を重ねて比べる ==== */
+.mrow{display:flex;align-items:stretch;gap:4px;flex:none}
+.mrow .mi{flex:1;min-width:0}
+.cmpcb{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);padding:0 8px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.cmpcb:hover{background:var(--hover)}
+.cmpcb.dis{opacity:.4;cursor:not-allowed}
+.cmpcb input{margin:0;width:16px;height:16px;accent-color:var(--accent)}
+.cmpbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:2px 4px 6px;border-bottom:1px solid var(--line);margin-bottom:2px}

@@ -18,7 +18,9 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, typeof v === 'string' ? 
 const SPEEDS = [0.5, 1, 2, 4];
 const TABS = ['main', 'buf', 'ind', 'read'];
 const state = {tab: 'main', sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1, approx: true, eq: true, band: true, buf: true, reveal: false, detail: false,
-  custom: {kind: 'acid', n: 1}, readSeed: 1, readMode: 'single', score: {ok: 0, total: 0}, unkSeed: 1, unkReveal: false};
+  custom: {kind: 'acid', n: 1}, compare: [], readSeed: 1, readMode: 'single', score: {ok: 0, total: 0}, unkSeed: 1, unkReveal: false};
+const CMP_COLORS = ['#8b5cf6', '#0d9488', '#be185d', '#65a30d', '#0891b2'];
+const MAX_CMP = 5;
 const GHOST_COLORS = ['#8b5cf6', '#0d9488', '#be185d'];
 let ghosts = [];          // 残した曲線（保存しない）
 let V = 0;                // いまの滴下量（mL）。保存しない
@@ -34,6 +36,7 @@ function getSample(key){ return key === 'custom' ? T.customSample(state.custom) 
   for (const k of ['readSeed', 'unkSeed']) if (Number.isInteger(s[k]) && s[k] > 0) state[k] = s[k];
   if (s.score && Number.isInteger(s.score.ok) && Number.isInteger(s.score.total)) state.score = s.score;
   if (typeof s.unkReveal === 'boolean') state.unkReveal = s.unkReveal;
+  if (Array.isArray(s.compare)) state.compare = s.compare.filter(k => typeof k === 'string' && k !== 'vinegar' && T.sampleByKey(k)).slice(0, MAX_CMP);
   if (s.custom && (s.custom.kind === 'acid' || s.custom.kind === 'base') && [1, 2, 3].includes(s.custom.n)) state.custom = {kind: s.custom.kind, n: s.custom.n};
   if (SPEEDS.includes(s.speed)) state.speed = s.speed;
   for (const k of ['approx', 'eq', 'band', 'buf', 'reveal', 'detail']) if (typeof s[k] === 'boolean') state[k] = s[k];
@@ -41,7 +44,7 @@ function getSample(key){ return key === 'custom' ? T.customSample(state.custom) 
 const save = () => lsSet(KEY.state, state);
 
 // ---- いまの系 ----
-let sys = null, xmax = 20, cache = null, kp = [], indRep = [];
+let sys = null, xmax = 20, chartX = 20, cache = null, kp = [], indRep = [];
 function overOf(key){
   const o = state.over[key] || {}, smp = getSample(key), r = {};
   const num = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
@@ -58,7 +61,12 @@ function rebuild(){
   sys = T.makeSys(smp, overOf(state.sample));
   xmax = Math.min(state.cap, sys.Vmax);
   V = Math.min(V, xmax);
-  cache = {curve: T.curve(sys, xmax)};
+  // 同じ滴下液で滴定する別の試料を重ねて比べる：横軸は、比べるものの最大に合わせる（ビュレットの容量まで）
+  const cmpSys = state.compare.filter(k => k !== state.sample && getSample(k) && getSample(k).titrant.name === sys.titrant.name)
+    .map((k, i) => ({key: k, sys: T.makeSys(getSample(k), overOf(k)), color: CMP_COLORS[i % CMP_COLORS.length]}));
+  chartX = Math.min(state.cap, Math.max(sys.Vmax, ...cmpSys.map(c => c.sys.Vmax)));
+  xmax = chartX; V = Math.min(V, xmax);
+  cache = {curve: T.curve(sys, chartX), cmp: cmpSys.map(c => ({key: c.key, label: c.sys.name.split(' ')[0] + (c.sys.n === 1 && getSample(c.key).key === 'custom' ? ` pKa ${c.sys.pKa[0]}` : ''), color: c.color, pts: T.curve(c.sys, chartX).exact}))};
   kp = T.keyPoints(sys, xmax);
   indRep = T.indicatorReport(sys, xmax);
   alphaSeries = sys.n > 0 ? T.alphaCurve(sys, xmax) : [];
@@ -135,6 +143,7 @@ function drawChart(ex){
     if (sys.pI != null && !hideAns()) hl.push({y: sys.pI, color: css('--ok') || '#16803c', dash: [6, 3], width: 1.3, label: '等電点 pI ' + sys.pI.toFixed(2)});
   }
   const series = ghosts.map(g => ({color: g.color, pts: g.pts, width: 2, dash: [2, 4]}));
+  cache.cmp.forEach(c => series.push({color: c.color, pts: c.pts, width: 2.2}));
   series.push({color: accent, pts: cache.curve.exact, width: 2.6});
   if (state.approx) series.push({color: apC, pts: cache.curve.approx, width: 2, dash: [6, 4]});
   const r = CH.lineChart(ctx, {x: 0, y: 0, w, h}, {x: {min: 0, max: xmax, label: '滴下量（mL）', n: 8}, y: {min: 0, max: 14, label: 'pH', n: 7}, colors: C, series, hlines: hl, vlines: vl});
@@ -163,7 +172,7 @@ function drawChart(ex){
   if (state.approx){ ctx.strokeStyle = apC; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(r.X(V), r.Y(Math.max(0, Math.min(14, ap))), 6, 0, Math.PI * 2); ctx.stroke(); }
   ctx.fillStyle = danger; ctx.strokeStyle = C.bg; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(r.X(V), r.Y(ex.pH), 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   ctx.restore();
-  $('chartLegend').innerHTML = '<span><i></i>厳密な計算</span>' + (state.approx ? '<span><i class="ap"></i>近似の計算</span>' : '') + ghosts.map(g => `<span style="color:${g.color}"><i class="gh"></i>${esc(g.label)}</span>`).join('') + '<span><i class="pt"></i>いまの点</span>';
+  $('chartLegend').innerHTML = (cache.cmp.length ? `<span><i></i>${esc(sys.name.split(' ')[0])}（いまの試料）</span>` + cache.cmp.map(c => `<span><i style="border-top-color:${c.color}"></i>${esc(c.label)}</span>`).join('') : '<span><i></i>厳密な計算</span>') + (state.approx ? '<span><i class="ap"></i>近似の計算</span>' : '') + ghosts.map(g => `<span style="color:${g.color}"><i class="gh"></i>${esc(g.label)}</span>`).join('') + '<span><i class="pt"></i>いまの点</span>';
 }
 
 // ---- 計算の過程 ----
@@ -360,6 +369,7 @@ function renderStatic(){
   $('smpName').textContent = smp.name;
   $('smpNote').textContent = smp.note + (sys.pI != null ? ` 等電点 pI = ${sys.pI.toFixed(2)}。` : '') + (sys.Veq[0] > state.cap ? '（当量点がビュレットの容量を超えます。濃度や体積を変えてください）' : '');
   $('eqn').innerHTML = `${esc(hideAns() ? sys.name + '（濃度は未知）' : sys.name)} <span class="arr">←</span> ${esc(sys.titrant.name)}`;
+  syncCompare();
   document.querySelectorAll('#smpList .mi').forEach(b => { const on = b.dataset.key === state.sample; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
   document.querySelectorAll('#capSeg [data-cap]').forEach(b => { const on = +b.dataset.cap === state.cap; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
   $('optApprox').checked = state.approx; $('optEq').checked = state.eq; $('optBand').checked = state.band;
@@ -431,14 +441,35 @@ $('kpTable').onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ const t
 
 // ---- 試料・設定 ----
 function buildSampleMenu(){
-  let html = '', grp = '';
+  let html = '<div class="cmpbar"><span id="cmpInfo"></span><button type="button" class="sbtn" id="cmpClear" title="重ねて比べる試料の選択をすべて外す">比較を解除</button></div>', grp = '';
   for (const s of T.SAMPLES){
     if (s.group !== grp){ grp = s.group; html += `<div class="gl">${esc(grp)}</div>`; }
-    html += `<button type="button" class="mi" role="option" data-key="${s.key}"><span class="dot"></span><span>${esc(s.name)}<small>${esc(s.note)}</small></span></button>`;
+    html += `<div class="mrow"><button type="button" class="mi" role="option" data-key="${s.key}"><span class="dot"></span><span>${esc(s.name)}<small>${esc(s.note)}</small></span></button>
+      <label class="cmpcb"><input type="checkbox" class="cmp-cb" data-key="${s.key}" aria-label="${esc(s.name)}を重ねて比べる"><span>比べる</span></label></div>`;
   }
   $('smpList').innerHTML = html;
 }
+function syncCompare(){
+  document.querySelectorAll('#smpList .cmp-cb').forEach(cb => {
+    const k = cb.dataset.key, smp = getSample(k), same = smp.titrant.name === sys.titrant.name, dis = k === state.sample || k === 'vinegar' || !same;
+    cb.disabled = dis; cb.checked = !dis && state.compare.includes(k);
+    cb.parentElement.title = k === state.sample ? 'いまの試料です（いつも表示されます）' : k === 'vinegar' ? '濃度が未知の試料は、比べられません' : !same ? `滴下液が ${smp.titrant.name} なので、${sys.titrant.name} で滴定する試料とは比べられません` : 'いまの試料の曲線に重ねて表示します';
+    cb.parentElement.classList.toggle('dis', dis);
+  });
+  const n = cache ? cache.cmp.length : 0;
+  $('cmpInfo').textContent = `${sys.titrant.name} で滴定する試料を、重ねて比べられます（最大 ${MAX_CMP} 件）。` + (n ? ` いま ${n} 件を重ねています。` : '');
+  $('cmpClear').disabled = !n;
+}
+$('smpList').onchange = e => {
+  const cb = e.target.closest('.cmp-cb'); if (!cb) return;
+  const k = cb.dataset.key;
+  if (cb.checked){ if (state.compare.filter(x => x !== state.sample).length >= MAX_CMP){ cb.checked = false; toast(`重ねて比べられるのは ${MAX_CMP} 件までです`); return; } if (!state.compare.includes(k)) state.compare.push(k); }
+  else state.compare = state.compare.filter(x => x !== k);
+  save(); rebuild(); renderStatic(); renderAll();
+};
+$('smpList').addEventListener('click', e => { if (e.target.closest('#cmpClear')){ state.compare = []; save(); rebuild(); renderStatic(); renderAll(); } });
 function selectSample(key){
+  state.compare = state.compare.filter(k => k !== key && getSample(k).titrant.name === getSample(key).titrant.name);
   state.sample = key; ghosts = []; V = 0; running = false; $('btnRun').classList.remove('on');
   rebuild(); renderStatic(); save(); renderAll();
 }
@@ -552,5 +583,5 @@ renderAll();
 if (!hasUI) setTimeout(() => alert('共通部品（../shared/ui-kit.js）を読み込めませんでした。ページを再読み込みしてください。'), 200);
 
 // 検証用（最後まで読み込めたことの印にもする）
-window.__titration = {T, get ghosts(){ return ghosts; }, get indRep(){ return indRep; }, state, get sys(){ return sys; }, get V(){ return V; }, get xmax(){ return xmax; }, get kp(){ return kp; }, setV, setRunning, selectSample, renderAll, get readQ(){ return readQ; }, checkRead, newRead, get plot(){ return plotInfo; }};
+window.__titration = {T, get ghosts(){ return ghosts; }, get cmp(){ return cache.cmp; }, get indRep(){ return indRep; }, state, get sys(){ return sys; }, get V(){ return V; }, get xmax(){ return xmax; }, get kp(){ return kp; }, setV, setRunning, selectSample, renderAll, get readQ(){ return readQ; }, checkRead, newRead, get plot(){ return plotInfo; }};
 })();
