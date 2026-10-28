@@ -252,3 +252,28 @@ input[type=range]{accent-color:var(--accent);cursor:pointer}
   .viewseg button{padding:0 7px}
 }
 .top.tightest .viewseg button{padding:0 6px}
+
+/* ==== 0.3：平衡を調べるタブ（加える・除く・体積・速さのグラフ・Q と K・移動の記録） ==== */
+.addgrp{display:inline-flex;align-items:center;gap:2px;margin-right:6px}
+.addgrp .f{font-family:Arial,"Hiragino Sans",sans-serif;font-weight:700;font-size:13px;margin-right:2px}
+.ab{width:26px;height:26px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:6px;cursor:pointer;font-size:15px;line-height:1;padding:0}
+.ab:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.sbtn:disabled{opacity:.45;cursor:default}
+.panel-head.sub{border-top:1px solid var(--line);min-height:30px;padding:4px 12px}
+.cv-wrap.rate{flex:0.62;min-height:130px}
+.clegend i.kf{border-top-color:var(--kf)} .clegend i.kb{border-top-color:var(--kb)}
+.qk-svg{width:100%;height:auto;display:block;margin:4px 0}
+.qk-axis{stroke:var(--muted);stroke-width:1.2}
+.qk-k{fill:var(--accent)} .qk-kt{fill:var(--accent);font-weight:700}
+.qk-q{fill:var(--kf);stroke:var(--paper);stroke-width:1.5} .qk-qt{fill:var(--kf);font-weight:700}
+.qk-ar{stroke:var(--kf);stroke-width:1.6} .qk-head{fill:var(--kf)}
+ol.marks{margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:12.5px;line-height:1.6}
+ol.marks li{border-left:3px solid var(--warn);padding-left:8px}
+ol.marks .mk{color:var(--warn);font-weight:700;margin-right:4px}
+ol.marks small{color:var(--muted)}
+.dir.fwd{color:var(--kf)} .dir.bwd{color:var(--kb)} .dir.none{color:var(--muted)}
+@media (max-width:1000px){ .cv-wrap.rate{flex:none;height:170px} }
+@media (max-width:560px){ .addgrp{margin-right:2px} .ab{width:30px;height:30px} }
+/* 長い反応式（エステル化など）は、狭い画面で折り返す */
+.eqn{max-width:100%}
+@media (max-width:700px){ .eqn{white-space:normal;line-height:1.3;font-size:17px} }

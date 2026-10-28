@@ -155,7 +155,34 @@ function distributionSVG(o){
   return s + '</svg>';
 }
 
-const api = {fitCanvas, niceStep, niceMax, ticks, tickText, lineChart, energyProfileSVG, distributionSVG};
+// ---- Q と K を、対数の目盛り（10 倍ごと）の上に並べる。Q から K へ向かう矢印が、反応の進む向き ----
+// o = {Q, K}。Q が範囲の外（0・∞ を含む）なら、端に寄せて「≪」「≫」を付ける
+function qkBarSVG(o){
+  const W = 330, H = 84, x0 = 22, x1 = W - 22, ya = 46;
+  const SUP = {'-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹'};
+  const pow = d => '10' + String(d).split('').map(ch => SUP[ch]).join('');
+  const lk = Math.log10(o.K), lq = o.Q > 0 ? Math.log10(o.Q) : -Infinity;
+  const lo = lk - 2.5, hi = lk + 2.5;
+  const X = l => x0 + (Math.min(hi, Math.max(lo, l)) - lo) / (hi - lo) * (x1 - x0);
+  let s = '<svg class="qk-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="反応商 Q と平衡定数 K の比べ方">' +
+    '<defs><marker id="qkHead" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8z" class="qk-head"/></marker></defs>' +
+    '<line class="qk-axis" x1="' + x0 + '" y1="' + ya + '" x2="' + x1 + '" y2="' + ya + '"/>';
+  for (let d = Math.ceil(lo); d <= Math.floor(hi); d++){
+    s += '<line class="qk-axis" x1="' + X(d) + '" y1="' + (ya - 4) + '" x2="' + X(d) + '" y2="' + (ya + 4) + '"/><text class="ep-t sm" x="' + X(d) + '" y="' + (ya + 17) + '" text-anchor="middle">' + pow(d) + '</text>';
+  }
+  const xk = X(lk), xq = X(lq), out = lq < lo ? '≪' : lq > hi ? '≫' : '';
+  const close = Math.abs(xq - xk) < 14;   // 近いときは文字をまとめる
+  s += '<path class="qk-k" d="M' + xk + ' ' + (ya - 3) + ' l-6 -10 h12z"/><text class="ep-t qk-kt" x="' + xk + '" y="' + (ya - 16) + '" text-anchor="middle">' + (close ? 'K ≈ Q' : 'K') + '</text>';
+  if (Math.abs(xq - xk) > 8){
+    const dir = xq < xk ? 1 : -1;
+    s += '<line class="qk-ar" x1="' + (xq + dir * 7) + '" y1="' + (ya + 26) + '" x2="' + (xk - dir * 2) + '" y2="' + (ya + 26) + '" marker-end="url(#qkHead)"/>' +
+      '<text class="ep-t sm" x="' + ((xq + xk) / 2) + '" y="' + (ya + 38) + '" text-anchor="middle">' + (dir > 0 ? '正反応の向き（右）へ進む' : '逆反応の向き（左）へ進む') + '</text>';
+  }
+  s += '<circle class="qk-q" cx="' + xq + '" cy="' + ya + '" r="5"/>' + (close ? '' : '<text class="ep-t qk-qt" x="' + xq + '" y="' + (ya - 9) + '" text-anchor="middle">' + (out && xq < xk ? out + 'Q' : out ? 'Q' + out : 'Q') + '</text>');
+  return s + '</svg>';
+}
+
+const api = {fitCanvas, niceStep, niceMax, ticks, tickText, lineChart, energyProfileSVG, distributionSVG, qkBarSVG};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemChart = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

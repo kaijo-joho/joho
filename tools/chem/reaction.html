@@ -25,6 +25,7 @@
     <div class="seg viewseg" id="tabSeg" role="tablist" aria-label="見方の切り替え">
       <button data-tab="view" role="tab" title="反応を見る：粒子とグラフで、反応が進み平衡になる様子を見る">反応を見る</button>
       <button data-tab="rate" role="tab" title="速度を調べる：温度・濃度・触媒で速さがどう変わるか調べる">速度を調べる</button>
+      <button data-tab="eq" role="tab" title="平衡を調べる：物質を加える・除く、体積・温度・触媒を変えて、平衡がどちらへ移動するか調べる">平衡を調べる</button>
     </div>
     <div class="sep"></div>
     <div class="hmenu" id="rxMenu">
@@ -89,6 +90,13 @@
           <button type="button" role="radio" data-rev="0" title="逆反応を止める：正反応だけで考える（速度の単元の初め）">止める</button>
         </div>
       </div>
+      <div class="ctl" id="addCtl" hidden></div>
+      <div class="ctl" id="volCtl" hidden>
+        <span class="lbl">体積</span>
+        <button type="button" class="sbtn" data-vol="0.5" id="volDown" title="ピストンを押して、体積を ½ にする（圧力が上がる）">½ にする</button>
+        <button type="button" class="sbtn" data-vol="2" id="volUp" title="ピストンを引いて、体積を 2 倍にする（圧力が下がる）">2 倍にする</button>
+      </div>
+      <button type="button" class="sbtn" id="btnCatCmp" hidden title="触媒の効果を比べる：同じ初めの状態から、触媒なしを計算して点線で残し、触媒ありで最初からやり直す">触媒の効果を比べる</button>
       <button type="button" class="sbtn" id="btnCompare" title="比べる：いまのグラフを点線で残して、最初からやり直す。条件を変えてから ▶ で動かすと、2 つを見比べられる">比べる</button>
     </div>
     <div class="stage">
@@ -115,6 +123,8 @@
       <section class="panel chart-panel" aria-label="濃度と時間のグラフ">
         <div class="panel-head"><span class="ttl">濃度の変化</span><span class="clegend" id="chartLegend"></span></div>
         <div class="cv-wrap chart" id="chartWrap"><canvas id="chartCv" role="img" aria-label="濃度と時間のグラフ"></canvas></div>
+        <div class="panel-head sub" id="rateHead" hidden><span class="ttl">速さの変化</span><span class="clegend"><span><i class="kf"></i>正反応 v₁</span><span><i class="kb"></i>逆反応 v₂</span><span class="mut">重なったところが平衡</span></span></div>
+        <div class="cv-wrap rate" id="rateWrap" hidden><canvas id="rateCv" role="img" aria-label="正反応と逆反応の速さと時間のグラフ"></canvas></div>
       </section>
     </div>
     <div id="hint"></div>
@@ -123,6 +133,7 @@
   <footer class="info">
     <button class="chip qk" id="chipQK" title="反応商 Q と平衡定数 K。右の「数値」パネルで式を見る"></button>
     <span class="status" id="status" aria-live="polite"></span>
+    <span class="chip" id="chipP" hidden title="全圧（気体の分圧の合計。計算の値）"></span>
     <button class="chip vchip" id="chipV" title="いまの反応の速さ（速度を調べるタブでは、右の「速さ」パネルでくわしく見る）"></button>
   </footer>
 
@@ -132,6 +143,10 @@
       <div class="side-pane" id="paneNum" hidden>
         <header><span>数値（計算の値）</span><button class="side-close" title="パネルを閉じる" aria-label="パネルを閉じる">▶</button></header>
         <div class="side-body" id="numBody"></div>
+      </div>
+      <div class="side-pane" id="paneEq" hidden>
+        <header><span>平衡</span><button class="side-close" title="パネルを閉じる" aria-label="パネルを閉じる">▶</button></header>
+        <div class="side-body" id="eqBody"></div>
       </div>
       <div class="side-pane" id="paneRate" hidden>
         <header><span>反応の速さ</span><button class="side-close" title="パネルを閉じる" aria-label="パネルを閉じる">▶</button></header>
@@ -151,6 +166,7 @@
     <div class="side-tabs" role="tablist" aria-label="右のパネル">
       <button class="side-tab" data-pane="num" title="数値：濃度・平衡定数・速さの式"><svg viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span class="vt">数値</span></button>
       <button class="side-tab" data-pane="rate" id="tabRatePane" title="速さ：速度式・半減期・エネルギー図・分布・初速度法"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M5 17c3-9 6-12 14-13"/><path d="M15 3.5l4 .5-1 4"/></svg><span class="vt">速さ</span></button>
+      <button class="side-tab" data-pane="eq" id="tabEqPane" title="平衡：K と Q、速さ、触媒の効果、平衡の移動の記録"><svg viewBox="0 0 24 24"><path d="M4 9h15l-4-3.5"/><path d="M20 15H5l4 3.5"/></svg><span class="vt">平衡</span></button>
     </div>
   </aside>
 </div>
@@ -209,6 +225,19 @@
     <details><summary>温度と触媒</summary><p>温度を上げると、エネルギーの大きい分子が増え、活性化エネルギー Ea を超えてぶつかる割合が増えます（分布の図）。触媒は Ea を下げる別の道すじをつくります（エネルギー図の点線）。触媒は正反応と逆反応の両方を同じだけ速くするので、平衡の濃度は変わりません。ここでの触媒は「模型の触媒」で、実際の触媒は Ea をもっと大きく下げることが多いです。</p></details>
     <details><summary>反応が速すぎるとき</summary><p>温度が高いときや触媒があるときは、反応がとても速くなります。そのときは、箱の右下に「時間を 1/2 の速さで進めています」などと出て、模型の時間をゆっくり進めます（グラフの時間は正しいままです）。</p></details>
   </section>
+  <section data-help-topic="eqtab" data-help-title="平衡を調べる">
+    <h3>平衡を調べる（ルシャトリエの原理）</h3>
+    <ol>
+      <li>上のタブで「平衡を調べる」を選び、▶ で動かして、まず<b>平衡</b>にします（下の札が「平衡」になり、下のグラフの v₁ と v₂ が重なる）。</li>
+      <li>「加える・除く」「体積」「温度」「触媒」で条件を変えます。変えた時刻にグラフの ①②… の印が付きます。</li>
+      <li>右の「平衡」パネルの<b>移動の記録</b>に、どちらへ移動するかと、その理由が出ます。粒子とグラフで確かめましょう。</li>
+    </ol>
+    <details><summary>ルシャトリエの原理</summary><p>平衡にある状態で条件を変えると、その変化を<b>やわらげる向き</b>に平衡が移動します。物質を加えると、それを減らす向き。圧力を上げると（体積を小さくすると）、気体の分子の数が減る向き。温度を上げると、吸熱反応の向き。触媒では移動しません。</p></details>
+    <details><summary>Q と K</summary><p>いまの濃度で計算した Q（反応商）を、K（平衡定数）と比べます。Q &lt; K なら右（正反応の向き）、Q &gt; K なら左（逆反応の向き）へ進み、Q = K で平衡です。物質を加えたり体積を変えたりすると Q が変わり、温度を変えると K が変わります。「平衡」パネルの目盛りで、Q が K に近づいていく様子を見られます。</p></details>
+    <details><summary>触媒の効果を比べる</summary><p>［触媒の効果を比べる］を押すと、同じ初めの状態から「触媒なし」を計算して点線で残し、「触媒あり」で最初に戻ります。▶ で動かすと、<b>平衡の濃度は同じで、平衡に達するまでの時間だけが短い</b>ことが比べられます（「平衡」パネルの表）。</p></details>
+    <details><summary>体積（ピストン）</summary><p>気体の反応では、箱がピストンのある容器になります。「½ にする」で押し縮め、「2 倍にする」で引き出します（もとの体積の ½ 〜 2 倍）。H₂ + I₂ ⇄ 2HI のように両辺の気体の分子の数が同じ反応では、体積を変えても平衡は移動しません。</p></details>
+    <details><summary>反応の例</summary><p>N₂O₄ ⇄ 2NO₂：NO₂ は赤褐色。温めると色が濃くなり、押し縮めると一度濃くなってからうすくなる（注射器の実験）。N₂ + 3H₂ ⇄ 2NH₃：ハーバー・ボッシュ法。高い圧力・低い温度ほど NH₃ が多いが、低い温度では遅い。エステル化：液体の反応なので体積は変えない。K ≈ 4 で、酢酸とエタノール 1 mol ずつから酢酸エチルが ⅔ mol できる。</p></details>
+  </section>
   <section data-help-topic="model" data-help-title="模型について">
     <h3>模型について（実際とのちがい）</h3>
     <ul>
@@ -218,6 +247,8 @@
       <li>温度は一定に保っています。反応で出入りする熱は、まわりとやりとりしたものとしています。</li>
       <li>反応は 1 回の衝突で起こる（素反応）として、速さの式を決めています。過酸化水素の分解は、実験で決まった一次反応の式（v = k[H₂O₂]）を使い、粒子は 2 つずつ集めて組み換えています。</li>
       <li>触媒は「模型の触媒」で、活性化エネルギーを少しだけ下げています（約 8 倍速くなる大きさ）。</li>
+      <li>N₂ + 3H₂ ⇄ 2NH₃ とエステル化の活性化エネルギーと速さは、模型の値（目安）です。平衡定数と反応エンタルピーは一般的な値です。N₂ + 3H₂ の正反応は 4 つの分子が一度にぶつかることはないので、粒子は近くの分子を集めて組み換えています。</li>
+      <li>大きな分子（酢酸・エタノール・酢酸エチル）は、名前を書いた 1 つの円で描いています。</li>
     </ul>
     <details><summary>粒子とグラフを合わせるしくみ</summary><p>ぶつかる勢いが「しきい値」より大きい衝突だけを反応させています。しきい値は、計算した速さと同じ回数だけ反応が起こるように、自動で決めています。衝突のうち勢いがしきい値以上のものの割合は exp(−E/RT) で、アレニウスの式と同じ形です。</p></details>
   </section>
@@ -225,7 +256,7 @@
     <h3>このアプリについて</h3>
     <p><b>推奨環境</b>：macOS ＋ Google Chrome。</p>
     <p><b>ご利用にあたって</b>：教育用のアプリです。内容の正確さは保証しません。選んだ反応や設定は、このブラウザの中に自動で保存し、外部へ送信しません。著作権は海城中学高等学校に帰属し、改変・再配布はご遠慮ください。</p>
-    <p class="credit">反応速度と化学平衡　バージョン <span id="appVer">0.2</span> BETA（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">反応速度と化学平衡　バージョン <span id="appVer">0.3</span> BETA（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 

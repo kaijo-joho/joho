@@ -432,4 +432,49 @@ REACTION_PRESETS.push(
     starts: [{key: 'react', label: 'H₂O₂ から', c: {H2O2: 1.0, H2O: 0, O2: 0}}]})
 );
 
+
+// ---- 追記（反応速度と化学平衡 0.3）：平衡を調べるタブ用に反応を 3 つ足す。上の値は変えない ----
+// K・ΔH は一般的な値（ΔH は表から計算できるものは計算する）。Ea と k1ref は模型の値（目安）。
+REACTION_PRESETS.push(
+  // 四酸化二窒素の解離：吸熱。温めると赤褐色（NO₂）が濃くなる。押し縮めると、分子の数が減る向き（左）へ
+  rxPresetOwn({key: 'n2o4', name: '四酸化二窒素の解離（気体）', short: 'N₂O₄ ⇄ 2NO₂',
+    species: [
+      {key: 'N2O4', f: 'N2O4', st: '気', name: '四酸化二窒素', atoms: ['N', 'N', 'O', 'O', 'O', 'O']},
+      {key: 'NO2', f: 'NO2', st: '気', name: '二酸化窒素', atoms: ['N', 'O', 'O'], tint: '#9a4a1c'}],   // 赤褐色の気体
+    react: [['N2O4', 1]], prod: [['NO2', 2]], size: 0.6,   // N₂O₄ は大きいので、粒子を 0.6 倍に描く
+    Tref: 298, Kref: 4.6e-3, Ea1: 58, k1ref: 0.05, V: 1,
+    Tmin: 263, Tmax: 373, Tstep: 5, c0Range: {N2O4: [0.01, 0.08, 0.01]},
+    starts: [
+      {key: 'react', label: 'N₂O₄ から', c: {N2O4: 0.040, NO2: 0}},
+      {key: 'prod', label: 'NO₂ から', c: {N2O4: 0, NO2: 0.080}}]}),
+  // アンモニアの合成（ハーバー・ボッシュ法）：発熱。分子の数が減る（4 → 2）。高い圧力（約 250 気圧）・500 ℃
+  rxPresetOwn({key: 'nh3', name: 'アンモニアの合成（ハーバー・ボッシュ法）', short: 'N₂ + 3H₂ ⇄ 2NH₃',
+    species: [
+      {key: 'N2', f: 'N2', st: '気', name: '窒素', atoms: ['N', 'N']},
+      {key: 'H2', f: 'H2', st: '気', name: '水素', atoms: ['H', 'H']},
+      {key: 'NH3', f: 'NH3', st: '気', name: 'アンモニア', atoms: ['N', 'H', 'H', 'H']}],
+    react: [['N2', 1], ['H2', 3]], prod: [['NH3', 2]],
+    Tref: 773, Kref: 0.06, Ea1: 160, k1ref: 0.0022, V: 1,
+    catEa: 12.5, catNote: '実際には、四酸化三鉄 Fe₃O₄ を主にした触媒を使う。',
+    Tmin: 623, Tmax: 923, Tstep: 10, c0Range: {N2: [0.5, 2.0, 0.25], H2: [1.0, 6.0, 0.5]},
+    starts: [
+      {key: 'react', label: 'N₂ と H₂ から', c: {N2: 1.0, H2: 3.0, NH3: 0}},
+      {key: 'prod', label: 'NH₃ から', c: {N2: 0, H2: 0, NH3: 2.0}}]}),
+  // 酢酸とエタノールのエステル化：液体の反応（体積・圧力は関係しない）。K ≈ 4。触媒は濃硫酸。
+  // ΔH は酢酸エチル(液) の生成エンタルピー −479.3 kJ/mol から計算した −3.2 kJ（表には足していない）
+  rxPresetOwn({key: 'ester', name: 'エステル化（酢酸とエタノール）', short: 'CH₃COOH + C₂H₅OH ⇄ CH₃COOC₂H₅ + H₂O',
+    species: [
+      {key: 'AcOH', f: 'CH3COOH', st: '液', name: '酢酸', label: '酢酸', M: 60.05, look: {r: 12, color: '#fcd34d'}},
+      {key: 'EtOH', f: 'C2H5OH', st: '液', name: 'エタノール', label: 'エタ', M: 46.07, look: {r: 11, color: '#93c5fd'}},
+      {key: 'Ester', f: 'CH3COOC2H5', st: '液', name: '酢酸エチル', label: 'エス', M: 88.11, look: {r: 14, color: '#f9a8d4'}},
+      {key: 'H2O', f: 'H2O', st: '液', name: '水', label: '水', M: 18.02, look: {r: 8, color: '#a5f3fc'}}],
+    react: [['AcOH', 1], ['EtOH', 1]], prod: [['Ester', 1], ['H2O', 1]], dH: -3.2,
+    Tref: 333, Kref: 4.0, Ea1: 60, k1ref: 0.05, V: 1,
+    catEa: 5.8, catNote: '実際には濃硫酸を少し加える（触媒がないと、何日もかかる）。',
+    Tmin: 293, Tmax: 373, Tstep: 5, c0Range: {AcOH: [0.2, 2.0, 0.2], EtOH: [0.2, 2.0, 0.2]},
+    starts: [
+      {key: 'react', label: '酢酸とエタノールから', c: {AcOH: 1.0, EtOH: 1.0, Ester: 0, H2O: 0}},
+      {key: 'prod', label: '酢酸エチルと水から', c: {AcOH: 0, EtOH: 0, Ester: 1.0, H2O: 1.0}}]})
+);
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

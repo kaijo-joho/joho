@@ -34,6 +34,17 @@ function moleculeShape(atoms){
   } else if (key === 'HOOH'){   // 過酸化水素：O–O の両はしに H（平面に描くのでジグザグ）
     const oo = d('O', 'O') / 2, h = d('H', 'O'), t = 70 * Math.PI / 180;
     put('H', -oo - h * Math.cos(t), -h * Math.sin(t)); put('O', -oo, 0); put('O', oo, 0); put('H', oo + h * Math.cos(t), h * Math.sin(t));
+  } else if (key === 'NOO'){   // 二酸化窒素：O–N–O が約 134°（折れ線形）
+    const h = d('N', 'O'), t = 67 * Math.PI / 180;
+    put('O', -h * Math.sin(t), h * Math.cos(t)); put('N', 0, 0); put('O', h * Math.sin(t), h * Math.cos(t));
+  } else if (key === 'NNOOOO'){   // 四酸化二窒素：O₂N–NO₂（平面）
+    const nn = d('N', 'N') / 2, h = d('N', 'O'), t = 60 * Math.PI / 180;
+    put('N', -nn, 0); put('N', nn, 0);
+    put('O', -nn - h * Math.cos(t), -h * Math.sin(t)); put('O', -nn - h * Math.cos(t), h * Math.sin(t));
+    put('O', nn + h * Math.cos(t), -h * Math.sin(t)); put('O', nn + h * Math.cos(t), h * Math.sin(t));
+  } else if (key === 'NHHH'){   // アンモニア：N のまわりに H が 3 つ（平面に描く）
+    const h = d('N', 'H');
+    put('N', 0, 0); [-90, 30, 150].forEach(a => put('H', h * Math.cos(a * Math.PI / 180), h * Math.sin(a * Math.PI / 180)));
   } else {
     let x = 0;
     atoms.forEach((el, i) => { if (i > 0) x += d(atoms[i - 1], el); put(el, x, 0); });
@@ -59,7 +70,11 @@ const GTH = 3;
 function createBox(opt){
   const rand = S.rng(opt.seed || 1);
   const sp = opt.species.map(s => {
-    const shape = moleculeShape(s.atoms || [s.key]);
+    // look：原子で描かない粒子（大きな分子を、名前を書いた 1 つの円で描く。例：酢酸エチル）
+    let shape = s.look ? {parts: [{el: '', x: 0, y: 0, r: s.look.r, color: s.look.color}], r: s.look.r, letter: true}
+      : moleculeShape(s.atoms || [s.key]);
+    // opt.size：分子を小さく描く（大きな分子が多い反応で、箱が混み合いすぎないように）
+    if (opt.size && opt.size !== 1){ const z = opt.size; shape = {parts: shape.parts.map(a => Object.assign({}, a, {x: a.x * z, y: a.y * z, r: a.r * z})), r: shape.r * z, letter: shape.letter}; }
     return {key: s.key, shape, r: shape.r, m: effMass(s.M || 2), tint: s.tint || null, faint: !!s.solvent, label: s.label || s.key};
   });
   const nS = sp.length;
@@ -103,9 +118,23 @@ function createBox(opt){
     const f = Math.sqrt(kT / box.kT); box.kT = kT;
     for (const p of box.P){ p.vx *= f; p.vy *= f; }
   };
-  box.setSize = (w, h) => {   // 箱の大きさを変える（体積・ピストン。はみ出した粒子は中へ戻す）
+  box.setSize = (w, h, scale) => {   // 箱の大きさを変える（体積・ピストン）。scale：粒子の位置も同じ割合で動かす
+    const fx = w / box.w, fy = h / box.h;
     box.w = w; box.h = h;
-    for (const p of box.P){ const r = sp[p.s].r; p.x = Math.min(Math.max(p.x, r), w - r); p.y = Math.min(Math.max(p.y, r), h - r); }
+    for (const p of box.P){
+      const r = sp[p.s].r;
+      if (scale){ p.x = r + (p.x - r) * fx; p.y = r + (p.y - r) * fy; }
+      p.x = Math.min(Math.max(p.x, r), w - r); p.y = Math.min(Math.max(p.y, r), h - r);
+    }
+  };
+  // 粒子を足す（空いている場所に、いまの温度の速さで）・取り除く（でたらめに選んで）。足した・除いた数を返す
+  box.add = (s, n) => { for (let i = 0; i < n; i++){ const [x, y] = freeSpot(sp[s].r); addParticle(s, x, y); } return n; };
+  box.remove = (s, n) => {
+    const idx = []; box.P.forEach((p, i) => { if (p.s === s) idx.push(i); });
+    for (let i = idx.length - 1; i > 0; i--){ const j = Math.floor(rand() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    const del = new Set(idx.slice(0, Math.min(n, idx.length)));
+    box.P = box.P.filter((p, i) => !del.has(i)); box.counts[s] -= del.size;
+    return del.size;
   };
 
   // 2 つの種類の粒子が 1 秒にぶつかる回数の見込み（補正前）：2d·⟨v相対⟩·（組の数）/ 面積
@@ -323,8 +352,8 @@ function drawBox(ctx, box, view, opt = {}){
       ctx.beginPath(); ctx.arc(ax, ay, a.r * k, 0, Math.PI * 2);
       ctx.fillStyle = a.color; ctx.fill(); ctx.strokeStyle = edge; ctx.stroke();
     }
-    if (shp.letter){   // 記号だけの粒子は、いつも文字を書く
-      ctx.font = '700 ' + Math.max(8, 11 * k) + 'px -apple-system, "Hiragino Sans", sans-serif';
+    if (shp.letter){   // 記号だけの粒子・名前で描く粒子は、いつも文字を書く（2 文字なら小さく）
+      ctx.font = '700 ' + Math.max(7, Math.min(11, shp.r * 1.55 / Math.max(1, spc.label.length)) * k) + 'px -apple-system, "Hiragino Sans", sans-serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#10243e';
       ctx.fillText(spc.label, ox + p.x * k, oy + p.y * k + 0.5);
     } else if (opt.labels){
@@ -346,7 +375,7 @@ function drawMolecule(ctx, shape, x, y, k, dark, label){
     ctx.fillStyle = a.color; ctx.fill(); ctx.strokeStyle = dark ? '#0b0d10' : '#3b4048'; ctx.stroke();
   }
   if (shape.letter && label){
-    ctx.font = '700 ' + Math.max(8, 11 * k) + 'px -apple-system, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '700 ' + Math.max(7, Math.min(11, shape.r * 1.55 / Math.max(1, label.length)) * k) + 'px -apple-system, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#10243e'; ctx.fillText(label, x, y + 0.5);
   }
   ctx.restore();
