@@ -24,6 +24,7 @@
       <button data-tab="main" role="tab" title="滴定：滴下して、pH の変化と計算の過程を見る">滴定</button>
       <button data-tab="buf" role="tab" title="緩衝液：弱酸・弱塩基の半当量点まわりで、pH が変わりにくい様子を調べる">緩衝液</button>
       <button data-tab="ind" role="tab" title="指示薬：当量点で色が変わる指示薬を選ぶ">指示薬</button>
+      <button data-tab="read" role="tab" title="目盛りを読む：ビュレットの液面の読み方を練習する">目盛りを読む</button>
     </div>
     <div class="sep"></div>
     <div class="hmenu" id="smpMenu">
@@ -56,7 +57,7 @@
   </header>
 
   <main id="wrap" tabindex="-1">
-    <div class="head">
+    <div class="head" id="headBox">
       <div class="eqn" id="eqn" aria-label="滴定する物質"></div>
       <span class="note" id="smpNote"></span>
       <button type="button" class="sbtn" id="btnDetail" aria-expanded="false" aria-controls="detail" title="濃度・体積・pKa・ビュレットの容量・指示薬を変える">詳しい設定 ▼</button>
@@ -75,7 +76,7 @@
       <label class="fld"><span>指示薬</span><select id="selInd" aria-label="指示薬"></select></label>
       <button type="button" class="sbtn" id="btnDefault" title="この試料の標準の値に戻す">標準の値に戻す</button>
     </section>
-    <div class="stage">
+    <div class="stage" id="stageBox">
       <section class="panel app-panel" aria-label="ビュレットと三角フラスコ">
         <div class="panel-head"><span class="ttl">ビュレットとフラスコ</span><span class="ev" id="evRead" aria-live="off"></span></div>
         <div class="cv-wrap svgwrap" id="appWrap"></div>
@@ -108,6 +109,42 @@
           <button type="button" class="sbtn" id="btnGhostClear" title="残した曲線を消す">残した曲線を消す</button>
         </div>
         <div id="bufCard"></div>
+        <div id="alphaBox">
+          <div class="tp-row"><b>化学種の割合</b><span class="clegend alg" id="alphaLegend"></span></div>
+          <div class="cv-wrap alpha" id="alphaWrap"><canvas id="alphaCv" role="img" aria-label="滴下量と、各化学種の割合のグラフ"></canvas></div>
+        </div>
+      </div>
+    </section>
+    <section class="panel tabpanel" id="tabUnk" hidden aria-label="食酢の濃度を求める">
+      <div class="panel-head"><span class="ttl">酢酸の濃度を求めよう</span><span class="mut">うすめた食酢 10.0 mL を 0.100 mol/L の NaOH で滴定します</span></div>
+      <div class="tp-body">
+        <p class="mut">フェノールフタレインが薄く赤くなる（色が変わる）ところまで滴下して、ビュレットの目盛りを読み、CH₃COOH + NaOH → CH₃COONa + H₂O（物質量の比 1 : 1）から、酢酸の濃度を計算します。</p>
+        <div class="tp-row">
+          <label class="slrow"><span>うすめた液の酢酸の濃度</span><input type="number" id="unkAns" step="any" min="0" inputmode="decimal" aria-label="酢酸の濃度の答え（mol/L）"><span>mol/L</span></label>
+          <button type="button" class="sbtn" id="unkCheck">答え合わせ</button>
+          <button type="button" class="sbtn" id="unkShow">答えを見る</button>
+          <button type="button" class="sbtn" id="unkNew">新しい問題</button>
+        </div>
+        <div id="unkRes" class="rres" aria-live="polite"></div>
+      </div>
+    </section>
+    <section class="panel tabpanel" id="tabRead" hidden aria-label="ビュレットの目盛りを読む">
+      <div class="panel-head"><span class="ttl">ビュレットの目盛りを読もう</span><span class="ev" id="readScore"></span></div>
+      <div class="tp-body">
+        <div class="tp-row">
+          <div class="seg" id="readMode" role="radiogroup" aria-label="問題の種類">
+            <button type="button" role="radio" data-mode="single" title="液面の目盛りを読む">液面を読む</button>
+            <button type="button" role="radio" data-mode="diff" title="滴定の前後の読みから、滴下した量を求める">滴下量を求める</button>
+          </div>
+          <span class="mut">最小目盛りは 0.1 mL。その 1/10（0.01 mL）まで目分量で読みます。液面は凹面の<b>いちばん下</b>で、真横から見て読みます。</span>
+        </div>
+        <div class="readfig" id="readFig"></div>
+        <div class="tp-row">
+          <label class="slrow"><span id="readLbl">液面の読み</span><input type="number" id="readAns" step="0.01" inputmode="decimal" aria-label="答え（mL）"><span>mL</span></label>
+          <button type="button" class="sbtn" id="readCheck">答え合わせ</button>
+          <button type="button" class="sbtn" id="readNew">新しい問題</button>
+        </div>
+        <div id="readRes" class="rres" aria-live="polite"></div>
       </div>
     </section>
     <section class="panel tabpanel" id="tabInd" hidden aria-label="指示薬を選ぶ">
@@ -119,7 +156,7 @@
         <div class="tblwrap"><table class="ntbl" id="indTable" hidden></table></div>
       </div>
     </section>
-    <section class="panel proc" aria-label="いまの点の計算の過程" aria-live="polite">
+    <section class="panel proc" id="procPanel" aria-label="いまの点の計算の過程" aria-live="polite">
       <div class="panel-head"><span class="ttl">計算の過程</span><span class="ev" id="procHead"></span></div>
       <div class="proc-grid">
         <div class="pcol" id="colA"></div>
@@ -127,7 +164,7 @@
       </div>
       <div class="cmpbar" id="cmpBar"></div>
     </section>
-    <section class="panel" aria-label="代表的な点の近似と厳密な計算の比較">
+    <section class="panel" id="kpPanel" aria-label="代表的な点の近似と厳密な計算の比較">
       <div class="panel-head"><span class="ttl">近似と厳密な計算の比べ</span><span class="mut">行をクリックすると、その滴下量に移ります</span></div>
       <div class="tblwrap"><table class="ntbl kp" id="kpTable"></table></div>
     </section>
@@ -152,6 +189,7 @@
       <li>下の「計算の過程」で、いまの点の pH を<b>教科書の近似式</b>と<b>厳密な計算</b>の両方で求める手順を見られます。</li>
     </ol>
     <details><summary>タブ：緩衝液・指示薬</summary><p><b>緩衝液</b>タブでは、弱酸の pKa をつまみで変えたり、いまの曲線を残して見比べたり、少量の酸・塩基を加えたときの pH の変化を純水と比べられます。<b>指示薬</b>タブでは、指示薬を選んで滴下し、色が変わる点と当量点を比べます。「答えを見る」で、全部の指示薬の結果が出ます。</p></details>
+    <details><summary>目盛りを読む・食酢の滴定</summary><p><b>目盛りを読む</b>タブで、ビュレットの液面の読み方を練習します（0.01 mL の位まで。±0.02 mL なら正解）。試料のメニューの<b>食酢の滴定</b>では、うすめた食酢の濃度が未知です。滴定の終点の読みから、自分で濃度を計算して答え合わせをします。</p></details>
     <details><summary>試料を変える</summary><p>上の試料のメニューから選びます。強酸×強塩基からはじめ、弱酸・弱塩基、2 段階以上の酸（炭酸ナトリウム・硫酸・シュウ酸・リン酸・硫化水素）へ進みましょう。</p></details>
     <details><summary>濃度・pKa を変える</summary><p>「詳しい設定」で、濃度・体積・pKa を変えられます。弱酸の pKa を変えると、半当量点の pH も当量点の位置もどう動くかがわかります。</p></details>
   </section>
@@ -187,7 +225,7 @@
     <h3>このアプリについて</h3>
     <p><b>推奨環境</b>：macOS ＋ Google Chrome。</p>
     <p><b>ご利用にあたって</b>：教育用のアプリです。内容の正確さは保証しません。選んだ試料や設定は、このブラウザの中に自動で保存し、外部へ送信しません。著作権は海城中学高等学校に帰属し、改変・再配布はご遠慮ください。</p>
-    <p class="credit">中和滴定　バージョン <span id="appVer">0.2</span> BETA（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">中和滴定　バージョン <span id="appVer">0.3</span> BETA（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 

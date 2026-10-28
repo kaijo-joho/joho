@@ -16,8 +16,9 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, typeof v === 'string' ? 
 
 // ---- 状態（選んだ試料・変えた条件・設定。ブラウザに自動で保存する） ----
 const SPEEDS = [0.5, 1, 2, 4];
-const TABS = ['main', 'buf', 'ind'];
-const state = {tab: 'main', sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1, approx: true, eq: true, band: true, buf: true, reveal: false, detail: false};
+const TABS = ['main', 'buf', 'ind', 'read'];
+const state = {tab: 'main', sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1, approx: true, eq: true, band: true, buf: true, reveal: false, detail: false,
+  readSeed: 1, readMode: 'single', score: {ok: 0, total: 0}, unkSeed: 1, unkReveal: false};
 const GHOST_COLORS = ['#8b5cf6', '#0d9488', '#be185d'];
 let ghosts = [];          // 残した曲線（保存しない）
 let V = 0;                // いまの滴下量（mL）。保存しない
@@ -28,6 +29,10 @@ let V = 0;                // いまの滴下量（mL）。保存しない
   if (s.over && typeof s.over === 'object') state.over = s.over;
   if (s.inds && typeof s.inds === 'object') state.inds = s.inds;
   if (s.cap === 25 || s.cap === 50) state.cap = s.cap;
+  if (s.readMode === 'single' || s.readMode === 'diff') state.readMode = s.readMode;
+  for (const k of ['readSeed', 'unkSeed']) if (Number.isInteger(s[k]) && s[k] > 0) state[k] = s[k];
+  if (s.score && Number.isInteger(s.score.ok) && Number.isInteger(s.score.total)) state.score = s.score;
+  if (typeof s.unkReveal === 'boolean') state.unkReveal = s.unkReveal;
   if (SPEEDS.includes(s.speed)) state.speed = s.speed;
   for (const k of ['approx', 'eq', 'band', 'buf', 'reveal', 'detail']) if (typeof s[k] === 'boolean') state[k] = s[k];
 })();
@@ -39,6 +44,7 @@ function overOf(key){
   const o = state.over[key] || {}, smp = T.sampleByKey(key), r = {};
   const num = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
   if (num(o.C0, 1e-5, 2)) r.C0 = o.C0;
+  if (smp.unknown) r.C0 = T.unknownConc(state.unkSeed);
   if (num(o.V0, 1, 100)) r.V0 = o.V0;
   if (num(o.Ct, 1e-5, 2)) r.Ct = o.Ct;
   if (Array.isArray(o.pKa) && o.pKa.length === smp.n && o.pKa.every(v => num(v, -5, 16))) r.pKa = o.pKa.slice().sort((a, b) => a - b);
@@ -53,8 +59,11 @@ function rebuild(){
   cache = {curve: T.curve(sys, xmax)};
   kp = T.keyPoints(sys, xmax);
   indRep = T.indicatorReport(sys, xmax);
+  alphaSeries = sys.n > 0 ? T.alphaCurve(sys, xmax) : [];
 }
 const ind = () => T.indicatorByKey(indOf());
+const hideAns = () => !!sys && sys.unknown && !state.unkReveal;     // 食酢の滴定：濃度・当量点は答え合わせまで隠す
+let alphaSeries = [];
 
 // ---- ビュレットとフラスコ（SVG） ----
 const SVGNS = 'http://www.w3.org/2000/svg';
@@ -101,7 +110,7 @@ function renderApparatus(ex){
   const vt = sys.V0 + V, q = Math.min(1, vt / (sys.V0 + state.cap)), h = 30 + 36 * q;
   el('fLiquid').setAttribute('y', (476 - h).toFixed(2)); el('fLiquid').setAttribute('fill', T.indicatorColor(ind(), ex.pH));
   el('bName').textContent = `${sys.titrant.name} ${fmt(sys.Ct)} mol/L`;
-  el('fName').textContent = `${sys.name.split(' ')[0]} ${fmt(sys.C0)} mol/L ${sys.V0} mL`;
+  el('fName').textContent = `${sys.name.split(' ')[0]} ${hideAns() ? '（濃度は未知）' : fmt(sys.C0) + ' mol/L'} ${sys.V0} mL`;
   el('fInd').textContent = ind().lo != null ? '指示薬：' + ind().name : '';
   svg.classList.toggle('dripping', running);
   svg.querySelector('#dropG').style.display = running ? '' : 'none';
@@ -115,9 +124,10 @@ function drawChart(ex){
   const C = {bg: css('--panel') || '#fff', text: css('--text') || '#1f2933', muted: css('--muted') || '#6b7480', grid: css('--line') || '#e5e8ec', axis: css('--muted') || '#9aa3ad'};
   const accent = css('--accent') || '#2563eb', apC = css('--ap') || '#d97706', danger = css('--danger') || '#d61f1f';
   const hl = [], vl = [];
-  if (state.eq){
+  const showEq = state.eq && !hideAns();
+  if (showEq){
     sys.Veq.forEach(v => { if (v <= xmax) vl.push({x: v, color: C.muted, dash: [5, 4], width: 1.1}); });
-    if (sys.n > 0) sys.pKa.forEach(pk => { if (pk > 0.2 && pk < 13.8) hl.push({y: pk, color: C.muted, dash: [2, 4], width: 1, label: 'pKa ' + pk}); });
+    if (sys.n > 0) sys.pKa.forEach(pk => { if (!hideAns() && pk > 0.2 && pk < 13.8) hl.push({y: pk, color: C.muted, dash: [2, 4], width: 1, label: 'pKa ' + pk}); });
     hl.push({y: 7, color: C.grid, dash: [2, 3], width: 1});
   }
   const series = ghosts.map(g => ({color: g.color, pts: g.pts, width: 2, dash: [2, 4]}));
@@ -127,7 +137,7 @@ function drawChart(ex){
   plotInfo = r;
   ctx.save();
   ctx.font = '600 11px -apple-system, "Hiragino Sans", sans-serif'; ctx.textBaseline = 'top';
-  if (state.eq){
+  if (showEq){
     sys.Veq.forEach((v, i) => { if (v > xmax) return; const t = (sys.Veq.length > 1 ? `第 ${i + 1} 当量点 ` : '当量点 ') + fmt(v, 3) + ' mL', x = r.X(v);
       ctx.fillStyle = C.bg; ctx.globalAlpha = .85; const tw = ctx.measureText(t).width; const tx = x + 4 + tw > r.plot.x + r.plot.w ? x - 4 - tw : x + 4;
       ctx.fillRect(tx - 2, r.plot.y + 3 + i * 15, tw + 4, 14); ctx.globalAlpha = 1; ctx.fillStyle = C.text; ctx.textAlign = 'left'; ctx.fillText(t, tx, r.plot.y + 4 + i * 15); });
@@ -197,7 +207,11 @@ function renderKp(){
 // ---- タブ：緩衝液・指示薬 ----
 function renderTabs(){
   document.querySelectorAll('#tabSeg [data-tab]').forEach(b => { const on = b.dataset.tab === state.tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
-  $('tabBuf').hidden = state.tab !== 'buf'; $('tabInd').hidden = state.tab !== 'ind';
+  const rd = state.tab === 'read';
+  $('tabBuf').hidden = state.tab !== 'buf'; $('tabInd').hidden = state.tab !== 'ind'; $('tabRead').hidden = !rd;
+  $('tabUnk').hidden = !(sys.unknown && state.tab === 'main');
+  $('headBox').hidden = rd; $('stageBox').hidden = rd; $('kpPanel').hidden = rd || hideAns(); $('procPanel').hidden = rd || hideAns();
+  $('detail').hidden = !state.detail || rd;
 }
 function renderBuf(ex){
   const smp = T.sampleByKey(state.sample), one = sys.n === 1;
@@ -206,6 +220,7 @@ function renderBuf(ex){
     $('pkaSlLbl').textContent = smp.kind === 'base' ? 'NH₄⁺ の pKa' : 'pKa'; }
   $('bufNote').textContent = sys.n === 0 ? '強酸×強塩基には緩衝のはたらきがありません。弱酸・弱塩基の試料で試しましょう。' : (one ? '半当量点（pH = pKa）のまわりで、pH が変わりにくい。' : '各段の半当量点（pH = pKa）のまわりで、pH が変わりにくい。');
   $('optBuf').checked = state.buf; $('optBuf').disabled = sys.n === 0;
+  $('alphaBox').hidden = sys.n === 0; if (sys.n > 0) drawAlpha();
   $('btnGhostClear').disabled = !ghosts.length; $('btnGhost').disabled = ghosts.length >= 3 && false;
   const b = T.bufferTest(sys, V), dsp = d => (d >= 0 ? '+' : '−') + Math.abs(d).toFixed(2);
   const ratio = Math.abs(b.d) > 1e-6 ? Math.abs(b.dWater) / Math.abs(b.d) : Infinity;
@@ -214,13 +229,24 @@ function renderBuf(ex){
     <div class="bc"><h4>くらべると</h4>${Math.abs(b.d) < Math.abs(b.dWater) ? `純水の変化の約 1/${ratio < 1e3 ? Math.round(ratio) : '1000 以上'}。` + (Math.abs(b.d) < 0.2 ? '<b>緩衝液として働いている</b>点です。' : '') : '純水と同じくらい変わる点です（緩衝のはたらきは小さい）。'}
     <br><span class="mut">滴下量を動かして、変化の小さい点（半当量点のまわり）と大きい点（当量点のまわり）を比べましょう。</span></div></div>`;
 }
+const ALPHA_COLORS = ['#2563eb', '#d97706', '#0d9488', '#be185d'];
+function drawAlpha(){
+  const cv = $('alphaCv'), {ctx, w, h} = CH.fitCanvas(cv);
+  const C = {bg: css('--panel') || '#fff', text: css('--text') || '#1f2933', muted: css('--muted') || '#6b7480', grid: css('--line') || '#e5e8ec', axis: css('--muted') || '#9aa3ad'};
+  const vl = [{x: V, color: css('--danger') || '#d61f1f', width: 1.6, dash: [4, 3]}];
+  if (state.eq && !hideAns()) sys.Veq.forEach(v => { if (v <= xmax) vl.push({x: v, color: C.muted, dash: [5, 4], width: 1}); });
+  CH.lineChart(ctx, {x: 0, y: 0, w, h}, {x: {min: 0, max: xmax, label: '滴下量（mL）', n: 8}, y: {min: 0, max: 1, label: '割合', n: 5}, colors: C,
+    series: alphaSeries.map((se, i) => ({color: ALPHA_COLORS[i % 4], pts: se.pts, width: 2.4})), vlines: vl});
+  $('alphaLegend').innerHTML = alphaSeries.map((se, i) => `<span style="color:${ALPHA_COLORS[i % 4]}"><i></i>${esc(se.name)}</span>`).join('');
+}
 function renderInd(ex){
   const cur = indOf(), id = T.indicatorByKey(cur);
   $('indChips').innerHTML = T.INDICATORS.map(i => `<button type="button" role="radio" aria-checked="${i.key === cur}" class="chip-btn${i.key === cur ? ' on' : ''}" data-ind="${i.key}">${i.lo != null ? `<span class="sw2" style="background:linear-gradient(90deg,${i.acid === T.WATER ? '#ffffff' : i.acid} 50%,${i.base} 50%)"></span>` : ''}${esc(i.name)}${i.lo != null ? `（${i.lo}–${i.hi}）` : ''}</button>`).join('');
   $('indMsg').textContent = id.lo != null ? `${id.name}：pH ${id.lo} 以下は${id.accidName}、${id.hi} 以上は${id.baseName}。選んだら ▶ で滴下して、フラスコの色が変わる滴下量を当量点（縦の点線）と比べましょう。` : '指示薬を選んでください。';
-  $('optReveal').checked = state.reveal;
-  const tb = $('indTable'); tb.hidden = !state.reveal;
-  if (state.reveal){
+  $('optReveal').checked = state.reveal; $('optReveal').disabled = hideAns();
+  if (hideAns()) $('indMsg').textContent += '（食酢の滴定では、答え合わせをするまで答えの表は見られません）';
+  const tb = $('indTable'); tb.hidden = !state.reveal || hideAns();
+  if (state.reveal && !hideAns()){
     const gl = {good: '適切', fair: 'ややずれる', bad: '不適切'};
     tb.innerHTML = '<thead><tr><th>指示薬</th><th>変色域</th><th>当量点</th><th>色が変わる滴下量 (mL)</th><th>当量点とのずれ (mL)</th><th>判定</th></tr></thead><tbody>' +
       indRep.map(r => r.events.map((e, i) => `<tr class="${r.key === cur ? 'mine' : ''}"><td>${i === 0 ? esc(r.name) : ''}</td><td>${i === 0 ? r.lo + '–' + r.hi : ''}</td>
@@ -246,6 +272,61 @@ $('btnGhost').onclick = () => {
 };
 $('btnGhostClear').onclick = () => { ghosts = []; renderAll(); };
 
+// ---- 目盛りを読む ----
+let readQ = null, readDone = false;
+function readSvg(level, label, reveal){
+  const cap = state.cap, w0 = Math.max(0, Math.min(cap - 3, Math.round(level - 1.5))), Y = v => 14 + (v - w0) / 3 * 270, y = Y(level);
+  let g = '';
+  for (let i = 0; i <= 30; i++){
+    const v = w0 + i / 10, yy = Y(v).toFixed(2), whole = i % 10 === 0, half = i % 5 === 0;
+    g += `<line class="tick" x1="80" x2="${80 + (whole ? 24 : half ? 17 : 10)}" y1="${yy}" y2="${yy}"/>`;
+    if (whole) g += `<text class="tlab" x="72" y="${(Y(v) + 4).toFixed(2)}" text-anchor="end" style="font-size:13px">${Math.round(v)}</text>`;
+  }
+  const mk = reveal ? `<line x1="40" x2="140" y1="${y.toFixed(2)}" y2="${y.toFixed(2)}" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text class="readlab" x="146" y="${(y + 4).toFixed(2)}">${level.toFixed(2)}</text>` : '';
+  return `<figure><svg viewBox="0 0 200 300" role="img" aria-label="${esc(label)}：ビュレットの目盛りと液面（拡大）"><rect x="81" y="${(y - 5).toFixed(2)}" width="48" height="${(290 - y + 5).toFixed(2)}" fill="${T.WATER}" opacity="0"/>
+    <path d="M81 ${(y - 5).toFixed(2)} Q105 ${(y + 5).toFixed(2)} 129 ${(y - 5).toFixed(2)} V292 H81 Z" fill="${T.WATER}" opacity=".85"/>
+    <path class="menis" d="M81 ${(y - 5).toFixed(2)} Q105 ${(y + 5).toFixed(2)} 129 ${(y - 5).toFixed(2)}" style="stroke-width:1.6"/>
+    ${g}<path class="glass" d="M80 4 V294 M130 4 V294"/>${mk}</svg><figcaption>${esc(label)}</figcaption></figure>`;
+}
+function drawRead(){
+  if (!readQ) return;
+  const q = readQ;
+  $('readFig').innerHTML = q.mode === 'diff' ? readSvg(q.a, '滴定の前（始め）', readDone) + readSvg(q.b, '滴定の後（終わり）', readDone) : readSvg(q.a, '液面', readDone);
+  $('readLbl').textContent = q.mode === 'diff' ? '滴下した量' : '液面の読み';
+  document.querySelectorAll('#readMode [data-mode]').forEach(b => { const on = b.dataset.mode === state.readMode; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+  $('readScore').textContent = state.score.total ? `これまで ${state.score.total} 問中 ${state.score.ok} 問 正解` : '';
+}
+function newRead(){
+  readQ = T.readingQuestion(state.readSeed, state.cap, state.readMode); readDone = false;
+  $('readAns').value = ''; $('readRes').textContent = ''; drawRead();
+}
+$('readNew').onclick = () => { state.readSeed++; save(); newRead(); $('readAns').focus(); };
+$('readMode').onclick = e => { const b = e.target.closest('[data-mode]'); if (!b) return; state.readMode = b.dataset.mode; state.readSeed++; save(); newRead(); };
+function checkRead(){
+  if (!readQ) return;
+  const ans = parseFloat($('readAns').value);
+  if (!isFinite(ans)){ $('readRes').innerHTML = '数を入れてください。'; return; }
+  const r = T.checkReading(readQ, ans);
+  if (!readDone){ state.score.total++; if (r.ok) state.score.ok++; save(); }
+  readDone = true; drawRead();
+  const how = readQ.mode === 'diff' ? `（終わり ${readQ.b.toFixed(2)} − 始め ${readQ.a.toFixed(2)}）` : '';
+  $('readRes').innerHTML = (r.ok ? '<span class="ok">正解です。</span>' : '<span class="ng">おしい。</span>') + ` 正しい値は ${r.correct.toFixed(2)} mL${how}。あなたの答えは ${ans.toFixed(2)} mL（差 ${(r.diff >= 0 ? '+' : '−') + Math.abs(r.diff).toFixed(2)}）。` + (r.ok ? '' : ' 凹面のいちばん下の位置を、もう一度見てみましょう。');
+}
+$('readCheck').onclick = checkRead;
+$('readAns').onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); checkRead(); } };
+
+// ---- 食酢の滴定（濃度が未知） ----
+function unkRefresh(){ rebuild(); renderStatic(); save(); renderAll(); }
+$('unkCheck').onclick = () => {
+  const ans = parseFloat($('unkAns').value), C = sys.C0;
+  if (!isFinite(ans)){ $('unkRes').textContent = '濃度（mol/L）を入れてください。'; return; }
+  if (Math.abs(ans - C) / C <= 0.03){ state.unkReveal = true; $('unkRes').innerHTML = `<span class="ok">正解です。</span> 濃度は ${fmt(C, 3)} mol/L（当量点は ${fmt(sys.Veq[0], 3)} mL）。もとの食酢は 10 倍の ${fmt(C * 10, 3)} mol/L です。`; save(); rebuild(); renderStatic(); renderAll(); return; }
+  $('unkRes').innerHTML = '<span class="ng">ちがうようです。</span> 酢酸と NaOH は物質量が 1 : 1 で反応します。NaOH の物質量（mmol）= 0.100 × 滴下量（mL）、酢酸の濃度 = その物質量 ÷ 10.0 mL です。滴下量は、色が変わった点のビュレットの目盛りを読み直しましょう。';
+};
+$('unkShow').onclick = () => { state.unkReveal = true; save(); renderStatic(); renderAll(); $('unkRes').innerHTML = `答え：${fmt(sys.C0, 3)} mol/L（当量点 ${fmt(sys.Veq[0], 3)} mL）。`; };
+$('unkNew').onclick = () => { state.unkSeed++; state.unkReveal = false; V = 0; if (running) setRunning(false); $('unkRes').textContent = ''; $('unkAns').value = ''; unkRefresh(); };
+
 // ---- 描きなおし ----
 function renderAll(){
   const ex = T.solveExact(sys, V), ap = T.approx(sys, V);
@@ -256,21 +337,21 @@ function renderAll(){
   $('chipPH').textContent = `pH ${ex.pH.toFixed(2)}`;
   const id = ind();
   $('chipV').innerHTML = `滴下量 ${V.toFixed(2)} mL` + (id.lo != null ? ` <span class="swatch" style="background:${T.indicatorColor(id, ex.pH)}"></span>${esc(id.name)}` : '');
-  const nearEq = sys.Veq.findIndex(v => Math.abs(V - v) < 0.0005);
+  const nearEq = hideAns() ? -1 : sys.Veq.findIndex(v => Math.abs(V - v) < 0.0005);
   $('status').textContent = nearEq >= 0 ? (sys.Veq.length > 1 ? `第 ${nearEq + 1} 当量点です` : '当量点です') : (Math.abs(V - xmax) < 1e-9 ? 'グラフの終わりまで滴下しました' : '');
 }
 function renderStatic(){
   const smp = T.sampleByKey(state.sample);
   $('smpName').textContent = smp.name;
   $('smpNote').textContent = smp.note + (sys.Veq[0] > state.cap ? '（当量点がビュレットの容量を超えます。濃度や体積を変えてください）' : '');
-  $('eqn').innerHTML = `${esc(sys.name)} <span class="arr">←</span> ${esc(sys.titrant.name)}`;
+  $('eqn').innerHTML = `${esc(hideAns() ? sys.name + '（濃度は未知）' : sys.name)} <span class="arr">←</span> ${esc(sys.titrant.name)}`;
   document.querySelectorAll('#smpList .mi').forEach(b => b.classList.toggle('on', b.dataset.key === state.sample));
   document.querySelectorAll('#capSeg [data-cap]').forEach(b => { const on = +b.dataset.cap === state.cap; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
   $('optApprox').checked = state.approx; $('optEq').checked = state.eq; $('optBand').checked = state.band;
   $('seek').max = xmax; $('seek').setAttribute('aria-valuetext', '');
   $('spdSel').value = String(state.speed);
   const o = overOf(state.sample);
-  $('inC0').value = o.C0 ?? smp.C0; $('inV0').value = o.V0 ?? smp.V0; $('inCt').value = o.Ct ?? smp.Ct;
+  $('inC0').disabled = !!smp.unknown; $('inC0').value = smp.unknown ? '' : (o.C0 ?? smp.C0); $('inV0').value = o.V0 ?? smp.V0; $('inCt').value = o.Ct ?? smp.Ct;
   $('lbCt').firstChild.textContent = `${sys.titrant.name} の濃度 `;
   const pk = $('pkaBox');
   pk.hidden = smp.n === 0;
@@ -283,8 +364,8 @@ function renderStatic(){
   $('btnDetail').textContent = state.detail ? '詳しい設定 ▲' : '詳しい設定 ▼';
   // 目印の滴下量へ移るボタン
   const jb = [];
-  sys.Veq.forEach((v, i) => jb.push({v, t: (sys.Veq.length > 1 ? `第 ${i + 1} 当量点` : '当量点') + ` ${fmt(v, 3)} mL`}));
-  if (sys.n > 0) sys.Veq.forEach((v, i) => jb.push({v: v - sys.N0 / sys.Ct / 2, t: '半当量点' + (sys.Veq.length > 1 ? `（第 ${i + 1} 段）` : '')}));
+  if (!hideAns()) sys.Veq.forEach((v, i) => jb.push({v, t: (sys.Veq.length > 1 ? `第 ${i + 1} 当量点` : '当量点') + ` ${fmt(v, 3)} mL`}));
+  if (sys.n > 0 && !hideAns()) sys.Veq.forEach((v, i) => jb.push({v: v - sys.N0 / sys.Ct / 2, t: '半当量点' + (sys.Veq.length > 1 ? `（第 ${i + 1} 段）` : '')}));
   jb.sort((a, b) => a.v - b.v);
   $('jumpBox').innerHTML = jb.filter(b => b.v <= xmax + 1e-9).map(b => `<button type="button" data-v="${b.v}">${esc(b.t)}</button>`).join('');
   $('kpTable').dataset.key = '';
@@ -363,7 +444,7 @@ $('pkaBox').onchange = e => {
   if (!arr.every(v => v >= -5 && v <= 16)){ toast('pKa は −5 〜 16 の間で入れてください'); renderStatic(); return; }
   setOver({pKa: arr});
 };
-$('capSeg').onclick = e => { const b = e.target.closest('[data-cap]'); if (!b) return; state.cap = +b.dataset.cap; rebuild(); buildApparatus(); renderStatic(); save(); renderAll(); };
+$('capSeg').onclick = e => { const b = e.target.closest('[data-cap]'); if (!b) return; state.cap = +b.dataset.cap; rebuild(); buildApparatus(); renderStatic(); save(); newRead(); renderAll(); };
 $('selInd').onchange = e => { state.inds[state.sample] = e.target.value; save(); renderAll(); };
 $('btnDefault').onclick = () => { delete state.over[state.sample]; delete state.inds[state.sample]; V = 0; rebuild(); renderStatic(); save(); renderAll(); };
 $('btnDetail').onclick = () => { state.detail = !state.detail; renderStatic(); save(); };
@@ -422,6 +503,7 @@ try {
 
 buildSampleMenu();
 rebuild();
+newRead();
 buildApparatus();
 renderStatic();
 onResize();
@@ -429,5 +511,5 @@ renderAll();
 if (!hasUI) setTimeout(() => alert('共通部品（../shared/ui-kit.js）を読み込めませんでした。ページを再読み込みしてください。'), 200);
 
 // 検証用（最後まで読み込めたことの印にもする）
-window.__titration = {T, get ghosts(){ return ghosts; }, get indRep(){ return indRep; }, state, get sys(){ return sys; }, get V(){ return V; }, get xmax(){ return xmax; }, get kp(){ return kp; }, setV, setRunning, selectSample, renderAll, get plot(){ return plotInfo; }};
+window.__titration = {T, get ghosts(){ return ghosts; }, get indRep(){ return indRep; }, state, get sys(){ return sys; }, get V(){ return V; }, get xmax(){ return xmax; }, get kp(){ return kp; }, setV, setRunning, selectSample, renderAll, get readQ(){ return readQ; }, checkRead, newRead, get plot(){ return plotInfo; }};
 })();

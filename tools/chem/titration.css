@@ -213,3 +213,15 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .bufc .big{font-size:15px;font-weight:700}
 .clegend i.gh{border-top:2.5px dotted currentColor}
 .ntbl tr.mine td{background:var(--accent-soft)}
+
+/* ==== 0.3：化学種の割合・目盛りを読む・食酢の滴定 ==== */
+.cv-wrap.alpha{min-height:240px;height:240px;flex:none}
+.clegend.alg{margin-left:0}
+.clegend.alg i{border-top-width:3px}
+.readfig{display:flex;flex-wrap:wrap;gap:14px 28px;justify-content:center;padding:4px 0}
+.readfig figure{margin:0;text-align:center;font-size:12.5px;color:var(--muted)}
+.readfig svg{width:200px;height:300px;display:block}
+.rres{font-size:14px;min-height:1.6em}
+.rres .ok{color:var(--ok);font-weight:700} .rres .ng{color:var(--danger);font-weight:700}
+.slrow input[type=number]{width:7em;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--text);min-height:30px}
+@media (max-width:560px){ .viewseg button{padding:0 6px;font-size:12px} .readfig svg{width:160px;height:240px} }

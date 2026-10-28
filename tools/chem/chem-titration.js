@@ -32,6 +32,9 @@ const SAMPLES = [
   {key: 'nh3', group: '弱酸・弱塩基', name: 'アンモニア × 塩酸', kind: 'base', formula: 'NH₃', label: 'アンモニア NH₃', n: 1, pKa: [9.25], z0: 0, forms: ['NH₃', 'NH₄⁺'], cX: 0, cM: 0,
     titrant: {name: 'HCl', ion: 'Cl⁻', type: 'acid'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'mo',
     note: '弱塩基を強酸で滴定。NH₄⁺ の pKa は 9.25（pKb 4.75）。当量点は酸性。'},
+  {key: 'vinegar', group: '実験', name: '食酢の滴定（濃度が未知）', kind: 'acid', formula: 'CH₃COOH', label: '食酢（10 倍にうすめた液）', n: 1, pKa: [4.76], z0: -1, forms: ['CH₃COO⁻', 'CH₃COOH'], cX: 0, cM: 0, unknown: true,
+    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.0700, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
+    note: 'うすめた食酢 10.0 mL を NaOH で滴定して、酢酸の濃度を求める。濃度は、出題ごとにちがう。'},
   {key: 'na2co3', group: '多段階', name: '炭酸ナトリウム × 塩酸', kind: 'base', formula: 'Na₂CO₃', label: '炭酸ナトリウム Na₂CO₃', n: 2, pKa: [6.35, 10.33], z0: -2, forms: ['CO₃²⁻', 'HCO₃⁻', 'H₂CO₃'], cX: 0, cM: 2, ionM: 'Na⁺',
     titrant: {name: 'HCl', ion: 'Cl⁻', type: 'acid'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
     note: '2 段階。第 1 当量点は NaHCO₃（フェノールフタレイン）、第 2 当量点は H₂CO₃（メチルオレンジ）。'},
@@ -81,7 +84,7 @@ function makeSys(sample, over = {}){
   const pKa = (over.pKa && over.pKa.length === sample.n) ? over.pKa.slice() : sample.pKa.slice();
   const sys = {key: sample.key, name: sample.label, formula: sample.formula, kind: sample.kind, n: sample.n, pKa, z0: sample.z0 || 0, forms: sample.forms || [],
     cM: sample.cM || 0, cX: sample.cX || 0, ionM: sample.ionM || 'M⁺', ionX: sample.ionX || 'X⁻', titrant: sample.titrant,
-    C0: s.C0, V0: s.V0, Ct: s.Ct, steps: sample.steps, rMax: sample.rMax, ind: sample.ind, note: sample.note};
+    unknown: !!sample.unknown, C0: s.C0, V0: s.V0, Ct: s.Ct, steps: sample.steps, rMax: sample.rMax, ind: sample.ind, note: sample.note};
   sys.N0 = sys.C0 * sys.V0;                                           // mmol
   sys.Veq = Array.from({length: sys.steps}, (_, i) => (i + 1) * sys.N0 / sys.Ct);   // mL
   sys.Vmax = sys.Veq[0] * sys.rMax;
@@ -298,7 +301,34 @@ function bufferTest(sys, V, dV = 0.5){
   return {dV, before, after, d: after - before, water, dWater: water - 7};
 }
 
-const api = {indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
+// ---- 化学種の割合（滴下量ごとの α）。多段階の酸で、形が入れ替わる様子を見る ----
+function alphaCurve(sys, xmax, N = 300){
+  const grid = volumeGrid(sys, xmax, N), series = [];
+  for (let j = sys.n; j >= 0; j--) series.push({j, name: sys.forms[j], pts: []});
+  for (const v of grid){ const a = solveExact(sys, v).alpha; for (const se of series) se.pts.push([v, a[se.j]]); }
+  return series;
+}
+
+// ---- ビュレットの目盛りを読む練習 ----
+// mode 'single'：液面の読みを答える／'diff'：始めと終わりの読みから、滴下した量を答える。読みは 0.01 mL の位まで（最小目盛りは 0.1 mL）。
+function readingQuestion(seed, cap = 25, mode = 'single'){
+  const rnd = S.rng(seed * 7919 + (mode === 'diff' ? 13 : 5));
+  const r2 = x => Math.round(x * 100) / 100;
+  if (mode === 'diff'){
+    const a = r2(rnd() * 4), len = r2(5 + rnd() * Math.min(15, cap - 6));
+    const b = r2(a + len);
+    return {mode, a, b, answer: r2(b - a), tol: 0.03};
+  }
+  return {mode, a: r2(0.6 + rnd() * (cap - 1.2)), answer: null, tol: 0.02, get value(){ return this.a; }};
+}
+function checkReading(q, ans){
+  const correct = q.mode === 'diff' ? q.answer : q.a;
+  return {correct, ok: isFinite(ans) && Math.abs(ans - correct) <= q.tol + 1e-9, diff: ans - correct};
+}
+// 食酢の滴定：未知の濃度（うすめた液）を出題ごとに決める。0.0500〜0.1000 mol/L、0.0001 刻み
+function unknownConc(seed){ const r = S.rng(seed * 104729 + 3); return Math.round((0.05 + r() * 0.05) * 1e4) / 1e4; }
+
+const api = {alphaCurve, readingQuestion, checkReading, unknownConc, indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemTitration = api;
 })(typeof window !== 'undefined' ? window : globalThis);
