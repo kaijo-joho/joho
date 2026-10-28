@@ -18,10 +18,11 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, typeof v === 'string' ? 
 const SPEEDS = [0.5, 1, 2, 4];
 const TABS = ['main', 'buf', 'ind', 'read'];
 const state = {tab: 'main', sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1, approx: true, eq: true, band: true, buf: true, reveal: false, detail: false,
-  readSeed: 1, readMode: 'single', score: {ok: 0, total: 0}, unkSeed: 1, unkReveal: false};
+  custom: {kind: 'acid', n: 1}, readSeed: 1, readMode: 'single', score: {ok: 0, total: 0}, unkSeed: 1, unkReveal: false};
 const GHOST_COLORS = ['#8b5cf6', '#0d9488', '#be185d'];
 let ghosts = [];          // 残した曲線（保存しない）
 let V = 0;                // いまの滴下量（mL）。保存しない
+function getSample(key){ return key === 'custom' ? T.customSample(state.custom) : T.sampleByKey(key); }
 (function restore(){
   const s = lsGet(KEY.state); if (!s) return;
   if (TABS.includes(s.tab)) state.tab = s.tab;
@@ -33,6 +34,7 @@ let V = 0;                // いまの滴下量（mL）。保存しない
   for (const k of ['readSeed', 'unkSeed']) if (Number.isInteger(s[k]) && s[k] > 0) state[k] = s[k];
   if (s.score && Number.isInteger(s.score.ok) && Number.isInteger(s.score.total)) state.score = s.score;
   if (typeof s.unkReveal === 'boolean') state.unkReveal = s.unkReveal;
+  if (s.custom && (s.custom.kind === 'acid' || s.custom.kind === 'base') && [1, 2, 3].includes(s.custom.n)) state.custom = {kind: s.custom.kind, n: s.custom.n};
   if (SPEEDS.includes(s.speed)) state.speed = s.speed;
   for (const k of ['approx', 'eq', 'band', 'buf', 'reveal', 'detail']) if (typeof s[k] === 'boolean') state[k] = s[k];
 })();
@@ -41,7 +43,7 @@ const save = () => lsSet(KEY.state, state);
 // ---- いまの系 ----
 let sys = null, xmax = 20, cache = null, kp = [], indRep = [];
 function overOf(key){
-  const o = state.over[key] || {}, smp = T.sampleByKey(key), r = {};
+  const o = state.over[key] || {}, smp = getSample(key), r = {};
   const num = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
   if (num(o.C0, 1e-5, 2)) r.C0 = o.C0;
   if (smp.unknown) r.C0 = T.unknownConc(state.unkSeed);
@@ -52,7 +54,7 @@ function overOf(key){
 }
 function indOf(){ const k = state.inds[state.sample]; return T.INDICATORS.some(i => i.key === k) ? k : sys.ind; }
 function rebuild(){
-  const smp = T.sampleByKey(state.sample);
+  const smp = getSample(state.sample);
   sys = T.makeSys(smp, overOf(state.sample));
   xmax = Math.min(state.cap, sys.Vmax);
   V = Math.min(V, xmax);
@@ -60,10 +62,11 @@ function rebuild(){
   kp = T.keyPoints(sys, xmax);
   indRep = T.indicatorReport(sys, xmax);
   alphaSeries = sys.n > 0 ? T.alphaCurve(sys, xmax) : [];
+  alphaPh = sys.n > 0 ? T.alphaVsPH(sys) : [];
 }
 const ind = () => T.indicatorByKey(indOf());
 const hideAns = () => !!sys && sys.unknown && !state.unkReveal;     // 食酢の滴定：濃度・当量点は答え合わせまで隠す
-let alphaSeries = [];
+let alphaSeries = [], alphaPh = [];
 
 // ---- ビュレットとフラスコ（SVG） ----
 const SVGNS = 'http://www.w3.org/2000/svg';
@@ -214,10 +217,10 @@ function renderTabs(){
   $('detail').hidden = !state.detail || rd;
 }
 function renderBuf(ex){
-  const smp = T.sampleByKey(state.sample), one = sys.n === 1;
+  const smp = getSample(state.sample), one = sys.n === 1;
   $('pkaSlRow').hidden = !one;
   if (one){ const sl = $('pkaSl'); if (document.activeElement !== sl) sl.value = sys.pKa[0]; $('pkaSlVal').textContent = sys.pKa[0].toFixed(2);
-    $('pkaSlLbl').textContent = smp.kind === 'base' ? 'NH₄⁺ の pKa' : 'pKa'; }
+    $('pkaSlLbl').textContent = smp.kind === 'base' ? (smp.key === 'custom' ? 'BH⁺ の pKa' : 'NH₄⁺ の pKa') : 'pKa'; }
   $('bufNote').textContent = sys.n === 0 ? '強酸×強塩基には緩衝のはたらきがありません。弱酸・弱塩基の試料で試しましょう。' : (one ? '半当量点（pH = pKa）のまわりで、pH が変わりにくい。' : '各段の半当量点（pH = pKa）のまわりで、pH が変わりにくい。');
   $('optBuf').checked = state.buf; $('optBuf').disabled = sys.n === 0;
   $('alphaBox').hidden = sys.n === 0; if (sys.n > 0) drawAlpha();
@@ -229,6 +232,16 @@ function renderBuf(ex){
     <div class="bc"><h4>くらべると</h4>${Math.abs(b.d) < Math.abs(b.dWater) ? `純水の変化の約 1/${ratio < 1e3 ? Math.round(ratio) : '1000 以上'}。` + (Math.abs(b.d) < 0.2 ? '<b>緩衝液として働いている</b>点です。' : '') : '純水と同じくらい変わる点です（緩衝のはたらきは小さい）。'}
     <br><span class="mut">滴下量を動かして、変化の小さい点（半当量点のまわり）と大きい点（当量点のまわり）を比べましょう。</span></div></div>`;
 }
+function drawAlphaPh(C){
+  const cv = $('alphaPhCv'), {ctx, w, h} = CH.fitCanvas(cv), ex = T.solveExact(sys, V);
+  const vl = sys.pKa.map(pk => ({x: pk, color: C.muted, dash: [5, 4], width: 1.1})); vl.push({x: ex.pH, color: css('--danger') || '#d61f1f', width: 1.6, dash: [4, 3]});
+  const r = CH.lineChart(ctx, {x: 0, y: 0, w, h}, {x: {min: 0, max: 14, label: 'pH', n: 7}, y: {min: 0, max: 1, label: 'モル分率', n: 5}, colors: C,
+    series: alphaPh.map((se, i) => ({color: ALPHA_COLORS[i % 4], pts: se.pts, width: 2.4})), vlines: vl});
+  ctx.save(); ctx.font = '600 11px -apple-system, "Hiragino Sans", sans-serif'; ctx.fillStyle = C.text; ctx.textBaseline = 'top';
+  sys.pKa.forEach((pk, i) => { if (pk < 0 || pk > 14) return; const t = (sys.n > 1 ? `pKa${'₁₂₃'[i]} ` : 'pKa ') + pk, tw = ctx.measureText(t).width, x = r.X(pk), tx = x + 4 + tw > r.plot.x + r.plot.w ? x - 4 - tw : x + 4;
+    ctx.textAlign = 'left'; ctx.fillText(t, tx, r.plot.y + 4 + (i % 2) * 14); });
+  ctx.restore();
+}
 const ALPHA_COLORS = ['#2563eb', '#d97706', '#0d9488', '#be185d'];
 function drawAlpha(){
   const cv = $('alphaCv'), {ctx, w, h} = CH.fitCanvas(cv);
@@ -237,6 +250,7 @@ function drawAlpha(){
   if (state.eq && !hideAns()) sys.Veq.forEach(v => { if (v <= xmax) vl.push({x: v, color: C.muted, dash: [5, 4], width: 1}); });
   CH.lineChart(ctx, {x: 0, y: 0, w, h}, {x: {min: 0, max: xmax, label: '滴下量（mL）', n: 8}, y: {min: 0, max: 1, label: '割合', n: 5}, colors: C,
     series: alphaSeries.map((se, i) => ({color: ALPHA_COLORS[i % 4], pts: se.pts, width: 2.4})), vlines: vl});
+  drawAlphaPh(C);
   $('alphaLegend').innerHTML = alphaSeries.map((se, i) => `<span style="color:${ALPHA_COLORS[i % 4]}"><i></i>${esc(se.name)}</span>`).join('');
 }
 function renderInd(ex){
@@ -264,7 +278,7 @@ $('pkaSl').oninput = e => {
   state.over[state.sample] = o; rebuild(); renderStatic(); save(); renderAll();
 };
 $('btnGhost').onclick = () => {
-  const smp = T.sampleByKey(state.sample), o = overOf(state.sample);
+  const smp = getSample(state.sample), o = overOf(state.sample);
   const lab = smp.name.split(' ')[0] + (sys.n === 1 ? ` pKa ${sys.pKa[0]}` : '') + (o.C0 ? ` ${fmt(o.C0)} mol/L` : '');
   ghosts.push({label: lab, pts: cache.curve.exact.slice(), color: GHOST_COLORS.find(c => !ghosts.some(g => g.color === c)) || GHOST_COLORS[0]});
   if (ghosts.length > 3) ghosts.shift();
@@ -341,7 +355,7 @@ function renderAll(){
   $('status').textContent = nearEq >= 0 ? (sys.Veq.length > 1 ? `第 ${nearEq + 1} 当量点です` : '当量点です') : (Math.abs(V - xmax) < 1e-9 ? 'グラフの終わりまで滴下しました' : '');
 }
 function renderStatic(){
-  const smp = T.sampleByKey(state.sample);
+  const smp = getSample(state.sample);
   $('smpName').textContent = smp.name;
   $('smpNote').textContent = smp.note + (sys.Veq[0] > state.cap ? '（当量点がビュレットの容量を超えます。濃度や体積を変えてください）' : '');
   $('eqn').innerHTML = `${esc(hideAns() ? sys.name + '（濃度は未知）' : sys.name)} <span class="arr">←</span> ${esc(sys.titrant.name)}`;
@@ -356,10 +370,13 @@ function renderStatic(){
   const pk = $('pkaBox');
   pk.hidden = smp.n === 0;
   pk.innerHTML = smp.n === 0 ? '' : '<span>pKa（電離のしやすさ。小さいほど強い酸）</span><div class="pk">' +
-    sys.pKa.map((v, i) => `<label>${smp.n === 1 ? (smp.kind === 'base' ? 'NH₄⁺ の pKa' : 'pKa') : 'pKa' + '₁₂₃'[i]}<input type="number" step="any" min="-5" max="16" data-pk="${i}" value="${v}" aria-label="pKa ${i + 1}"></label>`).join('') + '</div>';
+    sys.pKa.map((v, i) => `<label>${smp.n === 1 ? (smp.kind === 'base' ? (smp.key === 'custom' ? 'BH⁺ の pKa' : 'NH₄⁺ の pKa') : 'pKa') : 'pKa' + '₁₂₃'[i]}<input type="number" step="any" min="-5" max="16" data-pk="${i}" value="${v}" aria-label="pKa ${i + 1}"></label>`).join('') + '</div>';
   const sel = $('selInd');
   sel.innerHTML = T.INDICATORS.map(i => `<option value="${i.key}">${esc(i.name)}${i.lo != null ? `（${i.lo}–${i.hi}）` : ''}</option>`).join('');
   sel.value = indOf();
+  $('custBox').hidden = state.sample !== 'custom';
+  document.querySelectorAll('#custKind [data-kind]').forEach(b => { const on = b.dataset.kind === state.custom.kind; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+  document.querySelectorAll('#custN [data-n]').forEach(b => { const on = +b.dataset.n === state.custom.n; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
   $('btnDetail').setAttribute('aria-expanded', state.detail); $('detail').hidden = !state.detail;
   $('btnDetail').textContent = state.detail ? '詳しい設定 ▲' : '詳しい設定 ▼';
   // 目印の滴下量へ移るボタン
@@ -434,7 +451,7 @@ function setOver(patch){
 }
 const numIn = (id, key, lo, hi, name) => $(id).onchange = e => {
   const v = parseFloat(e.target.value);
-  if (!(v >= lo && v <= hi)){ toast(`${name}は ${lo} 〜 ${hi} の間で入れてください`); e.target.value = overOf(state.sample)[key] ?? T.sampleByKey(state.sample)[key]; return; }
+  if (!(v >= lo && v <= hi)){ toast(`${name}は ${lo} 〜 ${hi} の間で入れてください`); e.target.value = overOf(state.sample)[key] ?? getSample(state.sample)[key]; return; }
   setOver({[key]: v});
 };
 numIn('inC0', 'C0', 1e-5, 2, '濃度'); numIn('inV0', 'V0', 1, 100, '体積'); numIn('inCt', 'Ct', 1e-5, 2, '濃度');
@@ -449,6 +466,14 @@ $('selInd').onchange = e => { state.inds[state.sample] = e.target.value; save();
 $('btnDefault').onclick = () => { delete state.over[state.sample]; delete state.inds[state.sample]; V = 0; rebuild(); renderStatic(); save(); renderAll(); };
 $('btnDetail').onclick = () => { state.detail = !state.detail; renderStatic(); save(); };
 for (const [id, k] of [['optApprox', 'approx'], ['optEq', 'eq'], ['optBand', 'band']]) $(id).onchange = e => { state[k] = e.target.checked; save(); renderAll(); };
+
+$('custBox').onclick = e => {
+  const k = e.target.closest('[data-kind]'), n = e.target.closest('[data-n]'); if (!k && !n) return;
+  if (k) state.custom.kind = k.dataset.kind; if (n) state.custom.n = +n.dataset.n;
+  if (state.over.custom) delete state.over.custom.pKa;
+  delete state.inds.custom; ghosts = []; V = 0; if (running) setRunning(false);
+  rebuild(); renderStatic(); save(); renderAll();
+};
 
 // ---- 上部バー・キーボード ----
 function fitBar(){

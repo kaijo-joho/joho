@@ -51,6 +51,9 @@ const SAMPLES = [
     titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
     note: 'とても弱い 2 価の酸（pKa 7.0・13.9）。'}
 ];
+
+
+SAMPLES.push(customSample({kind: 'acid', n: 1}));
 const sampleByKey = key => SAMPLES.find(s => s.key === key) || null;
 
 // ---- 指示薬 ----
@@ -328,7 +331,28 @@ function checkReading(q, ans){
 // 食酢の滴定：未知の濃度（うすめた液）を出題ごとに決める。0.0500〜0.1000 mol/L、0.0001 刻み
 function unknownConc(seed){ const r = S.rng(seed * 104729 + 3); return Math.round((0.05 + r() * 0.05) * 1e4) / 1e4; }
 
-const api = {alphaCurve, readingQuestion, checkReading, unknownConc, indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
+// ---- 架空の酸・塩基（pKa を自由に決める）。spec = {kind:'acid'|'base', n:1〜3} ----
+// 酸は H_nA（NaOH で滴定）、塩基は B（HCl で滴定。pKa は共役酸 BHₙⁿ⁺ → … → BH⁺ の順）。pKa の初期値は段数ごとの例。
+function customSample(spec){
+  const kind = spec && spec.kind === 'base' ? 'base' : 'acid';
+  const n = Math.max(1, Math.min(3, (spec && spec.n | 0) || 1));
+  const acid = kind === 'acid';
+  const pKa = (acid ? {1: [4.5], 2: [3, 7], 3: [2, 6.5, 11]} : {1: [9], 2: [6, 10], 3: [3, 7, 11]})[n];
+  const forms = acid ? [['A⁻', 'HA'], ['A²⁻', 'HA⁻', 'H₂A'], ['A³⁻', 'HA²⁻', 'H₂A⁻', 'H₃A']][n - 1] : [['B', 'BH⁺'], ['B', 'BH⁺', 'BH₂²⁺'], ['B', 'BH⁺', 'BH₂²⁺', 'BH₃³⁺']][n - 1];
+  const formula = acid ? (n === 1 ? 'HA' : 'H' + '₂₃'[n - 2] + 'A') : 'B';
+  return {key: 'custom', group: '架空の酸・塩基', name: '架空の酸・塩基（pKa を自由に決める）', kind, formula, label: (acid ? '架空の酸 ' : '架空の塩基 ') + formula, n, pKa, z0: acid ? -n : 0, forms, cX: 0, cM: 0,
+    titrant: acid ? {name: 'NaOH', ion: 'Na⁺', type: 'base'} : {name: 'HCl', ion: 'Cl⁻', type: 'acid'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: n, rMax: n === 1 ? 2 : n + 0.5, ind: acid ? 'pp' : 'mo',
+    note: '「詳しい設定」で、酸か塩基か・段数・pKa を決められる。pKa を変えると、曲線・半当量点・割合のグラフがどう変わるかを調べよう。'};
+}
+// pH と各化学種のモル分率（滴下量に関係なく、pKa だけで決まる）
+function alphaVsPH(sys, step = 0.05){
+  const series = [];
+  for (let j = sys.n; j >= 0; j--) series.push({j, name: sys.forms[j], pts: []});
+  for (let pH = 0; pH <= 14 + 1e-9; pH += step){ const a = fractions(sys.pKa, pH); for (const se of series) se.pts.push([Math.round(pH * 1e6) / 1e6, a[se.j]]); }
+  return series;
+}
+
+const api = {customSample, alphaVsPH, alphaCurve, readingQuestion, checkReading, unknownConc, indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemTitration = api;
 })(typeof window !== 'undefined' ? window : globalThis);
