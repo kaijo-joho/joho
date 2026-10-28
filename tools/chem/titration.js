@@ -21,6 +21,7 @@ const state = {tab: 'main', sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1
   custom: {kind: 'acid', n: 1}, compare: [], titKey: null, customT: {n: 1}, readSeed: 1, readMode: 'single', score: {ok: 0, total: 0}, unkSeed: 1, unkReveal: false};
 const CMP_COLORS = ['#8b5cf6', '#0d9488', '#be185d', '#65a30d', '#0891b2'];
 const MAX_CMP = 5;
+let cmpSeq = 0;          // 比較対象の通し番号（同じ種類を複数入れられるので、種類ではなく番号で区別する）
 const GHOST_COLORS = ['#8b5cf6', '#0d9488', '#be185d'];
 let ghosts = [];          // 残した曲線（保存しない）
 let V = 0;                // いまの滴下量（mL）。保存しない
@@ -36,7 +37,9 @@ function getSample(key){ return key === 'custom' ? T.customSample(state.custom) 
   for (const k of ['readSeed', 'unkSeed']) if (Number.isInteger(s[k]) && s[k] > 0) state[k] = s[k];
   if (s.score && Number.isInteger(s.score.ok) && Number.isInteger(s.score.total)) state.score = s.score;
   if (typeof s.unkReveal === 'boolean') state.unkReveal = s.unkReveal;
-  if (Array.isArray(s.compare)) state.compare = s.compare.filter(k => typeof k === 'string' && k !== 'vinegar' && T.sampleByKey(k)).slice(0, MAX_CMP);
+  if (Array.isArray(s.compare)) state.compare = s.compare.map(e => typeof e === 'string' ? {key: e} : e)
+    .filter(e => e && typeof e.key === 'string' && e.key !== 'vinegar' && e.key !== 'custom' && T.sampleByKey(e.key))
+    .map(e => { const r = {id: ++cmpSeq, key: e.key}; const ok = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi; if (ok(e.C0, 1e-5, 2)) r.C0 = e.C0; if (ok(e.V0, 1, 100)) r.V0 = e.V0; return r; }).slice(0, MAX_CMP);
   if (typeof s.titKey === 'string' && (s.titKey === 'custom' || T.TITRANTS.some(t => t.key === s.titKey))) state.titKey = s.titKey;
   if (s.customT && [1, 2, 3].includes(s.customT.n)) state.customT = {n: s.customT.n};
   if (s.custom && (s.custom.kind === 'acid' || s.custom.kind === 'base') && [1, 2, 3].includes(s.custom.n)) state.custom = {kind: s.custom.kind, n: s.custom.n};
@@ -67,7 +70,7 @@ function overOf(key, tt){
 }
 function indOf(){ const k = state.inds[state.sample]; return T.INDICATORS.some(i => i.key === k) ? k : sys.ind; }
 // 重ねて比べられる試料：いまの滴下液で滴定できる種類（酸には塩基、塩基には酸）で、濃度が未知でないもの
-function canCompare(k){ const sm = getSample(k); return !!sm && !sm.unknown && sm.kind === (sys.titrant.type === 'base' ? 'acid' : 'base'); }
+function canCompare(k){ if (k === 'custom') return false; const sm = getSample(k); return !!sm && !sm.unknown && sm.kind === (sys.titrant.type === 'base' ? 'acid' : 'base'); }
 function rebuild(){
   const smp = getSample(state.sample);
   const tNow = curTitrant();
@@ -75,11 +78,12 @@ function rebuild(){
   xmax = Math.min(state.cap, sys.Vmax);
   V = Math.min(V, xmax);
   // 同じ滴下液で滴定する別の試料を重ねて比べる：横軸は、比べるものの最大に合わせる（ビュレットの容量まで）
-  const cmpSys = state.compare.filter(k => k !== state.sample && canCompare(k))
-    .map((k, i) => ({key: k, sys: T.makeSys(getSample(k), Object.assign(overOf(k, tNow), {Ct: sys.Ct, tpKa: sys.titrant.pKa.slice()}), tNow), color: CMP_COLORS[i % CMP_COLORS.length]}));
+  const cmpSys = state.compare.filter(e => canCompare(e.key))
+    .map((e, i) => { const o = {Ct: sys.Ct, tpKa: sys.titrant.pKa.slice()}; if (e.C0 != null) o.C0 = e.C0; if (e.V0 != null) o.V0 = e.V0;
+      return {key: e.key, sys: T.makeSys(getSample(e.key), o, tNow), color: CMP_COLORS[i % CMP_COLORS.length]}; });
   chartX = Math.min(state.cap, Math.max(sys.Vmax, ...cmpSys.map(c => c.sys.Vmax)));
   xmax = chartX; V = Math.min(V, xmax);
-  cache = {curve: T.curve(sys, chartX), cmp: cmpSys.map(c => ({key: c.key, label: c.sys.name.split(' ')[0] + (c.sys.n === 1 && getSample(c.key).key === 'custom' ? ` pKa ${c.sys.pKa[0]}` : ''), color: c.color, pts: T.curve(c.sys, chartX).exact}))};
+  cache = {curve: T.curve(sys, chartX), cmp: cmpSys.map(c => ({key: c.key, label: `${c.sys.name.split(' ')[0]} ${fmt(c.sys.C0)} mol/L`, color: c.color, pts: T.curve(c.sys, chartX).exact}))};
   kp = T.keyPoints(sys, xmax);
   indRep = T.indicatorReport(sys, xmax);
   alphaSeries = sys.n > 0 ? T.alphaCurve(sys, xmax) : [];
@@ -384,7 +388,7 @@ function renderStatic(){
   const noteT = sys.titrant.key === smp.titrant ? smp.note : '標準とは別の滴下液（' + sys.titrant.name + '）で滴定しています。';
   $('smpNote').textContent = noteT + (sys.pI != null ? ` 等電点 pI = ${sys.pI.toFixed(2)}。` : '') + (sys.Veq[0] > state.cap ? '（当量点がビュレットの容量を超えます。濃度や体積を変えてください）' : '');
   $('eqn').innerHTML = `${esc(hideAns() ? sys.name + '（濃度は未知）' : sys.name)} <span class="arr">←</span> ${esc(sys.titrant.name)}`;
-  syncCompare();
+  renderCmp();
   document.querySelectorAll('#smpList .mi').forEach(b => { const on = b.dataset.key === state.sample; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
   document.querySelectorAll('#capSeg [data-cap]').forEach(b => { const on = +b.dataset.cap === state.cap; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
   $('optApprox').checked = state.approx; $('optEq').checked = state.eq; $('optBand').checked = state.band;
@@ -472,33 +476,55 @@ $('kpTable').onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ const t
 
 // ---- 試料・設定 ----
 function buildSampleMenu(){
-  let html = '<div class="cmpbar"><span id="cmpInfo"></span><button type="button" class="sbtn" id="cmpClear" title="重ねて比べる試料の選択をすべて外す">比較を解除</button></div>', grp = '';
+  let html = '', grp = '';
   for (const s of T.SAMPLES){
     if (s.group !== grp){ grp = s.group; html += `<div class="gl">${esc(grp)}</div>`; }
-    html += `<div class="mrow"><button type="button" class="mi" role="option" data-key="${s.key}"><span class="dot"></span><span>${esc(s.name)}<small>${esc(s.note)}</small></span></button>
-      <label class="cmpcb"><input type="checkbox" class="cmp-cb" data-key="${s.key}" aria-label="${esc(s.name)}を重ねて比べる"><span>比べる</span></label></div>`;
+    html += `<button type="button" class="mi" role="option" data-key="${s.key}"><span class="dot"></span><span>${esc(s.name)}<small>${esc(s.note)}</small></span></button>`;
   }
   $('smpList').innerHTML = html;
 }
-function syncCompare(){
-  document.querySelectorAll('#smpList .cmp-cb').forEach(cb => {
-    const k = cb.dataset.key, smp = getSample(k), ok = canCompare(k), dis = k === state.sample || !ok;
-    cb.disabled = dis; cb.checked = !dis && state.compare.includes(k);
-    cb.parentElement.title = k === state.sample ? 'いまの試料です（いつも表示されます）' : smp.unknown ? '濃度が未知の試料は、比べられません' : !ok ? `${sys.titrant.name} では滴定できない種類（${smp.kind === 'acid' ? '酸' : '塩基'}）です` : 'いまの試料の曲線に重ねて表示します（滴下液・濃度はいまのものを使います）';
-    cb.parentElement.classList.toggle('dis', dis);
-  });
-  const n = cache ? cache.cmp.length : 0;
-  $('cmpInfo').textContent = `${sys.titrant.name}（${fmt(sys.Ct)} mol/L）で滴定する試料を、重ねて比べられます（最大 ${MAX_CMP} 件）。` + (n ? ` いま ${n} 件を重ねています。` : '');
-  $('cmpClear').disabled = !n;
+// ---- 比較対象（対象試料のグラフに重ねる試料）：種類・濃度・体積を行ごとに決める ----
+function cmpOptions(sel){
+  let h = '', grp = '';
+  for (const x of T.SAMPLES){ if (!canCompare(x.key)) continue; if (x.group !== grp){ if (grp) h += '</optgroup>'; grp = x.group; h += `<optgroup label="${esc(grp)}">`; } h += `<option value="${x.key}"${x.key === sel ? ' selected' : ''}>${esc(x.label)}</option>`; }
+  return h + (grp ? '</optgroup>' : '');
 }
-$('smpList').onchange = e => {
-  const cb = e.target.closest('.cmp-cb'); if (!cb) return;
-  const k = cb.dataset.key;
-  if (cb.checked){ if (state.compare.filter(x => x !== state.sample).length >= MAX_CMP){ cb.checked = false; toast(`重ねて比べられるのは ${MAX_CMP} 件までです`); return; } if (!state.compare.includes(k)) state.compare.push(k); }
-  else state.compare = state.compare.filter(x => x !== k);
+function renderCmp(){
+  const list = $('cmpList'), act = document.activeElement, keep = act && list.contains(act) ? act.id : null;
+  list.innerHTML = state.compare.map((e, i) => { const sm = getSample(e.key), col = CMP_COLORS[i % CMP_COLORS.length];
+    return `<div class="cmprow" data-id="${e.id}"><i class="cmpsw" style="border-top-color:${col}" aria-hidden="true"></i>
+      <label class="fld"><span>種類</span><select id="cmpS${e.id}" data-f="key" aria-label="比較対象${i + 1}の種類">${cmpOptions(e.key)}</select></label>
+      <label class="fld"><span>濃度 <small>mol/L</small></span><input type="number" id="cmpC${e.id}" data-f="C0" min="0.00001" max="2" step="any" inputmode="decimal" value="${e.C0 ?? sm.C0}" aria-label="比較対象${i + 1}の濃度"></label>
+      <label class="fld"><span>体積 <small>mL</small></span><input type="number" id="cmpV${e.id}" data-f="V0" min="1" max="100" step="any" inputmode="decimal" value="${e.V0 ?? sm.V0}" aria-label="比較対象${i + 1}の体積"></label>
+      <button type="button" class="ic cmpdel" data-del="${e.id}" aria-label="比較対象${i + 1}を外す" title="外す">×</button></div>`; }).join('');
+  if (keep){ const el = $(keep); if (el) el.focus(); }
+  const n = state.compare.length, has = T.SAMPLES.some(x => canCompare(x.key));
+  $('cmpInfo').textContent = `${sys.titrant.name}（${fmt(sys.Ct)} mol/L）で滴定する試料を、最大 ${MAX_CMP} 件まで重ねて比べられます。` + (n ? '' : ' 「＋ 比較対象を追加」を押してください。');
+  $('btnCmpAdd').disabled = n >= MAX_CMP || !has; $('cmpClear').hidden = !n;
+}
+$('btnCmpAdd').onclick = () => {
+  if (state.compare.length >= MAX_CMP) return;
+  // 最初は、対象試料とは別の種類（なければ同じ種類）にする
+  const ks = T.SAMPLES.map(x => x.key).filter(canCompare), used = new Set([state.sample, ...state.compare.map(x => x.key)]);
+  const key = ['ch3cooh', 'hcl', 'nh3', 'naoh'].find(k => ks.includes(k) && !used.has(k)) || ks.find(k => !used.has(k)) || ks[0]; if (!key) return;
+  const e = {id: ++cmpSeq, key}; state.compare.push(e);
+  save(); rebuild(); renderStatic(); renderAll(); const el = $('cmpS' + e.id); if (el) el.focus();
+};
+$('cmpClear').onclick = () => { state.compare = []; save(); rebuild(); renderStatic(); renderAll(); $('btnCmpAdd').focus(); };
+$('cmpList').onclick = e => {
+  const d = e.target.closest('[data-del]'); if (!d) return;
+  state.compare = state.compare.filter(x => String(x.id) !== d.dataset.del);
+  save(); rebuild(); renderStatic(); renderAll(); $('btnCmpAdd').focus();
+};
+$('cmpList').onchange = e => {
+  const f = e.target.dataset.f, row = e.target.closest('.cmprow'); if (!f || !row) return;
+  const en = state.compare.find(x => String(x.id) === row.dataset.id); if (!en) return;
+  if (f === 'key'){ en.key = e.target.value; delete en.C0; delete en.V0; }
+  else { const v = parseFloat(e.target.value), lo = f === 'C0' ? 1e-5 : 1, hi = f === 'C0' ? 2 : 100;
+    if (!(v >= lo && v <= hi)){ toast(`${f === 'C0' ? '濃度' : '体積'}は ${lo} 〜 ${hi} の間で入れてください`); renderCmp(); return; }
+    en[f] = v; }
   save(); rebuild(); renderStatic(); renderAll();
 };
-$('smpList').addEventListener('click', e => { if (e.target.closest('#cmpClear')){ state.compare = []; save(); rebuild(); renderStatic(); renderAll(); } });
 // プリセット：試料と滴下液を、標準の組み合わせ・標準の条件にまとめて設定する
 function selectSample(key){
   delete state.over[key]; state.titKey = null;
@@ -507,7 +533,7 @@ function selectSample(key){
 function switchSample(key){
   state.sample = key; ghosts = []; V = 0; running = false; $('btnRun').classList.remove('on');
   const t = curTitrant(); if (state.titKey && t.key !== state.titKey) state.titKey = null;
-  rebuild(); state.compare = state.compare.filter(k => k !== key && canCompare(k));
+  rebuild(); state.compare = state.compare.filter(e => canCompare(e.key));
   rebuild(); renderStatic(); save(); renderAll();
 }
 // 試料の種類を選ぶ：価数・pKa は種類で決まる。変えた体積・濃度は、種類を替えても残す
@@ -525,7 +551,7 @@ function chooseTitrant(key){
   V = 0; ghosts = []; if (running) setRunning(false);
   rebuild(); renderStatic(); save(); renderAll();
 }
-$('smpList').onclick = e => { const b = e.target.closest('.mi'); if (b) selectSample(b.dataset.key); };
+$('smpList').onclick = e => { const b = e.target.closest('.mi'); if (b){ selectSample(b.dataset.key); showTpl(false, true); toast('テンプレートから設定しました'); } };
 function setOver(patch){
   const o = Object.assign({}, state.over[state.sample] || {}, patch);
   state.over[state.sample] = o; V = 0;
@@ -567,9 +593,18 @@ let dlgOpener = null;
 function openDlg(opener){
   dlgOpener = opener || $('btnSmp');
   try { dlg.showModal(); } catch { dlg.setAttribute('open', ''); }
-  const cur = $('smpList').querySelector('.mi.on'); if (cur) cur.scrollIntoView({block: 'nearest'});
-  (cur || $('smpDlgOk')).focus();
+  showTpl(false);
+  $('selSpecies').focus();
 }
+// テンプレート（プリセット）の一覧：開くと本体を隠して一覧を出し、選ぶ（または「戻る」）と元に戻る
+function showTpl(on, focusBack){
+  $('tplView').hidden = !on; $('dlgBody').hidden = on; $('btnTpl').setAttribute('aria-expanded', on);
+  if (on){ const cur = $('smpList').querySelector('.mi.on'); if (cur) cur.scrollIntoView({block: 'nearest'}); (cur || $('tplBack')).focus(); }
+  else if (focusBack) $('btnTpl').focus();
+}
+$('btnTpl').onclick = () => showTpl(true);
+$('tplBack').onclick = () => showTpl(false, true);
+dlg.addEventListener('cancel', e => { if (!$('tplView').hidden){ e.preventDefault(); showTpl(false, true); } });
 function closeDlg(){ if (dlg.open) dlg.close(); }
 dlg.addEventListener('close', () => { try { (dlgOpener || $('btnSmp')).focus(); } catch {} });
 dlg.addEventListener('click', e => { if (e.target === dlg) closeDlg(); });      // 外側（暗い部分）をクリックしても閉じる
