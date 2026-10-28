@@ -335,3 +335,5 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .buf-panel .slrow{width:100%}
 .buf-panel .slrow input[type=range]{flex:1;min-width:80px}
 .tp-row .indbar{padding:0}
+.unk-prob{margin:0;font-size:14px;line-height:1.7;padding:8px 10px;border-left:3px solid var(--accent);background:var(--panel2,transparent)}
+#unkCompNums{gap:8px 16px}

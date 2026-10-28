@@ -56,6 +56,7 @@ const SAMPLES = [
   {key: 'vinegar', group: '実験', name: '食酢の滴定（濃度が未知）', kind: 'acid', formula: 'CH₃COOH', label: '食酢（10 倍にうすめた液）', n: 1, pKa: [4.76], z0: -1, forms: ['CH₃COO⁻', 'CH₃COOH'], cX: 0, cM: 0, unknown: true,
     titrant: 'naoh', C0: 0.0700, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
     note: 'うすめた食酢 10.0 mL を NaOH で滴定して、酢酸の濃度を求める。濃度は、出題ごとにちがう。',
+    unkSel: '食酢（酢酸）', unkText: '市販の食酢（酸は酢酸 CH₃COOH だけとする）を、正確に 10 倍にうすめた。このうすめた液 10.0 mL をコニカルビーカーにとり、0.100 mol/L の水酸化ナトリウム水溶液で滴定する。うすめた液の酢酸のモル濃度（mol/L）を求めよ。',
     unkSub: '酢酸', unkWhat: 'うすめた液', unkEq: 'CH₃COOH + NaOH → CH₃COONa + H₂O', unkOrig: 10},
   {key: 'gly', group: 'アミノ酸', name: 'グリシン（塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Gly', label: 'グリシン塩酸塩', n: 2, pKa: [2.34, 9.60], z0: -1, forms: ['H₂NCH₂COO⁻', 'H₃N⁺CH₂COO⁻', 'H₃N⁺CH₂COOH'], cX: 1, cM: 0, ionX: 'Cl⁻',
     titrant: 'naoh', C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp', pIform: true,
@@ -94,17 +95,27 @@ const SAMPLES = [
 // 未知試料の滴定で出題する酸・塩基（濃度は出題ごとにちがう。滴下液と比は 1 : 1）。同じ種類の既存の試料から作る
 {
   const UNK = [
-    ['hcl', 'unk_hcl', '塩酸', '塩酸 HCl（濃度が未知）', 'HCl + NaOH → NaCl + H₂O'],
-    ['naoh', 'unk_naoh', '水酸化ナトリウム水溶液', '水酸化ナトリウム NaOH（濃度が未知）', 'NaOH + HCl → NaCl + H₂O'],
-    ['nh3', 'unk_nh3', 'アンモニア水', 'アンモニア水 NH₃（濃度が未知）', 'NH₃ + HCl → NH₄Cl']
+    ['hcl', 'unk_hcl', '塩酸', '塩酸 HCl（濃度が未知）', 'HCl + NaOH → NaCl + H₂O', '塩酸',
+      '濃度のわからない塩酸 10.0 mL をコニカルビーカーにとり、0.100 mol/L の水酸化ナトリウム水溶液で滴定する。塩酸のモル濃度（mol/L）を求めよ。'],
+    ['naoh', 'unk_naoh', '水酸化ナトリウム水溶液', '水酸化ナトリウム NaOH（濃度が未知）', 'NaOH + HCl → NaCl + H₂O', '水酸化ナトリウム水溶液',
+      '濃度のわからない水酸化ナトリウム水溶液 10.0 mL をコニカルビーカーにとり、0.100 mol/L の塩酸で滴定する。水酸化ナトリウム水溶液のモル濃度（mol/L）を求めよ。'],
+    ['nh3', 'unk_nh3', 'アンモニア水', 'アンモニア水 NH₃（濃度が未知）', 'NH₃ + HCl → NH₄Cl', 'アンモニア水',
+      '濃度のわからないアンモニア水 10.0 mL をコニカルビーカーにとり、0.100 mol/L の塩酸で滴定する。アンモニア水のモル濃度（mol/L）を求めよ。']
   ];
   const at = SAMPLES.findIndex(s => s.key === 'vinegar') + 1;
-  SAMPLES.splice(at, 0, ...UNK.map(([src, key, sub, label, eq]) => { const b = SAMPLES.find(s => s.key === src);
-    return Object.assign({}, b, {key, group: '実験', name: sub + 'の滴定（濃度が未知）', label, unknown: true, unkSub: sub, unkWhat: '', unkEq: eq,
+  SAMPLES.splice(at, 0, ...UNK.map(([src, key, sub, label, eq, sel, text]) => { const b = SAMPLES.find(s => s.key === src);
+    return Object.assign({}, b, {key, group: '実験', name: sub + 'の滴定（濃度が未知）', label, unknown: true, unkSub: sub, unkWhat: '', unkEq: eq, unkSel: sel, unkText: text,
       note: sub + ' ' + b.V0.toFixed(1) + ' mL を ' + (b.kind === 'acid' ? 'NaOH' : 'HCl') + ' で滴定して、濃度を求める。濃度は、出題ごとにちがう。'}); }));
   // 炭酸塩の同定：Na₂CO₃・NaHCO₃・NaOH のうち何が入っているかを、HCl の二段階の滴定（フェノールフタレイン→メチルオレンジ）で調べる。組成は carbonateSample(seed) が出題ごとに決める
+  // アンモニアの逆滴定：アンモニア水に、既知の過剰の塩酸（20.0 mL）を加えたあと、残った塩酸を NaOH で滴定する。フラスコの中は「HCl ＋ NH₄⁺」
+  const nb = SAMPLES.find(s => s.key === 'nh3');
+  SAMPLES.splice(at + UNK.length, 0, Object.assign({}, nb, {key: 'unk_nh3b', group: '実験', name: 'アンモニアの逆滴定（濃度が未知）', label: '塩酸を加えたアンモニア水（逆滴定）', kind: 'acid', titrant: 'naoh',
+    V0: 30.0, steps: 2, rMax: 1.2, ind: 'mo', unknown: true, unkGen: true, unkBack: true, unkSub: 'アンモニア水', unkWhat: '', unkEq: '', unkSel: 'アンモニア水（逆滴定）',
+    unkText: 'アンモニア水 10.0 mL をコニカルビーカーにとり、0.100 mol/L の塩酸 20.0 mL を加えて、アンモニアをすべて反応させた（塩酸は過剰）。この液に残っている塩酸を、0.100 mol/L の水酸化ナトリウム水溶液で滴定する（逆滴定）。もとのアンモニア水のモル濃度（mol/L）を求めよ。',
+    note: 'アンモニア水に過剰の塩酸を加え、残った塩酸を NaOH で滴定して、アンモニアの量を求める。'}));
   const b = SAMPLES.find(s => s.key === 'na2co3');
-  SAMPLES.splice(at + UNK.length, 0, Object.assign({}, b, {key: 'unk_co3', group: '実験', name: '炭酸塩の同定（組成が未知）', label: '炭酸塩の水溶液（組成が未知）', unknown: true, unkCarb: true,
+  SAMPLES.splice(at + UNK.length + 1, 0, Object.assign({}, b, {key: 'unk_co3', group: '実験', name: '炭酸塩の同定（組成が未知）', label: '炭酸塩の水溶液（組成が未知）', unknown: true, unkCarb: true, unkGen: true, unkSel: '炭酸塩の同定',
+    unkText: '水溶液 10.0 mL には、炭酸ナトリウム Na₂CO₃・炭酸水素ナトリウム NaHCO₃・水酸化ナトリウム NaOH のうち、1 種類または 2 種類が溶けている（NaHCO₃ と NaOH は、同時には含まれない）。この液を 0.100 mol/L の塩酸で滴定する。溶けているものと、それぞれのモル濃度（mol/L）を求めよ。',
     unkSub: '炭酸塩の水溶液', unkWhat: '', unkEq: '', note: '炭酸塩の水溶液 10.0 mL を HCl で滴定して、何が入っているかを調べる。組成は、出題ごとにちがう。'}));
 }
 // 炭酸塩の組成：A = Na₂CO₃ だけ、B = NaHCO₃ だけ、C = NaOH と Na₂CO₃、D = Na₂CO₃ と NaHCO₃（濃度 mol/L）。V₁（フェノールフタレイン）と V₂（そのあとメチルオレンジ）の大小で決まる
@@ -114,6 +125,11 @@ function carbonateProblem(seed){
   const type = 'ABCD'[Math.min(3, Math.floor(r() * 4))];
   const m = {A: {c1: q(0.04, 0.08), c2: 0, c3: 0}, B: {c1: 0, c2: q(0.05, 0.10), c3: 0}, C: {c1: q(0.03, 0.05), c2: 0, c3: q(0.02, 0.04)}, D: {c1: q(0.02, 0.04), c2: q(0.02, 0.04), c3: 0}}[type];
   return Object.assign({type}, m);
+}
+function backSample(seed){
+  const r = S.rng(seed * 6007 + 5), c = Math.round((0.05 + r() * 0.05) * 1e4) / 1e4, nN = c * 10, nHCl = 2.0, V0 = 30.0;
+  const base = SAMPLES.find(s => s.key === 'unk_nh3b');
+  return Object.assign({}, base, {comp: {back: true, cOrig: c, nN, nHCl}, C0: nN / V0, cX: nHCl / nN});
 }
 function carbonateSample(seed){
   const base = SAMPLES.find(s => s.key === 'unk_co3'), comp = carbonateProblem(seed), tot = comp.c1 + comp.c2;
@@ -188,7 +204,10 @@ function makeSys(sample, over = {}, titrant = null){
   sys.dVeq = sys.N0 / (sys.Ct * sys.tm);                              // 1 当量の滴下量（mL）
   sys.Veq = Array.from({length: sys.steps}, (_, i) => (i + 1) * sys.dVeq);   // mL
   sys.Vmax = sys.Veq[0] * sys.rMax;
-  if (sample.comp){          // 炭酸塩の混合：1 回目（PP）は NaOH ＋ CO₃²⁻ → HCO₃⁻、2 回目（MO）は全体
+  if (sample.comp && sample.comp.back){      // 逆滴定：1 回目は残った HCl、2 回目は NH₄⁺ まで（全体の酸）
+    const {nN, nHCl} = sample.comp, k = 1 / (Ct * sys.tm);
+    sys.comp = sample.comp; sys.Veq = [(nHCl - nN) * k, nHCl * k]; sys.dVeq = nN * k; sys.Vmax = sys.Veq[1] * 1.2;
+  } else if (sample.comp){          // 炭酸塩の混合：1 回目（PP）は NaOH ＋ CO₃²⁻ → HCO₃⁻、2 回目（MO）は全体
     const {c1, c2, c3} = sample.comp, k = sys.V0 / (Ct * sys.tm), V1 = (c3 + c1) * k, Vt = (c3 + 2 * c1 + c2) * k;
     sys.comp = sample.comp; sys.Veq = sample.comp.type === 'B' ? [Vt] : [V1, Vt]; sys.dVeq = (c1 || c2) * k; sys.Vmax = Vt * 1.3;
   }
@@ -459,7 +478,7 @@ function alphaVsPH(sys, step = 0.05){
   return series;
 }
 
-const api = {CARB_TYPES, carbonateProblem, carbonateSample, TITRANTS, titrantByKey, titrantsFor, customTitrant, customSample, alphaVsPH, alphaCurve, readingQuestion, checkReading, unknownConc, indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
+const api = {CARB_TYPES, carbonateProblem, carbonateSample, backSample, TITRANTS, titrantByKey, titrantsFor, customTitrant, customSample, alphaVsPH, alphaCurve, readingQuestion, checkReading, unknownConc, indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemTitration = api;
 })(typeof window !== 'undefined' ? window : globalThis);

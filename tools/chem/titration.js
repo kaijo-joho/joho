@@ -28,7 +28,7 @@ let cmpSeq = 0;          // 比較対象の通し番号（同じ種類を複数�
 const GHOST_COLORS = ['#8b5cf6', '#0d9488', '#be185d'];
 let ghosts = [];          // 残した曲線（保存しない）
 let V = 0;                // いまの滴下量（mL）。保存しない
-function getSample(key){ return key === 'custom' ? T.customSample(state.custom) : key === 'unk_co3' ? T.carbonateSample(state.unkSeed) : T.sampleByKey(key); }
+function getSample(key){ return key === 'custom' ? T.customSample(state.custom) : key === 'unk_co3' ? T.carbonateSample(state.unkSeed) : key === 'unk_nh3b' ? T.backSample(state.unkSeed) : T.sampleByKey(key); }
 (function restore(){
   const s = lsGet(KEY.state); if (!s) return;
   if (TABS.includes(s.tab)) state.tab = s.tab;
@@ -65,7 +65,7 @@ function overOf(key, tt){
   const o = state.over[key] || {}, smp = getSample(key), r = {}, t = tt || (key === state.sample ? curTitrant() : titrantFor(smp, null));
   const num = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
   if (num(o.C0, 1e-5, 2)) r.C0 = o.C0;
-  if (smp.unknown && !smp.unkCarb) r.C0 = T.unknownConc(state.unkSeed);
+  if (smp.unknown && !smp.unkGen) r.C0 = T.unknownConc(state.unkSeed);
   if (num(o.V0, 1, 100)) r.V0 = o.V0;
   if (num(o.Ct, 1e-5, 2)) r.Ct = o.Ct;
   if (t.key === 'custom' && Array.isArray(o.tpKa) && o.tpKa.length === t.n && o.tpKa.every(v => num(v, -5, 16))) r.tpKa = o.tpKa.slice().sort((a, b) => a - b);
@@ -358,21 +358,27 @@ function renderUnk(){
   const smp = getSample(state.sample); if (!smp.unknown) return;
   const carb = !!smp.unkCarb, what = smp.unkWhat || '';
   $('unkTtl').textContent = carb ? '炭酸塩の組成を調べよう' : `${smp.unkSub}の濃度を求めよう`;
-  $('unkDesc').textContent = `${what ? 'うすめた食酢' : smp.unkSub} ${fmt(sys.V0, 3)} mL を ${fmt(sys.Ct)} mol/L の ${sys.titrant.name} で滴定します`;
-  $('unkLbl').textContent = `${what ? what + 'の' : ''}${smp.unkSub}の濃度`;
-  $('unkCompRow').hidden = !carb; $('unkNumRow').hidden = carb;
+  $('unkProblem').textContent = smp.unkText || '';
+  $('unkLbl').textContent = smp.unkBack ? 'もとのアンモニア水の濃度' : `${what ? what + 'の' : ''}${smp.unkSub}の濃度`;
+  $('unkCompRow').hidden = !carb; $('unkNumRow').hidden = carb; $('unkCompNums').hidden = !carb || !$('unkComp').value;
   const cs = $('unkComp'); if (cs.options.length < 2) cs.innerHTML += Object.entries(T.CARB_TYPES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
-  const sel = $('unkSel'); if (!sel.options.length) sel.innerHTML = T.SAMPLES.filter(x => x.unknown).map(x => `<option value="${x.key}">${x.unkCarb ? '炭酸塩（組成の同定）' : esc(x.unkSub) + (x.unkWhat ? '（食酢）' : '')}</option>`).join('');
+  const sel = $('unkSel'); if (!sel.options.length) sel.innerHTML = T.SAMPLES.filter(x => x.unknown).map(x => `<option value="${x.key}">${esc(x.unkSel || x.unkSub)}</option>`).join('');
   sel.value = state.sample;
   const on = indsOf().map(i => i.key);
-  $('unkInd').innerHTML = '<span class="mut">指示薬（選んで入れます）</span>' + UNK_IND.map(k => { const i = T.indicatorByKey(k);
+  $('unkInd').innerHTML = '<span class="mut">指示薬（途中で加えたり、外したりもできます）</span>' + UNK_IND.map(k => { const i = T.indicatorByKey(k);
     return `<button type="button" role="checkbox" aria-checked="${on.includes(k)}" class="chip-btn sm${on.includes(k) ? ' on' : ''}" data-uind="${k}" title="${esc(i.name)}（${i.lo}–${i.hi}）"><span class="sw2" style="background:linear-gradient(90deg,${i.acid === T.WATER ? '#ffffff' : i.acid} 50%,${i.base} 50%)"></span>${esc(i.name)}</button>`; }).join('');
 }
 // 新しい問題にする：答えと指示薬の選びを初めに戻す
+const COMP_PARTS = {A: [['c1', 'Na₂CO₃']], B: [['c2', 'NaHCO₃']], C: [['c3', 'NaOH'], ['c1', 'Na₂CO₃']], D: [['c1', 'Na₂CO₃'], ['c2', 'NaHCO₃']]};
+function renderCompNums(){
+  const t = $('unkComp').value, box = $('unkCompNums'); box.hidden = !t;
+  box.innerHTML = t ? COMP_PARTS[t].map(([k, nm]) => `<label class="slrow"><span>${nm} の濃度</span><input type="number" data-part="${k}" step="any" min="0" inputmode="decimal" aria-label="${nm}の濃度の答え（mol/L）"><span>mol/L</span></label>`).join('') : '';
+}
+$('unkComp').onchange = renderCompNums;
 function unkFresh(){
   if (running) setRunning(false);
   state.unkSeed++; state.unkReveal = false; state.inds[state.unkKey] = [];
-  $('unkRes').textContent = ''; $('unkAns').value = ''; $('unkComp').value = '';
+  $('unkRes').textContent = ''; $('unkAns').value = ''; $('unkComp').value = ''; renderCompNums();
 }
 $('unkSel').onchange = e => { state.unkKey = e.target.value; unkFresh(); selectSample(state.unkKey); };
 $('unkInd').onclick = e => { const b = e.target.closest('[data-uind]'); if (!b) return; const k = b.dataset.uind, cur = indsOf().map(i => i.key);
@@ -389,27 +395,30 @@ function unkIndNote(){
 function unkReveal(msg){ state.unkReveal = true; save(); rebuild(); renderStatic(); renderAll(); $('unkRes').innerHTML = msg + ' ' + esc(unkIndNote()); }
 // 炭酸塩の答え：V₁（フェノールフタレイン）と V₂（そのあと、メチルオレンジまで）
 function carbText(){
-  const t = sys.comp.type, V1 = sys.Veq[0], V2 = sys.Veq[sys.Veq.length - 1] - (sys.Veq.length > 1 ? V1 : 0);
+  const c = sys.comp, t = c.type, V1 = sys.Veq[0], V2 = sys.Veq[sys.Veq.length - 1] - (sys.Veq.length > 1 ? V1 : 0);
   const rel = {A: 'V₁ = V₂', B: 'V₁ = 0（最初からフェノールフタレインが無色）', C: 'V₁ > V₂', D: 'V₁ < V₂'}[t];
-  return `組成は ${T.CARB_TYPES[t]}。` + (t === 'B' ? `メチルオレンジまでに ${fmt(V2, 3)} mL（V₁ = 0）。` : `V₁ = ${fmt(V1, 3)} mL、V₂ = ${fmt(V2, 3)} mL で ${rel}。`);
+  return `組成は ${T.CARB_TYPES[t]}（${COMP_PARTS[t].map(([k, nm]) => `${nm} ${fmt(c[k], 3)} mol/L`).join('、')}）。` + (t === 'B' ? `メチルオレンジまでに ${fmt(V2, 3)} mL（V₁ = 0）。` : `V₁ = ${fmt(V1, 3)} mL、V₂ = ${fmt(V2, 3)} mL で ${rel}。`);
 }
 $('unkCheck').onclick = () => {
   const smp = getSample(state.sample);
   if (smp.unkCarb){
     const a = $('unkComp').value; if (!a){ $('unkRes').textContent = '入っているものを選んでください。'; return; }
-    if (a === sys.comp.type){ unkReveal(`<span class="ok">正解です。</span> ${esc(carbText())}`); return; }
-    $('unkRes').innerHTML = '<span class="ng">ちがうようです。</span> 滴下した量の読みと、判断を見直しましょう。'; return;
+    if (a !== sys.comp.type){ $('unkRes').innerHTML = '<span class="ng">ちがうようです。</span> 滴下した量の読みと、判断を見直しましょう。'; return; }
+    const ins = [...$('unkCompNums').querySelectorAll('[data-part]')], vals = ins.map(x => parseFloat(x.value));
+    if (vals.some(v => !isFinite(v))){ $('unkRes').textContent = '濃度（mol/L）を、すべて入れてください。'; return; }
+    if (ins.every((x, n) => Math.abs(vals[n] - sys.comp[x.dataset.part]) <= Math.max(0.03 * sys.comp[x.dataset.part], 0.002))){ unkReveal(`<span class="ok">正解です。</span> ${esc(carbText())}`); return; }
+    $('unkRes').innerHTML = '<span class="ng">入っているものは合っていますが、濃度がちがうようです。</span> 滴下した量の読みと、計算を見直しましょう。'; return;
   }
-  const ans = parseFloat($('unkAns').value), C = sys.C0;
+  const ans = parseFloat($('unkAns').value), C = smp.unkBack ? sys.comp.cOrig : sys.C0;
   if (!isFinite(ans)){ $('unkRes').textContent = '濃度（mol/L）を入れてください。'; return; }
   if (Math.abs(ans - C) / C <= 0.03){
-    unkReveal(`<span class="ok">正解です。</span> 濃度は ${fmt(C, 3)} mol/L（当量点は ${fmt(sys.Veq[0], 3)} mL）。` + (smp.unkOrig ? `もとの食酢は ${smp.unkOrig} 倍の ${fmt(C * smp.unkOrig, 3)} mol/L です。` : ''));
+    unkReveal(`<span class="ok">正解です。</span> 濃度は ${fmt(C, 3)} mol/L（${smp.unkBack ? '残った塩酸の中和に' : '当量点は'} ${fmt(sys.Veq[0], 3)} mL）。` + (smp.unkOrig ? `もとの食酢は ${smp.unkOrig} 倍の ${fmt(C * smp.unkOrig, 3)} mol/L です。` : ''));
     return;
   }
   $('unkRes').innerHTML = '<span class="ng">ちがうようです。</span> 滴下した量の読みと、計算を見直しましょう。';
 };
 $('unkAns').onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); $('unkCheck').click(); } };
-$('unkShow').onclick = () => unkReveal(sys.comp ? `答え：${esc(carbText())}` : `答え：${fmt(sys.C0, 3)} mol/L（当量点 ${fmt(sys.Veq[0], 3)} mL）。`);
+$('unkShow').onclick = () => unkReveal(sys.comp && sys.comp.type ? `答え：${esc(carbText())}` : `答え：${fmt(getSample(state.sample).unkBack ? sys.comp.cOrig : sys.C0, 3)} mol/L（当量点 ${fmt(sys.Veq[0], 3)} mL）。`);
 $('unkNew').onclick = () => { unkFresh(); V = 0; unkRefresh(); };
 
 // ---- 描きなおし ----

@@ -96,8 +96,9 @@
         <div class="cv-wrap chart" id="chartWrap"><canvas id="chartCv" role="img" aria-label="滴下量と pH のグラフ（クリックまたはドラッグで滴下量を動かせる）"></canvas></div>
       </section>
       <section class="panel tabpanel" id="tabUnk" hidden aria-label="濃度を求める">
-      <div class="panel-head"><span class="ttl" id="unkTtl">濃度を求めよう</span><span class="mut" id="unkDesc"></span></div>
+      <div class="panel-head"><span class="ttl" id="unkTtl">濃度を求めよう</span></div>
       <div class="tp-body">
+        <p class="unk-prob" id="unkProblem"></p>
         <div class="tp-row">
           <label class="slrow"><span>試料</span><select id="unkSel" aria-label="濃度を求める試料の種類"></select></label>
           <div class="indbar" id="unkInd" role="radiogroup" aria-label="使う指示薬"></div>
@@ -105,6 +106,7 @@
         <div class="tp-row" id="unkCompRow" hidden>
           <label class="slrow"><span>入っているもの</span><select id="unkComp" aria-label="入っているものの組み合わせ"><option value="">選んでください</option></select></label>
         </div>
+        <div class="tp-row" id="unkCompNums" hidden></div>
         <div class="tp-row">
           <label class="slrow" id="unkNumRow"><span id="unkLbl">濃度</span><input type="number" id="unkAns" step="any" min="0" inputmode="decimal" aria-label="濃度の答え（mol/L）"><span>mol/L</span></label>
           <button type="button" class="sbtn" id="unkCheck">答え合わせ</button>
@@ -236,7 +238,7 @@
       <li>右のグラフに、滴下量と pH の関係が出ます。グラフをクリックまたはドラッグしても、滴下量を動かせます。</li>
       <li>下の「計算の過程」で、いまの点の pH を<b>教科書の近似式</b>と<b>厳密な計算</b>の両方で求める手順を見られます。</li>
     </ol>
-    <details><summary>3つの画面：滴定曲線・緩衝液・未知試料の滴定</summary><p>上の切り替えで、画面の構成が変わります。<b>滴定曲線</b>は、ビュレットとグラフ、計算の過程、指示薬の判定を見る画面です。グラフの上の指示薬ボタンで指示薬を選び（複数可）、下の「指示薬の判定」で「答えを見る」を押すと、全部の指示薬の結果が出ます。<b>緩衝液</b>では、ビュレットの代わりに操作の欄が出ます。弱酸の pKa をつまみで変えたり、いまの曲線を残して見比べたり、少量の酸・塩基を加えたときの pH の変化を純水と比べられます。<b>未知試料の滴定</b>では、濃度が未知の食酢・塩酸・水酸化ナトリウム水溶液・アンモニア水、または組成が未知の<b>炭酸塩</b>（Na₂CO₃・NaHCO₃・NaOH の組み合わせ）から試料を選びます。指示薬（メチルオレンジ・フェノールフタレイン）は、初めは選ばれていないので、自分で選んで入れます（両方も可）。選んだ指示薬の色の変化から終点を読み、濃度を計算して答え合わせをします。指示薬の選びがちがうと、色が変わる点が当量点からずれて、正しい答えになりません。炭酸塩では、フェノールフタレインが変色するまでの滴下量 V₁ と、そのあとメチルオレンジが変色するまでの滴下量 V₂ の大小から、入っているものを決めます。答え合わせまで、グラフは隠れています。</p></details>
+    <details><summary>3つの画面：滴定曲線・緩衝液・未知試料の滴定</summary><p>上の切り替えで、画面の構成が変わります。<b>滴定曲線</b>は、ビュレットとグラフ、計算の過程、指示薬の判定を見る画面です。グラフの上の指示薬ボタンで指示薬を選び（複数可）、下の「指示薬の判定」で「答えを見る」を押すと、全部の指示薬の結果が出ます。<b>緩衝液</b>では、ビュレットの代わりに操作の欄が出ます。弱酸の pKa をつまみで変えたり、いまの曲線を残して見比べたり、少量の酸・塩基を加えたときの pH の変化を純水と比べられます。<b>未知試料の滴定</b>では、濃度が未知の食酢・塩酸・水酸化ナトリウム水溶液・アンモニア水、アンモニアの<b>逆滴定</b>（塩酸を加えたアンモニア水に残った塩酸を NaOH で滴定）、組成が未知の<b>炭酸塩</b>（Na₂CO₃・NaHCO₃・NaOH の組み合わせ）から試料を選びます。問題文を読んで、何を求めるかを確かめましょう。指示薬（メチルオレンジ・フェノールフタレイン）は、初めは選ばれていないので、自分で選んで入れます（両方も可。滴下の途中で加えたり外したりもできます）。選んだ指示薬の色の変化から終点を読み、濃度を計算して答え合わせをします。指示薬の選びがちがうと、色が変わる点が当量点からずれて、正しい答えになりません。炭酸塩では、フェノールフタレインが変色するまでの滴下量 V₁ と、そのあとメチルオレンジが変色するまでの滴下量 V₂ の大小から、入っているものを決め、それぞれの濃度も計算します。答え合わせまで、グラフは隠れています。</p></details>
     <details><summary>架空の酸・塩基と、pH–割合のグラフ</summary><p>試料を決める画面で、種類に<b>架空の酸・塩基</b>を選ぶと、酸か塩基か、段数（1〜3）、pKa を自分で決めた酸・塩基の滴定を調べられます（選んだ瞬間は、いまの試料の価数・pKa を写して始まります）。pKa は、ふつうの種類では変えられません（標準の値のまま使うため）。<b>緩衝液</b>タブの下には、横軸を pH にした各化学種の<b>モル分率</b>のグラフがあります。隣り合う 2 つの形が等しくなる pH が pKa です。</p></details>
     <details><summary>複数の試料を重ねて比べる</summary><p>試料を決める画面の左側で「比較対象を追加」を押すと、いまの滴下試料（種類・濃度）で滴定できる別の試料の曲線を、対象試料のグラフに重ねて表示します（最大 5 件）。比較対象ごとに種類・濃度・体積を変えられるので、同じ酸の濃度ちがいも比べられます。酢酸と塩酸、pKa のちがう酸、アミノ酸などを同じグラフで見比べて、当量点の位置・pH のジャンプ・半当量点（pKa）のちがいを調べましょう。横軸は、重ねた試料のうちいちばん長い滴下量に合わせます。</p></details>
     <details><summary>試料と滴下液を決める</summary><p>上の試料のボタンを押すと、決める画面が開きます。<b>左</b>が対象試料（フラスコの液）。pKa は「pKa を調整する」ボタンを押したときだけ、標準の値から ±0.2 まで変えられます、<b>右</b>が滴下試料（ビュレットの液）です。「テンプレートから設定」を押すと、試料と滴下試料の組み合わせをまとめて入れられます（強酸×強塩基からはじめ、弱酸・弱塩基、2 価以上の酸、アミノ酸へ進みましょう）。対象試料は種類を選ぶと価数と pKa が決まり、濃度・体積は種類ごとの標準の値から変えられます。滴下液も、NaOH・Ba(OH)₂・HCl のほか、弱塩基（NH₃・Na₂CO₃）や弱酸（CH₃COOH）、価数と pKa を自分で決めた架空のものを選べます。ビュレットの容量もここで変えます。指示薬は右側で、複数選べます（フラスコの液は選んだ指示薬の色で縦に分かれます）。</p></details>
@@ -275,7 +277,7 @@
     <h3>このアプリについて</h3>
     <p><b>推奨環境</b>：macOS ＋ Google Chrome。</p>
     <p><b>ご利用にあたって</b>：教育用のアプリです。内容の正確さは保証しません。選んだ試料や設定は、このブラウザの中に自動で保存し、外部へ送信しません。著作権は海城中学高等学校に帰属し、改変・再配布はご遠慮ください。</p>
-    <p class="credit">中和滴定　バージョン <span id="appVer">0.14</span> BETA（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">中和滴定　バージョン <span id="appVer">0.15</span> BETA（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
