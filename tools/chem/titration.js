@@ -16,21 +16,25 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, typeof v === 'string' ? 
 
 // ---- 状態（選んだ試料・変えた条件・設定。ブラウザに自動で保存する） ----
 const SPEEDS = [0.5, 1, 2, 4];
-const state = {sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1, approx: true, eq: true, band: true, detail: false};
+const TABS = ['main', 'buf', 'ind'];
+const state = {tab: 'main', sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1, approx: true, eq: true, band: true, buf: true, reveal: false, detail: false};
+const GHOST_COLORS = ['#8b5cf6', '#0d9488', '#be185d'];
+let ghosts = [];          // 残した曲線（保存しない）
 let V = 0;                // いまの滴下量（mL）。保存しない
 (function restore(){
   const s = lsGet(KEY.state); if (!s) return;
+  if (TABS.includes(s.tab)) state.tab = s.tab;
   if (T.sampleByKey(s.sample)) state.sample = s.sample;
   if (s.over && typeof s.over === 'object') state.over = s.over;
   if (s.inds && typeof s.inds === 'object') state.inds = s.inds;
   if (s.cap === 25 || s.cap === 50) state.cap = s.cap;
   if (SPEEDS.includes(s.speed)) state.speed = s.speed;
-  for (const k of ['approx', 'eq', 'band', 'detail']) if (typeof s[k] === 'boolean') state[k] = s[k];
+  for (const k of ['approx', 'eq', 'band', 'buf', 'reveal', 'detail']) if (typeof s[k] === 'boolean') state[k] = s[k];
 })();
 const save = () => lsSet(KEY.state, state);
 
 // ---- いまの系 ----
-let sys = null, xmax = 20, cache = null, kp = [];
+let sys = null, xmax = 20, cache = null, kp = [], indRep = [];
 function overOf(key){
   const o = state.over[key] || {}, smp = T.sampleByKey(key), r = {};
   const num = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
@@ -48,6 +52,7 @@ function rebuild(){
   V = Math.min(V, xmax);
   cache = {curve: T.curve(sys, xmax)};
   kp = T.keyPoints(sys, xmax);
+  indRep = T.indicatorReport(sys, xmax);
 }
 const ind = () => T.indicatorByKey(indOf());
 
@@ -115,7 +120,8 @@ function drawChart(ex){
     if (sys.n > 0) sys.pKa.forEach(pk => { if (pk > 0.2 && pk < 13.8) hl.push({y: pk, color: C.muted, dash: [2, 4], width: 1, label: 'pKa ' + pk}); });
     hl.push({y: 7, color: C.grid, dash: [2, 3], width: 1});
   }
-  const series = [{color: accent, pts: cache.curve.exact, width: 2.6}];
+  const series = ghosts.map(g => ({color: g.color, pts: g.pts, width: 2, dash: [2, 4]}));
+  series.push({color: accent, pts: cache.curve.exact, width: 2.6});
   if (state.approx) series.push({color: apC, pts: cache.curve.approx, width: 2, dash: [6, 4]});
   const r = CH.lineChart(ctx, {x: 0, y: 0, w, h}, {x: {min: 0, max: xmax, label: '滴下量（mL）', n: 8}, y: {min: 0, max: 14, label: 'pH', n: 7}, colors: C, series, hlines: hl, vlines: vl});
   plotInfo = r;
@@ -125,6 +131,11 @@ function drawChart(ex){
     sys.Veq.forEach((v, i) => { if (v > xmax) return; const t = (sys.Veq.length > 1 ? `第 ${i + 1} 当量点 ` : '当量点 ') + fmt(v, 3) + ' mL', x = r.X(v);
       ctx.fillStyle = C.bg; ctx.globalAlpha = .85; const tw = ctx.measureText(t).width; const tx = x + 4 + tw > r.plot.x + r.plot.w ? x - 4 - tw : x + 4;
       ctx.fillRect(tx - 2, r.plot.y + 3 + i * 15, tw + 4, 14); ctx.globalAlpha = 1; ctx.fillStyle = C.text; ctx.textAlign = 'left'; ctx.fillText(t, tx, r.plot.y + 4 + i * 15); });
+  }
+  if (state.tab === 'buf' && state.buf && sys.n > 0){
+    ctx.globalAlpha = .12; ctx.fillStyle = css('--ok') || '#16803c';
+    for (const pk of sys.pKa){ const a = r.Y(Math.min(14, pk + 1)), b = r.Y(Math.max(0, pk - 1)); if (pk > -1 && pk < 15) ctx.fillRect(r.plot.x, a, r.plot.w, b - a); }
+    ctx.globalAlpha = 1;
   }
   const id = ind();
   if (state.band && id.lo != null){
@@ -138,7 +149,7 @@ function drawChart(ex){
   if (state.approx){ ctx.strokeStyle = apC; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(r.X(V), r.Y(Math.max(0, Math.min(14, ap))), 6, 0, Math.PI * 2); ctx.stroke(); }
   ctx.fillStyle = danger; ctx.strokeStyle = C.bg; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(r.X(V), r.Y(ex.pH), 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   ctx.restore();
-  $('chartLegend').innerHTML = '<span><i></i>厳密な計算</span>' + (state.approx ? '<span><i class="ap"></i>近似の計算</span>' : '') + '<span><i class="pt"></i>いまの点</span>';
+  $('chartLegend').innerHTML = '<span><i></i>厳密な計算</span>' + (state.approx ? '<span><i class="ap"></i>近似の計算</span>' : '') + ghosts.map(g => `<span style="color:${g.color}"><i class="gh"></i>${esc(g.label)}</span>`).join('') + '<span><i class="pt"></i>いまの点</span>';
 }
 
 // ---- 計算の過程 ----
@@ -183,10 +194,63 @@ function renderKp(){
   tb.querySelectorAll('tbody tr').forEach(tr => tr.classList.toggle('cur', Math.abs(kp[+tr.dataset.i].V - V) < 0.0005));
 }
 
+// ---- タブ：緩衝液・指示薬 ----
+function renderTabs(){
+  document.querySelectorAll('#tabSeg [data-tab]').forEach(b => { const on = b.dataset.tab === state.tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+  $('tabBuf').hidden = state.tab !== 'buf'; $('tabInd').hidden = state.tab !== 'ind';
+}
+function renderBuf(ex){
+  const smp = T.sampleByKey(state.sample), one = sys.n === 1;
+  $('pkaSlRow').hidden = !one;
+  if (one){ const sl = $('pkaSl'); if (document.activeElement !== sl) sl.value = sys.pKa[0]; $('pkaSlVal').textContent = sys.pKa[0].toFixed(2);
+    $('pkaSlLbl').textContent = smp.kind === 'base' ? 'NH₄⁺ の pKa' : 'pKa'; }
+  $('bufNote').textContent = sys.n === 0 ? '強酸×強塩基には緩衝のはたらきがありません。弱酸・弱塩基の試料で試しましょう。' : (one ? '半当量点（pH = pKa）のまわりで、pH が変わりにくい。' : '各段の半当量点（pH = pKa）のまわりで、pH が変わりにくい。');
+  $('optBuf').checked = state.buf; $('optBuf').disabled = sys.n === 0;
+  $('btnGhostClear').disabled = !ghosts.length; $('btnGhost').disabled = ghosts.length >= 3 && false;
+  const b = T.bufferTest(sys, V), dsp = d => (d >= 0 ? '+' : '−') + Math.abs(d).toFixed(2);
+  const ratio = Math.abs(b.d) > 1e-6 ? Math.abs(b.dWater) / Math.abs(b.d) : Infinity;
+  $('bufCard').innerHTML = `<div class="bufc"><div class="bc"><h4>いまの液に ${b.dV} mL 加えると</h4>${esc(sys.titrant.name)} を ${b.dV} mL 加える（${fmt(b.dV * sys.Ct)} mmol）<br>pH ${b.before.toFixed(2)} → ${b.after.toFixed(2)}　<span class="big">変化 ${dsp(b.d)}</span></div>
+    <div class="bc"><h4>同じ体積の純水に、同じ量を加えると</h4>pH 7.00 → ${b.water.toFixed(2)}　<span class="big">変化 ${dsp(b.dWater)}</span></div>
+    <div class="bc"><h4>くらべると</h4>${Math.abs(b.d) < Math.abs(b.dWater) ? `純水の変化の約 1/${ratio < 1e3 ? Math.round(ratio) : '1000 以上'}。` + (Math.abs(b.d) < 0.2 ? '<b>緩衝液として働いている</b>点です。' : '') : '純水と同じくらい変わる点です（緩衝のはたらきは小さい）。'}
+    <br><span class="mut">滴下量を動かして、変化の小さい点（半当量点のまわり）と大きい点（当量点のまわり）を比べましょう。</span></div></div>`;
+}
+function renderInd(ex){
+  const cur = indOf(), id = T.indicatorByKey(cur);
+  $('indChips').innerHTML = T.INDICATORS.map(i => `<button type="button" role="radio" aria-checked="${i.key === cur}" class="chip-btn${i.key === cur ? ' on' : ''}" data-ind="${i.key}">${i.lo != null ? `<span class="sw2" style="background:linear-gradient(90deg,${i.acid === T.WATER ? '#ffffff' : i.acid} 50%,${i.base} 50%)"></span>` : ''}${esc(i.name)}${i.lo != null ? `（${i.lo}–${i.hi}）` : ''}</button>`).join('');
+  $('indMsg').textContent = id.lo != null ? `${id.name}：pH ${id.lo} 以下は${id.accidName}、${id.hi} 以上は${id.baseName}。選んだら ▶ で滴下して、フラスコの色が変わる滴下量を当量点（縦の点線）と比べましょう。` : '指示薬を選んでください。';
+  $('optReveal').checked = state.reveal;
+  const tb = $('indTable'); tb.hidden = !state.reveal;
+  if (state.reveal){
+    const gl = {good: '適切', fair: 'ややずれる', bad: '不適切'};
+    tb.innerHTML = '<thead><tr><th>指示薬</th><th>変色域</th><th>当量点</th><th>色が変わる滴下量 (mL)</th><th>当量点とのずれ (mL)</th><th>判定</th></tr></thead><tbody>' +
+      indRep.map(r => r.events.map((e, i) => `<tr class="${r.key === cur ? 'mine' : ''}"><td>${i === 0 ? esc(r.name) : ''}</td><td>${i === 0 ? r.lo + '–' + r.hi : ''}</td>
+        <td>${sys.Veq.length > 1 ? `第 ${e.eq + 1}（${e.ve.toFixed(1)} mL）` : e.ve.toFixed(1) + ' mL'}</td>
+        <td>${e.changes ? e.V.toFixed(2) : '—'}</td><td>${e.changes ? (e.err >= 0 ? '+' : '−') + Math.abs(e.err).toFixed(2) : '—'}</td>
+        <td><span class="q ${e.grade}">${e.changes ? gl[e.grade] : '色が変わらない'}</span></td></tr>`).join('')).join('') + '</tbody>';
+  }
+}
+$('indChips').onclick = e => { const b = e.target.closest('[data-ind]'); if (b){ state.inds[state.sample] = b.dataset.ind; save(); renderAll(); } };
+$('optReveal').onchange = e => { state.reveal = e.target.checked; save(); renderAll(); };
+$('optBuf').onchange = e => { state.buf = e.target.checked; save(); renderAll(); };
+$('tabSeg').onclick = e => { const b = e.target.closest('[data-tab]'); if (!b) return; state.tab = b.dataset.tab; save(); renderAll(); };
+$('pkaSl').oninput = e => {
+  const v = Math.round(+e.target.value * 100) / 100, o = Object.assign({}, state.over[state.sample] || {}, {pKa: [v]});
+  state.over[state.sample] = o; rebuild(); renderStatic(); save(); renderAll();
+};
+$('btnGhost').onclick = () => {
+  const smp = T.sampleByKey(state.sample), o = overOf(state.sample);
+  const lab = smp.name.split(' ')[0] + (sys.n === 1 ? ` pKa ${sys.pKa[0]}` : '') + (o.C0 ? ` ${fmt(o.C0)} mol/L` : '');
+  ghosts.push({label: lab, pts: cache.curve.exact.slice(), color: GHOST_COLORS.find(c => !ghosts.some(g => g.color === c)) || GHOST_COLORS[0]});
+  if (ghosts.length > 3) ghosts.shift();
+  renderAll(); toast('いまの曲線を残しました。条件を変えると、見比べられます');
+};
+$('btnGhostClear').onclick = () => { ghosts = []; renderAll(); };
+
 // ---- 描きなおし ----
 function renderAll(){
   const ex = T.solveExact(sys, V), ap = T.approx(sys, V);
-  renderApparatus(ex); drawChart(ex); renderProcess(ex, ap); renderKp();
+  renderTabs(); renderApparatus(ex); drawChart(ex); renderProcess(ex, ap); renderKp();
+  if (state.tab === 'buf') renderBuf(ex); else if (state.tab === 'ind') renderInd(ex);
   $('seek').value = V;
   $('evRead').textContent = `目盛り ${V.toFixed(2)} mL`;
   $('chipPH').textContent = `pH ${ex.pH.toFixed(2)}`;
@@ -277,7 +341,7 @@ function buildSampleMenu(){
   $('smpList').innerHTML = html;
 }
 function selectSample(key){
-  state.sample = key; V = 0; running = false; $('btnRun').classList.remove('on');
+  state.sample = key; ghosts = []; V = 0; running = false; $('btnRun').classList.remove('on');
   rebuild(); renderStatic(); save(); renderAll();
   const m = $('smpMenu'); m.classList.add('closed'); setTimeout(() => m.classList.remove('closed'), 400);
 }
@@ -365,5 +429,5 @@ renderAll();
 if (!hasUI) setTimeout(() => alert('共通部品（../shared/ui-kit.js）を読み込めませんでした。ページを再読み込みしてください。'), 200);
 
 // 検証用（最後まで読み込めたことの印にもする）
-window.__titration = {T, state, get sys(){ return sys; }, get V(){ return V; }, get xmax(){ return xmax; }, get kp(){ return kp; }, setV, setRunning, selectSample, renderAll, get plot(){ return plotInfo; }};
+window.__titration = {T, get ghosts(){ return ghosts; }, get indRep(){ return indRep; }, state, get sys(){ return sys; }, get V(){ return V; }, get xmax(){ return xmax; }, get kp(){ return kp; }, setV, setRunning, selectSample, renderAll, get plot(){ return plotInfo; }};
 })();

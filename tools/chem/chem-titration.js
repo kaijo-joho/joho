@@ -268,7 +268,37 @@ function keyPoints(sys, xmax){
   return pts.map(p => { const a = approx(sys, p.V), e = solveExact(sys, p.V); return Object.assign(p, {approx: a.pH, exact: e.pH, diff: a.pH - e.pH, q: quality(a.pH - e.pH), scene: a.label}); });
 }
 
-const api = {KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
+
+// ---- 指示薬の判定（どの指示薬なら、当量点で色が変わるか） ----
+// 厳密な曲線で、変色域の下端・中央・上端の pH になる滴下量を求め、当量点とのずれ（mL）を出す。
+// 判定：ずれ 0.1 mL（約 2 滴）以内を「適切」、0.5 mL 以内を「ややずれる」、それより大きければ「不適切」。
+function indicatorReport(sys, xmax){
+  const grid = volumeGrid(sys, xmax, 800), pts = grid.map(v => [v, solveExact(sys, v).pH]);
+  const cross = target => { const out = []; for (let i = 1; i < pts.length; i++){ const a = pts[i - 1], b = pts[i];
+    if ((a[1] - target) * (b[1] - target) < 0) out.push(a[0] + (target - a[1]) / (b[1] - a[1]) * (b[0] - a[0])); } return out; };
+  const nearest = (arr, v) => arr.length ? arr.reduce((m, x) => Math.abs(x - v) < Math.abs(m - v) ? x : m) : null;
+  return INDICATORS.filter(i => i.lo != null).map(ind => {
+    const mid = (ind.lo + ind.hi) / 2, cm = cross(mid), cl = cross(ind.lo), ch = cross(ind.hi);
+    const events = sys.Veq.map((ve, k) => {
+      if (ve > xmax) return null;
+      const c = nearest(cm, ve); if (c == null) return {eq: k, ve, changes: false, grade: 'bad'};
+      const err = c - ve, a = Math.abs(err);
+      return {eq: k, ve, changes: true, V: c, Vlo: nearest(cl, c), Vhi: nearest(ch, c), err, grade: a <= 0.1 ? 'good' : a <= 0.5 ? 'fair' : 'bad'};
+    }).filter(Boolean);
+    return {key: ind.key, name: ind.name, lo: ind.lo, hi: ind.hi, events};
+  });
+}
+
+// ---- 緩衝液のはたらき：いまの液に titrant を dV mL 加えたときの pH の変化を、純水に同じ量を加えたときと比べる ----
+function bufferTest(sys, V, dV = 0.5){
+  const before = solveExact(sys, V).pH, after = solveExact(sys, V + dV).pH;
+  const Vt = sys.V0 + V + dV, c = sys.Ct * dV / Vt, base = sys.titrant.type === 'base';
+  const x = (c + Math.sqrt(c * c + 4 * KW)) / 2;            // 純水に強塩基（強酸）を加えたあとの [OH⁻]（[H⁺]）
+  const water = base ? 14 + Math.log10(x) : -Math.log10(x);
+  return {dV, before, after, d: after - before, water, dWater: water - 7};
+}
+
+const api = {indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemTitration = api;
 })(typeof window !== 'undefined' ? window : globalThis);

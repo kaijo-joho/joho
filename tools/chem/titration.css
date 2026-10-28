@@ -192,3 +192,24 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .top.tightest button.ic{width:28px}
 .top.tightest button.ic.wide{padding:0 5px}
 .top.tightest #btnSmp .caret{display:none}
+
+/* ==== 0.2：タブ（緩衝液・指示薬） ==== */
+.viewseg button{height:28px;padding:0 12px}
+.tp-body{padding:10px 14px 12px;display:flex;flex-direction:column;gap:8px}
+.tp-row{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
+.slrow{display:inline-flex;align-items:center;gap:8px;font-size:13px}
+.slrow input[type=range]{width:min(260px,60vw)}
+.slrow b{min-width:3em;font-variant-numeric:tabular-nums}
+.chk.inl{display:inline-flex;align-items:center;gap:6px}
+.chk.inl input{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:16px;padding:3px 12px;cursor:pointer;font-size:12.5px;min-height:32px}
+.chip-btn:hover{border-color:var(--accent)}
+.chip-btn.on{background:var(--accent-soft);color:var(--accent);font-weight:700;border-color:var(--accent)}
+.chip-btn .sw2{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid var(--line)}
+.bufc{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.bufc .bc{border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.7}
+.bufc .bc h4{margin:0 0 2px;font-size:13px}
+.bufc .big{font-size:15px;font-weight:700}
+.clegend i.gh{border-top:2.5px dotted currentColor}
+.ntbl tr.mine td{background:var(--accent-soft)}
