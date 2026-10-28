@@ -21,6 +21,7 @@ const state = {tab: 'main', sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1
   custom: {kind: 'acid', n: 1}, compare: [], titKey: null, customT: {n: 1}, readSeed: 1, readMode: 'single', score: {ok: 0, total: 0}, unkSeed: 1, unkReveal: false};
 const CMP_COLORS = ['#8b5cf6', '#0d9488', '#be185d', '#65a30d', '#0891b2'];
 const MAX_CMP = 5;
+const hideCmp = new Set();   // 凡例で隠した比較対象の id（画面だけの状態で、保存しない）
 const PKA_TOL = 0.2;      // ふつうの種類の pKa は、標準の値から ±0.2 まで調整できる（自作は自由）
 let pkaEdit = false;      // pKa の調整中（ボタンを押したときだけ true。保存しない）
 let cmpSeq = 0;          // 比較対象の通し番号（同じ種類を複数入れられるので、種類ではなく番号で区別する）
@@ -88,10 +89,10 @@ function rebuild(){
   // 同じ滴下液で滴定する別の試料を重ねて比べる：横軸は、比べるものの最大に合わせる（ビュレットの容量まで）
   const cmpSys = state.compare.filter(e => canCompare(e.key))
     .map((e, i) => { const o = {Ct: sys.Ct, tpKa: sys.titrant.pKa.slice()}; if (e.C0 != null) o.C0 = e.C0; if (e.V0 != null) o.V0 = e.V0;
-      return {key: e.key, sys: T.makeSys(getSample(e.key), o, tNow), color: CMP_COLORS[i % CMP_COLORS.length]}; });
+      return {id: e.id, key: e.key, sys: T.makeSys(getSample(e.key), o, tNow), color: CMP_COLORS[i % CMP_COLORS.length]}; });
   chartX = Math.min(state.cap, Math.max(sys.Vmax, ...cmpSys.map(c => c.sys.Vmax)));
   xmax = chartX; V = Math.min(V, xmax);
-  cache = {curve: T.curve(sys, chartX), cmp: cmpSys.map(c => ({key: c.key, label: `${c.sys.name.split(' ')[0]} ${fmt(c.sys.C0)} mol/L`, color: c.color, pts: T.curve(c.sys, chartX).exact}))};
+  cache = {curve: T.curve(sys, chartX), cmp: cmpSys.map(c => ({id: c.id, key: c.key, label: `${c.sys.name.split(' ')[0]} ${fmt(c.sys.C0)} mol/L`, color: c.color, pts: T.curve(c.sys, chartX).exact}))};
   kp = T.keyPoints(sys, xmax);
   indRep = T.indicatorReport(sys, xmax);
   alphaSeries = sys.n > 0 ? T.alphaCurve(sys, xmax) : [];
@@ -169,7 +170,7 @@ function drawChart(ex){
     if (sys.pI != null && !hideAns()) hl.push({y: sys.pI, color: css('--ok') || '#16803c', dash: [6, 3], width: 1.3, label: '等電点 pI ' + sys.pI.toFixed(2)});
   }
   const series = ghosts.map(g => ({color: g.color, pts: g.pts, width: 2, dash: [2, 4]}));
-  cache.cmp.forEach(c => series.push({color: c.color, pts: c.pts, width: 2.2}));
+  cache.cmp.forEach(c => { if (!hideCmp.has(c.id)) series.push({color: c.color, pts: c.pts, width: 2.2}); });
   series.push({color: accent, pts: cache.curve.exact, width: 2.6});
   if (state.approx && sys.approxOK) series.push({color: apC, pts: cache.curve.approx, width: 2, dash: [6, 4]});
   const r = CH.lineChart(ctx, {x: 0, y: 0, w, h}, {x: {min: 0, max: xmax, label: '滴下量（mL）', n: 8}, y: {min: 0, max: 14, label: 'pH', n: 7}, colors: C, series, hlines: hl, vlines: vl});
@@ -197,7 +198,12 @@ function drawChart(ex){
   if (state.approx && sys.approxOK && ap != null){ ctx.strokeStyle = apC; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(r.X(V), r.Y(Math.max(0, Math.min(14, ap))), 6, 0, Math.PI * 2); ctx.stroke(); }
   ctx.fillStyle = danger; ctx.strokeStyle = C.bg; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(r.X(V), r.Y(ex.pH), 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   ctx.restore();
-  $('chartLegend').innerHTML = (cache.cmp.length ? `<span><i></i>${esc(sys.name.split(' ')[0])}（いまの試料）</span>` + cache.cmp.map(c => `<span><i style="border-top-color:${c.color}"></i>${esc(c.label)}</span>`).join('') : '<span><i></i>厳密な計算</span>') + (state.approx && sys.approxOK ? '<span><i class="ap"></i>近似の計算</span>' : '') + ghosts.map(g => `<span style="color:${g.color}"><i class="gh"></i>${esc(g.label)}</span>`).join('') + '<span><i class="pt"></i>いまの点</span>';
+  const tg = (on, inner, attr) => `<button type="button" class="lg-tgl" aria-pressed="${on}" ${attr}>${inner}</button>`;
+  const ownName = esc(sys.name.split(' ')[0]);
+  $('chartLegend').innerHTML = (cache.cmp.length ? `<span class="lg-cur"><i></i><b>${ownName}</b></span>` : '<span class="lg-cur"><i></i><b>厳密な計算</b></span>')
+    + cache.cmp.map(c => tg(!hideCmp.has(c.id), `<i style="border-top-color:${c.color}"></i>${esc(c.label)}`, `data-cmp="${c.id}" title="${esc(c.label)}の曲線を出す／隠す"`)).join('')
+    + (sys.approxOK ? tg(state.approx, '<i class="ap"></i>近似の計算', 'data-ap="1" title="近似の計算の曲線（点線）を出す／隠す"') : '<span class="lg-off" title="滴下液が弱い酸・塩基のときは、教科書の近似式がないため、近似の曲線は出せません"><i class="ap"></i>近似の計算（なし）</span>')
+    + ghosts.map(g => `<span style="color:${g.color}"><i class="gh"></i>${esc(g.label)}</span>`).join('') + '<span><i class="pt"></i>いまの点</span>';
 }
 
 // ---- 計算の過程 ----
@@ -628,8 +634,14 @@ $('btnSmp').onclick = () => openDlg($('btnSmp'));
 $('btnDetail').onclick = () => openDlg($('btnDetail'));
 $('smpDlgX').onclick = closeDlg; $('smpDlgOk').onclick = closeDlg;
 // 近似の曲線の表示・非表示（グラフの見出しのボタン）
-function syncApproxBtn(){ const b = $('btnApproxTgl'); b.disabled = !sys.approxOK; $('optApprox').disabled = !sys.approxOK; b.setAttribute('aria-pressed', state.approx && sys.approxOK); b.textContent = !sys.approxOK ? '近似の曲線：なし（弱い滴下液）' : '近似の曲線：' + (state.approx ? '表示' : '非表示'); b.title = !sys.approxOK ? '滴下液が弱い酸・塩基のときは、教科書の近似式がないため、近似の曲線は出せません' : '近似の計算の曲線（点線）を出す／隠す'; $('optApprox').checked = state.approx; }
-$('btnApproxTgl').onclick = () => { state.approx = !state.approx; save(); renderAll(); };
+function syncApproxBtn(){ $('optApprox').disabled = !sys.approxOK; $('optApprox').checked = state.approx; }
+$('chartLegend').onclick = e => {
+  const b = e.target.closest('.lg-tgl'); if (!b) return;
+  if (b.dataset.ap){ state.approx = !state.approx; save(); }
+  else { const id = +b.dataset.cmp; if (hideCmp.has(id)) hideCmp.delete(id); else hideCmp.add(id); }
+  renderAll();
+  const nb = $('chartLegend').querySelector(b.dataset.ap ? '[data-ap]' : `[data-cmp="${b.dataset.cmp}"]`); if (nb) nb.focus();
+};
 for (const [id, k] of [['optApprox', 'approx'], ['optEq', 'eq'], ['optBand', 'band']]) $(id).onchange = e => { state[k] = e.target.checked; save(); renderAll(); };
 
 $('custBox').onclick = e => {
