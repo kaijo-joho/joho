@@ -35,6 +35,24 @@ const SAMPLES = [
   {key: 'vinegar', group: '実験', name: '食酢の滴定（濃度が未知）', kind: 'acid', formula: 'CH₃COOH', label: '食酢（10 倍にうすめた液）', n: 1, pKa: [4.76], z0: -1, forms: ['CH₃COO⁻', 'CH₃COOH'], cX: 0, cM: 0, unknown: true,
     titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.0700, V0: 10.0, Ct: 0.100, steps: 1, rMax: 2, ind: 'pp',
     note: 'うすめた食酢 10.0 mL を NaOH で滴定して、酢酸の濃度を求める。濃度は、出題ごとにちがう。'},
+  {key: 'gly', group: 'アミノ酸', name: 'グリシン（塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Gly', label: 'グリシン塩酸塩', n: 2, pKa: [2.34, 9.60], z0: -1, forms: ['H₂NCH₂COO⁻', 'H₃N⁺CH₂COO⁻', 'H₃N⁺CH₂COOH'], cX: 1, cM: 0, ionX: 'Cl⁻',
+    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp', pIform: true,
+    note: '陽イオン → 双性イオン → 陰イオン。第 1 当量点の pH が等電点（pKa₁ と pKa₂ の平均）。'},
+  {key: 'ala', group: 'アミノ酸', name: 'アラニン（塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Ala', label: 'アラニン塩酸塩', n: 2, pKa: [2.34, 9.69], z0: -1, forms: ['Ala⁻', 'Ala±（双性イオン）', 'Ala⁺'], cX: 1, cM: 0, ionX: 'Cl⁻',
+    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
+    note: 'グリシンに近い 2 段階の滴定。'},
+  {key: 'asp', group: 'アミノ酸', name: 'アスパラギン酸（塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Asp', label: 'アスパラギン酸塩酸塩', n: 3, pKa: [1.88, 3.65, 9.60], z0: -2, forms: ['Asp²⁻', 'Asp⁻', 'Asp±（電荷 0）', 'Asp⁺'], cX: 1, cM: 0, ionX: 'Cl⁻',
+    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
+    note: '酸性アミノ酸。側鎖のカルボキシ基があるので 3 段階。等電点は pKa₁ と pKa₂ の平均。'},
+  {key: 'glu', group: 'アミノ酸', name: 'グルタミン酸（塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Glu', label: 'グルタミン酸塩酸塩', n: 3, pKa: [2.19, 4.25, 9.67], z0: -2, forms: ['Glu²⁻', 'Glu⁻', 'Glu±（電荷 0）', 'Glu⁺'], cX: 1, cM: 0, ionX: 'Cl⁻',
+    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
+    note: '酸性アミノ酸。3 段階。第 2 当量点のあたり（電荷 0 の形が最も多い）が等電点。'},
+  {key: 'lys', group: 'アミノ酸', name: 'リシン（2 塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'Lys', label: 'リシン塩酸塩', n: 3, pKa: [2.18, 8.95, 10.53], z0: -1, forms: ['Lys⁻', 'Lys±（電荷 0）', 'Lys⁺', 'Lys²⁺'], cX: 2, cM: 0, ionX: 'Cl⁻',
+    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
+    note: '塩基性アミノ酸。側鎖のアミノ基があるので 3 段階（2 つの Cl⁻ つき）。等電点は pKa₂ と pKa₃ の平均で塩基性。'},
+  {key: 'his', group: 'アミノ酸', name: 'ヒスチジン（2 塩酸塩）× 水酸化ナトリウム', kind: 'acid', formula: 'His', label: 'ヒスチジン塩酸塩', n: 3, pKa: [1.82, 6.00, 9.17], z0: -1, forms: ['His⁻', 'His±（電荷 0）', 'His⁺', 'His²⁺'], cX: 2, cM: 0, ionX: 'Cl⁻',
+    titrant: {name: 'NaOH', ion: 'Na⁺', type: 'base'}, C0: 0.100, V0: 8.0, Ct: 0.100, steps: 3, rMax: 3.5, ind: 'pp',
+    note: '塩基性アミノ酸。イミダゾール環が pKa 6.0 で働く。等電点は pKa₂ と pKa₃ の平均。'},
   {key: 'na2co3', group: '多段階', name: '炭酸ナトリウム × 塩酸', kind: 'base', formula: 'Na₂CO₃', label: '炭酸ナトリウム Na₂CO₃', n: 2, pKa: [6.35, 10.33], z0: -2, forms: ['CO₃²⁻', 'HCO₃⁻', 'H₂CO₃'], cX: 0, cM: 2, ionM: 'Na⁺',
     titrant: {name: 'HCl', ion: 'Cl⁻', type: 'acid'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: 2, rMax: 2.5, ind: 'pp',
     note: '2 段階。第 1 当量点は NaHCO₃（フェノールフタレイン）、第 2 当量点は H₂CO₃（メチルオレンジ）。'},
@@ -88,6 +106,8 @@ function makeSys(sample, over = {}){
   const sys = {key: sample.key, name: sample.label, formula: sample.formula, kind: sample.kind, n: sample.n, pKa, z0: sample.z0 || 0, forms: sample.forms || [],
     cM: sample.cM || 0, cX: sample.cX || 0, ionM: sample.ionM || 'M⁺', ionX: sample.ionX || 'X⁻', titrant: sample.titrant,
     unknown: !!sample.unknown, C0: s.C0, V0: s.V0, Ct: s.Ct, steps: sample.steps, rMax: sample.rMax, ind: sample.ind, note: sample.note};
+  // 等電点：電荷が 0 の形が H を j 個もつとき（j = −z0）、その形が出入りする 2 つの pKa の平均（2 つ以上の形をもつ酸で、電荷 0 の形が両端でないとき）
+  { const j0 = -sys.z0; sys.pI = (sys.kind === 'acid' && sys.n >= 2 && j0 >= 1 && j0 <= sys.n - 1 && sys.z0 !== -sys.n) ? (sys.pKa[sys.n - j0] + sys.pKa[sys.n - j0 - 1]) / 2 : null; }
   sys.N0 = sys.C0 * sys.V0;                                           // mmol
   sys.Veq = Array.from({length: sys.steps}, (_, i) => (i + 1) * sys.N0 / sys.Ct);   // mL
   sys.Vmax = sys.Veq[0] * sys.rMax;
@@ -342,7 +362,7 @@ function customSample(spec){
   const formula = acid ? (n === 1 ? 'HA' : 'H' + '₂₃'[n - 2] + 'A') : 'B';
   return {key: 'custom', group: '架空の酸・塩基', name: '架空の酸・塩基（pKa を自由に決める）', kind, formula, label: (acid ? '架空の酸 ' : '架空の塩基 ') + formula, n, pKa, z0: acid ? -n : 0, forms, cX: 0, cM: 0,
     titrant: acid ? {name: 'NaOH', ion: 'Na⁺', type: 'base'} : {name: 'HCl', ion: 'Cl⁻', type: 'acid'}, C0: 0.100, V0: 10.0, Ct: 0.100, steps: n, rMax: n === 1 ? 2 : n + 0.5, ind: acid ? 'pp' : 'mo',
-    note: '「詳しい設定」で、酸か塩基か・段数・pKa を決められる。pKa を変えると、曲線・半当量点・割合のグラフがどう変わるかを調べよう。'};
+    note: '右の設定で、酸か塩基か・段数・pKa を決められる。pKa を変えると、曲線・半当量点・割合のグラフがどう変わるかを調べよう。'};
 }
 // pH と各化学種のモル分率（滴下量に関係なく、pKa だけで決まる）
 function alphaVsPH(sys, step = 0.05){

@@ -132,6 +132,7 @@ function drawChart(ex){
     sys.Veq.forEach(v => { if (v <= xmax) vl.push({x: v, color: C.muted, dash: [5, 4], width: 1.1}); });
     if (sys.n > 0) sys.pKa.forEach(pk => { if (!hideAns() && pk > 0.2 && pk < 13.8) hl.push({y: pk, color: C.muted, dash: [2, 4], width: 1, label: 'pKa ' + pk}); });
     hl.push({y: 7, color: C.grid, dash: [2, 3], width: 1});
+    if (sys.pI != null && !hideAns()) hl.push({y: sys.pI, color: css('--ok') || '#16803c', dash: [6, 3], width: 1.3, label: '等電点 pI ' + sys.pI.toFixed(2)});
   }
   const series = ghosts.map(g => ({color: g.color, pts: g.pts, width: 2, dash: [2, 4]}));
   series.push({color: accent, pts: cache.curve.exact, width: 2.6});
@@ -214,7 +215,6 @@ function renderTabs(){
   $('tabBuf').hidden = state.tab !== 'buf'; $('tabInd').hidden = state.tab !== 'ind'; $('tabRead').hidden = !rd;
   $('tabUnk').hidden = !(sys.unknown && state.tab === 'main');
   $('headBox').hidden = rd; $('stageBox').hidden = rd; $('kpPanel').hidden = rd || hideAns(); $('procPanel').hidden = rd || hideAns();
-  $('detail').hidden = !state.detail || rd;
 }
 function renderBuf(ex){
   const smp = getSample(state.sample), one = sys.n === 1;
@@ -234,12 +234,13 @@ function renderBuf(ex){
 }
 function drawAlphaPh(C){
   const cv = $('alphaPhCv'), {ctx, w, h} = CH.fitCanvas(cv), ex = T.solveExact(sys, V);
-  const vl = sys.pKa.map(pk => ({x: pk, color: C.muted, dash: [5, 4], width: 1.1})); vl.push({x: ex.pH, color: css('--danger') || '#d61f1f', width: 1.6, dash: [4, 3]});
+  const vl = sys.pKa.map(pk => ({x: pk, color: C.muted, dash: [5, 4], width: 1.1})); if (sys.pI != null) vl.push({x: sys.pI, color: css('--ok') || '#16803c', dash: [7, 3], width: 1.5}); vl.push({x: ex.pH, color: css('--danger') || '#d61f1f', width: 1.6, dash: [4, 3]});
   const r = CH.lineChart(ctx, {x: 0, y: 0, w, h}, {x: {min: 0, max: 14, label: 'pH', n: 7}, y: {min: 0, max: 1, label: 'モル分率', n: 5}, colors: C,
     series: alphaPh.map((se, i) => ({color: ALPHA_COLORS[i % 4], pts: se.pts, width: 2.4})), vlines: vl});
   ctx.save(); ctx.font = '600 11px -apple-system, "Hiragino Sans", sans-serif'; ctx.fillStyle = C.text; ctx.textBaseline = 'top';
   sys.pKa.forEach((pk, i) => { if (pk < 0 || pk > 14) return; const t = (sys.n > 1 ? `pKa${'₁₂₃'[i]} ` : 'pKa ') + pk, tw = ctx.measureText(t).width, x = r.X(pk), tx = x + 4 + tw > r.plot.x + r.plot.w ? x - 4 - tw : x + 4;
     ctx.textAlign = 'left'; ctx.fillText(t, tx, r.plot.y + 4 + (i % 2) * 14); });
+  if (sys.pI != null){ const x = r.X(sys.pI), t = 'pI ' + sys.pI.toFixed(2), tw = ctx.measureText(t).width; ctx.fillStyle = css('--ok') || '#16803c'; ctx.textAlign = 'left'; ctx.fillText(t, x + 4 + tw > r.plot.x + r.plot.w ? x - 4 - tw : x + 4, r.plot.y + 32); }
   ctx.restore();
 }
 const ALPHA_COLORS = ['#2563eb', '#d97706', '#0d9488', '#be185d'];
@@ -344,7 +345,7 @@ $('unkNew').onclick = () => { state.unkSeed++; state.unkReveal = false; V = 0; i
 // ---- 描きなおし ----
 function renderAll(){
   const ex = T.solveExact(sys, V), ap = T.approx(sys, V);
-  renderTabs(); renderApparatus(ex); drawChart(ex); renderProcess(ex, ap); renderKp();
+  syncApproxBtn(); renderTabs(); renderApparatus(ex); drawChart(ex); renderProcess(ex, ap); renderKp();
   if (state.tab === 'buf') renderBuf(ex); else if (state.tab === 'ind') renderInd(ex);
   $('seek').value = V;
   $('evRead').textContent = `目盛り ${V.toFixed(2)} mL`;
@@ -357,9 +358,9 @@ function renderAll(){
 function renderStatic(){
   const smp = getSample(state.sample);
   $('smpName').textContent = smp.name;
-  $('smpNote').textContent = smp.note + (sys.Veq[0] > state.cap ? '（当量点がビュレットの容量を超えます。濃度や体積を変えてください）' : '');
+  $('smpNote').textContent = smp.note + (sys.pI != null ? ` 等電点 pI = ${sys.pI.toFixed(2)}。` : '') + (sys.Veq[0] > state.cap ? '（当量点がビュレットの容量を超えます。濃度や体積を変えてください）' : '');
   $('eqn').innerHTML = `${esc(hideAns() ? sys.name + '（濃度は未知）' : sys.name)} <span class="arr">←</span> ${esc(sys.titrant.name)}`;
-  document.querySelectorAll('#smpList .mi').forEach(b => b.classList.toggle('on', b.dataset.key === state.sample));
+  document.querySelectorAll('#smpList .mi').forEach(b => { const on = b.dataset.key === state.sample; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
   document.querySelectorAll('#capSeg [data-cap]').forEach(b => { const on = +b.dataset.cap === state.cap; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
   $('optApprox').checked = state.approx; $('optEq').checked = state.eq; $('optBand').checked = state.band;
   $('seek').max = xmax; $('seek').setAttribute('aria-valuetext', '');
@@ -377,8 +378,7 @@ function renderStatic(){
   $('custBox').hidden = state.sample !== 'custom';
   document.querySelectorAll('#custKind [data-kind]').forEach(b => { const on = b.dataset.kind === state.custom.kind; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
   document.querySelectorAll('#custN [data-n]').forEach(b => { const on = +b.dataset.n === state.custom.n; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
-  $('btnDetail').setAttribute('aria-expanded', state.detail); $('detail').hidden = !state.detail;
-  $('btnDetail').textContent = state.detail ? '詳しい設定 ▲' : '詳しい設定 ▼';
+  $('dlgName').textContent = smp.name; $('dlgNote').textContent = smp.note;
   // 目印の滴下量へ移るボタン
   const jb = [];
   if (!hideAns()) sys.Veq.forEach((v, i) => jb.push({v, t: (sys.Veq.length > 1 ? `第 ${i + 1} 当量点` : '当量点') + ` ${fmt(v, 3)} mL`}));
@@ -434,14 +434,13 @@ function buildSampleMenu(){
   let html = '', grp = '';
   for (const s of T.SAMPLES){
     if (s.group !== grp){ grp = s.group; html += `<div class="gl">${esc(grp)}</div>`; }
-    html += `<button type="button" class="mi" role="menuitem" data-key="${s.key}"><span class="dot"></span><span>${esc(s.name)}<small>${esc(s.note)}</small></span></button>`;
+    html += `<button type="button" class="mi" role="option" data-key="${s.key}"><span class="dot"></span><span>${esc(s.name)}<small>${esc(s.note)}</small></span></button>`;
   }
   $('smpList').innerHTML = html;
 }
 function selectSample(key){
   state.sample = key; ghosts = []; V = 0; running = false; $('btnRun').classList.remove('on');
   rebuild(); renderStatic(); save(); renderAll();
-  const m = $('smpMenu'); m.classList.add('closed'); setTimeout(() => m.classList.remove('closed'), 400);
 }
 $('smpList').onclick = e => { const b = e.target.closest('.mi'); if (b) selectSample(b.dataset.key); };
 function setOver(patch){
@@ -464,7 +463,23 @@ $('pkaBox').onchange = e => {
 $('capSeg').onclick = e => { const b = e.target.closest('[data-cap]'); if (!b) return; state.cap = +b.dataset.cap; rebuild(); buildApparatus(); renderStatic(); save(); newRead(); renderAll(); };
 $('selInd').onchange = e => { state.inds[state.sample] = e.target.value; save(); renderAll(); };
 $('btnDefault').onclick = () => { delete state.over[state.sample]; delete state.inds[state.sample]; V = 0; rebuild(); renderStatic(); save(); renderAll(); };
-$('btnDetail').onclick = () => { state.detail = !state.detail; renderStatic(); save(); };
+// ---- 試料を選ぶ・条件を決めるモーダル ----
+const dlg = $('smpDlg'); let dlgOpener = null;
+function openDlg(opener){
+  dlgOpener = opener || $('btnSmp');
+  try { dlg.showModal(); } catch { dlg.setAttribute('open', ''); }
+  const cur = $('smpList').querySelector('.mi.on'); if (cur) cur.scrollIntoView({block: 'nearest'});
+  (cur || $('smpDlgOk')).focus();
+}
+function closeDlg(){ if (dlg.open) dlg.close(); }
+dlg.addEventListener('close', () => { try { (dlgOpener || $('btnSmp')).focus(); } catch {} });
+dlg.addEventListener('click', e => { if (e.target === dlg) closeDlg(); });      // 外側（暗い部分）をクリックしても閉じる
+$('btnSmp').onclick = () => openDlg($('btnSmp'));
+$('btnDetail').onclick = () => openDlg($('btnDetail'));
+$('smpDlgX').onclick = closeDlg; $('smpDlgOk').onclick = closeDlg;
+// 近似の曲線の表示・非表示（グラフの見出しのボタン）
+function syncApproxBtn(){ const b = $('btnApproxTgl'); b.setAttribute('aria-pressed', state.approx); b.textContent = '近似の曲線：' + (state.approx ? '表示' : '非表示'); $('optApprox').checked = state.approx; }
+$('btnApproxTgl').onclick = () => { state.approx = !state.approx; save(); renderAll(); };
 for (const [id, k] of [['optApprox', 'approx'], ['optEq', 'eq'], ['optBand', 'band']]) $(id).onchange = e => { state[k] = e.target.checked; save(); renderAll(); };
 
 $('custBox').onclick = e => {
@@ -487,6 +502,7 @@ new ResizeObserver(() => { if (sys) renderAll(); }).observe($('chartWrap'));
 let help = null;
 document.addEventListener('keydown', e => {
   if (help && help.root.contains(e.target)) return;
+  if (dlg.open) return;
   if (e.isComposing || e.metaKey || e.ctrlKey || e.altKey) return;
   const tgt = e.target.matches ? e.target : document.body;
   if (tgt.matches('input:not([type=range]), textarea, select')) return;
