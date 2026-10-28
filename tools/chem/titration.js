@@ -28,7 +28,7 @@ let cmpSeq = 0;          // 比較対象の通し番号（同じ種類を複数�
 const GHOST_COLORS = ['#8b5cf6', '#0d9488', '#be185d'];
 let ghosts = [];          // 残した曲線（保存しない）
 let V = 0;                // いまの滴下量（mL）。保存しない
-function getSample(key){ return key === 'custom' ? T.customSample(state.custom) : T.sampleByKey(key); }
+function getSample(key){ return key === 'custom' ? T.customSample(state.custom) : key === 'unk_co3' ? T.carbonateSample(state.unkSeed) : T.sampleByKey(key); }
 (function restore(){
   const s = lsGet(KEY.state); if (!s) return;
   if (TABS.includes(s.tab)) state.tab = s.tab;
@@ -65,7 +65,7 @@ function overOf(key, tt){
   const o = state.over[key] || {}, smp = getSample(key), r = {}, t = tt || (key === state.sample ? curTitrant() : titrantFor(smp, null));
   const num = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
   if (num(o.C0, 1e-5, 2)) r.C0 = o.C0;
-  if (smp.unknown) r.C0 = T.unknownConc(state.unkSeed);
+  if (smp.unknown && !smp.unkCarb) r.C0 = T.unknownConc(state.unkSeed);
   if (num(o.V0, 1, 100)) r.V0 = o.V0;
   if (num(o.Ct, 1e-5, 2)) r.Ct = o.Ct;
   if (t.key === 'custom' && Array.isArray(o.tpKa) && o.tpKa.length === t.n && o.tpKa.every(v => num(v, -5, 16))) r.tpKa = o.tpKa.slice().sort((a, b) => a - b);
@@ -75,7 +75,7 @@ function overOf(key, tt){
 // 指示薬は複数選べる（保存は種類ごとの配列。旧版の文字列は 1 件の配列とみなす）。未選択のときは試料の標準の指示薬
 const IND_SHORT = {mo: 'MO', mr: 'MR', bt: 'BTB', pp: 'PP'};
 function indsOf(){
-  const v = state.inds[state.sample], arr = Array.isArray(v) ? v : typeof v === 'string' ? [v] : [sys.ind];
+  const v = state.inds[state.sample], arr = Array.isArray(v) ? v : typeof v === 'string' ? [v] : sys.unknown ? [] : [sys.ind];   // 未知試料は、指示薬を自分で選ぶ
   return T.INDICATORS.filter(i => i.lo != null && arr.includes(i.key));
 }
 function setInds(arr){ state.inds[state.sample] = arr; save(); renderStatic(); renderAll(); }
@@ -149,7 +149,7 @@ function renderApparatus(ex){
   if (liq.childElementCount !== cols.length){ liq.innerHTML = cols.map(() => `<rect y="440" height="60" x="0" width="0"/>`).join(''); }
   Array.from(liq.children).forEach((r, i) => { r.setAttribute('x', (70 + i * wd).toFixed(2)); r.setAttribute('width', (wd + .5).toFixed(2)); r.setAttribute('y', (476 - h).toFixed(2)); r.setAttribute('fill', cols[i]); });
   el('bName').textContent = `${sys.titrant.name} ${fmt(sys.Ct)} mol/L`;
-  el('fName').textContent = `${sys.name.split(' ')[0]} ${hideAns() ? '（濃度は未知）' : fmt(sys.C0) + ' mol/L'} ${sys.V0} mL`;
+  el('fName').textContent = `${sys.name.split(' ')[0]} ${hideAns() ? (sys.comp ? '' : '（濃度は未知）') : sys.comp ? '' : fmt(sys.C0) + ' mol/L'} ${sys.V0} mL`;
   el('fInd').textContent = inds.length ? '指示薬：' + inds.map(i => IND_SHORT[i.key]).join('・') : '';
   svg.classList.toggle('dripping', running);
   svg.querySelector('#dropG').style.display = running ? '' : 'none';
@@ -327,7 +327,7 @@ function setMode(m){
   if (m === 'unk'){
     stash = {compare: state.compare.slice(), titKey: state.titKey};
     state.prevSample = state.sample;
-    state.unkSeed++; state.unkReveal = false; $('unkRes').textContent = ''; $('unkAns').value = '';   // 入るたびに新しい問題
+    unkFresh();   // 入るたびに新しい問題
     selectSample(state.unkKey);
   } else if (from === 'unk'){
     switchSample(state.prevSample && T.sampleByKey(state.prevSample) ? state.prevSample : 'hcl');
@@ -353,46 +353,64 @@ $('btnGhostClear').onclick = () => { ghosts = []; renderAll(); };
 // ---- 食酢の滴定（濃度が未知） ----
 function unkRefresh(){ rebuild(); renderStatic(); save(); renderAll(); }
 const UNK_IND = ['mo', 'pp'];
-// 未知試料の画面：試料の種類・指示薬（メチルオレンジかフェノールフタレイン）を選んで、濃度を求める
+// 未知試料の画面：試料の種類と、使う指示薬（メチルオレンジ・フェノールフタレイン。初めは何も選ばない）を選んで、濃度（炭酸塩は組成）を求める
 function renderUnk(){
   const smp = getSample(state.sample); if (!smp.unknown) return;
-  const what = smp.unkWhat || '';
-  $('unkTtl').textContent = `${smp.unkSub}の濃度を求めよう`;
+  const carb = !!smp.unkCarb, what = smp.unkWhat || '';
+  $('unkTtl').textContent = carb ? '炭酸塩の組成を調べよう' : `${smp.unkSub}の濃度を求めよう`;
   $('unkDesc').textContent = `${what ? 'うすめた食酢' : smp.unkSub} ${fmt(sys.V0, 3)} mL を ${fmt(sys.Ct)} mol/L の ${sys.titrant.name} で滴定します`;
   $('unkLbl').textContent = `${what ? what + 'の' : ''}${smp.unkSub}の濃度`;
-  const sel = $('unkSel'); if (!sel.options.length) sel.innerHTML = T.SAMPLES.filter(x => x.unknown).map(x => `<option value="${x.key}">${esc(x.unkSub)}${x.unkWhat ? '（食酢）' : ''}</option>`).join('');
+  $('unkCompRow').hidden = !carb; $('unkNumRow').hidden = carb;
+  const cs = $('unkComp'); if (cs.options.length < 2) cs.innerHTML += Object.entries(T.CARB_TYPES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+  const sel = $('unkSel'); if (!sel.options.length) sel.innerHTML = T.SAMPLES.filter(x => x.unknown).map(x => `<option value="${x.key}">${x.unkCarb ? '炭酸塩（組成の同定）' : esc(x.unkSub) + (x.unkWhat ? '（食酢）' : '')}</option>`).join('');
   sel.value = state.sample;
   const on = indsOf().map(i => i.key);
-  $('unkInd').innerHTML = '<span class="mut">指示薬</span>' + UNK_IND.map(k => { const i = T.indicatorByKey(k);
-    return `<button type="button" role="radio" aria-checked="${on.includes(k)}" class="chip-btn sm${on.includes(k) ? ' on' : ''}" data-uind="${k}" title="${esc(i.name)}（${i.lo}–${i.hi}）"><span class="sw2" style="background:linear-gradient(90deg,${i.acid === T.WATER ? '#ffffff' : i.acid} 50%,${i.base} 50%)"></span>${esc(i.name)}</button>`; }).join('');
-  $('unkGuide').innerHTML = `指示薬の色が変わる（または pH が急に変わる）ところまで滴下して、ビュレットの目盛りを読み、${esc(smp.unkEq)}（物質量の比 1 : 1）から、${esc(smp.unkSub)}の濃度を計算します。`;
+  $('unkInd').innerHTML = '<span class="mut">指示薬（選んで入れます）</span>' + UNK_IND.map(k => { const i = T.indicatorByKey(k);
+    return `<button type="button" role="checkbox" aria-checked="${on.includes(k)}" class="chip-btn sm${on.includes(k) ? ' on' : ''}" data-uind="${k}" title="${esc(i.name)}（${i.lo}–${i.hi}）"><span class="sw2" style="background:linear-gradient(90deg,${i.acid === T.WATER ? '#ffffff' : i.acid} 50%,${i.base} 50%)"></span>${esc(i.name)}</button>`; }).join('');
 }
-$('unkSel').onchange = e => {
+// 新しい問題にする：答えと指示薬の選びを初めに戻す
+function unkFresh(){
   if (running) setRunning(false);
-  state.unkKey = e.target.value; state.unkSeed++; state.unkReveal = false; $('unkRes').textContent = ''; $('unkAns').value = '';
-  selectSample(state.unkKey);
-};
-$('unkInd').onclick = e => { const b = e.target.closest('[data-uind]'); if (!b) return; setInds([b.dataset.uind]); const n = $('unkInd').querySelector(`[data-uind=${b.dataset.uind}]`); if (n) n.focus(); };
+  state.unkSeed++; state.unkReveal = false; state.inds[state.unkKey] = [];
+  $('unkRes').textContent = ''; $('unkAns').value = ''; $('unkComp').value = '';
+}
+$('unkSel').onchange = e => { state.unkKey = e.target.value; unkFresh(); selectSample(state.unkKey); };
+$('unkInd').onclick = e => { const b = e.target.closest('[data-uind]'); if (!b) return; const k = b.dataset.uind, cur = indsOf().map(i => i.key);
+  setInds(UNK_IND.filter(x => x === k ? !cur.includes(x) : cur.includes(x))); const n = $('unkInd').querySelector(`[data-uind=${k}]`); if (n) n.focus(); };
 // 答えが出たあとの一言：選んだ指示薬で、色が変わる点が当量点からどれだけずれたか
 function unkIndNote(){
-  const id = indsOf()[0], r = id && indRep.find(x => x.key === id.key), e = r && r.events[0]; if (!e) return '';
-  if (!e.changes) return `${id.name}では、この滴定の色が変わりません。`;
-  return e.grade === 'good' ? `${id.name}は、当量点（${fmt(e.ve, 3)} mL）のすぐ近くで色が変わるので、適した指示薬です。`
-    : `${id.name}では、色が変わる点が当量点（${fmt(e.ve, 3)} mL）から約 ${Math.abs(e.err).toFixed(2)} mL ${e.err > 0 ? '後' : '前'}にずれます。この試料には、ほかの指示薬のほうが適しています。`;
+  const sel = indsOf(); if (!sel.length) return '指示薬を選ばずに答えを見ました。';
+  return sel.map(id => { const r = indRep.find(x => x.key === id.key); if (!r) return '';
+    const e = r.events.filter(x => x.changes).sort((a, b) => Math.abs(a.err) - Math.abs(b.err))[0];
+    if (!e) return `${id.name}は、この滴定では色が変わりません。`;
+    return e.grade === 'good' ? `${id.name}は、${sys.Veq.length > 1 ? `第 ${e.eq + 1} ` : ''}当量点（${fmt(e.ve, 3)} mL）のすぐ近くで色が変わります。`
+      : `${id.name}は、色が変わる点が当量点（${fmt(e.ve, 3)} mL）から約 ${Math.abs(e.err).toFixed(2)} mL ${e.err > 0 ? '後' : '前'}にずれます。`; }).join('');
 }
 function unkReveal(msg){ state.unkReveal = true; save(); rebuild(); renderStatic(); renderAll(); $('unkRes').innerHTML = msg + ' ' + esc(unkIndNote()); }
+// 炭酸塩の答え：V₁（フェノールフタレイン）と V₂（そのあと、メチルオレンジまで）
+function carbText(){
+  const t = sys.comp.type, V1 = sys.Veq[0], V2 = sys.Veq[sys.Veq.length - 1] - (sys.Veq.length > 1 ? V1 : 0);
+  const rel = {A: 'V₁ = V₂', B: 'V₁ = 0（最初からフェノールフタレインが無色）', C: 'V₁ > V₂', D: 'V₁ < V₂'}[t];
+  return `組成は ${T.CARB_TYPES[t]}。` + (t === 'B' ? `メチルオレンジまでに ${fmt(V2, 3)} mL（V₁ = 0）。` : `V₁ = ${fmt(V1, 3)} mL、V₂ = ${fmt(V2, 3)} mL で ${rel}。`);
+}
 $('unkCheck').onclick = () => {
-  const ans = parseFloat($('unkAns').value), C = sys.C0, smp = getSample(state.sample);
+  const smp = getSample(state.sample);
+  if (smp.unkCarb){
+    const a = $('unkComp').value; if (!a){ $('unkRes').textContent = '入っているものを選んでください。'; return; }
+    if (a === sys.comp.type){ unkReveal(`<span class="ok">正解です。</span> ${esc(carbText())}`); return; }
+    $('unkRes').innerHTML = '<span class="ng">ちがうようです。</span> 滴下した量の読みと、判断を見直しましょう。'; return;
+  }
+  const ans = parseFloat($('unkAns').value), C = sys.C0;
   if (!isFinite(ans)){ $('unkRes').textContent = '濃度（mol/L）を入れてください。'; return; }
   if (Math.abs(ans - C) / C <= 0.03){
     unkReveal(`<span class="ok">正解です。</span> 濃度は ${fmt(C, 3)} mol/L（当量点は ${fmt(sys.Veq[0], 3)} mL）。` + (smp.unkOrig ? `もとの食酢は ${smp.unkOrig} 倍の ${fmt(C * smp.unkOrig, 3)} mol/L です。` : ''));
     return;
   }
-  $('unkRes').innerHTML = `<span class="ng">ちがうようです。</span> ${esc(smp.unkSub)}と${esc(sys.titrant.name)}は物質量が 1 : 1 で反応します。${esc(sys.titrant.name)}の物質量（mmol）= ${fmt(sys.Ct)} × 滴下量（mL）、濃度 = その物質量 ÷ ${fmt(sys.V0, 3)} mL です。滴下量は、色が変わった点のビュレットの目盛りを読み直しましょう。`;
+  $('unkRes').innerHTML = '<span class="ng">ちがうようです。</span> 滴下した量の読みと、計算を見直しましょう。';
 };
 $('unkAns').onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); $('unkCheck').click(); } };
-$('unkShow').onclick = () => unkReveal(`答え：${fmt(sys.C0, 3)} mol/L（当量点 ${fmt(sys.Veq[0], 3)} mL）。`);
-$('unkNew').onclick = () => { state.unkSeed++; state.unkReveal = false; V = 0; if (running) setRunning(false); $('unkRes').textContent = ''; $('unkAns').value = ''; unkRefresh(); };
+$('unkShow').onclick = () => unkReveal(sys.comp ? `答え：${esc(carbText())}` : `答え：${fmt(sys.C0, 3)} mol/L（当量点 ${fmt(sys.Veq[0], 3)} mL）。`);
+$('unkNew').onclick = () => { unkFresh(); V = 0; unkRefresh(); };
 
 // ---- 描きなおし ----
 function renderAll(){
@@ -402,7 +420,7 @@ function renderAll(){
   $('seekB').max = xmax; $('seekB').value = V; $('seekBVal').textContent = V.toFixed(2) + ' mL';
   $('seek').value = V;
   $('evRead').textContent = `目盛り ${V.toFixed(2)} mL`;
-  $('chipPH').textContent = `pH ${ex.pH.toFixed(2)}`;
+  $('chipPH').textContent = `pH ${ex.pH.toFixed(2)}`; $('chipPH').hidden = state.tab === 'unk' && hideAns();   // 未知試料は、答えが出るまで pH を見せない
   $('chipV').innerHTML = `滴下量 ${V.toFixed(2)} mL` + indsOf().map(id => ` <span class="swatch" style="background:${T.indicatorColor(id, ex.pH)}"></span>${esc(IND_SHORT[id.key])}`).join('');
   const nearEq = hideAns() ? -1 : sys.Veq.findIndex(v => Math.abs(V - v) < 0.0005);
   $('status').textContent = nearEq >= 0 ? (sys.Veq.length > 1 ? `第 ${nearEq + 1} 当量点です` : '当量点です') : (Math.abs(V - xmax) < 1e-9 ? 'グラフの終わりまで滴下しました' : '');
@@ -452,7 +470,7 @@ function renderStatic(){
   // 目印の滴下量へ移るボタン
   const jb = [];
   if (!hideAns()) sys.Veq.forEach((v, i) => jb.push({v, t: (sys.Veq.length > 1 ? `第 ${i + 1} 当量点` : '当量点') + ` ${fmt(v, 3)} mL`}));
-  if (sys.n > 0 && !hideAns()) sys.Veq.forEach((v, i) => jb.push({v: v - sys.dVeq / 2, t: '半当量点' + (sys.Veq.length > 1 ? `（第 ${i + 1} 段）` : '')}));
+  if (sys.n > 0 && !hideAns() && !sys.comp) sys.Veq.forEach((v, i) => jb.push({v: v - sys.dVeq / 2, t: '半当量点' + (sys.Veq.length > 1 ? `（第 ${i + 1} 段）` : '')}));
   jb.sort((a, b) => a.v - b.v);
   $('jumpBox').innerHTML = jb.filter(b => b.v <= xmax + 1e-9).map(b => `<button type="button" data-v="${b.v}">${esc(b.t)}</button>`).join('');
   $('kpTable').dataset.key = '';

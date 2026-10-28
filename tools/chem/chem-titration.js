@@ -102,6 +102,22 @@ const SAMPLES = [
   SAMPLES.splice(at, 0, ...UNK.map(([src, key, sub, label, eq]) => { const b = SAMPLES.find(s => s.key === src);
     return Object.assign({}, b, {key, group: '実験', name: sub + 'の滴定（濃度が未知）', label, unknown: true, unkSub: sub, unkWhat: '', unkEq: eq,
       note: sub + ' ' + b.V0.toFixed(1) + ' mL を ' + (b.kind === 'acid' ? 'NaOH' : 'HCl') + ' で滴定して、濃度を求める。濃度は、出題ごとにちがう。'}); }));
+  // 炭酸塩の同定：Na₂CO₃・NaHCO₃・NaOH のうち何が入っているかを、HCl の二段階の滴定（フェノールフタレイン→メチルオレンジ）で調べる。組成は carbonateSample(seed) が出題ごとに決める
+  const b = SAMPLES.find(s => s.key === 'na2co3');
+  SAMPLES.splice(at + UNK.length, 0, Object.assign({}, b, {key: 'unk_co3', group: '実験', name: '炭酸塩の同定（組成が未知）', label: '炭酸塩の水溶液（組成が未知）', unknown: true, unkCarb: true,
+    unkSub: '炭酸塩の水溶液', unkWhat: '', unkEq: '', note: '炭酸塩の水溶液 10.0 mL を HCl で滴定して、何が入っているかを調べる。組成は、出題ごとにちがう。'}));
+}
+// 炭酸塩の組成：A = Na₂CO₃ だけ、B = NaHCO₃ だけ、C = NaOH と Na₂CO₃、D = Na₂CO₃ と NaHCO₃（濃度 mol/L）。V₁（フェノールフタレイン）と V₂（そのあとメチルオレンジ）の大小で決まる
+const CARB_TYPES = {A: 'Na₂CO₃ だけ', B: 'NaHCO₃ だけ', C: 'NaOH と Na₂CO₃', D: 'Na₂CO₃ と NaHCO₃'};
+function carbonateProblem(seed){
+  const r = S.rng(seed * 7919 + 11), q = (lo, hi) => Math.round((lo + r() * (hi - lo)) * 1e4) / 1e4;
+  const type = 'ABCD'[Math.min(3, Math.floor(r() * 4))];
+  const m = {A: {c1: q(0.04, 0.08), c2: 0, c3: 0}, B: {c1: 0, c2: q(0.05, 0.10), c3: 0}, C: {c1: q(0.03, 0.05), c2: 0, c3: q(0.02, 0.04)}, D: {c1: q(0.02, 0.04), c2: q(0.02, 0.04), c3: 0}}[type];
+  return Object.assign({type}, m);
+}
+function carbonateSample(seed){
+  const base = SAMPLES.find(s => s.key === 'unk_co3'), comp = carbonateProblem(seed), tot = comp.c1 + comp.c2;
+  return Object.assign({}, base, {comp, C0: tot, cM: (2 * comp.c1 + comp.c2 + comp.c3) / tot, steps: comp.type === 'B' ? 1 : 2});
 }
 
 
@@ -172,6 +188,10 @@ function makeSys(sample, over = {}, titrant = null){
   sys.dVeq = sys.N0 / (sys.Ct * sys.tm);                              // 1 当量の滴下量（mL）
   sys.Veq = Array.from({length: sys.steps}, (_, i) => (i + 1) * sys.dVeq);   // mL
   sys.Vmax = sys.Veq[0] * sys.rMax;
+  if (sample.comp){          // 炭酸塩の混合：1 回目（PP）は NaOH ＋ CO₃²⁻ → HCO₃⁻、2 回目（MO）は全体
+    const {c1, c2, c3} = sample.comp, k = sys.V0 / (Ct * sys.tm), V1 = (c3 + c1) * k, Vt = (c3 + 2 * c1 + c2) * k;
+    sys.comp = sample.comp; sys.Veq = sample.comp.type === 'B' ? [Vt] : [V1, Vt]; sys.dVeq = (c1 || c2) * k; sys.Vmax = Vt * 1.3;
+  }
   return sys;
 }
 
@@ -439,7 +459,7 @@ function alphaVsPH(sys, step = 0.05){
   return series;
 }
 
-const api = {TITRANTS, titrantByKey, titrantsFor, customTitrant, customSample, alphaVsPH, alphaCurve, readingQuestion, checkReading, unknownConc, indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
+const api = {CARB_TYPES, carbonateProblem, carbonateSample, TITRANTS, titrantByKey, titrantsFor, customTitrant, customSample, alphaVsPH, alphaCurve, readingQuestion, checkReading, unknownConc, indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemTitration = api;
 })(typeof window !== 'undefined' ? window : globalThis);
