@@ -288,11 +288,9 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .dlg-tpl .dlg-list{border-right:0;flex:1}
 .cmp-info{margin:0 0 8px;font-size:12px;line-height:1.5}
 .cmp-list{display:flex;flex-direction:column;gap:8px}
-.cmprow{display:grid;grid-template-columns:18px minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:8px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
-.cmpsw{display:block;width:18px;height:0;border-top:3px solid;align-self:center;margin-bottom:0}
-.cmprow > label:first-of-type{grid-column:2 / -1}
-.cmprow > label:nth-of-type(2){grid-column:2}
-.cmpdel{width:32px;height:32px;border:1px solid var(--line);background:var(--panel);border-radius:7px;cursor:pointer;font-size:16px;line-height:1;padding:0}
+.cmprow{display:grid;grid-template-columns:16px minmax(0,1.5fr) minmax(0,1fr) minmax(0,.8fr) 30px;align-items:end;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.cmpsw{display:block;width:16px;height:0;border-top:3px solid;align-self:center;margin-bottom:0}
+.cmpdel{width:30px;height:30px;border:1px solid var(--line);background:var(--panel);border-radius:7px;cursor:pointer;font-size:16px;line-height:1;padding:0}
 .cmpdel:hover{background:var(--hover)}
 .cmp-act{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 @media (max-width:700px){
@@ -310,3 +308,15 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .fld > small.mut,.pk + small.mut{display:block;margin-top:4px;font-size:11px;line-height:1.5}
 .indsel .sw2{flex:none;display:inline-block;width:16px;height:16px;border-radius:50%;border:1px solid var(--line)}
 .indsel .chk small{display:inline}
+
+/* ==== 0.10：対象試料は 1 行、比較対象は 1 行、指示薬はグラフの上、pKa は ±0.2 を調整 ==== */
+.trio{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,.8fr);gap:8px;align-items:end}
+.trio .fld input[type=number],.trio .fld select,.cmprow .fld input[type=number],.cmprow .fld select{width:100%;max-width:none;min-width:0}
+.cmprow .fld input[type=number]{padding:4px}
+.cmprow .fld{min-width:0}
+.cmprow .fld span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmprow select{padding:4px 2px}
+.pk-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.indbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 12px 0;font-size:12.5px}
+.chip-btn.sm{min-height:30px;padding:2px 10px;font-size:12.5px}
+.chip-btn.sm .sw2{margin-right:4px}

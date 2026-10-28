@@ -21,6 +21,8 @@ const state = {tab: 'main', sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1
   custom: {kind: 'acid', n: 1}, compare: [], titKey: null, customT: {n: 1}, readSeed: 1, readMode: 'single', score: {ok: 0, total: 0}, unkSeed: 1, unkReveal: false};
 const CMP_COLORS = ['#8b5cf6', '#0d9488', '#be185d', '#65a30d', '#0891b2'];
 const MAX_CMP = 5;
+const PKA_TOL = 0.2;      // ふつうの種類の pKa は、標準の値から ±0.2 まで調整できる（自作は自由）
+let pkaEdit = false;      // pKa の調整中（ボタンを押したときだけ true。保存しない）
 let cmpSeq = 0;          // 比較対象の通し番号（同じ種類を複数入れられるので、種類ではなく番号で区別する）
 const GHOST_COLORS = ['#8b5cf6', '#0d9488', '#be185d'];
 let ghosts = [];          // 残した曲線（保存しない）
@@ -32,7 +34,6 @@ function getSample(key){ return key === 'custom' ? T.customSample(state.custom) 
   if (T.sampleByKey(s.sample)) state.sample = s.sample;
   if (s.over && typeof s.over === 'object') state.over = s.over;
   if (s.inds && typeof s.inds === 'object') state.inds = s.inds;
-  if (s.over && typeof s.over === 'object') for (const [k, o] of Object.entries(s.over)) if (o && typeof o === 'object' && k !== 'custom') delete o.pKa;      // 種類ごとの pKa は変えられない（自作だけ）
   if (s.cap === 25 || s.cap === 50) state.cap = s.cap;
   if (s.readMode === 'single' || s.readMode === 'diff') state.readMode = s.readMode;
   for (const k of ['readSeed', 'unkSeed']) if (Number.isInteger(s[k]) && s[k] > 0) state[k] = s[k];
@@ -66,7 +67,7 @@ function overOf(key, tt){
   if (num(o.V0, 1, 100)) r.V0 = o.V0;
   if (num(o.Ct, 1e-5, 2)) r.Ct = o.Ct;
   if (t.key === 'custom' && Array.isArray(o.tpKa) && o.tpKa.length === t.n && o.tpKa.every(v => num(v, -5, 16))) r.tpKa = o.tpKa.slice().sort((a, b) => a - b);
-  if (key === 'custom' && Array.isArray(o.pKa) && o.pKa.length === smp.n && o.pKa.every(v => num(v, -5, 16))) r.pKa = o.pKa.slice().sort((a, b) => a - b);
+  if (Array.isArray(o.pKa) && o.pKa.length === smp.n && o.pKa.every((v, i) => num(v, -5, 16) && (key === 'custom' || Math.abs(v - smp.pKa[i]) <= PKA_TOL + 1e-9))) r.pKa = o.pKa.slice().sort((a, b) => a - b);
   return r;
 }
 // 指示薬は複数選べる（保存は種類ごとの配列。旧版の文字列は 1 件の配列とみなす）。未選択のときは試料の標準の指示薬
@@ -405,11 +406,13 @@ function renderStatic(){
   $('inC0').disabled = !!smp.unknown; $('inC0').value = smp.unknown ? '' : (o.C0 ?? smp.C0); $('inV0').value = o.V0 ?? smp.V0; $('inCt').value = sys.Ct;
   $('lbCt').firstChild.textContent = `${sys.titrant.name} の濃度 `;
   $('lbCap').textContent = '容量（ビュレットの目盛りの最大）';
-  const pk = $('pkaBox');
+  const pk = $('pkaBox'), isC = smp.key === 'custom', canEdit = isC || pkaEdit, adj = !isC && state.over[state.sample] && Array.isArray(overOf(state.sample).pKa);
   pk.hidden = smp.n === 0;
   pk.innerHTML = smp.n === 0 ? '' : '<span>pKa（電離のしやすさ。小さいほど強い酸）</span><div class="pk">' +
-    sys.pKa.map((v, i) => `<label>${smp.n === 1 ? (smp.kind === 'base' ? (smp.key === 'custom' ? 'BH⁺ の pKa' : 'NH₄⁺ の pKa') : 'pKa') : 'pKa' + '₁₂₃'[i]}<input type="number" step="any" min="-5" max="16" data-pk="${i}" value="${v}" aria-label="pKa ${i + 1}"${smp.key === 'custom' ? '' : ' readonly'}></label>`).join('') + '</div>' + (smp.key === 'custom' ? '' : '<small class="mut">この種類の値です。自由に変えるときは、種類で「架空の酸・塩基」を選びます。</small>');
+    sys.pKa.map((v, i) => `<label>${smp.n === 1 ? (smp.kind === 'base' ? (isC ? 'BH⁺ の pKa' : 'NH₄⁺ の pKa') : 'pKa') : 'pKa' + '₁₂₃'[i]}<input type="number" step="${isC ? 'any' : '0.01'}" min="${isC ? -5 : +(smp.pKa[i] - PKA_TOL).toFixed(2)}" max="${isC ? 16 : +(smp.pKa[i] + PKA_TOL).toFixed(2)}" data-pk="${i}" value="${v}" aria-label="pKa ${i + 1}"${canEdit ? '' : ' readonly'}></label>`).join('') + '</div>' +
+    (isC ? '' : `<div class="pk-act"><button type="button" class="sbtn" data-pkact="${pkaEdit ? 'done' : 'edit'}" aria-pressed="${pkaEdit}">${pkaEdit ? '調整を終える' : 'pKa を調整する'}</button>${adj ? '<button type="button" class="sbtn" data-pkact="reset">標準の値に戻す</button>' : ''}</div><small class="mut">${adj ? '標準の値（' + smp.pKa.join('、') + '）から調整中です。' : '標準の値です。'}調整できるのは ±${PKA_TOL} までです。自由に変えるときは、種類で「架空の酸・塩基」を選びます。</small>`);
   const isel = indsOf().map(i => i.key);
+  $('indBar').innerHTML = '<span class="mut">指示薬</span>' + T.INDICATORS.filter(i => i.lo != null).map(i => `<button type="button" role="checkbox" aria-checked="${isel.includes(i.key)}" class="chip-btn sm${isel.includes(i.key) ? ' on' : ''}" data-ind="${i.key}" title="${esc(i.name)}（${i.lo}–${i.hi}）"><span class="sw2" style="background:linear-gradient(90deg,${i.acid === T.WATER ? '#ffffff' : i.acid} 50%,${i.base} 50%)"></span>${esc(IND_SHORT[i.key])}</button>`).join('');
   $('indSel').innerHTML = T.INDICATORS.filter(i => i.lo != null).map(i => `<label class="chk inl"><input type="checkbox" data-ind="${i.key}"${isel.includes(i.key) ? ' checked' : ''}><span class="sw2" style="background:linear-gradient(90deg,${i.acid === T.WATER ? '#ffffff' : i.acid} 50%,${i.base} 50%)"></span><span>${esc(i.name)}<small>（${i.lo}–${i.hi}）</small></span></label>`).join('');
   $('custBox').hidden = state.sample !== 'custom';
   document.querySelectorAll('#custKind [data-kind]').forEach(b => { const on = b.dataset.kind === state.custom.kind; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
@@ -536,6 +539,7 @@ function selectSample(key){
   switchSample(key);
 }
 function switchSample(key){
+  pkaEdit = false;
   state.sample = key; ghosts = []; V = 0; running = false; $('btnRun').classList.remove('on');
   const t = curTitrant(); if (state.titKey && t.key !== state.titKey) state.titKey = null;
   rebuild(); state.compare = state.compare.filter(e => canCompare(e.key));
@@ -572,11 +576,22 @@ const numIn = (id, key, lo, hi, name) => $(id).onchange = e => {
 numIn('inC0', 'C0', 1e-5, 2, '濃度'); numIn('inV0', 'V0', 1, 100, '体積'); numIn('inCt', 'Ct', 1e-5, 2, '濃度');
 $('pkaBox').onchange = e => {
   if (!e.target.matches('[data-pk]')) return;
+  const smp = getSample(state.sample), isC = smp.key === 'custom';
   const arr = Array.from($('pkaBox').querySelectorAll('[data-pk]')).map(i => parseFloat(i.value));
-  if (!arr.every(v => v >= -5 && v <= 16)){ toast('pKa は −5 〜 16 の間で入れてください'); renderStatic(); return; }
+  if (isC ? !arr.every(v => v >= -5 && v <= 16) : !arr.every((v, i) => Math.abs(v - smp.pKa[i]) <= PKA_TOL + 1e-9)){
+    toast(isC ? 'pKa は −5 〜 16 の間で入れてください' : `pKa は、標準の値から ±${PKA_TOL} の間で入れてください`); renderStatic(); return; }
   setOver({pKa: arr});
 };
+// ふつうの種類の pKa：ボタンを押したときだけ、標準の値から ±0.2 まで調整できる
+$('pkaBox').onclick = e => {
+  const b = e.target.closest('[data-pkact]'); if (!b) return;
+  const a = b.dataset.pkact;
+  if (a === 'reset'){ const o = state.over[state.sample]; if (o) delete o.pKa; pkaEdit = false; V = 0; rebuild(); renderStatic(); save(); renderAll(); const f = $('pkaBox').querySelector('[data-pkact]'); if (f) f.focus(); return; }
+  pkaEdit = a === 'edit'; renderStatic();
+  const f = pkaEdit ? $('pkaBox').querySelector('input') : $('pkaBox').querySelector('[data-pkact]'); if (f) f.focus();
+};
 $('capSeg').onclick = e => { const b = e.target.closest('[data-cap]'); if (!b) return; state.cap = +b.dataset.cap; rebuild(); buildApparatus(); renderStatic(); save(); newRead(); renderAll(); };
+$('indBar').onclick = e => { const b = e.target.closest('[data-ind]'); if (b){ const k = b.dataset.ind; toggleInd(k); const n = $('indBar').querySelector(`[data-ind=${k}]`); if (n) n.focus(); } };
 $('indSel').onchange = e => { const c = e.target.closest('[data-ind]'); if (c) toggleInd(c.dataset.ind); };
 $('btnDefault').onclick = () => { delete state.over[state.sample]; delete state.inds[state.sample]; V = 0; rebuild(); renderStatic(); save(); renderAll(); };
 // ---- 試料を選ぶ・条件を決めるモーダル ----
@@ -591,6 +606,7 @@ $('tpkaBox').onchange = e => {
 };
 let dlgOpener = null;
 function openDlg(opener){
+  pkaEdit = false;
   dlgOpener = opener || $('btnSmp');
   try { dlg.showModal(); } catch { dlg.setAttribute('open', ''); }
   showTpl(false);
