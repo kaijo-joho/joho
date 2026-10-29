@@ -329,8 +329,10 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 /* 未知試料：問題の試料を上のツールバーに、指示薬はビュレットの近くに置く。式の組み立ては共通の式ビルダー */
 .top > .topsel{flex:0 1 190px;min-width:84px;height:30px;padding:0 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--text);font-size:12.5px}
 .unk-ind{padding:2px 12px 8px}
-/* 共通の式ビルダーの色は --lesson-slide-* から決まる。座学ページと同じように、このアプリのテーマの色を渡す（ダーク表示に追従） */
-.unk-formula{display:block;min-width:0;
+/* 式ビルダー・化学反応式ビルダーの色は --lesson-slide-* から決まる。座学ページと同じように、このアプリのテーマの色を渡す（ダーク表示に追従） */
+.unk-eq{margin-bottom:12px}
+.unk-eq:empty{display:none}
+.unk-formula,.unk-eq{display:block;min-width:0;
   --lesson-slide-panel:var(--panel);--lesson-slide-text:var(--text);--lesson-slide-muted:var(--muted);
   --lesson-slide-border:var(--line);--lesson-slide-focus:var(--accent)}
 .top.tighter > .topsel{flex-basis:150px}

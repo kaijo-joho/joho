@@ -20,7 +20,7 @@ const SPEEDS = [0.5, 1, 2, 4];
 const TABS = ['main', 'buf', 'unk'];
 const state = {tab: 'main', sample: 'hcl', over: {}, inds: {}, cap: 25, speed: 1, approx: true, eq: true, band: true, buf: true, reveal: false, detail: false,
   custom: {kind: 'acid', n: 1}, compare: [], titKey: null, customT: {n: 1}, unkSeed: 1, unkKey: 'vinegar', prevSample: null, unkReveal: false,
-  unkV: 0, unkWork: null};   // unkV：未知試料の滴下量、unkWork：組成の判定と組み立て中の式（{key: 試料|問題番号, comp, draft}）
+  unkV: 0, unkWork: null};   // unkV：未知試料の滴下量、unkWork：組成の判定と組み立て中の式（{key: 試料|問題番号, comp, draft, eq: 反応式の下書き, eqShown: 反応式の答えを出したか}）
 const CMP_COLORS = ['#8b5cf6', '#0d9488', '#be185d', '#65a30d', '#0891b2'];
 const MAX_CMP = 5;
 const hideCmp = new Set();   // 凡例で隠した比較対象の id（画面だけの状態で、保存しない）
@@ -44,7 +44,8 @@ function getSample(key){ return key === 'custom' ? T.customSample(state.custom) 
   if (typeof s.unkKey === 'string' && T.sampleByKey(s.unkKey) && T.sampleByKey(s.unkKey).unknown) state.unkKey = s.unkKey;
   if (typeof s.unkReveal === 'boolean') state.unkReveal = s.unkReveal;
   if (typeof s.unkV === 'number' && s.unkV >= 0 && s.unkV <= 50) state.unkV = s.unkV;
-  if (s.unkWork && typeof s.unkWork.key === 'string') state.unkWork = {key: s.unkWork.key, comp: s.unkWork.comp === true, draft: s.unkWork.draft && typeof s.unkWork.draft === 'object' ? s.unkWork.draft : null};
+  if (s.unkWork && typeof s.unkWork.key === 'string'){ const w = s.unkWork, obj = x => x && typeof x === 'object' ? x : null;
+    state.unkWork = {key: w.key, comp: w.comp === true, draft: obj(w.draft), eq: obj(w.eq), eqShown: w.eqShown === true}; }
   if (Array.isArray(s.compare)) state.compare = s.compare.map(e => typeof e === 'string' ? {key: e} : e)
     .filter(e => e && typeof e.key === 'string' && e.key !== 'vinegar' && e.key !== 'custom' && T.sampleByKey(e.key))
     .map(e => { const r = {id: ++cmpSeq, key: e.key}; const ok = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi; if (ok(e.C0, 1e-5, 2)) r.C0 = e.C0; if (ok(e.V0, 1, 100)) r.V0 = e.V0; return r; }).slice(0, MAX_CMP);
@@ -371,6 +372,7 @@ function unkRefresh(){ rebuild(); renderStatic(); save(); renderAll(); }
 const UNK_IND = ['mo', 'pp'];
 // 未知試料の画面：試料は上のツールバー、指示薬はビュレットの近くで選ぶ。式の組み立てと採点は、座学の共通基盤（式ビルダー）に任せる
 let unkBuilder = null, unkBuilderKey = '', unkDef = null, unkCompOk = false, unkTaskOk = {};
+let eqBuilder = null, eqDef = null;   // 中和反応の化学反応式（化学反応式ビルダー）
 function renderUnk(){
   const smp = getSample(state.sample); if (!smp.unknown) return;
   const carb = !!smp.unkCarb;
@@ -388,9 +390,9 @@ function renderUnk(){
 }
 // 問題の印（試料と問題番号）。組み立て中の式・組成の判定は、この印といっしょに保存し、同じ問題のときだけ戻す
 const unkProblemKey = () => `${state.sample}|${state.unkSeed}`;
-function saveUnkWork(draft){
-  const key = unkProblemKey(), prev = state.unkWork && state.unkWork.key === key ? state.unkWork : null;
-  state.unkWork = {key, comp: unkCompOk, draft: draft !== undefined ? draft : prev ? prev.draft : null}; save();
+function saveUnkWork(patch = {}){
+  const key = unkProblemKey(), prev = state.unkWork && state.unkWork.key === key ? state.unkWork : {draft: null, eq: null, eqShown: false};
+  state.unkWork = Object.assign({key, comp: unkCompOk, draft: prev.draft, eq: prev.eq || null, eqShown: !!prev.eqShown}, patch); save();
 }
 function unkRestoreV(v){ V = Math.max(0, Math.min(xmax, v || 0)); save(); renderAll(); }
 // 式ビルダーを、出題（試料・問題番号・炭酸塩は組成の判定後）に合わせて作りなおす
@@ -399,14 +401,16 @@ function syncUnkBuilder(smp){
   if (key === unkBuilderKey) return;
   unkBuilderKey = key; unkTaskOk = {};
   if (unkBuilder){ try { unkBuilder.destroy(); } catch {} unkBuilder = null; }
-  host.innerHTML = ''; unkDef = null;
-  if (smp.unkCarb && !unkCompOk) return;
+  if (eqBuilder){ try { eqBuilder.destroy(); } catch {} eqBuilder = null; }
+  host.innerHTML = ''; $('unkEq').innerHTML = ''; unkDef = null; eqDef = null;
+  if (smp.unkCarb && !unkCompOk) return;   // 炭酸塩は、組成を答えるまで式を出さない（反応式が組成の答えになるため）
+  syncEqBuilder(smp);
   const Builder = window.LessonFormulaBuilder, Formulas = window.TitrationFormulas;
   if (!Builder || !Formulas){ host.textContent = '式の編集部品を読み込めませんでした。ページを再読み込みしてください（答えは「答えを見る」で確かめられます）。'; return; }
   try {
     unkDef = Formulas.define(smp, sys);
     unkBuilder = Builder.mount(host, unkDef, {
-      onChange(draft){ saveUnkWork(draft); },
+      onChange(draft){ saveUnkWork({draft}); },
       onJudge({rowId, taskId, intermediate, draft}){
         const j = intermediate ? Formulas.gradeRow(unkDef, draft, rowId) : Formulas.gradeTask(unkDef, draft, taskId);
         for (const t of j.tasks || []){   // 読みの小問は、共通の文言ではなく、この教材の言い方にする
@@ -420,6 +424,23 @@ function syncUnkBuilder(smp){
     const w = state.unkWork;
     if (w && w.key === unkProblemKey() && w.draft){ try { unkBuilder.setDraft(w.draft); } catch (e){ console.warn('[titration] draft not restored:', e); } }
   } catch (e){ host.textContent = `式の編集部品を表示できませんでした：${e.message}`; console.error('[titration] formula builder failed:', e); }
+}
+// 中和反応の化学反応式。出題は titration-equations.js、編集と採点は化学反応式ビルダー（chem-equation.js・equation-builder.js）
+function syncEqBuilder(smp){
+  const host = $('unkEq'), Builder = window.ChemEquationBuilder, Eqs = window.TitrationEquations, Core = window.ChemEquation;
+  if (!Builder || !Eqs || !Core){ host.textContent = '反応式の編集部品を読み込めませんでした。ページを再読み込みしてください。'; return; }
+  try {
+    eqDef = Eqs.define(smp); if (!eqDef) return;
+    eqBuilder = Builder.mount(host, eqDef, {
+      onChange(eq){ saveUnkWork({eq}); },
+      onJudge({taskId, draft}){ eqBuilder.setFeedback(Core.grade(eqDef, draft, taskId)); }
+    });
+    const w = state.unkWork;
+    if (w && w.key === unkProblemKey()){
+      if (w.eq && !eqBuilder.setDraft(w.eq)) console.warn('[titration] equation draft not restored');
+      if (w.eqShown) eqBuilder.setAnswersVisible(true);
+    }
+  } catch (e){ host.textContent = `反応式の編集部品を表示できませんでした：${e.message}`; console.error('[titration] equation builder failed:', e); }
 }
 // 濃度の小問がすべて立式・答えとも合ったら、答えを出す
 function unkJudged(j){
@@ -466,9 +487,9 @@ function unkAnswerText(){
 $('unkCompCheck').onclick = () => {
   const a = $('unkComp').value; if (!a){ $('unkRes').textContent = '入っているものを選んでください。'; return; }
   if (a !== sys.comp.type){ $('unkRes').innerHTML = '<span class="ng">ちがうようです。</span> 滴下した量の読みと、判断を見直しましょう。'; return; }
-  unkCompOk = true; saveUnkWork(null); $('unkRes').innerHTML = '<span class="ok">組成は合っています。</span> それぞれの濃度を求めましょう。'; renderUnk();
+  unkCompOk = true; saveUnkWork({draft: null, eq: null, eqShown: false}); $('unkRes').innerHTML = '<span class="ok">組成は合っています。</span> それぞれの濃度を求めましょう。'; renderUnk();
 };
-$('unkShow').onclick = () => unkReveal(`答え：${esc(unkAnswerText())}`);
+$('unkShow').onclick = () => { unkReveal(`答え：${esc(unkAnswerText())}`); if (eqBuilder){ eqBuilder.setAnswersVisible(true); saveUnkWork({eqShown: true}); } };
 $('unkNew').onclick = () => { unkFresh(); V = 0; unkRefresh(); };
 
 // ---- 描きなおし ----
@@ -757,6 +778,7 @@ document.addEventListener('keydown', e => {
   if (e.isComposing || e.metaKey || e.ctrlKey || e.altKey) return;
   const tgt = e.target.matches ? e.target : document.body;
   if (tgt.matches('input:not([type=range]), textarea, select')) return;
+  if (tgt.closest && tgt.closest('.unk-eq, .unk-formula')) return;   // 式・反応式の部品を操作中は、滴下のショートカットを効かせない
   if (e.key === '?'){ e.preventDefault(); $('btnHelp').click(); return; }
   if (e.key === ' ' && !tgt.matches('button, a, summary, input, tr')){ e.preventDefault(); setRunning(!running); return; }
   if ((e.key === 'r' || e.key === 'R') && !tgt.matches('input')){ e.preventDefault(); setV(0); }
@@ -804,8 +826,11 @@ buildApparatus();
 renderStatic();
 onResize();
 renderAll();
+// 読み込み直後は、文字（書体）や画面の幅が決まりきっていないことがあるので、ツールバーの詰め方をもう一度測る
+requestAnimationFrame(fitBar);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBar).catch(() => {});
 if (!hasUI) setTimeout(() => alert('共通部品（../shared/ui-kit.js）を読み込めませんでした。ページを再読み込みしてください。'), 200);
 
 // 検証用（最後まで読み込めたことの印にもする）
-window.__titration = {T, get unk(){ return {builder: unkBuilder, def: unkDef}; }, get ghosts(){ return ghosts; }, get cmp(){ return cache.cmp; }, get indRep(){ return indRep; }, state, get sys(){ return sys; }, get V(){ return V; }, get xmax(){ return xmax; }, get kp(){ return kp; }, setV, setRunning, selectSample, renderAll, setMode, get plot(){ return plotInfo; }};
+window.__titration = {T, get unk(){ return {builder: unkBuilder, def: unkDef, eqBuilder, eqDef}; }, get ghosts(){ return ghosts; }, get cmp(){ return cache.cmp; }, get indRep(){ return indRep; }, state, get sys(){ return sys; }, get V(){ return V; }, get xmax(){ return xmax; }, get kp(){ return kp; }, setV, setRunning, selectSample, renderAll, setMode, get plot(){ return plotInfo; }};
 })();

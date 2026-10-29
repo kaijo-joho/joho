@@ -1,0 +1,113 @@
+/* 化学反応式ビルダー。見た目は計算式ビルダー（css/lesson-formula-builder.css）にそろえる。
+   色は --lesson-slide-* から取る（教材側で決める。ダーク表示もそれに従う）。なければサイト共通の変数、さらに既定の色 */
+.chem-eq-builder{
+  --ceq-panel:var(--lesson-slide-panel, var(--bg-color, #fff));
+  --ceq-text:var(--lesson-slide-text, var(--text-color, #203040));
+  --ceq-muted:var(--lesson-slide-muted, #5d6f80);
+  --ceq-border:var(--lesson-slide-border, rgba(34, 83, 134, .25));
+  --ceq-focus:var(--lesson-slide-focus, var(--theme-color, #1677c8));
+  color:var(--ceq-text);max-width:100%;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);gap:.65rem;font-size:14px
+}
+.chem-eq-builder *{box-sizing:border-box}
+.ceq-title{margin:0;font-size:1em}
+.ceq-palette,.ceq-task{border:1px solid var(--ceq-border);border-radius:.6rem;background:var(--ceq-panel);padding:.6rem;min-width:0}
+.ceq-palette{position:relative;display:grid;gap:.45rem;font-size:.95em}
+.ceq-task h4{margin:0 0 .4rem;font-size:1em}
+.ceq-cards,.ceq-entry,.ceq-tools{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;min-width:0}
+.ceq-plabel{font-size:.85em;font-weight:700;color:var(--ceq-muted)}
+.ceq-sep{width:1px;align-self:stretch;background:var(--ceq-border);margin:0 .15rem}
+.chem-eq-builder button,.chem-eq-builder input{font:inherit;color:var(--ceq-text)}
+.ceq-card,.ceq-tool,.ceq-judge,.ceq-insert,.ceq-dialog button{
+  min-height:44px;border:1px solid var(--ceq-border);border-radius:.4rem;padding:.3rem .6rem;cursor:pointer;
+  background:color-mix(in oklab, var(--ceq-panel) 88%, var(--ceq-focus))
+}
+.ceq-card{display:inline-flex;align-items:center;gap:.25em;min-width:44px;padding:.15rem .5rem .15rem .35rem;cursor:grab;touch-action:none;
+  background:color-mix(in oklab, var(--ceq-panel) 92%, var(--ceq-focus));font-size:1.05em}
+.ceq-card.is-picked{border-color:var(--ceq-focus);background:color-mix(in oklab, var(--ceq-panel) 74%, var(--ceq-focus));box-shadow:inset 0 0 0 1px var(--ceq-focus)}
+.ceq-dots{font:16px/1 sans-serif;color:var(--ceq-muted);letter-spacing:-.1em}
+.ceq-f sub,.ceq-sp sub,.ceq-answer sub,.ceq-dlg-eq sub,.ceq-preview sub,.ceq-ghost sub{font-size:.72em;line-height:0}
+.ceq-f sup,.ceq-sp sup,.ceq-answer sup,.ceq-dlg-eq sup,.ceq-preview sup,.ceq-ghost sup{font-size:.72em;line-height:0}
+.ceq-input{min-height:44px;width:10em;max-width:100%;border:1px solid var(--ceq-border);border-radius:.35rem;background:var(--ceq-panel);padding:.3rem .5rem}
+.ceq-preview{min-width:2em;font-size:1.05em}
+.ceq-entry-msg{flex-basis:100%;font-size:.88em;color:color-mix(in oklab, #b42318 60%, var(--ceq-text))}
+.ceq-entry-msg:empty{display:none}
+/* 使い方の吹き出し：物質の欄（.ceq-palette）の幅に合わせて、その下に重ねる（本文の高さを変えない） */
+.ceq-help{justify-self:start}
+.ceq-help summary{min-height:44px;display:inline-flex;align-items:center;padding:0 .4rem;border-radius:.35rem;color:var(--ceq-muted);cursor:pointer;list-style:none;font-size:.9em}
+.ceq-help summary::-webkit-details-marker{display:none}
+.ceq-help summary::after{content:"▾";font-size:.7em;margin-left:.25em}
+.ceq-help[open] summary{background:color-mix(in oklab, var(--ceq-panel) 85%, var(--ceq-focus))}
+.ceq-help-panel{position:absolute;z-index:20;left:.4rem;right:.4rem;top:calc(100% - .3rem);max-width:34em;padding:.4rem .75rem;border:1px solid var(--ceq-border);border-radius:.5rem;
+  background:var(--ceq-panel);box-shadow:0 8px 24px rgba(20,30,50,.18);font-size:.9em;line-height:1.6}
+.ceq-help-panel p{margin:.35rem 0}
+.ceq-tasks{display:grid;grid-template-columns:minmax(0,1fr);gap:.65rem;min-width:0}
+.ceq-rows{display:grid;grid-template-columns:minmax(0,1fr);gap:.45rem;min-width:0}
+.ceq-row-head{display:flex;flex-wrap:wrap;gap:.2rem .6rem;align-items:baseline}
+.ceq-row-label{font-size:.85em;color:var(--ceq-muted)}
+.ceq-origin{font-size:.82em;color:var(--ceq-muted)}
+.ceq-origin::before{content:"← "}
+.ceq-line{display:flex;align-items:center;gap:.4rem;min-width:0}
+.ceq-eq{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:.15rem .25rem;padding:.25rem;
+  border:1px dashed var(--ceq-border);border-radius:.45rem;background:color-mix(in oklab, var(--ceq-panel) 96%, var(--ceq-text));overflow-x:auto}
+.ceq-side{display:flex;flex-wrap:nowrap;align-items:center;min-width:0}
+.ceq-rhs{display:flex;align-items:center;min-width:0}   /* 折り返すときは、矢印を右辺の先頭に付ける */
+.ceq-arrow{font-size:1.2em;padding:0 .2rem;color:var(--ceq-text)}
+.ceq-plus{padding:0 .1rem}
+.ceq-term{position:relative;display:inline-flex;align-items:center;border-radius:.4rem}
+/* 係数の欄：空（係数 1）でも場所が分かるよう、薄い枠を付ける */
+.ceq-coef{width:2.1em;min-height:40px;padding:0 .15rem;text-align:right;border:1px solid color-mix(in oklab, var(--ceq-border) 70%, transparent);border-radius:.3rem;
+  background:color-mix(in oklab, var(--ceq-panel) 70%, transparent);font-size:1.05em}
+.ceq-coef:hover,.ceq-coef:focus{border-color:var(--ceq-focus);background:var(--ceq-panel)}
+.ceq-coef.is-invalid{border-color:color-mix(in oklab, #b42318 70%, var(--ceq-text))}
+.ceq-sp{min-height:44px;min-width:44px;padding:0 .3rem;border:1px solid transparent;border-radius:.4rem;background:transparent;cursor:grab;touch-action:none;font-size:1.05em}
+.ceq-sp:hover{border-color:var(--ceq-border)}
+.ceq-term.is-selected .ceq-sp{border-color:var(--ceq-focus);background:color-mix(in oklab, var(--ceq-panel) 78%, var(--ceq-focus))}
+/* 選んだ物質の右上の小さな ×（押せる範囲は 44px） */
+.ceq-del{position:absolute;top:-14px;right:-14px;z-index:2;isolation:isolate;width:44px;height:44px;padding:0;border:0;background:transparent;cursor:pointer;
+  color:var(--ceq-text);font-size:13px;line-height:44px;text-align:center}
+.ceq-del::before{content:"";position:absolute;z-index:-1;inset:12px;border-radius:50%;background:var(--ceq-panel);border:1px solid var(--ceq-border)}
+/* 挿入位置：ふだんは細く、選んだとき・ドラッグ中は点線の枠で示す。空の辺は「左辺」「右辺」の文字を出す */
+.ceq-slot{width:14px;min-width:14px;min-height:44px;padding:0;border:1px dashed transparent;border-radius:.35rem;background:transparent;cursor:pointer;color:var(--ceq-muted);font-size:.85em}
+.ceq-slot.is-empty{width:auto;min-width:4.2em;padding:0 .5rem;border-color:var(--ceq-border)}
+.ceq-slot:hover{border-color:var(--ceq-border)}
+:is(.is-dragging, .is-placing) .ceq-slot{border-color:color-mix(in oklab, var(--ceq-focus) 45%, transparent);width:20px}
+:is(.is-dragging, .is-placing) .ceq-slot.is-empty{width:auto}
+.ceq-slot.is-active,.ceq-slot.is-dragover{border-style:solid;border-color:var(--ceq-focus);background:color-mix(in oklab, var(--ceq-panel) 80%, var(--ceq-focus));width:20px}
+.ceq-slot.is-empty.is-active,.ceq-slot.is-empty.is-dragover{width:auto}
+@media (pointer:coarse){ .ceq-slot{width:22px;min-width:22px} .ceq-slot.is-active,.ceq-slot.is-dragover,:is(.is-dragging, .is-placing) .ceq-slot{width:32px} }
+.ceq-ghost{position:fixed;left:0;top:0;z-index:1000;pointer-events:none;padding:.2rem .5rem;border:1px solid var(--lesson-slide-focus, #1677c8);border-radius:.4rem;
+  background:var(--lesson-slide-panel, #fff);color:var(--lesson-slide-text, #203040);font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+.ceq-judge{flex:none;font-weight:700}
+.ceq-tool{font-size:.9em}
+.chem-eq-builder button:disabled,.chem-eq-builder input:disabled{cursor:not-allowed;opacity:.5}
+.chem-eq-builder :is(button, input, summary):focus-visible,.ceq-dialog :is(button, input):focus-visible{outline:3px solid color-mix(in oklab, var(--ceq-focus, #1677c8) 65%, transparent);outline-offset:2px}
+.ceq-feedback:empty{display:none}
+.ceq-check{display:flex;flex-wrap:wrap;gap:.2rem .9rem;margin:.35rem 0 0;padding:0;list-style:none;font-size:.92em}
+.ceq-check .is-ok,.ceq-fb.is-ok{color:color-mix(in oklab, #147b3a 60%, var(--ceq-text));font-weight:700}
+.ceq-check .is-error,.ceq-fb.is-error{color:color-mix(in oklab, #b42318 60%, var(--ceq-text))}
+.ceq-check .is-error{font-weight:700}
+.ceq-check .is-skip{color:var(--ceq-muted)}
+.ceq-fb{margin:.3rem 0 0;font-size:.92em;line-height:1.5}
+.ceq-tools{margin-top:.45rem}
+.ceq-answer{margin:.5rem 0 0;padding:.4rem .6rem;border-left:3px solid var(--ceq-focus);font-size:1.02em;line-height:1.7}
+.ceq-answer b{font-size:.85em;margin-right:.4em}
+.ceq-or{font-size:.82em;color:var(--ceq-muted);margin:0 .4em}
+/* 操作のダイアログ */
+.ceq-dialog{width:min(36em, calc(100vw - 24px));max-height:calc(100vh - 40px);overflow:auto;border:1px solid var(--ceq-border, rgba(34,83,134,.25));border-radius:.7rem;padding:.9rem 1rem;
+  color:var(--lesson-slide-text, #203040);background:var(--lesson-slide-panel, #fff);font-size:14px}
+.ceq-dialog::backdrop{background:rgba(10,20,30,.4)}
+.ceq-dialog h4{margin:0 0 .3rem;font-size:1.05em}
+.ceq-dialog button,.ceq-dialog input{font:inherit;color:inherit}
+.ceq-dialog button{background:color-mix(in oklab, var(--lesson-slide-panel, #fff) 88%, var(--lesson-slide-focus, #1677c8));border-color:var(--lesson-slide-border, rgba(34,83,134,.25))}
+.ceq-dlg-note{margin:0 0 .5rem;font-size:.9em;color:var(--lesson-slide-muted, #5d6f80);line-height:1.5}
+.ceq-dlg-row{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .6rem;padding:.3rem 0;border-top:1px solid var(--lesson-slide-border, rgba(34,83,134,.2))}
+.ceq-dlg-row label{display:inline-flex;align-items:center;gap:.35rem;min-height:44px;cursor:pointer}
+.ceq-dlg-row input[type=checkbox],.ceq-dlg-row input[type=radio]{width:20px;height:20px}
+.ceq-dlg-eq{flex:1 1 14em;min-width:0}
+.ceq-mult input,.ceq-dlg-n input{width:3em;min-height:40px;margin-left:.25rem;padding:0 .3rem;text-align:right;border:1px solid var(--lesson-slide-border, rgba(34,83,134,.3));border-radius:.3rem;background:transparent}
+.ceq-dlg-n{display:inline-flex;align-items:center;margin-top:.4rem}
+.ceq-dlg-msg{margin:.4rem 0 0;min-height:1.2em;font-size:.9em;color:color-mix(in oklab, #b42318 60%, currentColor)}
+.ceq-dlg-btns{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.4rem}
+.ceq-dlg-ok{font-weight:700}
+@media (max-width:480px){ .ceq-line{flex-wrap:wrap} .ceq-judge{margin-left:auto} .ceq-side,.ceq-rhs{flex-wrap:wrap} }
+@media (prefers-reduced-motion:reduce){ .chem-eq-builder *{transition:none!important} }
