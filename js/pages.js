@@ -1,4 +1,4 @@
-//2026-10-07 03:54:10;
+//2026-10-29 10:57:04;
 const pages = {
   "index": {
     "id": "index",
@@ -544,7 +544,7 @@ const pages = {
         "id": "dr43",
         "title": "4-3. ディスプレイとプリンタ",
         "text": "4-3. ディスプレイとプリンタ",
-        "release": false,
+        "release": true,
         "url": "dr43.html",
         "detail": "ディスプレイの画素と発色、リフレッシュレート、プリンタの解像度と印刷に必要な画素数を操作と問題で学びます。"
       }
@@ -564,7 +564,7 @@ const pages = {
   },
   "dr43": {
     "id": "dr43",
-    "release": false,
+    "release": true,
     "fileName": "dr43.html",
     "mainTitle": "デジタル表現",
     "category": "画像・動画のデジタル表現",
@@ -592,7 +592,7 @@ const pages = {
         "id": "dr43",
         "title": "4-3. ディスプレイとプリンタ ワークシート",
         "text": "4-3. ディスプレイとプリンタ ワークシート",
-        "release": false,
+        "release": true,
         "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr43",
         "detail": "ディスプレイの画素・発色・更新頻度、プリンタの色・解像度・印刷に必要な画素数を整理するワークシート。"
       }
@@ -624,6 +624,16 @@ const pages = {
       }
     ],
     "show": true,
+    "worksheetApp": [
+      {
+        "id": "dr51",
+        "title": "5-1. データの圧縮とランレングス法 ワークシート",
+        "text": "5-1. データの圧縮とランレングス法 ワークシート",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr51",
+        "detail": "圧縮・復元、圧縮率、文字列と二値画像のランレングス法を整理するワークシート。"
+      }
+    ],
     "backFile": "dr43.html"
   },
   "dr52": {
@@ -642,6 +652,16 @@ const pages = {
     "back": "dr51",
     "next": false,
     "show": true,
+    "worksheetApp": [
+      {
+        "id": "dr52",
+        "title": "5-2. ハフマン符号化 ワークシート",
+        "text": "5-2. ハフマン符号化 ワークシート",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr52",
+        "detail": "固定長・可変長符号、ハフマン木、符号化・復元、圧縮率を整理するワークシート。"
+      }
+    ],
     "backFile": "dr51.html"
   },
   "nw00": {
@@ -1441,7 +1461,7 @@ const pages = {
         "title": "KSロゴマーク",
         "fileName": "il01_KSロゴマーク.ai",
         "url": "https://drive.google.com/file/d/1uI4QppEqGNXxBqb61Pk4UKtPrPj01fx8/view?usp=drivesdk",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=ilp&mode=submit&variant=il01",
+        "submitUrl": "",
         "text": "il01_KSロゴマーク.ai"
       }
     ],
@@ -1478,7 +1498,7 @@ const pages = {
         "title": "Illustratorの基礎知識",
         "fileName": "il02_Illustratorの基礎知識.ai",
         "url": "https://drive.google.com/file/d/1yWD1NUcooTzRttLZi9gxncKDP0JWlxtZ/view?usp=drive_link",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=ilp&mode=submit&variant=il02",
+        "submitUrl": "",
         "text": "il02_Illustratorの基礎知識.ai"
       }
     ],
@@ -1515,7 +1535,7 @@ const pages = {
         "title": "線を描く",
         "fileName": "il03_線を描く.ai",
         "url": "https://drive.google.com/file/d/1zCLUa4K1RsUnHr-PLhXhgRUlhhBMLOB3/view?usp=drive_link",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=ilp&mode=submit&variant=il03",
+        "submitUrl": "",
         "text": "il03_線を描く.ai"
       }
     ],
@@ -1552,7 +1572,7 @@ const pages = {
         "title": "文字の扱い",
         "fileName": "il04_文字の扱い.ai",
         "url": "https://drive.google.com/file/d/1GhGGcHMMg_8NtUD7jcwd6H4IVOK-C637/view?usp=drive_link",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=ilp&mode=submit&variant=il04",
+        "submitUrl": "",
         "text": "il04_文字の扱い.ai"
       }
     ],
@@ -1580,7 +1600,7 @@ const pages = {
         "title": "ナイフとフォーク",
         "fileName": "il21a_ナイフとフォーク.ai",
         "url": "https://drive.google.com/file/d/19LvNRf7_FwIP_a4uPohJ9LS8VyX2yE5K/view?usp=drive_link",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=ilp&variant=il21a",
+        "submitUrl": "",
         "text": "il21a_ナイフとフォーク.ai"
       },
       {
@@ -1589,7 +1609,7 @@ const pages = {
         "title": "水滴",
         "fileName": "il21b_水滴.ai",
         "url": "https://drive.google.com/file/d/1hJmTSQgMYzANRmAzOO39VINP7Nx916YF/view?usp=drive_link",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=ilp&variant=il21b",
+        "submitUrl": "",
         "text": "il21b_水滴.ai"
       },
       {
@@ -1598,7 +1618,7 @@ const pages = {
         "title": "ハート",
         "fileName": "il21c_ハート.ai",
         "url": "https://drive.google.com/file/d/16F3OVBmkjBsyaaG1PhhOwqYJMZG63S_p/view?usp=drive_link",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=ilp&variant=il21c",
+        "submitUrl": "",
         "text": "il21c_ハート.ai"
       }
     ],
@@ -3020,7 +3040,7 @@ const pages = {
     "fileName": "py94.html",
     "mainTitle": "Python講座",
     "category": "その他",
-    "title": "",
+    "title": "Python講座 9-4",
     "detail": "",
     "practiceFile": false,
     "dlFile": false,
