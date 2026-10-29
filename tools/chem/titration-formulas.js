@@ -16,16 +16,21 @@
     'L/mL': unit('L/mL', { L: 1, mL: -1 }, { conversion: true, conversionLabel: 'mL→L', conversionOperation: '掛ける' })
   });
   const UNIT_LESS_CONVERSIONS = Object.freeze({ '1000': ['', 'mL/L'], '0.001': ['', 'L/mL'] });
-  const readTol = 0.3;                                                  // ビュレットの読みの許容（mL）。指示薬や読みがずれると外れる
+  // ビュレットの読みの許容（mL）。炭酸塩の第 1 終点（フェノールフタレイン）は変色がゆるやかで、色の中央でも当量点より
+  // 0.15〜0.26 mL 前になるため、0.5 mL とする。誤った指示薬では 0.9 mL 以上ずれるので、区別はつく（dev のテストで確かめる）
+  const readTol = 0.5;
   const concTol = c => Math.max(c * 0.03, 0.003);                       // 濃度の許容（mol/L）
+  const sig3 = n => Number(n).toPrecision(3);                           // 問題の数値は有効数字 3 桁で示す（0.100 mol/L、10.0 mL）
 
   function createDefinition(id) {
-    const definition = { id, units: UNITS, unitlessConversionChoices: UNIT_LESS_CONVERSIONS, manualUnits: ['mL', 'L', 'mol', 'mol/L'], quantities: [], constants: [], sources: [], tasks: [] };
+    const definition = { id, units: UNITS, unitlessConversionChoices: UNIT_LESS_CONVERSIONS, manualUnits: ['mL', 'L', 'mol', 'mol/L'], preserveDecimals: true, quantities: [], constants: [], sources: [], tasks: [] };
+    // 測った値（濃度・体積）は、有効数字 3 桁の書き方のまま渡す（式ビルダーは preserveDecimals で末尾の 0 を残す）
     function source(sourceId, label, number, unitId, options = {}) {
-      const item = { id: sourceId, label, value: String(number), unit: unitId, symbol: sourceId };
+      const text = options.implicit ? String(number) : sig3(number);
+      const item = { id: sourceId, label, value: text, unit: unitId, symbol: sourceId };
       definition.sources.push(item);
-      if (!options.implicit) definition.quantities.push({ id: sourceId, label, value: String(number), unit: unitId });
-      return value(number, unitId, sourceId);
+      if (!options.implicit) definition.quantities.push({ id: sourceId, label, value: text, unit: unitId });
+      return value(text, unitId, sourceId);
     }
     function constant(constantId, label, number, unitId = '') { definition.constants.push({ id: constantId, label, value: String(number), unit: unitId }); return value(number, unitId); }
     function task(taskId, label, answerUnit, expected, expectedTokens, extras = {}) {
@@ -67,8 +72,8 @@
     const { definition, source, constant, task, reading } = createDefinition('titration-carbonate'), c = sys.comp, t = c.type;
     const ct = source('ct', `${sys.titrant.name} の濃度`, sys.Ct, 'mol/L'), v0 = source('v0', '試料の体積', sys.V0, 'mL');
     constant('kilo', '換算用の数', 1000); constant('two', '係数', 2);
-    const v1 = t === 'B' ? null : reading('v1', 'v1', '(1) フェノールフタレインの終点の読み', 'フェノールフタレインが変色するまでの滴下量（ビュレットの読み）は', sys.Veq[0]);
-    const vt = reading('vt', 'vt', t === 'B' ? '(1) メチルオレンジの終点の読み' : '(2) メチルオレンジの終点の読み', 'メチルオレンジが変色するまでの滴下量（ビュレットの読み）は', sys.Veq[sys.Veq.length - 1]);
+    const v1 = t === 'B' ? null : reading('v1', 'v1', '(1) フェノールフタレインの終点の読み V₁', 'フェノールフタレインが変色するまでの滴下量 V₁（ビュレットの読み）は', sys.Veq[0]);
+    const vt = reading('vt', 'vt', `(${t === 'B' ? 1 : 2}) メチルオレンジの終点の読み Vt`, t === 'B' ? 'メチルオレンジが変色するまでの滴下量 Vt（ビュレットの読み）は' : 'メチルオレンジが変色するまでの、滴下の始めからの量 Vt（ビュレットの読み。V₂ = Vt − V₁）は', sys.Veq[sys.Veq.length - 1]);
     const V2 = group([vt, op('-'), v1 || value(0)]);
     const expr = {
       A: { c1: [ct, op('×'), v1, op('÷'), v0] },

@@ -10,7 +10,7 @@
   --ok:#6fd08c; --warn:#f5b453; --ap:#f59e0b;
 }
 /* 操作部だけを拡大する（箱とグラフは画面に合わせて大きさが変わる） */
-.top,.info,#hint,.head,.panel-head,.player,.detail,.pcol,.cmpbar,.jump{zoom:var(--ui-k, 1)}
+.top,.info,.head,.panel-head,.player,.detail,.pcol,.cmpbar,.jump{zoom:var(--ui-k, 1)}
 .tool-help{font-size:var(--ui-size, 14px)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -40,8 +40,6 @@ button,select,input{font:inherit;color:inherit}
   box-shadow:0 8px 24px rgba(20,30,50,.16);padding:10px 12px;min-width:260px;flex-direction:column;gap:9px;font-size:13px}
 .hmenu > .menu::before{content:'';position:absolute;left:0;right:0;top:-9px;height:9px}
 .hmenu:hover > .menu,.hmenu:focus-within > .menu,.hmenu.open > .menu{display:flex}
-.hmenu.closed > .menu{display:none!important}
-.hmenu > .menu.mlist{min-width:0;padding:6px;gap:2px}
 .hmenu .mi{display:grid;grid-template-columns:18px 1fr;align-items:center;gap:8px;padding:6px 10px;min-height:32px;border:0;background:none;text-align:left;border-radius:6px;cursor:pointer;font-size:13px;white-space:nowrap;width:100%}
 .hmenu .mi:hover{background:var(--accent-soft);color:var(--accent)}
 .hmenu .mi .dot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--muted);justify-self:center}
@@ -89,7 +87,6 @@ button,select,input{font:inherit;color:inherit}
 .cv-wrap.chart{min-height:340px}
 .svgwrap{display:flex;align-items:center;justify-content:center;padding:6px;min-height:420px}
 .svgwrap svg{width:100%;height:100%;max-height:560px}
-#hint{position:absolute;left:12px;bottom:8px;font-size:12px;color:var(--muted);background:var(--panel);opacity:.92;padding:3px 8px;border-radius:6px;pointer-events:none;max-width:calc(100% - 24px);z-index:3}
 .clegend{margin-left:auto;display:flex;gap:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
 .clegend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 .clegend i{display:inline-block;width:20px;height:0;border-top:2.5px solid var(--accent)}
@@ -174,7 +171,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
   .proc-grid{grid-template-columns:1fr}
   .pcol + .pcol{border-left:0;border-top:1px solid var(--line)}
 }
-@media (max-width:700px){ .app-name,.beta{display:none} #hint{display:none} .eqn{font-size:18px} }
+@media (max-width:700px){ .app-name,.beta{display:none} .eqn{font-size:18px} }
 @media (max-width:560px){
   .top{gap:3px;padding:5px 6px}
   .top .sep{display:none}
@@ -192,6 +189,8 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .top.tightest button.ic{width:28px}
 .top.tightest button.ic.wide{padding:0 5px}
 .top.tightest #btnSmp .caret{display:none}
+/* それでも入らない（狭い画面で文字サイズ大・特大）ときは 2 段に折り返し、設定・使い方を画面の中に残す */
+.top.wrapbar{flex-wrap:wrap;row-gap:4px}
 
 /* ==== 0.2：タブ（緩衝液・指示薬） ==== */
 .viewseg button{height:28px;padding:0 12px}
@@ -202,7 +201,6 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .slrow b{min-width:3em;font-variant-numeric:tabular-nums}
 .chk.inl{display:inline-flex;align-items:center;gap:6px}
 .chk.inl input{margin:0}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:16px;padding:3px 12px;cursor:pointer;font-size:12.5px;min-height:32px}
 .chip-btn:hover{border-color:var(--accent)}
 .chip-btn.on{background:var(--accent-soft);color:var(--accent);font-weight:700;border-color:var(--accent)}
@@ -218,13 +216,10 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .cv-wrap.alpha{min-height:240px;height:240px;flex:none}
 .clegend.alg{margin-left:0}
 .clegend.alg i{border-top-width:3px}
-.readfig{display:flex;flex-wrap:wrap;gap:14px 28px;justify-content:center;padding:4px 0}
-.readfig figure{margin:0;text-align:center;font-size:12.5px;color:var(--muted)}
-.readfig svg{width:200px;height:300px;display:block}
 .rres{font-size:14px;min-height:1.6em}
 .rres .ok{color:var(--ok);font-weight:700} .rres .ng{color:var(--danger);font-weight:700}
 .slrow input[type=number]{width:7em;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--text);min-height:30px}
-@media (max-width:560px){ .viewseg button{padding:0 6px;font-size:12px} .readfig svg{width:160px;height:240px} }
+@media (max-width:560px){ .viewseg button{padding:0 6px;font-size:12px} }
 
 /* ==== 0.5：試料を選ぶ・条件を決めるモーダル ==== */
 #smpDlg{border:1px solid var(--line);border-radius:14px;padding:0;background:var(--panel);color:var(--text);width:min(900px,calc(100vw - 24px));max-height:min(88vh,720px);box-shadow:0 18px 60px rgba(10,20,40,.4);overflow:hidden}
@@ -260,12 +255,6 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 }
 
 /* ==== 0.6：同じ滴下液の試料を重ねて比べる ==== */
-.mrow{display:flex;align-items:stretch;gap:4px;flex:none}
-.mrow .mi{flex:1;min-width:0}
-.cmpcb{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);padding:0 8px;border-radius:8px;cursor:pointer;white-space:nowrap}
-.cmpcb:hover{background:var(--hover)}
-.cmpcb.dis{opacity:.4;cursor:not-allowed}
-.cmpcb input{margin:0;width:16px;height:16px;accent-color:var(--accent)}
 .cmpbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:2px 4px 6px;border-bottom:1px solid var(--line);margin-bottom:2px}
 
 /* ==== 0.7：試料・滴下液・プリセット ==== */
@@ -336,7 +325,6 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .buf-panel .slrow input[type=range]{flex:1;min-width:80px}
 .tp-row .indbar{padding:0}
 .unk-prob{margin:0;font-size:14px;line-height:1.7;padding:8px 10px;border-left:3px solid var(--accent);background:var(--panel2,transparent)}
-#unkCompNums{gap:8px 16px}
 
 /* 未知試料：問題の試料を上のツールバーに、指示薬はビュレットの近くに置く。式の組み立ては共通の式ビルダー */
 .top > .topsel{flex:0 1 190px;min-width:84px;height:30px;padding:0 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--text);font-size:12.5px}

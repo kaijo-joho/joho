@@ -382,7 +382,11 @@
       var raw = String(value == null ? '' : value);
       if (!/^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/.test(raw.replace(/,/g, ''))) return raw;
       var number = Number(raw.replace(/,/g, ''));
-      return Number.isFinite(number) ? new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 12 }).format(number) : raw;
+      var format = { maximumFractionDigits: 12 };
+      // 有効数字を示すため、定義で指定したときだけ、書かれた小数の桁（0.100 の末尾の 0）を残す
+      var decimals = config.preserveDecimals ? raw.match(/\.(\d+)$/) : null;
+      if (decimals) format.minimumFractionDigits = Math.min(12, decimals[1].length);
+      return Number.isFinite(number) ? new Intl.NumberFormat('ja-JP', format).format(number) : raw;
     }
     function tokenLabel(token) {
       if (token.kind === 'value') return displayNumber(token.value) + (token.unit ? ' ' + displayUnit(token.unit) : '');

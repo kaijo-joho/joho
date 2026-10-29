@@ -207,9 +207,12 @@ function makeSys(sample, over = {}, titrant = null){
   if (sample.comp && sample.comp.back){      // 逆滴定：1 回目は残った HCl、2 回目は NH₄⁺ まで（全体の酸）
     const {nN, nHCl} = sample.comp, k = 1 / (Ct * sys.tm);
     sys.comp = sample.comp; sys.Veq = [(nHCl - nN) * k, nHCl * k]; sys.dVeq = nN * k; sys.Vmax = sys.Veq[1] * 1.2;
+    sys.approxOK = false; sys.approxNote = '過剰の塩酸と NH₄⁺ が混ざった液なので、場面ごとの教科書の近似式では扱えません。厳密な計算の結果だけを出しています。';
   } else if (sample.comp){          // 炭酸塩の混合：1 回目（PP）は NaOH ＋ CO₃²⁻ → HCO₃⁻、2 回目（MO）は全体
     const {c1, c2, c3} = sample.comp, k = sys.V0 / (Ct * sys.tm), V1 = (c3 + c1) * k, Vt = (c3 + 2 * c1 + c2) * k;
     sys.comp = sample.comp; sys.Veq = sample.comp.type === 'B' ? [Vt] : [V1, Vt]; sys.dVeq = (c1 || c2) * k; sys.Vmax = Vt * 1.3;
+    // 近似式は Na₂CO₃ だけの液を前提にしている。NaHCO₃ だけ・2 種類の混合では使えない
+    if (sample.comp.type !== 'A'){ sys.approxOK = false; sys.approxNote = '2 種類の塩の混合（または NaHCO₃ から始まる滴定）なので、場面ごとの教科書の近似式では扱えません。厳密な計算の結果だけを出しています。'; }
   }
   return sys;
 }
@@ -258,7 +261,7 @@ function solveExact(sys, V){
 // r = 滴下した H⁺（OH⁻）の物質量 ÷ 試料の物質量。整数なら当量点（または出発点）。
 function approx(sys, V){
   const N0 = sys.N0, Vt = sys.V0 + V, Ntm = sys.Ct * V, Nt = Ntm * sys.tm, n = sys.n, acid = sys.kind === 'acid';   // Nt：滴下した H⁺（OH⁻）の物質量 mmol
-  if (!sys.approxOK) return {pH: null, label: '', lines: ['滴下液が弱い酸・塩基（' + sys.titrant.name + '）なので、教科書の近似式はありません。厳密な計算の結果だけを出しています。'], role: 'none'};
+  if (!sys.approxOK) return {pH: null, label: '', lines: [sys.approxNote || '滴下液が弱い酸・塩基（' + sys.titrant.name + '）なので、教科書の近似式はありません。厳密な計算の結果だけを出しています。'], role: 'none'};
   const r = N0 > 0 ? Nt / N0 : 0;
   const L = [], aName = sys.name, tName = sys.titrant.name;
   const H = acid ? 'H⁺' : 'OH⁻', T = acid ? 'OH⁻' : 'H⁺';
@@ -438,22 +441,6 @@ function alphaCurve(sys, xmax, N = 300){
   return series;
 }
 
-// ---- ビュレットの目盛りを読む練習 ----
-// mode 'single'：液面の読みを答える／'diff'：始めと終わりの読みから、滴下した量を答える。読みは 0.01 mL の位まで（最小目盛りは 0.1 mL）。
-function readingQuestion(seed, cap = 25, mode = 'single'){
-  const rnd = S.rng(seed * 7919 + (mode === 'diff' ? 13 : 5));
-  const r2 = x => Math.round(x * 100) / 100;
-  if (mode === 'diff'){
-    const a = r2(rnd() * 4), len = r2(5 + rnd() * Math.min(15, cap - 6));
-    const b = r2(a + len);
-    return {mode, a, b, answer: r2(b - a), tol: 0.03};
-  }
-  return {mode, a: r2(0.6 + rnd() * (cap - 1.2)), answer: null, tol: 0.02, get value(){ return this.a; }};
-}
-function checkReading(q, ans){
-  const correct = q.mode === 'diff' ? q.answer : q.a;
-  return {correct, ok: isFinite(ans) && Math.abs(ans - correct) <= q.tol + 1e-9, diff: ans - correct};
-}
 // 食酢の滴定：未知の濃度（うすめた液）を出題ごとに決める。0.0500〜0.1000 mol/L、0.0001 刻み
 function unknownConc(seed){ const r = S.rng(seed * 104729 + 3); return Math.round((0.05 + r() * 0.05) * 1e4) / 1e4; }
 
@@ -478,7 +465,7 @@ function alphaVsPH(sys, step = 0.05){
   return series;
 }
 
-const api = {CARB_TYPES, carbonateProblem, carbonateSample, backSample, TITRANTS, titrantByKey, titrantsFor, customTitrant, customSample, alphaVsPH, alphaCurve, readingQuestion, checkReading, unknownConc, indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
+const api = {CARB_TYPES, carbonateProblem, carbonateSample, backSample, TITRANTS, titrantByKey, titrantsFor, customTitrant, customSample, alphaVsPH, alphaCurve, unknownConc, indicatorReport, bufferTest, KW, SAMPLES, sampleByKey, INDICATORS, indicatorByKey, indicatorColor, indicatorFrac, WATER, makeSys, fractions, solveExact, approx, quality, exactLines, curve, volumeGrid, keyPoints};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemTitration = api;
 })(typeof window !== 'undefined' ? window : globalThis);
