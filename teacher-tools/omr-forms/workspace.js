@@ -6,7 +6,7 @@
  function defaultView(){return{pageIndex:0,zoom:1};}
  function cleanView(view,document){var value=view||defaultView();if(!Number.isInteger(value.pageIndex)||value.pageIndex<0||value.pageIndex>=document.definition.pages.length||typeof value.zoom!=='number'||!Number.isFinite(value.zoom)||value.zoom<0.1||value.zoom>10)throw problem('INVALID','表示状態が不正です');return{pageIndex:value.pageIndex,zoom:value.zoom};}
  function validate(doc){if(!doc||doc.schema!=='omr-editor-document/1'||!doc.metadata)throw problem('INVALID','用紙ファイルの形式が不正です');
-  OMRDesigner.validate(doc.definition);var m=doc.metadata;
+  OMRDesigner.validate(OMRDesigner.prepare(doc.definition));var m=doc.metadata;
   if(!['worksheet','application','quiz','survey','record','other'].includes(m.usage)||['subject','classification','templateId'].some(function(k){return typeof m[k]!=='string'||m[k].length>500;})||!Array.isArray(m.tags)||m.tags.length>100||m.tags.some(function(t){return typeof t!=='string'||t.length>500;}))throw problem('INVALID','用紙の管理情報が不正です');
   if(new TextEncoder().encode(OMRDesigner.canonical(doc)).length>200000)throw problem('INVALID','用紙データが大きすぎます');return doc;
  }
