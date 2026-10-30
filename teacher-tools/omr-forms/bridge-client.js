@@ -11,7 +11,8 @@
   validate(){var c=this.config,w=this.w;if(!c.enabled)throw error('DISABLED','GAS接続は未設定です。用紙はブラウザ・ファイルに保存できます。');
    if(!origin(c.brokerOrigin))throw error('CONFIG','接続先の設定が不正です');var u=new URL(c.gasUrl);
    var local=c.localMock&&['127.0.0.1','localhost'].includes(w.location.hostname)&&['127.0.0.1','localhost'].includes(u.hostname)&&u.origin===c.brokerOrigin;
-   if(!local&&(!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(c.gasUrl)||new URL(c.brokerOrigin).protocol!=='https:'||!new URL(c.brokerOrigin).hostname.endsWith('.googleusercontent.com')))throw error('CONFIG','実測したGAS接続先と完全一致originが必要です');
+   var deployedUrl=/^https:\/\/script\.google\.com\/(?:macros\/s\/[A-Za-z0-9_-]+|a\/macros\/gfe\.kaijo\.ed\.jp\/s\/[A-Za-z0-9_-]+)\/exec$/;
+   if(!local&&(!deployedUrl.test(c.gasUrl)||new URL(c.brokerOrigin).protocol!=='https:'||!new URL(c.brokerOrigin).hostname.endsWith('.googleusercontent.com')))throw error('CONFIG','実測したGAS接続先と完全一致originが必要です');
   }
   connect(){this.validate();if(this.peer)return this.call('session',{});if(this.connecting)return this.connecting.promise;
    var self=this,n=nonce(this.w),u=new URL(this.config.gasUrl);u.searchParams.set('cn',n);this.connectionNonce=n;
