@@ -1,0 +1,112 @@
+{
+  "schema": "omr-form/1",
+  "form_id": "generic",
+  "layout_version": "v2",
+  "academic_year": 2026,
+  "purpose": "attendance",
+  "title": "新しい用紙",
+  "paper": {
+    "size": "A4",
+    "orientation": "portrait"
+  },
+  "grade": {
+    "mode": "field",
+    "allowed": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "labels": {
+      "1": "中1",
+      "2": "中2",
+      "3": "中3",
+      "4": "高1",
+      "5": "高2",
+      "6": "高3"
+    }
+  },
+  "body": [],
+  "handwriting": [],
+  "pages": [
+    {
+      "number": 1,
+      "side": "F",
+      "fields": [
+        {
+          "id": "grade",
+          "label": "学年",
+          "kind": "single",
+          "required": true,
+          "layout": "row",
+          "options": [
+            {
+              "code": "1",
+              "label": "1"
+            },
+            {
+              "code": "2",
+              "label": "2"
+            },
+            {
+              "code": "3",
+              "label": "3"
+            },
+            {
+              "code": "4",
+              "label": "4"
+            },
+            {
+              "code": "5",
+              "label": "5"
+            },
+            {
+              "code": "6",
+              "label": "6"
+            }
+          ]
+        },
+        {
+          "id": "class",
+          "label": "組",
+          "kind": "digits",
+          "digits": 1,
+          "min": 1,
+          "max": 9,
+          "required": true
+        },
+        {
+          "id": "number",
+          "label": "番号",
+          "kind": "digits",
+          "digits": 2,
+          "min": 1,
+          "max": 99,
+          "required": true
+        }
+      ],
+      "elements": [
+        {
+          "id": "intro",
+          "type": "text",
+          "x": 16,
+          "y": 55.72,
+          "width": 178,
+          "height": 22,
+          "runs": [
+            {
+              "text": "ここに説明文を入力します。",
+              "font_size": 10,
+              "color": "#000000",
+              "bold": false,
+              "italic": false,
+              "underline": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

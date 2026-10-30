@@ -1,0 +1,164 @@
+{
+  "schema": "omr-form/1",
+  "form_id": "application-example",
+  "layout_version": "v2",
+  "academic_year": 2026,
+  "purpose": "applications",
+  "title": "参加申込書（架空の編集例）",
+  "paper": {
+    "size": "A4",
+    "orientation": "portrait"
+  },
+  "grade": {
+    "mode": "field",
+    "allowed": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "labels": {
+      "1": "中1",
+      "2": "中2",
+      "3": "中3",
+      "4": "高1",
+      "5": "高2",
+      "6": "高3"
+    }
+  },
+  "body": [],
+  "handwriting": [],
+  "pages": [
+    {
+      "number": 1,
+      "side": "F",
+      "fields": [
+        {
+          "id": "grade",
+          "label": "学年",
+          "kind": "single",
+          "required": true,
+          "layout": "row",
+          "options": [
+            {
+              "code": "1",
+              "label": "1"
+            },
+            {
+              "code": "2",
+              "label": "2"
+            },
+            {
+              "code": "3",
+              "label": "3"
+            },
+            {
+              "code": "4",
+              "label": "4"
+            },
+            {
+              "code": "5",
+              "label": "5"
+            },
+            {
+              "code": "6",
+              "label": "6"
+            }
+          ]
+        },
+        {
+          "id": "class",
+          "label": "組",
+          "kind": "digits",
+          "digits": 1,
+          "min": 1,
+          "max": 9,
+          "required": true
+        },
+        {
+          "id": "number",
+          "label": "番号",
+          "kind": "digits",
+          "digits": 2,
+          "min": 1,
+          "max": 99,
+          "required": true
+        },
+        {
+          "id": "course",
+          "label": "希望する内容（1つ選択）",
+          "kind": "single",
+          "required": true,
+          "layout": "list",
+          "options": [
+            {
+              "code": "choice_1",
+              "label": "選択肢1"
+            },
+            {
+              "code": "choice_2",
+              "label": "選択肢2"
+            },
+            {
+              "code": "choice_3",
+              "label": "選択肢3"
+            },
+            {
+              "code": "choice_4",
+              "label": "選択肢4"
+            }
+          ]
+        }
+      ],
+      "elements": [
+        {
+          "id": "intro",
+          "type": "text",
+          "x": 16.0,
+          "y": 55.72,
+          "width": 178.0,
+          "height": 26.0,
+          "runs": [
+            {
+              "text": "架空の編集例です。開催日・費用・提出先などは、確定した内容に編集してください。",
+              "font_size": 8,
+              "color": "#000000",
+              "bold": false,
+              "italic": false,
+              "underline": false
+            }
+          ]
+        },
+        {
+          "id": "block-course",
+          "type": "omr",
+          "field_id": "course",
+          "x": 16.0,
+          "y": 89.72,
+          "width": 178.0,
+          "height": 53.0
+        },
+        {
+          "id": "handwriting",
+          "type": "text",
+          "x": 16.0,
+          "y": 253.0,
+          "width": 178.0,
+          "height": 23,
+          "runs": [
+            {
+              "text": "保護者等の記入欄 __________________________________\nここに必要な説明や注意書きを入力できます。",
+              "font_size": 8,
+              "color": "#000000",
+              "bold": false,
+              "italic": false,
+              "underline": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
