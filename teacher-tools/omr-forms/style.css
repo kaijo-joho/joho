@@ -33,3 +33,5 @@ footer{display:flex;flex:none;justify-content:space-between;gap:12px;padding:5px
 /* Use explicit grid columns so hidden dock/resizer nodes cannot displace the rail. */
 .toolbar-icon{width:20px;height:20px;display:block;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.toolbar button{align-items:center;justify-content:center;gap:4px;border-radius:7px}#undo,#redo,#documents-menu,#settings-button,#help-button,#file-menu-button{display:inline-flex;min-width:32px}.app-brand{display:inline-flex;align-items:center;gap:5px}.menu-chevron{font-size:10px}#paragraph-style{width:112px}#font-size{width:61px}
 @media(max-width:800px){.toolbar>#undo,.toolbar>#redo,.toolbar>#palette-toggle:not([hidden]){display:inline-flex}.toolbar>#undo,.toolbar>#redo{min-width:30px;padding-inline:4px}.app-brand strong{display:none}.app-brand .toolbar-icon{width:19px;height:19px}}
+
+.page-delete{flex:none;min-height:30px;font-size:.9em;padding:3px 8px}.page-label{min-height:32px}
