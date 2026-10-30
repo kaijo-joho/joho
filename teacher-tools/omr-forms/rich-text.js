@@ -10,6 +10,12 @@
   var BLOCKS = new Set(['DIV', 'P']);
   var IGNORED = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'NOSCRIPT']);
   var PROPS = ['font_size', 'color', 'bold', 'italic', 'underline'];
+  var PARAGRAPH_PRESETS = {
+    body: { font_size: 9, bold: false },
+    h1: { font_size: 18, bold: true },
+    h2: { font_size: 14, bold: true },
+    h3: { font_size: 11, bold: true }
+  };
 
   function cssSize(value, fallback) {
     var m = String(value || '').trim().match(/^([+-]?(?:\d+\.?\d*|\.\d+))\s*(pt|px|pc|in|cm|mm)?$/i);
@@ -203,5 +209,67 @@
     return { runs: runs, range: restored };
   }
 
-  return { read: read, write: write, format: format };
+  function paragraphRanges(units) {
+    var result = [], start = 0;
+    units.forEach(function (unit, index) {
+      if (unit.text === '\n') {
+        result.push({ start: start, end: index, breakIndex: index });
+        start = index + 1;
+      }
+    });
+    result.push({ start: start, end: units.length, breakIndex: null });
+    return result;
+  }
+  function paragraphStyle(editor, range, preset) {
+    if (!editor || !editor.ownerDocument) throw new TypeError('editor must be a DOM element');
+    var style = PARAGRAPH_PRESETS[preset];
+    if (!style) throw new TypeError('unsupported paragraph preset');
+    var doc = editor.ownerDocument, units = unitsFor(editor), active = range && editor.contains(range.commonAncestorContainer) ? range.cloneRange() : null;
+    var paragraphs = paragraphRanges(units), whole = !active, start = 0, end = units.length, caret = null;
+    if (active) {
+      start = offsetAt(units, point(active.startContainer, active.startOffset), doc);
+      end = active.collapsed ? start : offsetAt(units, point(active.endContainer, active.endOffset), doc);
+      if (active.collapsed) caret = start;
+    }
+    var selected = new Set();
+    if (whole) paragraphs.forEach(function (_, index) { selected.add(index); });
+    else if (caret !== null) {
+      var line = paragraphs.findIndex(function (p) { return caret >= p.start && caret <= p.end; });
+      selected.add(line < 0 ? paragraphs.length - 1 : line);
+    } else {
+      paragraphs.forEach(function (p, index) {
+        if (p.start < p.end && start < p.end && end > p.start) selected.add(index);
+        else if (p.start === p.end && start <= p.start && end > p.start) selected.add(index);
+        // Selecting a paragraph separator includes the paragraph it terminates,
+        // but an endpoint at the next paragraph's start does not select that paragraph.
+        if (p.breakIndex !== null && start <= p.breakIndex && end > p.breakIndex) selected.add(index);
+      });
+    }
+    if (!units.length) {
+      var emptyRun = Object.assign({ text: '' }, DEFAULT, style), emptyRuns = [emptyRun];
+      write(editor, emptyRuns);
+      var emptyRange = doc.createRange(); emptyRange.setStart(editor, 0); emptyRange.collapse(true);
+      return { runs: emptyRuns, range: emptyRange };
+    }
+    var lineIndex = 0;
+    var formatted = units.map(function (unit) {
+      var currentLine = lineIndex;
+      if (unit.text === '\n') lineIndex++;
+      var copy = { text: unit.text, style: Object.assign({}, unit.style) };
+      // A line break carries the style of its paragraph; style an adjacent selected paragraph too.
+      if (selected.has(currentLine) || (unit.text === '\n' && selected.has(currentLine + 1))) {
+        copy.style.font_size = style.font_size;
+        copy.style.bold = style.bold;
+      }
+      return copy;
+    });
+    var runs = runsFromUnits(formatted);
+    var savedStart = caret === null ? start : caret, savedEnd = caret === null ? end : caret;
+    write(editor, runs);
+    var newUnits = unitsFor(editor), a = pointAt(newUnits, savedStart, editor), b = pointAt(newUnits, savedEnd, editor), restored = doc.createRange();
+    restored.setStart(a.node, a.offset); restored.setEnd(b.node, b.offset);
+    return { runs: runs, range: restored };
+  }
+
+  return { read: read, write: write, format: format, paragraphStyle: paragraphStyle };
 });
