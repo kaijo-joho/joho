@@ -26,3 +26,6 @@ footer{display:flex;flex:none;justify-content:space-between;gap:12px;padding:5px
 #rich-status.pending{color:var(--danger)}
 @media(max-width:800px){main:not(.dock-closed){grid-template-rows:minmax(160px,1fr) minmax(160px,42dvh)}main:not(.dock-closed) .right-dock{position:static;grid-row:2;grid-column:1;width:auto;max-height:none;border-left:0;border-top:1px solid var(--line);box-shadow:none}main:not(.dock-closed) .side-tabs{grid-row:1 / 3}main:not(.dock-closed) .canvas-area{grid-row:1}footer{flex-wrap:wrap}}
 @media(pointer:coarse){:root,html[data-ui-size]{--rail-width:44px}}
+
+.apply-component{width:100%;position:sticky;top:-12px;z-index:2;margin:8px 0 3px}.delete-component{width:100%;margin-top:15px}.component-editor #text-editor{white-space:pre-wrap;min-height:130px}.component-editor .selection-heading{padding-bottom:2px}
+[data-snap-guide]{pointer-events:none;stroke:#d34391;stroke-width:1;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
