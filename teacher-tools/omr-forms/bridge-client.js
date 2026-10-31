@@ -8,7 +8,7 @@
  function belongs(source,host){if(!source||!host)return false;try{var current=source;for(var i=0;i<10;i++){if(current===host)return true;var parent=current.parent;if(!parent||parent===current)break;current=parent;}return source.top===host;}catch(_){return false;}}
  class Client{
   constructor(config,w){this.config=config;this.w=w;this.pending=new Map();this.peer=null;this.host=null;this.popup=null;this.frame=null;this.connectionNonce=null;this.connecting=null;this.onMessage=this.receive.bind(this);w.addEventListener('message',this.onMessage);}
-  validate(){var c=this.config,w=this.w;if(!c.enabled)throw error('DISABLED','GAS接続は未設定です。用紙はブラウザ・ファイルに保存できます。');
+  validate(){var c=this.config,w=this.w;if(!c.enabled)throw error('DISABLED','用紙管理は未設定です。用紙はブラウザ・ファイルに保存できます。');
    if(!origin(c.brokerOrigin))throw error('CONFIG','接続先の設定が不正です');var u=new URL(c.gasUrl);
    var local=c.localMock&&['127.0.0.1','localhost'].includes(w.location.hostname)&&['127.0.0.1','localhost'].includes(u.hostname)&&u.origin===c.brokerOrigin;
    var deployedUrl=/^https:\/\/script\.google\.com\/(?:macros\/s\/[A-Za-z0-9_-]+|a\/macros\/gfe\.kaijo\.ed\.jp\/s\/[A-Za-z0-9_-]+)\/exec$/;
@@ -27,16 +27,16 @@
     this.peer=event.source;this.w.clearTimeout(this.connectionTimer);var connection=this.connecting,self=this;
     this.call('session',{}).then(function(result){if(self.connecting===connection){self.connecting=null;connection.resolve(result);}},function(e){if(self.connecting===connection)self.disconnect(e);});return;
    }
-   if(event.source===this.peer&&m.type==='closed'){this.disconnect(error('DISCONNECTED','保存先との接続を終了しました'));return;}
+   if(event.source===this.peer&&m.type==='closed'){this.disconnect(error('DISCONNECTED','用紙管理の利用を終了しました'));return;}
    if(event.source!==this.peer||m.type!=='response')return;var p=this.pending.get(m.requestId);if(!p||m.op!==p.op)return;
    this.pending.delete(m.requestId);this.w.clearTimeout(p.timer);if(m.ok===true)p.resolve(m.result);else p.reject(error(m.error&&m.error.code||'REMOTE',m.error&&m.error.message||'保存先で処理できませんでした'));
   }
-  call(op,data){if(!OPS.includes(op))return Promise.reject(error('INVALID','操作が不正です'));if(!this.peer)return Promise.reject(error('DISCONNECTED','GASへ接続してください'));
+  call(op,data){if(!OPS.includes(op))return Promise.reject(error('INVALID','操作が不正です'));if(!this.peer)return Promise.reject(error('DISCONNECTED','用紙管理にログインしてください'));
    var self=this,id=nonce(this.w);return new Promise(function(resolve,reject){var timer=self.w.setTimeout(function(){self.pending.delete(id);reject(error('TIMEOUT','応答を確認できません。保存要求は保持されています。同じ要求で再確認してください。'));},30000);
     self.pending.set(id,{op:op,resolve:resolve,reject:reject,timer:timer});try{self.peer.postMessage({protocol:PROTOCOL,type:'request',connectionNonce:self.connectionNonce,requestId:id,op:op,data:data},self.config.brokerOrigin);}catch(e){self.pending.delete(id);self.w.clearTimeout(timer);reject(error('DISCONNECTED','接続が切れています。再接続してください'));}
    });
   }
-  disconnect(reason){var e=reason||error('DISCONNECTED','接続を終了しました');this.w.clearTimeout(this.connectionTimer);if(this.connecting){this.connecting.reject(e);this.connecting=null;}this.pending.forEach(function(p){this.w.clearTimeout(p.timer);p.reject(e);},this);this.pending.clear();this.peer=null;this.host=null;this.frame=null;this.popup=null;this.connectionNonce=null;if(this.w.CustomEvent)this.w.dispatchEvent(new this.w.CustomEvent('omr-connection-closed',{detail:e.message}));}
+  disconnect(reason){var e=reason||error('DISCONNECTED','用紙管理の利用を終了しました');this.w.clearTimeout(this.connectionTimer);if(this.connecting){this.connecting.reject(e);this.connecting=null;}this.pending.forEach(function(p){this.w.clearTimeout(p.timer);p.reject(e);},this);this.pending.clear();this.peer=null;this.host=null;this.frame=null;this.popup=null;this.connectionNonce=null;if(this.w.CustomEvent)this.w.dispatchEvent(new this.w.CustomEvent('omr-connection-closed',{detail:e.message}));}
   destroy(){this.disconnect();this.w.removeEventListener('message',this.onMessage);}
  }
  root.OMRBridge={Client:Client,protocol:PROTOCOL,belongs:belongs};
