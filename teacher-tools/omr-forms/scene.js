@@ -1,4 +1,4 @@
-/* SVG preview/print uses the compact editor layout and a fixed QR mask. */
+/* SVG preview/print reserves QR space; drafts have no issued distribution QR. */
 var OMRScene=(function(){
   'use strict';var NS='http://www.w3.org/2000/svg',PT=25.4/72;
   function node(tag,attrs,text){var e=document.createElementNS(NS,tag);Object.keys(attrs||{}).forEach(function(k){e.setAttribute(k,String(attrs[k]));});if(text!==undefined)e.textContent=text;return e;}
@@ -35,9 +35,9 @@ var OMRScene=(function(){
         else{var pitch=(fg.rect[2]-10)/f.options.length;wrapped(target,b.x,b.y+6,optionsMap.get(b.code),pitch-2,7.3,3.5,{'text-anchor':'middle'});}
       });
     });
-    var qrText=await M.payload(d,p,token),code=qrcodegen.QrCode.encodeSegments(qrcodegen.QrSegment.makeSegments(qrText),qrcodegen.QrCode.Ecc.HIGH,1,40,0,false),matrixSize=code.size+8,step=g.qr[2]/matrixSize;
-    if(step<.45)throw Error('QR識別情報が長すぎます。用紙ID・版を短くしてください');
-    for(var row=0;row<code.size;row++)for(var col=0;col<code.size;col++)if(code.getModule(col,row))rect(svg,[g.qr[0]+(col+4)*step,g.qr[1]+(row+4)*step,step+.002,step+.002],{fill:'#000',stroke:'none'});
+    var qr=node('g',{'data-qr-state':'unissued','aria-label':'QR未発行・配付版未登録'});svg.append(qr);
+    rect(qr,g.qr,{stroke:'#777','stroke-dasharray':'1.2 1','data-qr-placeholder':'true'});
+    text(qr,g.qr[0]+g.qr[2]/2,g.qr[1]+g.qr[3]/2,'QR未発行',7*s,{'text-anchor':'middle',fill:'#666'});
     svg.append(node('line',{x1:16,y1:g.body_top-1,x2:g.width_mm-10*s,y2:g.body_top-1,stroke:'#000','stroke-width':.25*s}));
     g.elements.forEach(function(e){var group=svg.querySelector('[data-element-id="'+e.id+'"]');if(!group){group=node('g',{'data-element-id':e.id});svg.append(group);}
       if(e.border===true||(e.border===undefined&&e.type==='free'))rect(group,M.rect(e),{'data-border':e.id});
