@@ -7,7 +7,7 @@
  function dialog(title){dialogOrigin=document.activeElement;hideMenu();$('dialog-title').textContent=title;$('dialog-body').replaceChildren();$('document-dialog').showModal();return $('dialog-body');}
  var connectionOrigin=null,connectionSequence=0;
  function connectionStatus(message,state){$('connection-status').textContent=message;$('connection-status').dataset.state=state||'';}
- function showConnection(){hideMenu();if(!$('connection-dialog').open){connectionOrigin=document.activeElement;$('connection-dialog').showModal();}}
+ function showConnection(){if(!$('connection-dialog').open){connectionOrigin=document.activeElement;if(!connectionOrigin||connectionOrigin===document.body||$('file-menu').contains(connectionOrigin))connectionOrigin=$('file-menu-button');hideMenu();$('connection-dialog').showModal();}}
  async function startConnection(mode){if(store.busy)throw Error('保存結果の確認が終わってから接続を変更してください');client.validate();var own=++connectionSequence;client.disconnect();$('connection-frame-host').replaceChildren();$('connection-help').open=false;connectionStatus('保存先への接続を確認しています…');
   var options={};if(mode==='iframe'){var frame=document.createElement('iframe');frame.title='本人限定GSSの接続画面';frame.referrerPolicy='no-referrer';frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox');$('connection-frame-host').append(frame);options.frame=frame;}
   try{var pending=client.connect(options);renderState();await pending;if(own!==connectionSequence)return;await store.connect();if(own!==connectionSequence)return;connectionStatus(store.storeConfigured?'GSS保存先に接続しました。「編集へ戻る」で作業を続けられます。':'接続先のGSSは未設定です。',store.storeConfigured?'connected':'error');renderState();}
