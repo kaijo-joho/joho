@@ -35,9 +35,18 @@ var OMRScene=(function(){
         else{var pitch=(fg.rect[2]-10)/f.options.length;wrapped(target,b.x,b.y+6,optionsMap.get(b.code),pitch-2,7.3,3.5,{'text-anchor':'middle'});}
       });
     });
-    var qr=node('g',{'data-qr-state':'unissued','aria-label':'QR未発行・配付版未登録'});svg.append(qr);
-    rect(qr,g.qr,{stroke:'#777','stroke-dasharray':'1.2 1','data-qr-placeholder':'true'});
-    text(qr,g.qr[0]+g.qr[2]/2,g.qr[1]+g.qr[3]/2,'QR未発行',7*s,{'text-anchor':'middle',fill:'#666'});
+    var qr=node('g',{'data-qr-state':options.qrPayload?'issued':'unissued','aria-label':options.qrPayload?'登録用識別QR':'QR未発行・配付版未登録'});svg.append(qr);
+    if(options.qrPayload){
+      OMRRegistration.parse(options.qrPayload);
+      var code=qrcodegen.QrCode.encodeSegments([qrcodegen.QrSegment.makeNumeric(options.qrPayload)],qrcodegen.QrCode.Ecc.HIGH,1,1,0,false),module=g.qr[2]/29;
+      if(code.size!==21)throw Error('QRの規格が一致しません');
+      rect(qr,g.qr,{fill:'#fff',stroke:'none'});
+      var path='';for(var yy=0;yy<21;yy++)for(var xx=0;xx<21;xx++)if(code.getModule(xx,yy))path+='M'+(g.qr[0]+(xx+4)*module)+' '+(g.qr[1]+(yy+4)*module)+'h'+module+'v'+module+'h-'+module+'z';
+      qr.append(node('path',{d:path,fill:'#000','shape-rendering':'crispEdges','data-qr-payload':options.qrPayload}));
+    }else{
+      rect(qr,g.qr,{stroke:'#777','stroke-dasharray':'1.2 1','data-qr-placeholder':'true'});
+      text(qr,g.qr[0]+g.qr[2]/2,g.qr[1]+g.qr[3]/2,'QR未発行',7*s,{'text-anchor':'middle',fill:'#666'});
+    }
     svg.append(node('line',{x1:16,y1:g.body_top-1,x2:g.width_mm-10*s,y2:g.body_top-1,stroke:'#000','stroke-width':.25*s}));
     g.elements.forEach(function(e){var group=svg.querySelector('[data-element-id="'+e.id+'"]');if(!group){group=node('g',{'data-element-id':e.id});svg.append(group);}
       if(e.border===true||(e.border===undefined&&e.type==='free'))rect(group,M.rect(e),{'data-border':e.id});

@@ -1,7 +1,7 @@
 /* Authenticated GAS frame/popup transport. No tokens or wildcard origins. */
 (function(root){
  'use strict';
- var PROTOCOL='omr-editor-bridge/1', OPS=['session','list','load','save'];
+ var PROTOCOL='omr-editor-bridge/1', OPS=['session','list','load','save','registrationPrepare','registrationCommit','registrationLoad','registrationList'];
  function error(code,message){var e=new Error(message);e.code=code;return e;}
  function nonce(w){return Array.from(w.crypto.getRandomValues(new Uint8Array(24))).map(function(n){return n.toString(16).padStart(2,'0');}).join('');}
  function origin(value){try{var u=new URL(value);return u.origin===value&&!value.includes('*')&&u.username===''&&u.password==='';}catch(_){return false;}}

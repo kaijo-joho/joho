@@ -38,3 +38,7 @@ footer{display:flex;flex:none;justify-content:space-between;gap:12px;padding:5px
 .page-delete{flex:none;min-height:30px;font-size:.9em;padding:3px 8px}.page-label{min-height:32px}
 
 #connection-login-help{display:grid;gap:8px;line-height:1.7;font-size:.95em}#connection-login-help a{color:var(--accent);text-decoration:underline;font-weight:700}
+
+#qr-action{display:inline-flex;flex:none;align-items:center;min-width:40px;background:var(--accent-soft);border-color:var(--accent);color:var(--ink);font-weight:700}#qr-action .toolbar-icon{width:17px;height:17px}
+#print-warning-dialog .dialog-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}#print-warning-dialog .dialog-actions button{min-height:38px}
+@media(max-width:800px){#qr-action{padding-inline:5px;gap:2px}#qr-action .toolbar-icon{display:none}#qr-action span{font-size:11px}}
