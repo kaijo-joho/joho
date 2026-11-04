@@ -39,7 +39,7 @@
   document.addEventListener('focusin',function(event){if(!event.target.closest('.menu-shell,.tab-menu')){if(shell.classList.contains('menu-open')||tabAnchor)closeAll();}});
   function openTabMenu(localId,anchor){
     closeAll();if(!localId||!anchor)return;targetId=localId;tabAnchor=anchor;lastTrigger=anchor;anchor.setAttribute('aria-expanded','true');
-    var rect=anchor.getBoundingClientRect(),width=190,height=tabMenu.offsetHeight||44,left=Math.max(6,Math.min(rect.right-width,window.innerWidth-width-6)),top=Math.max(6,Math.min(rect.bottom+4,window.innerHeight-height-6));
+    tabMenu.hidden=false;var rect=anchor.getBoundingClientRect(),width=190,height=tabMenu.offsetHeight||92,left=Math.max(6,Math.min(rect.right-width,window.innerWidth-width-6)),top=Math.max(6,Math.min(rect.bottom+4,window.innerHeight-height-6));
     tabMenu.style.left=left+'px';tabMenu.style.top=top+'px';tabMenu.hidden=false;var item=tabMenu.querySelector('[role="menuitem"]');if(item)item.focus();
   }
   window.OMRMenus={closeAll:closeAll,targetLocalId:function(){return targetId;},openTabMenu:openTabMenu};
