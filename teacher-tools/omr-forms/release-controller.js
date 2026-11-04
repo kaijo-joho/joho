@@ -4,6 +4,30 @@
   function assert(ok,message){if(!ok)throw Error(message);}
   class Controller{
     constructor(options){Object.assign(this,options);}
+    async registerDocument(workspace,localId,expectedSha256,progress){
+      var actor=workspace.actor,document=workspace.current();
+      assert(actor&&workspace.storeConfigured,'用紙管理にログインしてからPDFを作成してください');
+      assert(workspace.registrationEnabled!==false,'印刷用PDFの登録は一時停止中です');
+      assert(!workspace.busy,'保存処理の完了後にPDFを作成してください');
+      assert(document&&document.localId===localId&&workspace.currentId===localId,'作成する用紙を選び直してください');
+      assert(!document.sync.ownerId||document.sync.ownerId===actor,'保存先の所有者が異なります。保存先を確認してください');
+      var maxSaves=document.pending?2:1;
+      async function check(hash){
+        assert(workspace.current()===document&&workspace.currentId===localId,'用紙が切り替わりました。保存結果を保持したので、作成する用紙を選び直してください');
+        assert(workspace.actor===actor&&workspace.storeConfigured,'ログイン状態が変わりました。ログインを確認してから再開してください');
+        assert(workspace.registrationEnabled!==false,'印刷用PDFの登録は一時停止中です');
+        assert(await hash(document.document)===expectedSha256,'作成中に内容が変わりました。現在の内容でPDF作成をやり直してください');
+        assert(workspace.current()===document&&workspace.currentId===localId&&workspace.actor===actor&&workspace.storeConfigured,'用紙またはログイン状態が変わりました。PDF作成をやり直してください');
+      }
+      await check(this.hash);
+      for(var attempt=0;attempt<maxSaves&&(document.pending||document.sync.documentSha256!==expectedSha256);attempt++){
+        if(progress)progress(document.pending?'前回の保存結果を確認しています…':'現在の編集内容を保存しています…');
+        await workspace.save();await check(this.hash);
+      }
+      assert(!document.pending&&document.sync.documentSha256===expectedSha256&&document.sync.formId&&document.sync.versionId&&document.sync.ownerId===actor,'保存版を照合できません。下書きの保存結果を確認してください');
+      await check(this.hash);
+      return this.register(M.clone(document.sync),progress);
+    }
     async verify(packet,source){
       assert(packet&&packet.schema==='omr-registration/1','登録結果の形式が不正です');
       var r=packet.reservation,c=packet.candidate,complete=packet.completion;
