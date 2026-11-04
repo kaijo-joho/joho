@@ -23,9 +23,11 @@ var OMRDesigner = (function () {
   }
   function minSize(f,e){var base=f.kind==='digits'?98:((f.layout||'row')==='list'?65:Math.max(48,8*f.options.length)),obj=e||{type:'omr',width:base,question_runs:[]},p=padding(obj),w=base+p.left+p.right-4,q=questionHeight(obj);if(f.kind==='digits')return[w,10+9*f.digits+q+(p.top+p.bottom-3)];return[w,choiceMetrics(f,obj).height];}
   function textMinHeight(e){var p=padding(e);return p.top+(e.label?5:0)+measureRich(e.runs||[],contentWidth(e)).height+p.bottom;}
-  function entryMinWidth(e){var p=padding(e);return Math.max(24,p.left+p.right+(e.entry_box&&e.entry_box.width_mm||8));}
-  function entryMinHeight(e){var p=padding(e);return (p.top+5+(e.entry_box&&e.entry_box.height_mm||8)+p.bottom)+questionHeight(e);}
-  function entryRect(e){var p=padding(e),box=e.entry_box||{},q=questionHeight(e);return[e.x+p.left,e.y+(p.top+5)+q,box.width_mm||contentWidth(e),box.height_mm||Math.max(8,e.height-(p.top+5+p.bottom)-q)];}
+  function entryGridNote(e){return e.entry_grid?'数字を1マス1字':'';}
+  function entryMinWidth(e){var p=padding(e),grid=e.entry_grid;if(grid){var note=Array.from(entryGridNote(e)).reduce(function(n,c){return n+charWidth(c,6);},0);return Math.max(24,p.left+p.right+Math.max(grid.cells*grid.cell_size_mm,note));}return Math.max(24,p.left+p.right+(e.entry_box&&e.entry_box.width_mm||8));}
+  function entryMinHeight(e){var p=padding(e),grid=e.entry_grid;return (p.top+5+(grid?grid.cell_size_mm+4:e.entry_box&&e.entry_box.height_mm||8)+p.bottom)+questionHeight(e);}
+  function entryRect(e){var p=padding(e),box=e.entry_box||{},q=questionHeight(e),grid=e.entry_grid;return[e.x+p.left,e.y+(p.top+5)+q,grid?grid.cells*grid.cell_size_mm:box.width_mm||contentWidth(e),grid?grid.cell_size_mm:box.height_mm||Math.max(8,e.height-(p.top+5+p.bottom)-q)];}
+  function entryCells(e){if(!e.entry_grid)return[];var r=entryRect(e),s=e.entry_grid.cell_size_mm;return Array.from({length:e.entry_grid.cells},function(_,i){return[r[0]+i*s,r[1],s,s];});}
   function freeMinHeight(e){var p=padding(e);return (p.top+5+p.bottom)+questionHeight(e)+(e.lines?Math.max(4,e.lines*3):0);}
   function rect(e){return[e.x,e.y,e.width,e.height];}
   function overlaps(a,b){return a[0]<b[0]+b[2]&&b[0]<a[0]+a[2]&&a[1]<b[1]+b[3]&&b[1]<a[1]+a[3];}
@@ -83,13 +85,14 @@ var OMRDesigner = (function () {
         if(e.padding!==undefined&&(!e.padding||Array.isArray(e.padding)||Object.keys(e.padding).length!==4||['top','right','bottom','left'].some(function(k){return typeof e.padding[k]!=='number'||!Number.isFinite(e.padding[k])||e.padding[k]<0||e.padding[k]>20;})))throw Error('部品の余白は上下左右それぞれ0〜20mmです');
         var inset=padding(e);if(e.width<=inset.left+inset.right||e.height<=inset.top+inset.bottom)throw Error('余白の内側に内容を置ける幅・高さを確保してください: '+e.id);
         if(e.entry_box!==undefined&&(e.type!=='entry'||!e.entry_box||Array.isArray(e.entry_box)||!Object.keys(e.entry_box).length||Object.keys(e.entry_box).some(function(k){var v=e.entry_box[k];return !['width_mm','height_mm'].includes(k)||typeof v!=='number'||!Number.isFinite(v)||v<(k==='width_mm'?8:4)||v>400;})))throw Error('1行記入枠の幅は8mm以上、高さは4mm以上です');
+        if(e.entry_grid!==undefined){var grid=e.entry_grid;if(e.type!=='entry'||!grid||Array.isArray(grid)||Object.keys(grid).sort().join(',')!=='cell_size_mm,cells,character_set'||grid.character_set!=='digits'||!Number.isInteger(grid.cells)||grid.cells<1||grid.cells>20||typeof grid.cell_size_mm!=='number'||!Number.isFinite(grid.cell_size_mm)||grid.cell_size_mm<6||grid.cell_size_mm>20||e.entry_box!==undefined)throw Error('数字記入欄は1〜20マス、1辺6〜20mmです。文字種は数字のみで、1行記入枠との併用はできません');}
         if(e.width<=0||e.height<=0||e.x<12||e.y<a.body_top||e.x+e.width>a.w-12+.001||e.y+e.height>a.h-16+.001)throw Error('部品が本文の範囲外です: '+e.id);
         for(var n=0;n<j;n++)if(overlaps(rect(e),rect(p.elements[n])))throw Error('部品が重なっています: '+e.id);
         if(e.type==='text')validateRuns(e.runs,false);else if(e.question_runs!==undefined)validateRuns(e.question_runs,true);
         if(e.type==='omr'){var f=p.fields.find(function(f){return f.id===e.field_id;});if(!f||role(f)||placed.has(f.id))throw Error('読取欄と部品の対応が不正です');placed.add(f.id);fieldGeometry(f,e);}
         if(e.type==='free'&&(typeof e.label!=='string'||e.label.length>180||!Number.isInteger(e.lines)||e.lines<0||e.lines>30))throw Error('自由記述欄を確認してください');
         if(e.type==='text'&&e.label&&e.height<textMinHeight(e)-.001)throw Error('テキスト部品が小さすぎます: '+e.id);
-        if(e.type==='entry'&&(typeof e.label!=='string'||e.width<entryMinWidth(e)-.001||e.height<entryMinHeight(e)-.001))throw Error('1行記入欄が小さすぎます: '+e.id);
+        if(e.type==='entry'&&(typeof e.label!=='string'||e.width<entryMinWidth(e)-.001||e.height<entryMinHeight(e)-.001))throw Error((e.entry_grid?'数字記入欄':'1行記入欄')+'が小さすぎます: '+e.id);
         if(e.type==='free'&&e.height<freeMinHeight(e)-.001)throw Error('自由記述欄が小さすぎます: '+e.id);
       });p.fields.forEach(function(f){if(!role(f)&&!placed.has(f.id))throw Error('未配置の読取欄があります: '+f.id);});
     });if(!fields.has('class')||!fields.has('number')||(d.grade.mode==='field'&&!fields.has('grade')))throw Error('年組番の共通欄が必要です');return d;}
@@ -99,10 +102,11 @@ var OMRDesigner = (function () {
   function fresh(prefix){return prefix+'-'+Math.random().toString(16).slice(2,10);}
   function version(){return 'v2-'+Date.now().toString(36)+'-'+Math.random().toString(16).slice(2,6);}
   function place(d,p,w,h){var a=profile(d);for(var y=a.body_top+2;y+h<=a.h-16;y+=4)for(var x=16;x+w<=a.w-12;x+=4){var r=[x,y,w,h];if(!p.elements.some(function(e){return overlaps(r,rect(e));}))return{x:Math.round(x*100)/100,y:Math.round(y*100)/100};}throw Error('部品を置く空きがありません。配置を調整するかページを追加してください');}
-  function add(d,index,type,kind){var p=d.pages[index],a=profile(d),e={id:fresh('block'),type:type,border:type==='free',width:Math.min(120,a.w-32),height:type==='free'?24:18};
+  function add(d,index,type,kind){if(type==='digit-entry'){type='entry';kind='digit-entry';}var p=d.pages[index],a=profile(d),e={id:fresh('block'),type:type,border:type==='free',width:Math.min(120,a.w-32),height:type==='free'?24:18};
     if(type==='text')e.runs=[{text:'テキストを入力',font_size:9,color:'#000000',bold:false,italic:false,underline:false}];
     if(type==='free'){e.label='自由記述';e.lines=3;e.question_runs=[];}
     if(type==='entry'){e.label='1行記入';e.required=false;e.question_runs=[];}
+    if(type==='entry'&&kind==='digit-entry'){e.label='数字記入';e.entry_grid={character_set:'digits',cells:3,cell_size_mm:8};e.width=Math.max(40,entryMinWidth(e));e.height=entryMinHeight(e);}
     if(type==='omr'){e.question_runs=[];var f={id:fresh('q'),label:kind==='digits'?'得点・数値':'設問',kind:kind,required:true};if(kind==='digits'){f.digits=2;f.min=0;f.max=99;}else{f.layout='row';f.options=[{code:'option_1',label:'選択肢1'},{code:'option_2',label:'選択肢2'}];if(kind==='multiple'){f.min_select=1;f.max_select=2;}}var minimum=minSize(f,e);e.width=Math.max(e.width,minimum[0]);e.height=minSize(f,e)[1];e.field_id=f.id;var pos=place(d,p,e.width,e.height);e.x=pos.x;e.y=pos.y;p.fields.push(f);p.elements.push(e);return e;}
     var position=place(d,p,e.width,e.height);e.x=position.x;e.y=position.y;p.elements.push(e);return e;}
   function remove(d,index,elementId){var p=d.pages[index],e=p.elements.find(function(e){return e.id===elementId;});if(!e)throw Error('部品が見つかりません');p.elements=p.elements.filter(function(e){return e.id!==elementId;});if(e.type==='omr')p.fields=p.fields.filter(function(f){return f.id!==e.field_id;});}
@@ -114,5 +118,5 @@ var OMRDesigner = (function () {
   function normalizePages(d){var used=new Set();d.pages.forEach(function(p){p.fields.forEach(function(f){if(!role(f))used.add(f.id);});});d.pages.forEach(function(p,i){p.number=i+1;p.side=pageSide(d,i);p.fields.forEach(function(f){var rr=role(f);if(!rr)return;var base=i?'p'+(i+1)+'_'+rr:rr,candidate=base,n=1;while(used.has(candidate))candidate=base+'_'+n++;used.add(candidate);f.id=candidate;f.identity_role=rr;if(i===0)f.required=true;});});}
   function removePage(d,index){if(!Number.isInteger(index)||index<0||index>=d.pages.length)throw Error('削除するページが見つかりません');if(d.pages.length<=1)throw Error('最後の1ページは削除できません');d.pages.splice(index,1);normalizePages(d);return Math.min(index,d.pages.length-1);}
   function addPage(d){if(d.pages.length>=8)throw Error('8ページまでです');var number=d.pages.length+1,p={uid:uniquePageId(new Set(d.pages.map(function(p){return p.uid;}))),number:number,side:pageSide(d,number-1),fields:[],elements:[]};d.pages[0].fields.filter(role).forEach(function(f){var value=clone(f),base='p'+number+'_'+role(f),candidate=base,n=1,used=new Set(d.pages.flatMap(function(p){return p.fields.map(function(f){return f.id;});}));while(used.has(candidate))candidate=base+'_'+n++;value.id=candidate;value.identity_role=role(f);value.required=false;p.fields.push(value);});d.pages.push(p);return d.pages.length-1;}
-  return{clone:clone,role:role,size:size,profile:profile,charWidth:charWidth,measureRich:measureRich,padding:padding,contentWidth:contentWidth,questionHeight:questionHeight,textMinHeight:textMinHeight,entryMinWidth:entryMinWidth,entryMinHeight:entryMinHeight,entryRect:entryRect,freeMinHeight:freeMinHeight,minSize:minSize,rect:rect,overlaps:overlaps,layout:layout,validate:validate,canonical:canonical,hash:hash,payload:payload,version:version,place:place,add:add,remove:remove,prepare:prepare,printMode:printMode,pageSide:pageSide,setPrintMode:setPrintMode,addPage:addPage,removePage:removePage};
+  return{clone:clone,role:role,size:size,profile:profile,charWidth:charWidth,measureRich:measureRich,padding:padding,contentWidth:contentWidth,questionHeight:questionHeight,textMinHeight:textMinHeight,entryMinWidth:entryMinWidth,entryMinHeight:entryMinHeight,entryRect:entryRect,entryCells:entryCells,entryGridNote:entryGridNote,freeMinHeight:freeMinHeight,minSize:minSize,rect:rect,overlaps:overlaps,layout:layout,validate:validate,canonical:canonical,hash:hash,payload:payload,version:version,place:place,add:add,remove:remove,prepare:prepare,printMode:printMode,pageSide:pageSide,setPrintMode:setPrintMode,addPage:addPage,removePage:removePage};
 })();
