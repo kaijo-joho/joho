@@ -54,10 +54,29 @@
     if(login){login.href=OMRCloudConfig.gasUrl+(OMRCloudConfig.gasUrl.indexOf('?')<0?'?':'&')+'view=login';login.target='_blank';login.rel='noopener noreferrer';}
     $('qr-flow-print').disabled=true;$('qr-flow-pdf').disabled=true;updateFlowButtons();
   }
-  function openFlow(){var u=ui(),doc=u&&u.store.current(),modal=$('registration-dialog');if(!doc)return;if(modal.open)return;
-    resetFlow(doc);var p=currentPacket();if(p&&p.status==='registered'){flow.hash=p.reservation.documentSha256;flowStatus('login','この用紙を確認した教員アカウントで接続中です。','connected');flowStatus('save',p.reservation.academicYear+'年度 版'+p.reservation.releaseVersion+'は確定済みです。同じQRを使います。','done');outputReady(p);}
-    else{flowStatus('output','QR未発行です。上のボタンで版を確定すると、印刷・PDF保存を選べます。','pending');setFlowStage('login',u.store.actor&&u.store.storeConfigured?'ログイン状態をもう一度確認します。':'Googleログインを確認してください。','pending');if(u.store.registrationEnabled===false)flowStatus('save','OMR用紙登録は一時停止中です。既登録の版は印刷・PDF保存できます。','blocked');}
-    $('registration-summary').textContent='「'+doc.document.definition.title+'」 '+doc.document.definition.academic_year+'年度・'+doc.document.definition.pages.length+'ページ。確認した版を保存し、識別QRと読み取り設定を登録します。編集後は新しい版となり、以前の登録版は履歴に保持します。PDFはこのブラウザ内で検査・保管し、必要に応じて印刷またはPCへ保存します。';modal.showModal();
+  async function checkFlowSession(attempt,doc,id,priorPacket){var u=ui(),expected,modal=$('registration-dialog'),domAlive=function(){return !!(modal.ownerDocument&&modal.ownerDocument.defaultView&&modal.ownerDocument.defaultView.document);};
+    if(busy||!flow.active||attempt!==flow.attempt)return;busy=true;setFlowStage('login','モーダル内でGoogleログイン状態を確認しています…','busy');
+    try{
+      if(u.store.busy)throw Error('前回の保存結果を確認してから再試行してください');
+      if(u.store.current()!==doc||u.store.currentId!==id)throw Error('選択中の用紙が変わりました。対象を確認して開き直してください。');
+      expected=await OMRDesigner.hash(doc.document);assertFlow(attempt,doc,id);flow.hash=expected;
+      flow.connection=await u.ensureConnected({host:$('qr-flow-frame-host'),onStatus:function(message,state){if(flow.active&&flow.attempt===attempt)flowStatus('login',message,state);}});
+      assertFlow(attempt,doc,id);
+      if(u.store.current()!==doc||u.store.currentId!==id||await OMRDesigner.hash(doc.document)!==expected)throw Error('確認中に対象または用紙内容が変わりました。登録は開始していません。');
+      if(!u.store.actor||!u.store.storeConfigured)throw Error('Googleログインを確認できませんでした。別タブでログイン後、再確認してください。');
+      if(flow.actor&&flow.actor!==u.store.actor)throw Error('ログインアカウントが変わりました。対象を確認してください。');
+      flow.actor=u.store.actor;$('qr-flow-login-help').hidden=true;
+      if(priorPacket&&priorPacket.status==='registered'&&priorPacket.reservation.ownerId===flow.actor&&priorPacket.reservation.documentSha256===expected&&OMRDesigner.canonical(doc.document)===OMRDesigner.canonical(priorPacket.candidate.document)){packets.set(id,priorPacket);refreshCanvas();outputReady(priorPacket);flowStatus('save',priorPacket.reservation.academicYear+'年度 版'+priorPacket.reservation.releaseVersion+'は確定済みです。同じQRを使います。','done');}
+      else if(priorPacket&&priorPacket.status==='registered'){flow.packet=null;flowStatus('output','ログインアカウントまたは用紙内容が登録済み版と一致しないため、出力できません。','error');}
+      else{setFlowStage('login','Googleログインを確認しました。登録を始めるには「QRを発行して登録」を押してください。','connected');}
+    }catch(e){if(domAlive()&&flow.active&&flow.attempt===attempt){flowStatus('login',e.message,'error');$('qr-flow-login-help').hidden=false;}}
+    finally{flow.connection=null;busy=false;if(domAlive()){updateFlowButtons();render();}}
+  }
+  function openFlow(){if(busy)return;var u=ui(),doc=u&&u.store.current(),modal=$('registration-dialog');if(!doc)return;if(modal.open)return;
+    resetFlow(doc);var p=currentPacket(),attempt=flow.attempt,id=doc.localId;
+    if(p&&p.status==='registered'){flow.hash=p.reservation.documentSha256;flowStatus('save',p.reservation.academicYear+'年度 版'+p.reservation.releaseVersion+'を照合しています。','busy');}
+    else{flowStatus('output','QR未発行です。Googleログイン確認後、「QRを発行して登録」を押すと版の保存と読み取り設定登録を開始します。','pending');if(u.store.registrationEnabled===false)flowStatus('save','OMR用紙登録は一時停止中です。既登録の版は印刷・PDF保存できます。','blocked');}
+    $('registration-summary').textContent='「'+doc.document.definition.title+'」 '+doc.document.definition.academic_year+'年度・'+doc.document.definition.pages.length+'ページ。Googleログイン状態を確認します。登録は「QRを発行して登録」を押した後に始まります。確定版は識別QRと読み取り設定を登録し、以前の版は履歴に保持します。';modal.showModal();flow.sessionCheck=checkFlowSession(attempt,doc,id,p);
   }
   function finalizeVersion(){openFlow();}
   function assertFlow(attempt,doc,id){if(!flow.active||flow.attempt!==attempt||flow.doc!==doc||flow.id!==id||!$('registration-dialog').open)throw Error('接続または登録を取り消しました。保存・登録は開始していません。');}
@@ -89,7 +108,7 @@
   $('qr-flow-close').addEventListener('click',cancelFlow);$('qr-flow-back').addEventListener('click',cancelFlow);
   $('qr-flow-print').addEventListener('click',function(){flowOutput('print');});$('qr-flow-pdf').addEventListener('click',function(){flowOutput('pdf');});
   $('registration-dialog').addEventListener('cancel',function(e){e.preventDefault();cancelFlow();});
-  $('registration-dialog').addEventListener('close',function(){if(!busy){flow.active=false;flow.attempt++;}if(!flow.active&&flow.origin&&flow.origin.isConnected)flow.origin.focus();});
+  $('registration-dialog').addEventListener('close',function(){if(flow.active){flow.active=false;flow.attempt++;if(flow.stage==='login'&&ui().cancelConnectionAttempt)ui().cancelConnectionAttempt();}if(flow.origin&&flow.origin.isConnected)flow.origin.focus();});
   $('qr-flow-login').addEventListener('click',function(){if(busy&&flow.stage==='login')cancelFlow();});
   function exportPdf(){var p=currentPacket();if(!p||p.status!=='registered'){finalizeVersion({exportPdf:true});return;}return run(async function(){var artifact=await controller.pdf(p,function(message){$('registration-status').textContent=message;});download(p.reservation.registrationId+'.pdf',artifact.pdf);tell(artifact.regeneratedFrom?'確定版の定義からPDFを再生成・検査して出力しました。QRと版は同じです。':'確定版PDFのダウンロードを開始しました。');});}
   $('registered-pdf').addEventListener('click',exportPdf);

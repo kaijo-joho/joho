@@ -14,6 +14,7 @@
   function active(){if(own!==connectionSequence)throw cancelledConnection();}
   report('学校アカウントのGoogleログインを確認しています…','busy');
   try{
+   if(host&&client.peer&&(!client.frame||client.frame.parentNode!==host)){client.disconnect(new Error('モーダル内でログイン状態を再確認します。'));active();}
    if(!client.peer){if(!host)throw Error('ログイン確認画面を用意できません');host.replaceChildren();var frame=document.createElement('iframe');frame.title='Googleログインの確認結果';frame.referrerPolicy='no-referrer';frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox');host.append(frame);await client.connect({frame:frame});active();}
    var session=await store.connect();active();if(!store.storeConfigured)throw Error('用紙管理の保存先が未設定です。管理者へ確認してください。');
    report('Googleログインを確認しました。','connected');renderState();return session;
