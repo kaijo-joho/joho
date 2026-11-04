@@ -32,7 +32,10 @@
       assert(packet&&packet.schema==='omr-registration/1','登録結果の形式が不正です');
       var r=packet.reservation,c=packet.candidate,complete=packet.completion;
       assert(r&&c&&r.formId===source.formId&&r.paperNumber===source.paperNumber&&r.sourceVersionId===source.versionId&&r.documentSha256===source.documentSha256&&r.ownerId===source.ownerId,'登録先・保存版が一致しません');
-      assert(c.schema==='omr-registration-candidate/1'&&await this.hash(c.document)===r.documentSha256&&c.documentSha256===r.documentSha256&&await this.hash(c.readerDefinition)===r.readerDefinitionSha256&&c.readerDefinitionSha256===r.readerDefinitionSha256&&await this.hash(c)===r.candidateSha256,'登録本文の照合に失敗しました');
+      assert(c.schema==='omr-registration-candidate/1','登録本文の形式が不正です');
+      assert(await this.hash(c.document)===r.documentSha256&&c.documentSha256===r.documentSha256,'登録本文の照合に失敗しました（用紙本文）');
+      assert(await this.hash(c.readerDefinition)===r.readerDefinitionSha256&&c.readerDefinitionSha256===r.readerDefinitionSha256,'登録本文の照合に失敗しました（読み取り設定）');
+      assert(await this.hash(c)===r.candidateSha256,'登録本文の照合に失敗しました（登録全体）');
       R.validate(c.readerDefinition,c.document);
       assert(c.readerDefinition.paperNumber===r.paperNumber&&c.readerDefinition.academicYear===r.academicYear&&c.readerDefinition.releaseVersion===r.releaseVersion&&M.canonical(c.readerDefinition.pages.map(function(p){return p.qr.payload;}))===M.canonical(r.qrPayloads),'登録番号と読み取り設定が一致しません');
       if(packet.status==='registered'){
