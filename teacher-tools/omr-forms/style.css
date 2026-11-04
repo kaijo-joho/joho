@@ -42,3 +42,25 @@ footer{display:flex;flex:none;justify-content:space-between;gap:12px;padding:5px
 #qr-action{display:inline-flex;flex:none;align-items:center;min-width:40px;background:var(--accent-soft);border-color:var(--accent);color:var(--ink);font-weight:700}#qr-action .toolbar-icon{width:17px;height:17px}
 #print-warning-dialog .dialog-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}#print-warning-dialog .dialog-actions button{min-height:38px}
 @media(max-width:800px){#qr-action{padding-inline:5px;gap:2px}#qr-action .toolbar-icon{display:none}#qr-action span{font-size:11px}}
+
+/* Compact file actions share one responsive menu without duplicating action IDs. */
+.menu-shell{display:contents}.menu-categories{display:contents}.menu-category{position:relative;flex:none}.category-new{order:1}.category-save{order:2}.category-open{order:3}.category-pdf{order:5}
+.menu-category>button{display:inline-flex;align-items:center;gap:5px;min-width:0}.menu-category>button>span{font-size:10px;color:var(--muted)}
+#file-menu-button{display:none}.menu-category .popup-menu{min-width:230px}.menu-category .popup-menu button{text-align:left;justify-content:flex-start}
+#qr-action{order:4}#document-tabs{order:6}#documents-menu{order:7}#undo{order:8}#redo{order:9}.toolbar>.separator{order:10}#palette-toggle{order:11}#settings-button{order:12}#help-button{order:13}
+.tab-menu{position:fixed;z-index:80;min-width:190px;max-height:calc(100dvh - 16px)}.tab-menu button{width:100%;text-align:left}
+.menu-category>button:focus-visible,#file-menu-button:focus-visible{z-index:62}
+@media(max-width:800px){
+  .menu-shell{display:block;position:relative;order:1;flex:none}
+  #file-menu-button{display:inline-flex;min-width:72px;order:0}
+  #file-menu-button .toolbar-icon{display:none}#file-menu-button span{display:inline}
+  #file-menu{display:none;position:absolute;left:0;top:calc(100% + 6px);z-index:65;width:min(330px,calc(100vw - 12px));max-height:calc(100dvh - 76px);overflow:auto;overscroll-behavior:contain;padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 22px #0004}
+  .menu-shell.menu-open #file-menu{display:flex;flex-direction:column;align-items:stretch;gap:4px}
+  .menu-category{width:100%;display:block;order:initial}
+  .menu-category>button{display:flex;width:100%;justify-content:space-between;text-align:left}
+  .menu-category .popup-menu{position:static;width:auto;min-width:0;max-height:none;overflow:visible;padding:3px 4px 5px 12px;border:0;border-radius:0;box-shadow:none;background:transparent}
+  .menu-category .popup-menu button{min-height:40px;white-space:normal}
+  #qr-action{order:2;flex:none;min-width:36px}
+  #document-tabs{order:3;flex:1 1 20px;min-width:18px}
+  #documents-menu{order:4}#palette-toggle{order:5}#settings-button{order:6}#help-button{order:7}
+}

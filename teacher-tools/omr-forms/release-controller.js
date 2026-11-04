@@ -51,6 +51,45 @@
       assert(await this.sha(await value.pdf.arrayBuffer())===value.pdfSha256,'保管PDFが破損しています。原本を確認してください');
       if(packet.completion)assert(value.pdfSha256===packet.completion.pdfSha256&&M.canonical(value.proof)===M.canonical(packet.completion.proof),'確定PDFと保管PDFが一致しません');return value;
     }
+    async pdf(packet,progress){
+      assert(packet&&packet.status==='registered','確定済みの版からPDFを出力してください');
+      var r=packet.reservation,c=packet.candidate;
+      await this.verify(packet,{formId:r.formId,paperNumber:r.paperNumber,versionId:r.sourceVersionId,documentSha256:r.documentSha256,ownerId:r.ownerId});
+      var original=await this.artifact(packet);if(original)return original;
+      var key='regenerated:'+r.registrationId,value=await this.artifacts.get(key);
+      async function inspect(controller,value){
+        assert(value&&value.regeneratedFrom&&value.regeneratedFrom.schema==='omr-regenerated-pdf/1'&&value.regeneratedFrom.registrationId===r.registrationId&&value.regeneratedFrom.sourcePdfSha256===packet.completion.pdfSha256,'再生成PDFの確定版との対応が不正です');
+        assert(value.candidateSha256===r.candidateSha256&&value.proof.documentSha256===r.documentSha256&&value.proof.readerDefinitionSha256===r.readerDefinitionSha256,'再生成PDFの用紙定義が一致しません');
+        R.validateProof(value.proof,c.readerDefinition);
+        assert(await controller.sha(await value.pdf.arrayBuffer())===value.pdfSha256,'再生成PDFが破損しています');return value;
+      }
+      if(value)return inspect(this,value);
+      if(progress)progress('確定版の定義からPDFを再生成・検査しています…');
+      value=await this.generate(packet,progress);
+      value.regeneratedFrom={schema:'omr-regenerated-pdf/1',registrationId:r.registrationId,sourcePdfSha256:packet.completion.pdfSha256};
+      await inspect(this,value);value=await this.artifacts.put(key,value);return inspect(this,value);
+    }
+    async catalog(workspace){
+      assert(workspace.actor&&workspace.storeConfigured,'用紙管理にログインしてください');
+      var actor=workspace.actor,forms=(await workspace.list()).forms,result=[];
+      assert(Array.isArray(forms),'クラウドの用紙一覧が不正です');
+      for(var i=0;i<forms.length;i++){
+        assert(workspace.actor===actor,'ログイン状態が変わりました');
+        var form=forms[i],versions=await this.list(form.formId);
+        versions.filter(function(v){return v.status==='registered';}).forEach(function(v){result.push({form:form,version:v});});
+      }
+      assert(workspace.actor===actor,'ログイン状態が変わりました');return result;
+    }
+    async openVersion(workspace,entry){
+      var actor=workspace.actor,form=entry.form,v=entry.version;
+      assert(actor&&workspace.storeConfigured&&v.status==='registered','確定済みの版を選んでください');
+      var packet=await this.load(v.registrationId,{formId:form.formId,paperNumber:v.paperNumber,versionId:v.sourceVersionId,documentSha256:v.documentSha256,ownerId:actor});
+      var latest=await workspace.rpc('load',{formId:form.formId});await workspace.verify(latest);
+      assert(workspace.actor===actor&&latest.formId===form.formId&&latest.paperNumber===v.paperNumber&&latest.editorFormId===packet.candidate.document.definition.form_id,'確定版と現在の保存先が一致しません');
+      // The frozen body stays intact. Subsequent edits branch from the latest
+      // revision, preserving all earlier registered versions and local tabs.
+      var document=workspace.add(M.clone(packet.candidate.document),latest);return {document:document,packet:packet};
+    }
     async register(source,progress){
       var key=this.scope+'/'+source.formId+'/'+source.versionId,request,prior;
       try{prior=JSON.parse(this.storage.getItem(key)||'null');}catch(e){throw Error('登録要求の控えを読めません。登録履歴から確認してください');}
