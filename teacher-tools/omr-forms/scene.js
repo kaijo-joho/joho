@@ -58,19 +58,51 @@ var OMRScene=(function(){
     return svg;
   }
   function within(box,area,margin){return box&&[box.x,box.y,box.width,box.height].every(Number.isFinite)&&box.x>=area[0]-margin&&box.y>=area[1]-margin&&box.x+box.width<=area[0]+area[2]+margin&&box.y+box.height<=area[1]+area[3]+margin;}
-  function componentBounds(svg,d,index){
-    var p=d.pages[index],issues=[];
-    p.elements.forEach(function(e){
-      var original=svg.querySelector('[data-element-id="'+e.id+'"]'),group=original&&original.cloneNode(true),box;
-      if(!group||typeof group.getBBox!=='function')throw Error('文字の位置を測定できません。対応するブラウザで開いてください。');
-      group.querySelectorAll('[data-hit],[data-resize]').forEach(function(n){n.remove();});svg.append(group);
-      try{box=group.getBBox();}finally{group.remove();}
-      if(!(box.width===0&&box.height===0)&&!within(box,OMRDesigner.rect(e),.8)){
-        var field=p.fields.find(function(f){return f.id===e.field_id;}),label=e.label||field&&field.label||'見出しなし';
-        var noun=e.type==='text'?'テキスト部品':e.type==='omr'?'OMR部品':'記入欄部品',content=e.type==='text'?'文字':e.type==='omr'?'文字または読取欄':'文字または記入枠';
-        issues.push({elementId:e.id,type:e.type,box:box,message:noun+'「'+label+'」の'+content+'が部品の範囲を超えています。幅・高さを調整してください。'});
-      }
-    });return issues;
+  // getBBox describes glyph/layout cells; PDF clipping concerns painted pixels.
+  // Keep a transparent margin so content outside the physical page is visible
+  // to this check instead of being silently clipped by the SVG viewport.
+  var paintCache=new Map(),PAINT_DPI=300,PAINT_PAD=24;
+  function clearPaintCache(){paintCache.clear();}
+  if(document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',clearPaintCache);
+  async function paintedBounds(svg,source){
+    var view=svg.getAttribute('viewBox').split(/\s+/).map(Number),w=view[2],h=view[3],imageSvg=svg.cloneNode(false),group=source.cloneNode(true);
+    group.querySelectorAll('[data-hit],[data-resize]').forEach(function(n){n.remove();});imageSvg.removeAttribute('style');imageSvg.append(group);
+    group.querySelectorAll('text').forEach(function(t){if(!t.textContent.trim())return;var x=Number(t.getAttribute('x')),y=Number(t.getAttribute('y'));if(!Number.isFinite(x)||!Number.isFinite(y)||x< -PAINT_PAD||x>w+PAINT_PAD||y< -PAINT_PAD||y>h+PAINT_PAD)throw Error('文字の配置が用紙から大きくはみ出しています。文字量や部品の幅・高さを調整してください。');});
+    var scale=PAINT_DPI/25.4,width=Math.ceil((w+2*PAINT_PAD)*scale),height=Math.ceil((h+2*PAINT_PAD)*scale);
+    imageSvg.setAttribute('viewBox',[-PAINT_PAD,-PAINT_PAD,w+2*PAINT_PAD,h+2*PAINT_PAD].join(' '));imageSvg.setAttribute('width',width);imageSvg.setAttribute('height',height);imageSvg.setAttribute('preserveAspectRatio','none');
+    var serialized=imageSvg.outerHTML,pending=paintCache.get(serialized);
+    if(!pending){pending=(async function(){
+      var canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+      try{
+        var im=await new Promise(function(resolve,reject){var image=new Image();image.onload=function(){resolve(image);};image.onerror=function(){reject(Error('文字の描画範囲を検査できませんでした。もう一度お試しください。'));};image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(serialized);});
+        var ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('描画範囲の検査に必要なCanvasを利用できません');ctx.clearRect(0,0,width,height);ctx.drawImage(im,0,0,width,height);
+        var pixels=ctx.getImageData(0,0,width,height).data,x0=width,y0=height,x1=-1,y1=-1;
+        for(var y=0;y<height;y++)for(var x=0,offset=(y*width)*4+3;x<width;x++,offset+=4)if(pixels[offset]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+        if(x1<0){if(group.textContent.trim())throw Error('文字を描画できませんでした。文字の位置や入力内容を確認してください。');return null;}
+        if(x0===0||y0===0||x1===width-1||y1===height-1)throw Error('描画が検査範囲の外まで続いています。部品や文字の位置を用紙内へ戻してください。');
+        var sx=width/(w+2*PAINT_PAD),sy=height/(h+2*PAINT_PAD);
+        return{x:x0/sx-PAINT_PAD,y:y0/sy-PAINT_PAD,width:(x1-x0+1)/sx,height:(y1-y0+1)/sy};
+      }finally{canvas.width=canvas.height=1;pixels=null;ctx=null;im=null;}
+    })();paintCache.set(serialized,pending);if(paintCache.size>128)paintCache.delete(paintCache.keys().next().value);pending.catch(function(){if(paintCache.get(serialized)===pending)paintCache.delete(serialized);});}
+    var box=await pending;return box&&Object.assign({},box);
   }
-  return{render:render,node:node,wrap:wrap,componentBounds:componentBounds,within:within};
+  function excess(box,area){return{left:Math.max(0,area[0]-box.x),top:Math.max(0,area[1]-box.y),right:Math.max(0,box.x+box.width-area[0]-area[2]),bottom:Math.max(0,box.y+box.height-area[1]-area[3])};}
+  function excessText(over,margin){return Object.keys(over).filter(function(k){return over[k]>margin;}).map(function(k){return{left:'左',top:'上',right:'右',bottom:'下'}[k]+' '+over[k].toFixed(1)+'mm';}).join('・');}
+  async function componentPaintBounds(svg,d,index){
+    var p=d.pages[index],issues=[],paper=OMRDesigner.size(d);
+    for(var e of p.elements){
+      var source=svg.querySelector('[data-element-id="'+e.id+'"]');if(!source)throw Error('検査する部品が見つかりません');
+      var box=await paintedBounds(svg,source);if(!box)continue;
+      var area=OMRDesigner.rect(e),over=excess(box,area),outside=!within(box,area,.8),outsidePaper=!within(box,[0,0,paper[0],paper[1]],.1);
+      if(outside||outsidePaper){
+        var f=p.fields.find(function(f){return f.id===e.field_id;}),label=e.label||f&&f.label||'見出しなし',noun=e.type==='text'?'テキスト部品':e.type==='omr'?'OMR部品':'記入欄部品',content=e.type==='text'?'文字':e.type==='omr'?'文字または読取欄':'文字または記入枠';
+        var paperOver=excess(box,[0,0,paper[0],paper[1]]);
+        issues.push({elementId:e.id,type:e.type,method:'painted-pixels/300dpi',componentRect:area,box:box,excessMm:over,paperExcessMm:paperOver,message:noun+'「'+label+'」の'+content+'が'+(outsidePaper?'用紙':'部品')+'の範囲を超えています（'+excessText(outsidePaper?paperOver:over,outsidePaper?.1:.8)+'）。幅・高さを調整してください。'});
+      }
+    }return issues;
+  }
+  async function headerPaintBounds(svg){
+    var group=node('g',{});svg.querySelectorAll('text').forEach(function(t){if(!t.closest('[data-element-id]')&&!t.closest('[data-qr-state]'))group.append(t.cloneNode(true));});return paintedBounds(svg,group);
+  }
+  return{render:render,node:node,wrap:wrap,componentPaintBounds:componentPaintBounds,headerPaintBounds:headerPaintBounds,clearPaintCache:clearPaintCache,within:within};
 })();

@@ -15,9 +15,8 @@
       var page=r.pages[i],g=M.layout(d,d.pages[i]),svg=await OMRScene.render(d,i,'',{qrPayload:page.qr.payload}),host=document.createElement('div');
       host.style.cssText='position:fixed;left:-10000px;top:0;visibility:hidden';host.append(svg);document.body.append(host);
       try{
-        svg.querySelectorAll('text').forEach(function(t){assert(within(t.getBBox(),[0,0,g.width_mm,g.height_mm],.1),'文字が用紙外にはみ出しています');});
-        var issues=OMRScene.componentBounds(svg,d,i);assert(!issues.length,issues.length?issues[0].message:'');
-        svg.querySelectorAll('[data-header], [data-identity-heading], [data-grade-label]').forEach(function(t){var b=t.getBBox();assert(!M.overlaps([b.x,b.y,b.width,b.height],g.qr),'ヘッダーとQRが重なっています');});
+        var issues=await OMRScene.componentPaintBounds(svg,d,i);assert(!issues.length,issues.length?issues[0].message:'');
+        var header=await OMRScene.headerPaintBounds(svg);if(header){assert(within(header,[0,0,g.width_mm,g.height_mm],.1),'ヘッダーの文字が用紙外にはみ出しています');assert(!M.overlaps([header.x,header.y,header.width,header.height],g.qr),'ヘッダーとQRが重なっています');}
         var width=Math.round(g.width_mm*SCALE),height=Math.round(g.height_mm*SCALE),canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
         svg.setAttribute('width',width);svg.setAttribute('height',height);
         var encoded='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg.outerHTML),ctx=canvas.getContext('2d',{willReadFrequently:true});
