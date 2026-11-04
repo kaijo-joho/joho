@@ -90,5 +90,25 @@
   var guides=[];[best.x,best.y].forEach(function(c,idx){if(!c.kind)return;var axis=idx===0?'x':'y';guides.push({axis:axis,value:c.value,from:c.from,to:c.to,kind:c.kind,source:c.source,target:c.target,distance:c.distance});});
   return{rect:best.rect,guides:guides};
  }
- root.OMRSnapping={propose:propose};
+ function constrain(frame,original,boundsValue,options){
+  options=options||{};var b=bounds(boundsValue),o=rect(original),mode=options.mode||'apply',edge=options.edge||'se';
+  if(!b||!frame||!['x','y','width','height'].every(function(k){return finite(frame[k]);})||mode!=='apply'&&!o)throw Error('位置・寸法を確認してください');
+  function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+  if(mode==='move'){
+   if(o.width>b.right-b.left+EPS||o.height>b.bottom-b.top+EPS)throw Error('部品が本文領域に収まりません');
+   return{x:clamp(frame.x,b.left,b.right-o.width),y:clamp(frame.y,b.top,b.bottom-o.height),width:o.width,height:o.height};
+  }
+  if(mode==='resize'&&!/^(n|s|e|w|ne|nw|se|sw)$/.test(edge))throw Error('サイズ変更の方向が不正です');
+  var west=mode==='resize'&&edge.includes('w'),north=mode==='resize'&&edge.includes('n');
+  var maxWidth=mode==='resize'?(west?o.x+o.width-b.left:b.right-o.x):b.right-b.left;
+  var minWidth=finite(options.minimumWidth)?Math.max(1,options.minimumWidth):8;
+  if(minWidth>maxWidth+EPS)throw Error('部品の内容が本文領域の幅に収まりません');
+  var w=clamp(frame.width,minWidth,maxWidth),maxHeight=mode==='resize'?(north?o.y+o.height-b.top:b.bottom-o.y):b.bottom-b.top;
+  var minHeight=typeof options.minimumHeight==='function'?options.minimumHeight(w):options.minimumHeight;
+  if(!finite(minHeight)||minHeight<0)throw Error('部品の内容に必要な高さを確認できません');minHeight=Math.max(1,minHeight);
+  if(minHeight>maxHeight+EPS)throw Error('文字や記入欄が収まりません。幅を広げるか、部品を分けてください。');
+  var h=clamp(frame.height,minHeight,maxHeight);
+  return{x:mode==='resize'?(west?o.x+o.width-w:o.x):clamp(frame.x,b.left,b.right-w),y:mode==='resize'?(north?o.y+o.height-h:o.y):clamp(frame.y,b.top,b.bottom-h),width:w,height:h};
+ }
+ root.OMRSnapping={propose:propose,constrain:constrain};
 })(typeof window==='undefined'?globalThis:window);

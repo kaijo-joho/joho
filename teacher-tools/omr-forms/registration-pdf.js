@@ -16,7 +16,7 @@
       host.style.cssText='position:fixed;left:-10000px;top:0;visibility:hidden';host.append(svg);document.body.append(host);
       try{
         svg.querySelectorAll('text').forEach(function(t){assert(within(t.getBBox(),[0,0,g.width_mm,g.height_mm],.1),'文字が用紙外にはみ出しています');});
-        d.pages[i].elements.forEach(function(e){var group=svg.querySelector('[data-element-id="'+e.id+'"]');assert(group&&within(group.getBBox(),M.rect(e),.8),'部品「'+(e.label||e.id)+'」の文字・読取欄が枠外です。高さや幅を広げてください');});
+        var issues=OMRScene.componentBounds(svg,d,i);assert(!issues.length,issues.length?issues[0].message:'');
         svg.querySelectorAll('[data-header], [data-identity-heading], [data-grade-label]').forEach(function(t){var b=t.getBBox();assert(!M.overlaps([b.x,b.y,b.width,b.height],g.qr),'ヘッダーとQRが重なっています');});
         var width=Math.round(g.width_mm*SCALE),height=Math.round(g.height_mm*SCALE),canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
         svg.setAttribute('width',width);svg.setAttribute('height',height);

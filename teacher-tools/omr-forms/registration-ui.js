@@ -62,6 +62,8 @@
       if(OMREditorAPI.isComposing())throw Error('日本語入力を確定してください');
       OMRDesigner.validate(doc.document.definition);
       var id=doc.localId,expected=await OMRDesigner.hash(doc.document),previous=packets.get(id),modal=$('registration-dialog');
+      await OMREditorAPI.validateLayout(doc.document.definition);
+      if(await OMRDesigner.hash(doc.document)!==expected)throw Error('配置の検査中に内容が変わりました。もう一度版を確定してください。');
       if(u.store.current()!==doc)throw Error('作成する用紙を選び直してください');
       var revisionNote=previous&&previous.status==='registered'?'以前のPDFとQRは履歴に残し、今回は新しい版として登録します。':'変更のない登録済み版があれば、そのPDFとQRを利用します。';
       $('registration-summary').textContent='「'+doc.document.definition.title+'」の現在の内容で版を確定します。'+doc.document.definition.academic_year+'年度・'+doc.document.definition.pages.length+'ページ。必要な保存・識別QR発行・読み取り設定登録を自動で行い、PDF検査後にクラウドの確定版として保存します。PDFはローカルのみで保管します。'+revisionNote;

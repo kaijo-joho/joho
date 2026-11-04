@@ -9,12 +9,12 @@ var OMRScene=(function(){
   function shorten(value,w,pt){var chars=Array.from(value);if(width(value,pt)<=w)return value;while(chars.length&&width(chars.join('')+'…',pt)>w)chars.pop();return chars.join('')+'…';}
   function wrapped(svg,x,y,value,w,pt,leading,attrs){wrap(value,w,pt).forEach(function(line,i){text(svg,x,y+i*leading,line,pt,attrs);});}
   function heading(svg,x,y,value,w){return text(svg,x,y,shorten(value,w,10),10,{'font-weight':'700'});}
-  function richAt(svg,runs,x,y,w){var measure=OMRDesigner.measureRich(runs,w),yy=y;measure.lines.forEach(function(line){var baseline=yy+line.font_size*PT,container=node('text',{x:x,y:baseline,'xml:space':'preserve'}),chunks=[];
+  function richAt(svg,runs,x,y,w){var measure=OMRDesigner.measureRich(runs,w),yy=y;measure.lines.forEach(function(line){var baseline=yy+line.font_size*PT,container=node('text',{x:x,y:baseline,'font-size':line.font_size*PT,'xml:space':'preserve'}),chunks=[];
       line.chars.forEach(function(c){var r=c.run,key=[r.font_size,r.color,r.bold,r.italic,r.underline].join('|'),last=chunks[chunks.length-1];if(last&&last.key===key)last.text+=c.char;else chunks.push({key:key,text:c.char,run:r});});
       chunks.forEach(function(chunk){var r=chunk.run;container.append(node('tspan',{'font-size':r.font_size*PT,fill:r.color,'font-weight':r.bold?'700':'400','font-style':r.italic?'italic':'normal','text-decoration':r.underline?'underline':'none'},chunk.text));});if(chunks.length)svg.append(container);yy+=line.height;});return measure.height;}
   function rich(svg,e){if(e.label)heading(svg,e.x+2,e.y+4,e.label,e.width-4);richAt(svg,e.runs,e.x+1.5,e.y+(e.label?6:1),e.width-3);}
   async function render(d,pageIndex,token,options){options=options||{};var M=OMRDesigner,p=d.pages[pageIndex],g=M.layout(d,p),a=M.profile(d),s=a.s,mx=a.middle,hy=a.top;
-    var svg=node('svg',{xmlns:NS,viewBox:'0 0 '+g.width_mm+' '+g.height_mm,width:g.width_mm+'mm',height:g.height_mm+'mm','font-family':'Hiragino Sans, Yu Gothic, sans-serif','data-paper-width':g.width_mm,'data-paper-height':g.height_mm});
+    var svg=node('svg',{xmlns:NS,viewBox:'0 0 '+g.width_mm+' '+g.height_mm,width:g.width_mm+'mm',height:g.height_mm+'mm','font-family':'Hiragino Sans, Yu Gothic, sans-serif','font-size':9*PT,'data-paper-width':g.width_mm,'data-paper-height':g.height_mm});
     rect(svg,[0,0,g.width_mm,g.height_mm],{fill:'#ffffff',stroke:'none'});
     g.markers.forEach(function(r,i){rect(svg,r,{fill:'#000',stroke:'none','data-marker':g.marker_ids[i]});});
     var titleSize=11*s,titleX=16; text(svg,titleX,hy+4*s,shorten(d.title,mx-titleX-3*s,titleSize),titleSize,{'data-header':'title','font-weight':'700'});
@@ -57,5 +57,20 @@ var OMRScene=(function(){
     });
     return svg;
   }
-  return{render:render,node:node,wrap:wrap};
+  function within(box,area,margin){return box&&[box.x,box.y,box.width,box.height].every(Number.isFinite)&&box.x>=area[0]-margin&&box.y>=area[1]-margin&&box.x+box.width<=area[0]+area[2]+margin&&box.y+box.height<=area[1]+area[3]+margin;}
+  function componentBounds(svg,d,index){
+    var p=d.pages[index],issues=[];
+    p.elements.forEach(function(e){
+      var original=svg.querySelector('[data-element-id="'+e.id+'"]'),group=original&&original.cloneNode(true),box;
+      if(!group||typeof group.getBBox!=='function')throw Error('文字の位置を測定できません。対応するブラウザで開いてください。');
+      group.querySelectorAll('[data-hit],[data-resize]').forEach(function(n){n.remove();});svg.append(group);
+      try{box=group.getBBox();}finally{group.remove();}
+      if(!(box.width===0&&box.height===0)&&!within(box,OMRDesigner.rect(e),.8)){
+        var field=p.fields.find(function(f){return f.id===e.field_id;}),label=e.label||field&&field.label||'見出しなし';
+        var noun=e.type==='text'?'テキスト部品':e.type==='omr'?'OMR部品':'記入欄部品',content=e.type==='text'?'文字':e.type==='omr'?'文字または読取欄':'文字または記入枠';
+        issues.push({elementId:e.id,type:e.type,box:box,message:noun+'「'+label+'」の'+content+'が部品の範囲を超えています。幅・高さを調整してください。'});
+      }
+    });return issues;
+  }
+  return{render:render,node:node,wrap:wrap,componentBounds:componentBounds,within:within};
 })();
