@@ -14,17 +14,20 @@ const config={schemaVersion:2,enabled:true,distributionEnabled:true,logSpreadshe
  manifestFolderId:'synthetic-manifest-folder-'.padEnd(30,'x'),rubricArchiveFolderId:'synthetic-archive-'.padEnd(25,'x'),
  distributionBaseUrl:'https://script.google.com/macros/s/SYNTHETIC_DIST/exec',gradeBaseUrl:'https://script.google.com/macros/s/SYNTHETIC_GRADE/exec',siteBaseUrl:'https://joho.kaijo.ed.jp/'};
 const properties={HTML_ASSIGNMENT_CONFIG_V2:JSON.stringify(config),HTML_IDENTITY_CONFIG_V3:JSON.stringify({enabled:true,activeKeyId:'synthetic-key',allowedKeyIds:['synthetic-key'],epoch:1,lifetimeMs:90*86400000,revokedProofIds:[]}),HTML_ISSUANCE_KEYS:JSON.stringify({'synthetic-key':'k'.repeat(43)})};
+const taskHeaders=['id','status','year','grade','term','item','targetId','subTargetId','startAt',
+ 'standardDueAt','finalDueAt','weight','studentNotes','notes','title','description','url','gradingMode'];
+const task={id:'synthetic-stable-task-id',status:'active',year:2026,grade:3,item:'html',targetId:'html14-01',startAt:new Clock(now)};
 const tables={
  生徒名簿:[['userId','年'],[email,3],['other@gfe.kaijo.ed.jp',3]],
  配布設定一覧:[['id','status','release','g1','g2','g3','g4','g5','g6','distributionMode','submitBackend'],['html14-01','active',true,false,false,'TASK',false,false,false,'personal-html-v2','grade']],
- 課題設定:[['year','grade','item','targetId','status','startAt'],[2026,3,'html','html14-01','active',new Clock(now)]]
+ 新_課題設定:[taskHeaders,taskHeaders.map((_,i)=>({0:'課題設定ID',2:'年度',3:'学年',5:'課題種別',6:'課題対象ID',17:'採点方式'}[i]||'')),taskHeaders.map(k=>task[k]??'')]
 };
 let formula=false;
 function sheet(name){assert(name in tables);names.push(name);return {
- getLastRow:()=>tables[name].length,getLastColumn:()=>tables[name][0].length,
+ getSheetId:()=>12345,getLastRow:()=>tables[name].length,getLastColumn:()=>tables[name][0].length,
  getRange:(row,col,height,width)=>{ranges.push({name,row,col,height,width});return {
   getValues:()=>tables[name].slice(row-1,row-1+height).map(r=>r.slice(col-1,col-1+width)),
-  getFormulas:()=>tables[name].slice(row-1,row-1+height).map((r,i)=>r.slice(col-1,col-1+width).map((_,j)=>formula&&name==='課題設定'&&i===1&&j===5?'=NOW()':''))
+  getFormulas:()=>tables[name].slice(row-1,row-1+height).map((r,i)=>r.slice(col-1,col-1+width).map((_,j)=>formula&&name==='新_課題設定'&&i===2&&j===8?'=NOW()':''))
  };}
 };}
 const box=vm.createContext({Date:Clock,Common:{SSID:{fileList:'synthetic-book',submitLog:config.logSpreadsheetId},FAVICON_URL:'https://joho.kaijo.ed.jp/favicon.ico'},
@@ -36,16 +39,16 @@ const box=vm.createContext({Date:Clock,Common:{SSID:{fileList:'synthetic-book',s
   newBlob:s=>({getDataAsString:()=>s.toString()}),computeHmacSha256Signature:(s,k)=>crypto.createHmac('sha256',k).update(s).digest(),getUuid:()=> '12345678-1234-1234-1234-123456789abc'},
  DistMaintenance:{shouldBlock:()=>false,isAdminRequest:()=>false},HtmlPracticeTeacher:{allowed:()=>false,identity:()=>({})}
 });
-for(const file of ['06_html_practice_catalog.js','07_html_practice_bindings.js','16_html_practice_policy.js','46_html_practice_catalog_runtime.js','90_html_local_protocol.js','91_html_identity_runtime.js','48_html_download_availability.js'])vm.runInContext(fs.readFileSync(directory+'/'+file,'utf8'),box,{filename:file});
+for(const file of ['03_taskSettings.js','06_html_practice_catalog.js','07_html_practice_bindings.js','16_html_practice_policy.js','46_html_practice_catalog_runtime.js','90_html_local_protocol.js','91_html_identity_runtime.js','48_html_download_availability.js'])vm.runInContext(fs.readFileSync(directory+'/'+file,'utf8'),box,{filename:file});
 const identity=box.HtmlLocalProtocol.issueIdentity(box.HtmlIdentityRuntime.env()).token;
 names.length=0;ranges.length=0;propertyReads.length=0;
 const request={bridge:'b'.repeat(48),nonce:'c'.repeat(32),identity,targetId:'html14-01'};
 assert.equal(box.getHtmlDownloadAvailabilityV3(request).result.allowed,true);
-assert.deepEqual(names,['生徒名簿','配布設定一覧','課題設定']);assert.equal(ranges.length,5);
+assert.deepEqual(names,['生徒名簿','新_課題設定','配布設定一覧']);assert.equal(ranges.length,5);
 assert(!names.some(n=>/採点|発行|ログ|教材ファイル|HTML課題設定/.test(n)));
-tables.課題設定[1][5]=new Clock(now+1);const denied=box.getHtmlDownloadAvailabilityV3(request);assert.equal(denied.result.reason,'before_start');
+tables.新_課題設定[2][8]=new Clock(now+1);const denied=box.getHtmlDownloadAvailabilityV3(request);assert.equal(denied.result.reason,'before_start');
 now++;assert.equal(box.getHtmlDownloadAvailabilityV3(request).result.allowed,true);
-formula=true;assert.equal(box.getHtmlDownloadAvailabilityV3(request).result.reason,'availability_unavailable');formula=false;
+formula=true;assert.throws(()=>box.getHtmlDownloadAvailabilityV3(request),/availability_unavailable/);formula=false;
 email='other@gfe.kaijo.ed.jp';const previous=names.length;assert.throws(()=>box.getHtmlDownloadAvailabilityV3(request),/availability_unavailable/);
 assert.deepEqual(names.slice(previous),['生徒名簿'],'本人不一致では配付設定を読まない');
 assert.doesNotMatch(JSON.stringify(denied),/@|identity|key|sheet|grade/);
@@ -56,4 +59,4 @@ vm.runInContext(fs.readFileSync(directory+'/00_code.js','utf8'),box);
 box.doGet({parameter:{type:'htmlDownload',embed:'html-editor',bridge:request.bridge}});assert.deepEqual(templateCalls,['25_htmlDownloadAvailability']);
 assert.equal(box.doGet({parameter:{type:'htmlIdentity'}}),'existing-identity');assert.equal(box.doGet({parameter:{type:'htmlPractice',embed:'html-editor'}}),'existing-embed');
 assert.throws(()=>box.doGet({parameter:{type:'htmlDownload',embed:'html-editor',bridge:request.bridge,target:'html14-01'}}),/request_invalid/);
-console.log(JSON.stringify({actualCandidateModules:8,checks:15,remoteCalls:0,remoteWrites:0,settingsSheets:2,rosterColumns:2,existingRoutesPreserved:true}));
+console.log(JSON.stringify({actualCandidateModules:9,checks:15,remoteCalls:0,remoteWrites:0,settingsSheets:2,rosterColumns:2,existingRoutesPreserved:true,newTaskSettingsReader:true}));

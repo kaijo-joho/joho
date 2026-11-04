@@ -67,6 +67,9 @@ test('指定教員だけは既存の配付例外、他教員/生徒の自己申�
  const h=setup();h.input.tasks[0].status='draft';h.input.tasks[0].startAt='2026-12-01T00:00:00.000Z';h.input.distributions[0].release=false;h.input.config.distributionEnabled=false;
  assert.equal(h.decision({teacherPreview:true}).allowed,false);
  assert.equal(h.decision({teacherPreview:true,actor:{email:'informatics@gfe.kaijo.ed.jp',grade:3}}).allowed,true);
+ assert.equal(h.decision({teacherPreview:true,actor:{email:'tanaka-yuuki@gfe.kaijo.ed.jp',grade:3}}).allowed,true);
+ assert.equal(h.decision({teacherPreview:false,actor:{email:'tanaka-yuuki@gfe.kaijo.ed.jp',grade:3}}).allowed,false);
+ assert.equal(h.decision({teacherPreview:true,actor:{email:'hirata@gfe.kaijo.ed.jp',grade:3}}).allowed,false);
  assert.equal(h.decision({teacherPreview:true,actor:{email:'other@gfe.kaijo.ed.jp',grade:3}}).allowed,false);
  assert.equal(h.decision({teacherPreview:true,actor:{email:'informatics@gfe.kaijo.ed.jp',grade:3},maintenanceBlocked:true}).reason,'maintenance_blocked');
 });

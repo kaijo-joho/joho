@@ -3,6 +3,9 @@ var HtmlDownloadAvailability = (function () {
   'use strict';
   var DISTRIBUTION_KEYS = ['id','status','release','g1','g2','g3','g4','g5','g6','distributionMode','submitBackend'];
   var TASK_KEYS = ['year','grade','item','targetId','status','startAt'];
+  function previewAccount(email) {
+    return email === 'informatics@gfe.kaijo.ed.jp' || email === 'tanaka-yuuki@gfe.kaijo.ed.jp';
+  }
   function fail(code) { var error = new Error(code); error.htmlDownloadCode = code; throw error; }
   function yes(value, code) { if (!value) fail(code || 'availability_unavailable'); }
   function exact(value, keys) {
@@ -32,7 +35,7 @@ var HtmlDownloadAvailability = (function () {
         Number.isInteger(actor.grade) && actor.grade >= 1 && actor.grade <= 6, 'not_allowed');
       yes(c.maintenanceBlocked === false, 'maintenance_blocked');
       yes(input && input.config && typeof input.config.enabled === 'boolean' && typeof input.config.distributionEnabled === 'boolean');
-      var teacher = c.teacherPreview === true && actor.email === 'informatics@gfe.kaijo.ed.jp';
+      var teacher = c.teacherPreview === true && previewAccount(actor.email);
       yes(teacher || input.config.enabled && input.config.distributionEnabled, 'distribution_disabled');
       yes(Array.isArray(input.distributions) && input.distributions.length <= 2000 && Array.isArray(input.tasks) && input.tasks.length <= 2000);
       var now = date(c.now), fiscalYear = year(now);
@@ -68,7 +71,9 @@ var HtmlDownloadAvailability = (function () {
       var range = sheet.getRange(1,1,sheet.getLastRow(),sheet.getLastColumn());
       return HtmlAssignmentPolicy.records(range.getValues(), keys, range.getFormulas());
     }
-    return {config:config,distributions:rows('配布設定一覧',DISTRIBUTION_KEYS),tasks:rows('課題設定',TASK_KEYS)};
+    var taskGrid = DistTaskSettingsTable.logical(DistTaskSettingsTable.read(book,2002));
+    return {config:config,distributions:rows('配布設定一覧',DISTRIBUTION_KEYS),
+      tasks:HtmlAssignmentPolicy.records(taskGrid.values,TASK_KEYS,taskGrid.formulas)};
   }
   function request(value) {
     exact(value,['bridge','nonce','identity','targetId']);
@@ -81,7 +86,11 @@ var HtmlDownloadAvailability = (function () {
     var q = request(value), env = dependencies || {
       verify: function (identity) { return HtmlLocalProtocol.verifyIdentity(identity, HtmlIdentityRuntime.env()); },
       teacher: function (actor) {
-        return actor.email === 'informatics@gfe.kaijo.ed.jp' && HtmlPracticeTeacher.allowed(HtmlPracticeTeacher.identity());
+        if (!previewAccount(actor.email)) return false;
+        // 署名済み本人情報に加え、現在のGoogle本人を既存の教員定義で毎回照合する。
+        // 他の登録教員や、URL/RPCのteacher指定には例外を広げない。
+        var current = HtmlTrial.identity(true);
+        return current.email === actor.email && current.teacher === true;
       },
       read: readSettings, now: function () { return new Date().toISOString(); },
       maintenance: function () { return DistMaintenance.shouldBlock({parameter:{}}) !== false; }
