@@ -22,6 +22,44 @@ var OMRDesigner = (function () {
   function padding(e){return e.padding||{top:1,right:e.type==='text'?1.5:2,bottom:e.type==='text'?1:2,left:e.type==='text'?1.5:2};}
   function contentWidth(e){var p=padding(e);return Math.max(1,e.width-(p.left+p.right));}
   function questionHeight(e){return measureRich(e.question_runs||[],contentWidth(e)).height;}
+  // Outer dimensions include the printed stroke. Never scale these with the frame.
+  var MARK_WIDTH=3,MARK_HEIGHT=4.2,MARK_STROKE=.22;
+  function hasMarkGrid(d){return d.pages.some(function(p){return p.elements.some(function(e){return e.type==='mark-grid';});});}
+  function markChoices(type,count,symbols){
+    var limits={'digits-0':40,'digits-1':40,upper:26,lower:26,'digits-upper':36,'digits-lower':36};
+    if(!Object.prototype.hasOwnProperty.call(limits,type)||!Number.isInteger(count)||count<1||count>limits[type])throw Error('選択肢の生成数は数字1〜40、英字1〜26、数字＋英字1〜36です');
+    if(!Array.isArray(symbols)||symbols.length>3||new Set(symbols).size!==symbols.length||symbols.some(function(v){return !['plus','minus','plus-minus'].includes(v);}))throw Error('追加する記号を確認してください');
+    var result=Array.from({length:count},function(_,i){var value=type==='digits-0'?String(i):type==='digits-1'?String(i+1):type==='upper'?String.fromCharCode(65+i):type==='lower'?String.fromCharCode(97+i):i<10?String(i):String.fromCharCode((type==='digits-upper'?65:97)+i-10);return{code:value,label:value};});
+    symbols.forEach(function(key){var entry={plus:['PLUS','+'],minus:['MINUS','−'],'plus-minus':['PLUS_MINUS','±']}[key];result.push({code:entry[0],label:entry[1]});});
+    if(result.length<2||result.length>40)throw Error('記号を含む選択肢の合計は2〜40個です');return result;
+  }
+  function validateMarkGrid(e){
+    var m=e.mark_grid,keys='choice_gap_mm,choice_source,columns,options,question_ids,row_gap_mm,start_number';
+    if(!m||Array.isArray(m)||Object.keys(m).sort().join(',')!==keys)throw Error('連続マーク欄の設定が不正です');
+    if(!Array.isArray(m.question_ids)||m.question_ids.length<1||m.question_ids.length>100||m.question_ids.some(function(v){return !id(v);})||new Set(m.question_ids).size!==m.question_ids.length)throw Error('連続マーク欄は1〜100問で、設問IDを重複させないでください');
+    if(!Number.isInteger(m.start_number)||m.start_number<1||m.start_number+m.question_ids.length-1>9999||!Number.isInteger(m.columns)||m.columns<1||m.columns>4||m.columns>m.question_ids.length)throw Error('開始番号は1〜9999、段組は設問数以下の1〜4列です');
+    if(['choice_gap_mm','row_gap_mm'].some(function(k){return typeof m[k]!=='number'||!Number.isFinite(m[k])||m[k]<1.5||m[k]>10;}))throw Error('マークの外側同士の空白は1.5〜10mmです');
+    if(!Array.isArray(m.options)||m.options.length<2||m.options.length>40)throw Error('連続マーク欄の選択肢は記号を含めて2〜40個です');
+    var codes=new Set();m.options.forEach(function(o){if(!o||typeof o.code!=='string'||!/^[A-Za-z0-9_-]{1,32}$/.test(o.code)||codes.has(o.code)||typeof o.label!=='string'||!o.label.trim()||Array.from(o.label).length>8||/[\r\n\t]/.test(o.label))throw Error('連続マーク欄は重複しない内部コードと1〜8文字の表示名を指定してください');codes.add(o.code);});
+    var source=m.choice_source;if(!source||Array.isArray(source)||Object.keys(source).sort().join(',')!=='count,symbols,type')throw Error('選択肢の種類が不正です');
+    if(source.type==='custom'){if(source.count!==m.options.length||!Array.isArray(source.symbols)||source.symbols.length)throw Error('編集した選択肢の設定が不正です');}
+    else if(canonical(markChoices(source.type,source.count,source.symbols))!==canonical(m.options))throw Error('選択肢を編集した場合は種類を「自由設定」にしてください');
+    return m;
+  }
+  function markGridMetrics(e){
+    var m=validateMarkGrid(e),p=padding(e),labelWidth=Math.max.apply(null,m.options.map(function(o){return Array.from(o.label).reduce(function(n,c){return n+charWidth(c,6);},0);})),numberWidth=Array.from(String(m.start_number+m.question_ids.length-1)).reduce(function(n,c){return n+charWidth(c,7);},0);
+    var pitch=Math.max(MARK_WIDTH+m.choice_gap_mm,labelWidth+1.5),gutter=Math.max(7,numberWidth+2),block=gutter+MARK_WIDTH+(m.options.length-1)*pitch,rows=Math.ceil(m.question_ids.length/m.columns),gap=8,top=p.top+9+questionHeight(e);
+    return{width:p.left+p.right+Math.max(68,m.columns*block+(m.columns-1)*gap),height:top+rows*MARK_HEIGHT+(rows-1)*m.row_gap_mm+p.bottom,pitch:pitch,gutter:gutter,blockWidth:block,columnGap:gap,rows:rows,top:top};
+  }
+  function markGridMinSize(e){var m=markGridMetrics(e);return[m.width,m.height];}
+  function markGridGeometry(e){
+    var m=e.mark_grid,z=markGridMetrics(e),p=padding(e);if(e.width<z.width-.001||e.height<z.height-.001)throw Error('連続マーク欄が収まりません。段組・設問数・選択肢数を調整するか、幅・高さを広げてください');
+    var g={element_id:e.id,rect:rect(e),mark:{shape:'ellipse',width_mm:MARK_WIDTH,height_mm:MARK_HEIGHT,stroke_width_mm:MARK_STROKE},columns:m.columns,rows_per_column:z.rows,headings:[],questions:[]};
+    for(var column=0;column<m.columns;column++){var left=e.x+p.left+column*(z.blockWidth+z.columnGap);m.options.forEach(function(o,i){g.headings.push({code:o.code,label:o.label,column:column,x:left+z.gutter+MARK_WIDTH/2+i*z.pitch,y:e.y+z.top-2});});}
+    var base=Math.floor(m.question_ids.length/m.columns),extra=m.question_ids.length%m.columns,breakAt=extra*(base+1);
+    m.question_ids.forEach(function(questionId,i){var column=i<breakAt?Math.floor(i/(base+1)):extra+Math.floor((i-breakAt)/base),row=i<breakAt?i%(base+1):(i-breakAt)%base,left=e.x+p.left+column*(z.blockWidth+z.columnGap),cy=e.y+z.top+MARK_HEIGHT/2+row*(MARK_HEIGHT+m.row_gap_mm);g.questions.push({id:questionId,number:m.start_number+i,column:column,row:row,number_position:[left+z.gutter-2,cy+.8],bubbles:m.options.map(function(o,j){return{code:o.code,x:left+z.gutter+MARK_WIDTH/2+j*z.pitch,y:cy,shape:'ellipse',rx:MARK_WIDTH/2,ry:MARK_HEIGHT/2};})});});return g;
+  }
+  function setMarkQuestionCount(d,e,count){if(!Number.isInteger(count)||count<1||count>100)throw Error('設問数は1〜100です');var used=new Set(d.pages.flatMap(function(p){return p.fields.map(function(f){return f.id;}).concat(p.elements.flatMap(function(v){return v.mark_grid?v.mark_grid.question_ids:[];}));})),ids=e.mark_grid.question_ids.slice(0,count);while(ids.length<count){var next=fresh('question');while(used.has(next))next=fresh('question');used.add(next);ids.push(next);}e.mark_grid.question_ids=ids;}
   function plainLines(value,width,pt){return measureRich([{text:value,font_size:pt}],Math.max(1,width)).lines.length||1;}
   function choiceMetrics(f,e){var p=padding(e),w=e.width-(p.left+p.right-4),q=questionHeight(e),list=(f.layout||'row')==='list',offsets=[],needed;
     if(list){var offset=0,lastBottom=0;f.options.forEach(function(o){var lines=plainLines(o.label,w-15,8);offsets.push(offset);lastBottom=13+q+offset+(lines-1)*3.8;offset+=Math.max(11,lines*3.8+2);});needed=Math.max(9+11*f.options.length+q,lastBottom+2);}
@@ -65,6 +103,7 @@ var OMRDesigner = (function () {
     });
     g.name_rect=[a.left+9*s,hy+12*s,mx-a.left-12*s,8*s];g.elements=clone(p.elements||[]);
     g.elements.forEach(function(e){if(e.type==='omr'){var f=p.fields.find(function(f){return f.id===e.field_id;});g.fields.push(fieldGeometry(f,e));}});
+    if(g.elements.some(function(e){return e.type==='mark-grid';}))g.mark_grids=g.elements.filter(function(e){return e.type==='mark-grid';}).map(markGridGeometry);
     g.panel_rect=[16,g.body_top,w-32,h-g.body_top-16];return g;}
   function validateRuns(runs,optional){if(!Array.isArray(runs)||(!optional&&!runs.length)||runs.length>1000)throw Error('テキストを入力してください');var count=0;runs.forEach(function(r){if(!r||typeof r.text!=='string')throw Error('テキスト形式が不正です');count+=r.text.length;if(!Number.isFinite(r.font_size)||r.font_size<6||r.font_size>48||!/^#[0-9a-f]{6}$/i.test(r.color)||['bold','italic','underline'].some(function(k){return typeof r[k]!=='boolean';}))throw Error('文字書式が不正です');});if(count>20000)throw Error('文字数が上限を超えています');}
   function validate(d){if(!d||d.schema!=='omr-form/1'||!id(d.form_id)||!id(d.layout_version))throw Error('用紙ID・版・形式を確認してください');
@@ -83,17 +122,19 @@ var OMRDesigner = (function () {
         else if(['single','multiple'].includes(f.kind)){if(!Array.isArray(f.options)||f.options.length<2||f.options.length>12)throw Error('選択肢は2〜12個です');var codes=new Set();f.options.forEach(function(o){if(typeof o.code!=='string'||!/^[A-Za-z0-9_-]{1,32}$/.test(o.code)||codes.has(o.code)||typeof o.label!=='string'||o.label.length>180)throw Error('選択肢コード・表示名を確認してください');codes.add(o.code);});if(rr==='grade'&&(f.kind!=='single'||f.options.map(function(o){return o.code;}).join('')!=='123456'))throw Error('学年は1〜6の列です');
           if(f.kind==='multiple'&&(!Number.isInteger(f.min_select)||!Number.isInteger(f.max_select)||f.min_select<0||f.max_select<f.min_select||f.max_select>f.options.length))throw Error('選択数が不正です');}
         else throw Error('読取形式が不正です');});
-      var ids=new Set(),placed=new Set(),a=profile(d);
-      p.elements.forEach(function(e,j){if(!id(e.id)||ids.has(e.id)||!['text','free','entry','omr'].includes(e.type))throw Error('部品ID・種類が不正です');ids.add(e.id);
+      var ids=new Set(),placed=new Set(),a=profile(d),markQuestions=0;
+      p.elements.forEach(function(e,j){if(!id(e.id)||ids.has(e.id)||!['text','free','entry','omr','mark-grid'].includes(e.type))throw Error('部品ID・種類が不正です');ids.add(e.id);
         ['x','y','width','height'].forEach(function(k){if(typeof e[k]!=='number'||!Number.isFinite(e[k])||Math.abs(e[k])>500)throw Error('配置・サイズが不正です');});
         if(e.required!==undefined&&typeof e.required!=='boolean')throw Error('必須設定が不正です');
-        if((e.type==='text'||e.type==='entry')&&e.label!==undefined&&(typeof e.label!=='string'||e.label.length>180))throw Error('テキスト見出しが不正です');
+        if((e.type==='text'||e.type==='entry'||e.type==='mark-grid')&&e.label!==undefined&&(typeof e.label!=='string'||e.label.length>180))throw Error('テキスト見出しが不正です');
         if(e.border!==undefined&&typeof e.border!=='boolean')throw Error('枠線設定が不正です');
         if(e.padding!==undefined&&(!e.padding||Array.isArray(e.padding)||Object.keys(e.padding).length!==4||['top','right','bottom','left'].some(function(k){return typeof e.padding[k]!=='number'||!Number.isFinite(e.padding[k])||e.padding[k]<0||e.padding[k]>20;})))throw Error('部品の余白は上下左右それぞれ0〜20mmです');
         var inset=padding(e);if(e.width<=inset.left+inset.right||e.height<=inset.top+inset.bottom)throw Error('余白の内側に内容を置ける幅・高さを確保してください: '+e.id);
         if(e.entry_box!==undefined&&(e.type!=='entry'||!e.entry_box||Array.isArray(e.entry_box)||!Object.keys(e.entry_box).length||Object.keys(e.entry_box).some(function(k){var v=e.entry_box[k];return !['width_mm','height_mm'].includes(k)||typeof v!=='number'||!Number.isFinite(v)||v<(k==='width_mm'?8:4)||v>400;})))throw Error('1行記入枠の幅は8mm以上、高さは4mm以上です');
         if(e.entry_grid!==undefined){var grid=e.entry_grid;if(e.type!=='entry'||!grid||Array.isArray(grid)||Object.keys(grid).sort().join(',')!=='cell_size_mm,cells,character_set'||grid.character_set!=='digits'||!Number.isInteger(grid.cells)||grid.cells<1||grid.cells>20||typeof grid.cell_size_mm!=='number'||!Number.isFinite(grid.cell_size_mm)||grid.cell_size_mm<6||grid.cell_size_mm>20||e.entry_box!==undefined)throw Error('数値入力（手書き）は1〜20マス、1辺6〜20mmです。文字種は数字のみで、1行記入枠との併用はできません');}
         if(e.numeric_range!==undefined){var nr=e.numeric_range;if(e.type!=='entry'||!e.entry_grid||!nr||Array.isArray(nr)||Object.keys(nr).sort().join(',')!=='max,min'||!Number.isSafeInteger(nr.min)||!Number.isSafeInteger(nr.max)||nr.min<0||nr.max<nr.min||nr.max>=Math.pow(10,e.entry_grid.cells))throw Error('手書き数値の範囲は桁数に収まる0以上の整数で指定してください');}
+        if(e.mark_grid!==undefined&&e.type!=='mark-grid')throw Error('連続マーク欄の種類が不正です');
+        if(e.type==='mark-grid'){if(typeof e.label!=='string'||typeof e.required!=='boolean')throw Error('連続マーク欄の見出し・必須性を確認してください');var mg=validateMarkGrid(e);markQuestions+=mg.question_ids.length;if(markQuestions>200)throw Error('連続マーク欄は1ページ合計200問までです');mg.question_ids.forEach(function(qid){if(fields.has(qid))throw Error('設問IDが重複しています: '+qid);fields.add(qid);});markGridGeometry(e);}
         if(e.width<=0||e.height<=0||e.x<12||e.y<a.body_top||e.x+e.width>a.w-12+.001||e.y+e.height>a.h-16+.001)throw Error('部品が本文の範囲外です: '+e.id);
         for(var n=0;n<j;n++)if(overlaps(rect(e),rect(p.elements[n])))throw Error('部品が重なっています: '+e.id);
         if(e.type==='text')validateRuns(e.runs,false);else if(e.question_runs!==undefined)validateRuns(e.question_runs,true);
@@ -115,6 +156,7 @@ var OMRDesigner = (function () {
     if(type==='free'){e.label='自由記述';e.lines=3;e.question_runs=[];}
     if(type==='entry'){e.label='1行記入';e.required=false;e.question_runs=[];}
     if(type==='entry'&&kind==='digit-entry'){e.label='数値入力';e.entry_grid={character_set:'digits',cells:3,cell_size_mm:8};e.width=Math.max(40,entryMinWidth(e));e.height=entryMinHeight(e);}
+    if(type==='mark-grid'){e.label='解答欄';e.required=true;e.question_runs=[];e.mark_grid={choice_source:{type:'digits-0',count:10,symbols:[]},options:markChoices('digits-0',10,[]),question_ids:[],start_number:1,columns:2,choice_gap_mm:1.5,row_gap_mm:1.5};setMarkQuestionCount(d,e,20);var gridSize=markGridMinSize(e);e.width=Math.max(e.width,gridSize[0]);e.height=gridSize[1];}
     if(type==='omr'){e.question_runs=[];var f={id:fresh('q'),label:kind==='digits'?'数値入力':'設問',kind:kind,required:true};if(kind==='digits'){f.digits=2;f.min=0;f.max=99;}else{f.layout='row';f.options=[{code:'option_1',label:'選択肢1'},{code:'option_2',label:'選択肢2'}];if(kind==='multiple'){f.min_select=1;f.max_select=2;}}var minimum=minSize(f,e);e.width=Math.max(e.width,minimum[0]);e.height=minSize(f,e)[1];e.field_id=f.id;var pos=place(d,p,e.width,e.height);e.x=pos.x;e.y=pos.y;p.fields.push(f);p.elements.push(e);return e;}
     var position=place(d,p,e.width,e.height);e.x=position.x;e.y=position.y;p.elements.push(e);return e;}
   function remove(d,index,elementId){var p=d.pages[index],e=p.elements.find(function(e){return e.id===elementId;});if(!e)throw Error('部品が見つかりません');clearScoreTarget(d,p,e);p.elements=p.elements.filter(function(e){return e.id!==elementId;});if(e.type==='omr')p.fields=p.fields.filter(function(f){return f.id!==e.field_id;});}
@@ -126,5 +168,5 @@ var OMRDesigner = (function () {
   function normalizePages(d){var used=new Set();d.pages.forEach(function(p){p.fields.forEach(function(f){if(!role(f))used.add(f.id);});});d.pages.forEach(function(p,i){p.number=i+1;p.side=pageSide(d,i);p.fields.forEach(function(f){var rr=role(f);if(!rr)return;var base=i?'p'+(i+1)+'_'+rr:rr,candidate=base,n=1;while(used.has(candidate))candidate=base+'_'+n++;used.add(candidate);f.id=candidate;f.identity_role=rr;if(i===0)f.required=true;});});}
   function removePage(d,index){if(!Number.isInteger(index)||index<0||index>=d.pages.length)throw Error('削除するページが見つかりません');if(d.pages.length<=1)throw Error('最後の1ページは削除できません');if(d.score_target&&d.score_target.page_uid===d.pages[index].uid)delete d.score_target;d.pages.splice(index,1);normalizePages(d);return Math.min(index,d.pages.length-1);}
   function addPage(d){if(d.pages.length>=8)throw Error('8ページまでです');var number=d.pages.length+1,p={uid:uniquePageId(new Set(d.pages.map(function(p){return p.uid;}))),number:number,side:pageSide(d,number-1),fields:[],elements:[]};d.pages[0].fields.filter(role).forEach(function(f){var value=clone(f),base='p'+number+'_'+role(f),candidate=base,n=1,used=new Set(d.pages.flatMap(function(p){return p.fields.map(function(f){return f.id;});}));while(used.has(candidate))candidate=base+'_'+n++;value.id=candidate;value.identity_role=role(f);value.required=false;p.fields.push(value);});d.pages.push(p);return d.pages.length-1;}
-  return{clone:clone,role:role,numeric:numeric,scoreTarget:scoreTarget,isScoreTarget:isScoreTarget,setScoreTarget:setScoreTarget,clearScoreTarget:clearScoreTarget,scoreCaption:scoreCaption,size:size,profile:profile,charWidth:charWidth,measureRich:measureRich,padding:padding,contentWidth:contentWidth,questionHeight:questionHeight,textMinHeight:textMinHeight,entryMinWidth:entryMinWidth,entryMinHeight:entryMinHeight,entryRect:entryRect,entryCells:entryCells,entryGridNote:entryGridNote,freeMinHeight:freeMinHeight,minSize:minSize,rect:rect,overlaps:overlaps,layout:layout,validate:validate,canonical:canonical,hash:hash,payload:payload,version:version,place:place,add:add,remove:remove,prepare:prepare,printMode:printMode,pageSide:pageSide,setPrintMode:setPrintMode,addPage:addPage,removePage:removePage};
+  return{clone:clone,role:role,numeric:numeric,scoreTarget:scoreTarget,isScoreTarget:isScoreTarget,setScoreTarget:setScoreTarget,clearScoreTarget:clearScoreTarget,scoreCaption:scoreCaption,hasMarkGrid:hasMarkGrid,markChoices:markChoices,markGridMinSize:markGridMinSize,markGridGeometry:markGridGeometry,setMarkQuestionCount:setMarkQuestionCount,size:size,profile:profile,charWidth:charWidth,measureRich:measureRich,padding:padding,contentWidth:contentWidth,questionHeight:questionHeight,textMinHeight:textMinHeight,entryMinWidth:entryMinWidth,entryMinHeight:entryMinHeight,entryRect:entryRect,entryCells:entryCells,entryGridNote:entryGridNote,freeMinHeight:freeMinHeight,minSize:minSize,rect:rect,overlaps:overlaps,layout:layout,validate:validate,canonical:canonical,hash:hash,payload:payload,version:version,place:place,add:add,remove:remove,prepare:prepare,printMode:printMode,pageSide:pageSide,setPrintMode:setPrintMode,addPage:addPage,removePage:removePage};
 })();

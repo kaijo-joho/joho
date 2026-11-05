@@ -69,3 +69,5 @@ footer{display:flex;flex:none;justify-content:space-between;gap:12px;padding:5px
   .document-tab{max-width:175px}#document-tabs .document-tab>[role=tab]{max-width:none}
 }
 @media(pointer:coarse){#document-tabs .document-tab>.tab-more{flex-basis:40px;width:40px;min-width:40px}}
+.mark-symbols{display:flex;flex-wrap:wrap;gap:16px;align-items:center}.mark-symbols label{margin:4px 0}.mark-choice-row{grid-template-columns:minmax(45px,1fr) minmax(68px,1fr) auto}.choice-actions{display:flex;gap:2px}.choice-actions button{width:25px;min-width:25px;padding:2px}.mark-choice-row input{width:100%}#mark-add-option{margin:8px 0}#mark-generate{width:100%}
+@media(pointer:coarse){.mark-choice-row{grid-template-columns:minmax(0,1fr) minmax(68px,1fr)}.mark-choice-row .choice-actions{grid-column:1/-1;justify-content:flex-end}.choice-actions button{width:44px;min-width:44px;min-height:44px}}

@@ -76,7 +76,7 @@
     resetFlow(doc);var p=currentPacket(),attempt=flow.attempt,id=doc.localId;
     if(p&&p.status==='registered'){flow.hash=p.reservation.documentSha256;flowStatus('save',p.reservation.academicYear+'年度 版'+p.reservation.releaseVersion+'を照合しています。','busy');}
     else{flowStatus('output','QR未発行です。Googleログイン確認後、「QRを発行して登録」を押すと版の保存と読み取り設定登録を開始します。','pending');if(u.store.registrationEnabled===false)flowStatus('save','OMR用紙登録は一時停止中です。既登録の版は印刷・PDF保存できます。','blocked');}
-    $('registration-summary').textContent='「'+doc.document.definition.title+'」 '+doc.document.definition.academic_year+'年度・'+doc.document.definition.pages.length+'ページ。Googleログイン状態を確認します。登録は「QRを発行して登録」を押した後に始まります。確定版は識別QRと読み取り設定を登録し、以前の版は履歴に保持します。';modal.showModal();flow.sessionCheck=checkFlowSession(attempt,doc,id,p);
+    $('registration-summary').textContent='「'+doc.document.definition.title+'」 '+doc.document.definition.academic_year+'年度・'+doc.document.definition.pages.length+'ページ。Googleログイン状態を確認します。登録は「QRを発行して登録」を押した後に始まります。確定版は識別QRと読み取り設定を登録し、以前の版は履歴に保持します。';if(OMRDesigner.hasMarkGrid(doc.document.definition))$('registration-summary').textContent+=' この用紙の連続マーク欄は読み取り未対応です。';modal.showModal();flow.sessionCheck=checkFlowSession(attempt,doc,id,p);
   }
   function finalizeVersion(){openFlow();}
   function assertFlow(attempt,doc,id){if(!flow.active||flow.attempt!==attempt||flow.doc!==doc||flow.id!==id||!$('registration-dialog').open)throw Error('接続または登録を取り消しました。保存・登録は開始していません。');}

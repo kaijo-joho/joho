@@ -5,7 +5,7 @@ var OMRFieldDrafts=(function(){
  function key(scope){return PREFIX+scope;}
  function legacyKey(scope){return LEGACY+scope;}
  function aliases(values,exclude){var seen=new Set(),out=[];(values||[]).forEach(function(k){if(typeof k==='string'&&(k.indexOf(PREFIX)===0||k.indexOf(LEGACY)===0)&&k!==exclude&&!seen.has(k)){seen.add(k);out.push(k);}});return out;}
- function valid(v){if(!v||!v.values||!Array.isArray(v.options)||v.options.length>12||!Array.isArray(v.runs)||v.runs.length>1000)return false;var count=0;
+ function valid(v){if(!v||!v.values||!Array.isArray(v.options)||v.options.length>40||!Array.isArray(v.runs)||v.runs.length>1000)return false;var count=0;
   if(Object.keys(v.values).some(function(k){return typeof v.values[k]!=='boolean'&&(typeof v.values[k]!=='string'||v.values[k].length>500);}))return false;
   if(v.options.some(function(o){return !o||typeof o.label!=='string'||o.label.length>180||typeof o.code!=='string'||o.code.length>32;}))return false;
   if(v.runs.some(function(r){if(r&&typeof r.text==='string')count+=r.text.length;return !r||typeof r.text!=='string'||!Number.isFinite(r.font_size)||r.font_size<6||r.font_size>48||!/^#[0-9a-f]{6}$/i.test(r.color)||['bold','italic','underline'].some(function(k){return typeof r[k]!=='boolean';});}))return false;return count<=20000;

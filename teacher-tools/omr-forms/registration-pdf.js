@@ -31,6 +31,7 @@
         var qr=qrcodegen.QrCode.encodeSegments([qrcodegen.QrSegment.makeNumeric(page.qr.payload)],qrcodegen.QrCode.Ecc.HIGH,1,1,0,false),unit=g.qr[2]/29;
         for(var y=0;y<29;y++)for(var x=0;x<29;x++){var dark=x>=4&&x<25&&y>=4&&y<25&&qr.getModule(x-4,y-4),level=pixels(ctx,g.qr[0]+(x+.5)*unit,g.qr[1]+(y+.5)*unit);assert(dark?level<65:level>220,'QRまたは余白が欠けています');}
         var bubbles=0;g.fields.forEach(function(f){f.bubbles.forEach(function(b){bubbles++;assert(b.x-b.r>0&&b.y-b.r>0&&b.x+b.r<g.width_mm&&b.y+b.r<g.height_mm,'読取欄が用紙外です');assert(pixels(ctx,b.x+b.r,b.y)<200,'読取欄の輪郭が欠けています');});});
+        (g.mark_grids||[]).forEach(function(group){group.questions.forEach(function(q){q.bubbles.forEach(function(b){bubbles++;assert(b.x-b.rx>0&&b.y-b.ry>0&&b.x+b.rx<g.width_mm&&b.y+b.ry<g.height_mm,'連続マーク欄が用紙外です');var halfStroke=group.mark.stroke_width_mm/2;for(var angle of [0,Math.PI/2,Math.PI,Math.PI*1.5])assert(pixels(ctx,b.x+(b.rx-halfStroke)*Math.cos(angle),b.y+(b.ry-halfStroke)*Math.sin(angle))<200,'楕円の輪郭が欠けています');assert(pixels(ctx,b.x,b.y)>220,'楕円の内部に印字が重なっています');});});});
         pages.push({widthMm:g.width_mm,heightMm:g.height_mm,widthPx:width,heightPx:height,jpeg:jpeg});
         proof.pages.push({number:page.number,widthMm:g.width_mm,heightMm:g.height_mm,widthPx:width,heightPx:height,qrPayload:page.qr.payload,qrVersion:1,qrModules:21,quietZoneModules:4,markersVerified:13,bubblesVerified:bubbles,textBoundsVerified:true,imageSha256:await OMRArtifacts.sha(jpeg)});
       }finally{host.remove();}
