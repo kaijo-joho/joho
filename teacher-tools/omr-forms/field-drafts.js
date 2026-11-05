@@ -1,6 +1,6 @@
 /* Pending component edits are local UI state, separate from committed paper data. */
 var OMRFieldDrafts=(function(){
- 'use strict';var active=null,memory=new Map(),PREFIX='omr-editor-field-drafts/1/',LEGACY='omr-editor-rich-drafts/1/',SCHEMA='omr-component-draft/2';
+ 'use strict';var memory=new Map(),PREFIX='omr-editor-field-drafts/1/',LEGACY='omr-editor-rich-drafts/1/',SCHEMA='omr-component-draft/2';
  function copy(v){return JSON.parse(JSON.stringify(v));}
  function key(scope){return PREFIX+scope;}
  function legacyKey(scope){return LEGACY+scope;}
@@ -12,6 +12,7 @@ var OMRFieldDrafts=(function(){
  }
  function getRaw(k){var cached=memory.get(k);if(cached)return{raw:JSON.stringify(cached.data),cached:cached};return{raw:localStorage.getItem(k),cached:null};}
  function decode(raw){if(raw===null)return null;var parsed=JSON.parse(raw);if(parsed&&parsed.schema===SCHEMA){if(!valid(parsed.value)||parsed.base!==null&&parsed.base!==undefined&&!valid(parsed.base))throw Error('invalid combined draft');return{data:{schema:SCHEMA,base:parsed.base===undefined?null:parsed.base,value:parsed.value,supersededKeys:aliases(parsed.supersededKeys),richOnly:parsed.richOnly===true}};}if(valid(parsed))return{data:{schema:SCHEMA,base:null,value:parsed,supersededKeys:[],richOnly:false}};throw Error('invalid draft');}
+ function create(){var active=null;
  function open(scope,base){var currentKey=key(scope),oldRich=legacyKey(scope),result=copy(base),pending=false,error=null,saved=null;active={key:currentKey,legacy:oldRich,aliases:[],base:copy(base)};
   try{var source=getRaw(currentKey);saved=decode(source.raw);if(saved){var old=saved.data.value;
     active.aliases=aliases(saved.data.supersededKeys,currentKey);
@@ -50,4 +51,6 @@ var OMRFieldDrafts=(function(){
   }catch(e){return{ok:false,error:'未適用の入力を移行できません。元の控えを保持しました。'};}
  }
  return{open:open,save:save,clear:clear,migrateScope:migrateScope};
+ }
+ var defaults=create();defaults.create=create;return defaults;
 })();
