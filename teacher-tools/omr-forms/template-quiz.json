@@ -88,7 +88,7 @@
         },
         {
           "id": "quiz_score",
-          "label": "交換採点した得点（満点20点）",
+          "label": "得点",
           "kind": "digits",
           "digits": 2,
           "min": 0,
@@ -124,7 +124,12 @@
           "width": 178,
           "height": 28
         }
-      ]
+      ],
+      "uid": "page-quiz-1"
     }
-  ]
+  ],
+  "score_target": {
+    "page_uid": "page-quiz-1",
+    "element_id": "score-report"
+  }
 }

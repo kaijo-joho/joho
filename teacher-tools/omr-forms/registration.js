@@ -17,7 +17,7 @@ var OMRRegistration=(function(){
   var d=document&&document.definition;OMRDesigner.validate(d);
   if(d.geometry_version!=='editor-compact/5')fail('正式登録には現在の配置版で下書きを保存してください');
   qr(number,d.academic_year,version,1);
-  return {schema:SCHEMA,qrProtocol:'91',paperNumber:number,academicYear:d.academic_year,releaseVersion:version,
+  var result={schema:SCHEMA,qrProtocol:'91',paperNumber:number,academicYear:d.academic_year,releaseVersion:version,
    releaseKey:number+'-'+d.academic_year+'-'+pad(version,2),geometryVersion:d.geometry_version,layoutVersion:d.layout_version,
    metadata:OMRDesigner.clone(document.metadata),title:d.title,grade:OMRDesigner.clone(d.grade),purpose:d.purpose,printMode:OMRDesigner.printMode(d),
    pages:d.pages.map(function(p){var g=OMRDesigner.layout(d,p);return {number:p.number,uid:p.uid,side:p.side,
@@ -26,6 +26,8 @@ var OMRRegistration=(function(){
     markers:g.markers.map(function(r,i){return{id:g.marker_ids[i],rectMm:r};}),nameRectMm:g.name_rect,handwriting:g.handwriting,
     fields:g.fields.map(function(f){return{definition:OMRDesigner.clone(p.fields.find(function(x){return x.id===f.field;})),geometry:f};}),
     writingAreas:p.elements.filter(function(e){return e.type==='entry'||e.type==='free';}).map(function(e){return{id:e.id,type:e.type,required:!!e.required,rectMm:OMRDesigner.rect(e),automaticReading:false};})};})};
+  var score=OMRDesigner.scoreTarget(d);if(score){var n=score.numeric,e=score.element;result.scoreTarget={pageUid:score.page.uid,pageNumber:score.page.number,elementId:e.id,inputMethod:n.method,minimum:0,fullScore:n.max,integerOnly:true,blankIsZero:false,automaticReading:n.method==='mark'};if(n.method==='mark')result.scoreTarget.fieldId=e.field_id;else{result.scoreTarget.writingAreaId=e.id;result.scoreTarget.characterSet='digits';result.scoreTarget.cells=e.entry_grid.cells;result.scoreTarget.cellRectsMm=OMRDesigner.entryCells(e);}}
+  return result;
  }
  function validate(definition,document){
   if(!definition||definition.schema!==SCHEMA)fail('読み取り設定の形式が不正です');
