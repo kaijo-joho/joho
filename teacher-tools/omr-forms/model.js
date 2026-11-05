@@ -35,10 +35,11 @@ var OMRDesigner = (function () {
   }
   function validateMarkGrid(e){
     var m=e.mark_grid,keys='choice_gap_mm,choice_source,columns,options,question_ids,row_gap_mm,start_number';
-    if(!m||Array.isArray(m)||Object.keys(m).sort().join(',')!==keys)throw Error('連続マーク欄の設定が不正です');
+    if(!m||Array.isArray(m)||Object.keys(m).filter(function(k){return k!=='column_gap_mm';}).sort().join(',')!==keys)throw Error('連続マーク欄の設定が不正です');
     if(!Array.isArray(m.question_ids)||m.question_ids.length<1||m.question_ids.length>100||m.question_ids.some(function(v){return !id(v);})||new Set(m.question_ids).size!==m.question_ids.length)throw Error('連続マーク欄は1〜100問で、設問IDを重複させないでください');
     if(!Number.isInteger(m.start_number)||m.start_number<1||m.start_number+m.question_ids.length-1>9999||!Number.isInteger(m.columns)||m.columns<1||m.columns>4||m.columns>m.question_ids.length)throw Error('開始番号は1〜9999、段組は設問数以下の1〜4列です');
     if(['choice_gap_mm','row_gap_mm'].some(function(k){return typeof m[k]!=='number'||!Number.isFinite(m[k])||m[k]<1.5||m[k]>10;}))throw Error('マークの外側同士の空白は1.5〜10mmです');
+    if(Object.prototype.hasOwnProperty.call(m,'column_gap_mm')&&(typeof m.column_gap_mm!=='number'||!Number.isFinite(m.column_gap_mm)||m.column_gap_mm<1.5||m.column_gap_mm>30))throw Error('列間隔は1.5〜30mmで指定してください');
     if(!Array.isArray(m.options)||m.options.length<2||m.options.length>40)throw Error('連続マーク欄の選択肢は記号を含めて2〜40個です');
     var codes=new Set();m.options.forEach(function(o){if(!o||typeof o.code!=='string'||!/^[A-Za-z0-9_-]{1,32}$/.test(o.code)||codes.has(o.code)||typeof o.label!=='string'||!o.label.trim()||Array.from(o.label).length>8||/[\r\n\t]/.test(o.label))throw Error('連続マーク欄は重複しない内部コードと1〜8文字の表示名を指定してください');codes.add(o.code);});
     var source=m.choice_source;if(!source||Array.isArray(source)||Object.keys(source).sort().join(',')!=='count,symbols,type')throw Error('選択肢の種類が不正です');
@@ -47,9 +48,15 @@ var OMRDesigner = (function () {
     return m;
   }
   function markGridMetrics(e){
-    var m=validateMarkGrid(e),p=padding(e),labelWidth=Math.max.apply(null,m.options.map(function(o){return Array.from(o.label).reduce(function(n,c){return n+charWidth(c,6);},0);})),numberWidth=Array.from(String(m.start_number+m.question_ids.length-1)).reduce(function(n,c){return n+charWidth(c,7);},0);
-    var pitch=Math.max(MARK_WIDTH+m.choice_gap_mm,labelWidth+1.5),gutter=Math.max(7,numberWidth+2),block=gutter+MARK_WIDTH+(m.options.length-1)*pitch,rows=Math.ceil(m.question_ids.length/m.columns),gap=8,top=p.top+9+questionHeight(e);
-    return{width:p.left+p.right+Math.max(68,m.columns*block+(m.columns-1)*gap),height:top+rows*MARK_HEIGHT+(rows-1)*m.row_gap_mm+p.bottom,pitch:pitch,gutter:gutter,blockWidth:block,columnGap:gap,rows:rows,top:top};
+    var m=validateMarkGrid(e),p=padding(e),labelWidths=m.options.map(function(o){return Array.from(o.label).reduce(function(n,c){return n+charWidth(c,6);},0);}),labelWidth=Math.max.apply(null,labelWidths),numberWidth=Array.from(String(m.start_number+m.question_ids.length-1)).reduce(function(n,c){return n+charWidth(c,7);},0);
+    var configured=m.column_gap_mm!==undefined,gap=configured?m.column_gap_mm:8,pitch=Math.max(MARK_WIDTH+m.choice_gap_mm,labelWidth+1.5),gutter=Math.max(7,numberWidth+2),endCap=0;
+    // Issued grids without this setting keep their exact coordinates. Newly configured
+    // grids reserve the ends of long headings as well as the question-number gutter.
+    if(configured){gutter=Math.max(gutter,labelWidths[0]/2-MARK_WIDTH/2-p.left+.2);endCap=Math.max(0,labelWidths[labelWidths.length-1]/2-MARK_WIDTH/2-p.right+.2);}
+    var minimumGap=Math.max(1.5,Math.ceil(((labelWidths[0]+labelWidths[labelWidths.length-1])/2+.2-gutter-MARK_WIDTH)*10-1e-9)/10);
+    if(configured&&m.columns>1&&gap<minimumGap-1e-9)throw Error('選択肢名が隣の列と重なります。列間隔を'+minimumGap+'mm以上にしてください');
+    var block=gutter+MARK_WIDTH+(m.options.length-1)*pitch,rows=Math.ceil(m.question_ids.length/m.columns),top=p.top+9+questionHeight(e);
+    return{width:p.left+p.right+Math.max(68,m.columns*block+(m.columns-1)*gap+endCap),height:top+rows*MARK_HEIGHT+(rows-1)*m.row_gap_mm+p.bottom,pitch:pitch,gutter:gutter,blockWidth:block,columnGap:gap,rows:rows,top:top};
   }
   function markGridMinSize(e){var m=markGridMetrics(e);return[m.width,m.height];}
   function markGridGeometry(e){
@@ -156,7 +163,7 @@ var OMRDesigner = (function () {
     if(type==='free'){e.label='自由記述';e.lines=3;e.question_runs=[];}
     if(type==='entry'){e.label='1行記入';e.required=false;e.question_runs=[];}
     if(type==='entry'&&kind==='digit-entry'){e.label='数値入力';e.entry_grid={character_set:'digits',cells:3,cell_size_mm:8};e.width=Math.max(40,entryMinWidth(e));e.height=entryMinHeight(e);}
-    if(type==='mark-grid'){e.label='解答欄';e.required=true;e.question_runs=[];e.mark_grid={choice_source:{type:'digits-0',count:10,symbols:[]},options:markChoices('digits-0',10,[]),question_ids:[],start_number:1,columns:2,choice_gap_mm:1.5,row_gap_mm:1.5};setMarkQuestionCount(d,e,20);var gridSize=markGridMinSize(e);e.width=Math.max(e.width,gridSize[0]);e.height=gridSize[1];}
+    if(type==='mark-grid'){e.label='解答欄';e.required=true;e.question_runs=[];e.mark_grid={choice_source:{type:'digits-0',count:10,symbols:[]},options:markChoices('digits-0',10,[]),question_ids:[],start_number:1,columns:2,column_gap_mm:8,choice_gap_mm:1.5,row_gap_mm:1.5};setMarkQuestionCount(d,e,20);var gridSize=markGridMinSize(e);e.width=Math.max(e.width,gridSize[0]);e.height=gridSize[1];}
     if(type==='omr'){e.question_runs=[];var f={id:fresh('q'),label:kind==='digits'?'数値入力':'設問',kind:kind,required:true};if(kind==='digits'){f.digits=2;f.min=0;f.max=99;}else{f.layout='row';f.options=[{code:'option_1',label:'選択肢1'},{code:'option_2',label:'選択肢2'}];if(kind==='multiple'){f.min_select=1;f.max_select=2;}}var minimum=minSize(f,e);e.width=Math.max(e.width,minimum[0]);e.height=minSize(f,e)[1];e.field_id=f.id;var pos=place(d,p,e.width,e.height);e.x=pos.x;e.y=pos.y;p.fields.push(f);p.elements.push(e);return e;}
     var position=place(d,p,e.width,e.height);e.x=position.x;e.y=position.y;p.elements.push(e);return e;}
   function remove(d,index,elementId){var p=d.pages[index],e=p.elements.find(function(e){return e.id===elementId;});if(!e)throw Error('部品が見つかりません');clearScoreTarget(d,p,e);p.elements=p.elements.filter(function(e){return e.id!==elementId;});if(e.type==='omr')p.fields=p.fields.filter(function(f){return f.id!==e.field_id;});}
