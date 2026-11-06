@@ -45,8 +45,8 @@ function fixture(b,kind) {
   return source;
 }
 
-test('公開採点資産のhash・40雛形・14凍結基準を検証し、非公開ID/鍵/本人情報を含めない',async()=>{
-  assert.equal(catalog.bindings.length,40);assert.equal(Object.keys(catalog.snapshots).length,14);
+test('公開採点資産のhash・41雛形・14凍結基準を検証し、非公開ID/鍵/本人情報を含めない',async()=>{
+  assert.equal(catalog.bindings.length,41);assert.equal(Object.keys(catalog.snapshots).length,14);
   for(const [file,key] of [[assets.catalog,'catalogSha256'],[assets.engine,'engineSha256'],[assets.imageCheckpoints,'imageCheckpointsSha256']]) assert.equal(createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),assets[key]);
   for(const b of catalog.bindings){assert.deepEqual(Object.keys(b).sort(),['engineSourceHash','engineVersion','rubricSha256','rubricVersion','targetId','templateSha256','templateVersion']);const {snapshot}=G.select(catalog,proof(b));assert.equal(await G.hash(G.canonical(snapshot.body)),snapshot.hash);}
   assert.doesNotMatch(JSON.stringify(catalog),/FileId|FolderId|ParentId|storageFolder|@gfe|receiptKeys|spreadsheetId/);
@@ -54,7 +54,7 @@ test('公開採点資産のhash・40雛形・14凍結基準を検証し、非公
   for(const name of ['parse5','entities','css-tree','mdn-data','source-map-js'])assert.ok(fs.readFileSync(path.join(root,'grading/LICENSES.txt'),'utf8').includes(name));
 });
 
-test('全40雛形の空欄・編集例・構造エラーが凍結したGAS採点器と一致する',async()=>{
+test('全41雛形の空欄・編集例・構造エラーが凍結したGAS採点器と一致する',async()=>{
   const h=environment(),grader=G.create({env:h.env,assets});let count=0;
   for(const b of catalog.bindings){
     if(b.targetId==='html11-01'){const r=await grader.grade({source:'<html><body>準備</body></html>',fileName:b.targetId+'.html',proof:proof(b)});assert.equal(r.status,'receipt-only');assert.equal(r.receipt,undefined);continue;}

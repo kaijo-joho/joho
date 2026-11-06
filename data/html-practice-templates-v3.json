@@ -1,6 +1,6 @@
 {
   "v": 3,
-  "revision": "inquiry-20261007-2",
+  "revision": "table-headings-20261106-1",
   "templates": [
     {
       "assignmentId": "html11-01",
@@ -85,9 +85,9 @@
     {
       "assignmentId": "html17-01",
       "fileName": "html17-01.html",
-      "templateVersion": "2026-10-inquiry-1",
-      "templateSha256": "7459c8704d29c3b89a3f9d0c31fb88fc8080a42d00129b7848563b3abd90e158",
-      "sourcePath": "/html/templates/v3/html17-01/2026-10-inquiry-1.html",
+      "templateVersion": "2026-11-headings-1",
+      "templateSha256": "1cfa18e7b5688162ed120c39cf25777089db71c42281aac3a4ce85492060db88",
+      "sourcePath": "/html/templates/v3/html17-01/2026-11-headings-1.html",
       "editableRegions": [
         "document"
       ]
