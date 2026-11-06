@@ -429,7 +429,14 @@ body:not(.has-document) #splitRight { display: none !important; }
 .splitter[data-collapsed="true"] { background: var(--accent-soft); }
 .splitter[data-collapsed="true"]::after { background: var(--accent); }
 body.pane-resizing, body.pane-resizing * { cursor: col-resize !important; user-select: none !important; }
-body.pane-resizing iframe { pointer-events: none; }
+/* iframeのpointer-events切替はChromeで解説のスクロールを止めるため、外側でドラッグ中の操作を遮る。 */
+body.pane-resizing::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  cursor: col-resize;
+}
 
 /* ペインヘッダー */
 .pane-header {

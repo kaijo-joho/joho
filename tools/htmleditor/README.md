@@ -26,6 +26,12 @@
 
 検証は`node --test tools/htmleditor/tests/*.test.cjs`（323件）と、Playwrightを解決可能な環境で`HTML_HINTS_ENGINE=chromium node tools/htmleditor/tests/line-number-hints.browser.mjs`（WebKitは`webkit`）を使用。ローカルの合成ファイルで、同意取消・利用記録・クリック/Enter/Space・フォーカス復帰・文書/Undo/保存状態の保持・3/4桁の番号・1440/390px幅・100/150%文字サイズ・ライト/ダークを確認した。ヒント表示前後でコードの横位置は不変、GAS通信とページ例外は0件。実機Safari・VoiceOver・公開画面での操作は別確認とする。
 
+## 境界移動後の解説スクロール（0.10.2）
+
+2026-11-06。Chromeで境界ドラッグ中にiframeの`pointer-events`を切り替えると、解除後も解説のホイールスクロールが停止する場合があることを再現した。ドラッグ中だけ親画面へ透明な操作ガードを置き、iframe自体のイベント設定は維持する。既存のpointer capture・幅の記憶・取消処理は共用し、文書・Undo・プレビュー・本人情報・GASを変更しない。
+
+`node --test tools/htmleditor/tests/*.test.cjs`は323件成功。`HTML_LAYOUT_ENGINE=chromium node tools/htmleditor/tests/resize-scroll.browser.mjs`（WebKitは`webkit`）でhtml13/14/17の左右境界18操作、Escape/blurでのガード解除と編集内容の保持を確認した。外部通信を遮断したローカル確認であり、実機Safari・公開画面・実アカウントの確認とは区別する。
+
 ## 列の開閉・幅の記憶（0.10.0）
 
 2026-10-26。編集領域の左右境界をクリックすると、それぞれ解説・プレビューを完全に折りたたむ。閉じても境界線を残し、クリックで直前の幅に戻す。縦横5px以上の移動をドラッグとして区別し、縦移動だけでは幅を変えない。端へ寄せると折りたたみ、閉じた境界から外へドラッグしても再表示できる。Tabで境界へ移動し、Enter/Spaceで開閉、矢印で幅調整、Homeで折りたためる。ドラッグ中のEscape・capture喪失・ウィンドウ切替・画面サイズ変更は開始時の配置へ戻し、途中状態を記憶しない。読み上げには実際の列幅と開閉状態を含める。

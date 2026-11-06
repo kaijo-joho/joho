@@ -24,7 +24,8 @@ test('エディタのSRIは画像保存・採点表・配付可否確認・列�
   assert.match(html,/<script src="\.\.\/\.\.\/js\/display_settings\.js[^>]+integrity="sha384-[^"]+"/);
   assert.match(html,/<script src="\.\.\/\.\.\/js\/display_settings_ui\.js[^>]+integrity="sha384-[^"]+"/);
   assert.match(html,/<link[^>]+href="\.\.\/\.\.\/css\/display-settings\.css[^>]+integrity="sha384-[^"]+"/);
-  for(const file of ['editor.css','editor.js'])assert(html.includes(file+'?v=html-editor-line-number-hints-20261106-r1'),'changed asset must not reuse an old cached URL: '+file);
+  assert(html.includes('editor.css?v=html-editor-resize-scroll-20261106-r1'));
+  assert(html.includes('editor.js?v=html-editor-line-number-hints-20261106-r1'));
   for(const file of ['navigation.js','layout.js','download.js','submission.js','local-downloads.js','download-availability.js'])assert(html.includes(file+'?v=html-editor-layout-20261026-r1'),'unchanged asset keeps its current cached URL: '+file);
   for(const tag of html.matchAll(/<(?:script|link)\b[^>]+>/g)){
     const integrity=/integrity="([^"]+)"/.exec(tag[0]),source=/(?:src|href)="([^"?]+)(?:\?[^"]*)?"/.exec(tag[0]);
