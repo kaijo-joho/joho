@@ -14,7 +14,7 @@ class Node {
     this.tagName = tag.toUpperCase(); this.children = []; this.listeners = new Map();
     this.style = {display:'', setProperty(key, value) { this[key] = value; }}; this.dataset = {}; this.hidden = false;
     this.disabled = false; this.open = false; this.value = ''; this.textContent = '';
-    this.className = ''; this.files = []; this.isConnected = true;
+    this.className = ''; this.files = []; this.isConnected = true; this.attributes = {};
     this.classList = {toggle() {}, add() {}, remove() {}};
   }
   append(...nodes) { this.children.push(...nodes); }
@@ -27,8 +27,8 @@ class Node {
   click() { this.clicked = (this.clicked || 0) + 1; this.dispatch('click'); }
   focus() { this.focused = true; }
   remove() { this.removed = true; }
-  setAttribute() {}
-  removeAttribute() {}
+  setAttribute(name, value) { this.attributes[name] = String(value); }
+  removeAttribute(name) { delete this.attributes[name]; }
   querySelector() { return null; }
   querySelectorAll() { return []; }
   closest() { return null; }
@@ -39,7 +39,7 @@ class Node {
   close() { this.open = false; }
 }
 
-function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false, v3=false, localDownloads=null, failWrite=false, failReadAfterWrite=false, nativePicker=true, recoveryFaults={}, sharedDisplay=null} = {}) {
+function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false, v3=false, localDownloads=null, failWrite=false, failReadAfterWrite=false, nativePicker=true, recoveryFaults={}, sharedDisplay=null, hintProof=null, hintStorage=null} = {}) {
   const nodes = Object.fromEntries([...htmlIds].map(id => [id, new Node()]));
   nodes.app = new Node(); nodes.actionDialog = new Node('dialog');
   nodes.recoveryWarning.hidden = true; nodes.recoveryState.hidden = true;
@@ -87,7 +87,9 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     onChange() { return () => {}; }
   }
   const wrapper = new Node();
-  const cm = {value:'', listeners:{}, setOption() {}, getWrapperElement:() => wrapper, setValue(value) { this.value = value; }, getValue() { return this.value; }, clearHistory() {}, on(name, fn) { this.listeners[name] = fn; }, refresh() {}, markText() {}, posFromIndex() { return {}; }, replaceSelection() {}, clearGutter() {}, setGutterMarker() {}};
+  const cm = {value:'', listeners:{}, gutterMarkers:new Map(), setOption() {}, getWrapperElement:() => wrapper, setValue(value) { this.value = value; }, getValue() { return this.value; }, clearHistory() {}, on(name, fn) { this.listeners[name] = fn; }, refresh() {}, markText() {}, posFromIndex() { return {}; }, replaceSelection() {},
+    clearGutter(gutter) { for (const key of this.gutterMarkers.keys()) if (key.startsWith(gutter + ':')) this.gutterMarkers.delete(key); },
+    setGutterMarker(line, gutter, marker) { this.gutterMarkers.set(gutter + ':' + line, marker); }};
   const memory = {async load() { return remembered ? handle : null; }, async save() {}, async forget() { calls.forget++; }};
   const testTimeout = (fn, delay) => {
     const timer = setTimeout(fn, delay);
@@ -97,7 +99,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
   };
   const context = {
     window:null, document, console, confirm:()=>true, setTimeout:testTimeout, clearTimeout, requestAnimationFrame:fn => fn(),
-    crypto:{randomUUID:() => 'test-document'}, indexedDB:{}, localStorage:{}, Blob:class {}, URL:{createObjectURL() { calls.downloads++; return 'blob:test'; }, revokeObjectURL() {}},
+    crypto:{randomUUID:() => 'test-document'}, indexedDB:{}, localStorage:hintStorage || {}, Blob:class {}, URL:{createObjectURL() { calls.downloads++; return 'blob:test'; }, revokeObjectURL() {}},
     CodeMirror:{fromTextArea:(node, options) => { calls.cmOptions = options; return cm; }}, HtmlFileSystem:FakeFs,
     HtmlEditorFolderMemory:{create:() => { if (memoryFails) throw Error('IndexedDB unavailable'); return memory; }},
     HtmlEditorRecovery:{create:() => {
@@ -113,7 +115,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
       openInNewTab() {}
     },
     HtmlEditorDiagnostics:require('../diagnostics.js'), HtmlEditorHintUsage:require('../hint-usage.js'), HtmlEditorClipboard:require('../clipboard.js'), CSS:{supports:() => true},
-    HtmlPracticeEditor:{lessons:() => [{id:'html11', title:'HTML', files:[]}], taskForFile:() => null, inspect:() => null, submission() {}},
+    HtmlPracticeEditor:{lessons:() => [{id:'html11', title:'HTML', files:[]}], taskForFile:() => null, inspect:() => hintProof, submission() {}},
     HtmlEditorWorkflow:{distribution:() => ({message:'', kind:'ready'}), submission:() => ({ready:false, message:''})},
     HtmlEditorOnboarding:{assess:() => ({active:false, ready:false, steps:[], message:''})},
     HtmlEditorStartup:{ready:() => true, catalogState:() => 'ready', fail() { throw Error('startup failed'); }},
@@ -158,6 +160,64 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
   for (const fn of windowEvents.get('DOMContentLoaded') || []) fn();
   return {nodes, handle, calls, cm, tick, disk, windowEvents, picker};
 }
+
+async function hintHarness() {
+  const values = new Map();
+  const storage = {getItem:key => values.get(key) ?? null, setItem:(key, value) => values.set(key, value),
+    removeItem:key => values.delete(key), key:index => [...values.keys()][index], get length() { return values.size; }};
+  const app = makeHarness({remembered:false, hintStorage:storage, hintProof:{assignmentId:'html12-01',
+    fileName:'html12-01.html', localFileId:'a'.repeat(32), marker:'<!-- synthetic -->'}});
+  await app.tick();
+  app.nodes.fileInput.files = [{name:'html12-01.html', size:40, async arrayBuffer() { return Buffer.from('<html>\n<body>\n<imgg>\n</body>\n</html>'); }}];
+  app.nodes.fileInput.dispatch('change'); await app.tick();
+  app.calls.previewOptions.onDiagnostics({valid:false,errors:[{line:3,code:'tag-unknown',message:'検証用のエラー'},
+    {line:3,code:'tag-unclosed',message:'同じ行の別のエラー'}]});
+  const usage = () => [...values].filter(([key]) => key.startsWith('joho.htmleditor.hints.v1:'))
+    .map(([, raw]) => JSON.parse(raw))[0];
+  const choose = async value => { app.nodes.actionButtons.children.find(node => node.dataset.choice === value).click(); await app.tick(); };
+  return {...app,usage,choose};
+}
+
+test('ヒントの同意前・取消では行番号ボタンも利用記録も出さず、確認文と選択肢を保持する', async () => {
+  const app = await hintHarness(), source = app.cm.value;
+  assert.deepEqual(Array.from(app.calls.cmOptions.gutters), ['CodeMirror-linenumbers']);
+  assert.equal(app.cm.gutterMarkers.size,0); assert.equal(app.usage(),undefined);
+  app.nodes.findErrorsBtn.click(); await app.tick();
+  assert.equal(app.nodes.actionTitle.textContent,'ヒントを使う前に');
+  assert.deepEqual(app.nodes.actionBody.children.map(node=>node.textContent),[
+    'まずは自分でコードを見直してみましょう。',
+    'ヒントを使うと、その利用履歴が提出時に授業担当者へ送られます。']);
+  assert.deepEqual(app.nodes.actionButtons.children.map(node=>node.textContent),['ヒントを使う','自分で見直す']);
+  await app.choose('cancel');
+  assert.equal(app.cm.gutterMarkers.size,0); assert.equal(app.usage(),undefined); assert.equal(app.cm.value,source);
+});
+
+test('同意後の行番号ボタンで従来どおり場所1回・詳細1回を記録し、編集で通常番号へ戻す', async () => {
+  const app = await hintHarness(), source = app.cm.value;
+  app.nodes.findErrorsBtn.click(); await app.tick(); await app.choose('use');
+  assert.equal(app.cm.gutterMarkers.size,1,'同じ行の複数エラーは1つのボタン');
+  const marker = app.cm.gutterMarkers.get('CodeMirror-linenumbers:2');
+  assert.equal(marker.textContent,'3'); assert.equal(marker.attributes['cm-ignore-events'],'true');
+  assert.equal(marker.attributes['aria-label'],'3行目のエラーのヒントを表示');
+  assert.equal(app.usage().consent,true); assert.equal(app.usage().usage.locationRequests,1);
+  assert.equal(app.usage().usage.detailRequests,0); assert.equal(app.cm.value,source);
+  marker.focus(); marker.dispatch('mouseenter');
+  assert.equal(app.usage().usage.detailRequests,0,'フォーカス・ホバーは詳細利用に数えない');
+  marker.click(); await app.tick();
+  assert.equal(app.nodes.actionTitle.textContent,'3行目のヒント');
+  assert.deepEqual(app.nodes.actionBody.children.slice(0,2).map(node=>node.textContent),['検証用のエラー','同じ行の別のエラー']);
+  assert.equal(app.usage().usage.locationRequests,1); assert.equal(app.usage().usage.detailRequests,1);
+  assert.deepEqual(app.usage().usage.events.map(({kind,line,code})=>({kind,line,code})),[
+    {kind:'locations',line:undefined,code:undefined},{kind:'detail',line:3,code:'tag-unknown'}]);
+  await app.choose('close');
+  app.nodes.findErrorsBtn.click(); await app.tick();
+  assert.equal(app.nodes.actionDialog.open,false,'同意済みの確認は再表示しない');
+  assert.equal(app.usage().usage.locationRequests,2); assert.equal(app.usage().usage.detailRequests,1);
+  app.cm.value += '\n'; app.cm.listeners.change();
+  assert.equal(app.cm.gutterMarkers.size,0); assert.equal(app.nodes.findErrorsBtn.hidden,true);
+  marker.click(); await app.tick();
+  assert.equal(app.nodes.actionDialog.open,false); assert.equal(app.usage().usage.detailRequests,1);
+});
 
 test('プレビューのtitleはテキスト表示し、未設定・構造不足・CSS切替で古い題名を残さない', async () => {
   const app = makeHarness({remembered:false});

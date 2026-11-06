@@ -331,9 +331,19 @@
     }
     preview.update(content(), doc.fileName, fragment);
   }
+  function exposeHintNumbers() {
+    // CodeMirrorは通常の行番号を読み上げから隠す。ボタンがある欄だけ操作対象にする。
+    cm?.getWrapperElement().querySelectorAll('.CodeMirror-gutter-wrapper').forEach(gutter => {
+      if (gutter.querySelector('.error-hint-marker')) {
+        gutter.dataset.hintNumber = 'true'; gutter.removeAttribute('aria-hidden');
+      } else if (gutter.dataset.hintNumber) {
+        delete gutter.dataset.hintNumber; gutter.setAttribute('aria-hidden', 'true');
+      }
+    });
+  }
   function clearDiagnostics() {
     diagnostics = null;
-    cm?.clearGutter('error-hints');
+    cm?.clearGutter('CodeMirror-linenumbers');
     if ($('findErrorsBtn')) $('findErrorsBtn').hidden = true;
     if ($('hintNotice')) $('hintNotice').hidden = true;
   }
@@ -371,14 +381,16 @@
         if (!byLine.has(error.line)) byLine.set(error.line, []);
         byLine.get(error.line).push(error);
       }
-      cm.clearGutter('error-hints');
+      cm.clearGutter('CodeMirror-linenumbers');
       for (const [line, errors] of byLine) {
         const marker = document.createElement('button');
-        marker.type = 'button'; marker.className = 'error-hint-marker'; marker.textContent = '⚠';
+        marker.type = 'button'; marker.className = 'error-hint-marker'; marker.textContent = String(line);
+        marker.setAttribute('cm-ignore-events', 'true');
         marker.setAttribute('aria-label', line + '行目のエラーのヒントを表示');
         marker.dataset.tip = 'ヒントを表示します。利用記録は提出時に授業担当者へ送られます。';
         marker.addEventListener('click', () => exclusive(async () => {
           if (!currentDiagnostics()) return;
+          marker.focus();
           await modal(line + '行目のヒント', (body, button) => {
             errors.forEach(error => textNode(body, error.message));
             textNode(body, 'この表示の利用記録も提出時に授業担当者へ送られます。修正方法は自分で考えてみましょう。');
@@ -387,10 +399,11 @@
             recordHint('detail', errors[0]);
           });
         }));
-        cm.setGutterMarker(line - 1, 'error-hints', marker);
+        cm.setGutterMarker(line - 1, 'CodeMirror-linenumbers', marker);
       }
+      exposeHintNumbers();
       recordHint('locations');
-      notify('行番号の横の⚠からヒントを確認できます。編集すると印は消えます。');
+      notify('黄色い枠の行番号からヒントを確認できます。編集すると通常の行番号に戻ります。');
     });
   }
   async function loadFile(path, fragment = '') {
@@ -797,7 +810,7 @@
       },
       onNotice:message => { if (/\.css$/i.test(doc?.fileName || '')) return; $('previewNotice').textContent = message; $('previewNotice').hidden = !message; }});
     cm = CodeMirror.fromTextArea($('codeEditor'), {
-      mode:'htmlmixed', lineNumbers:true, gutters:['CodeMirror-linenumbers','error-hints'], autoCloseTags:false, smartIndent:false, electricChars:false,
+      mode:'htmlmixed', lineNumbers:true, gutters:['CodeMirror-linenumbers'], autoCloseTags:false, smartIndent:false, electricChars:false,
       indentUnit:2, tabSize:2, lineWrapping:true, readOnly:'nocursor',
       extraKeys:{Tab:editor => { if (doc && !busy) editor.replaceSelection('  ', 'end', '+input'); },
         Enter:editor => { if (doc && !busy) editor.replaceSelection('\n', 'end', '+input'); },
@@ -818,6 +831,8 @@
       clearDiagnostics();
       doc.hasWork = true; displayState(); clearTimeout(autoTimer); autoTimer = setTimeout(autoSave, 500);
     });
+    cm.on('update', exposeHintNumbers);
+    cm.on('viewportChange', () => requestAnimationFrame(exposeHintNumbers));
     $('lessonSelect').addEventListener('change', async event => {
       const value = event.target.value; event.target.value = selectedLesson.id;
       closeMenus(event.target);

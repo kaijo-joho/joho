@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-layout-20261026-r1">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-line-number-hints-20261106-r1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-v3-20261002-enabled" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
   <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-v3-20261002-enabled" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
   <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
-  <link rel="stylesheet" href="editor.css?v=html-editor-layout-20261026-r1" data-editor-required integrity="sha384-M3ICB1IrMHfrYNlcP5jlFBCUY/6x8DFRhrdOgP9ID/U+8IW6iitzQ9TrtaHqbR/N" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-editor-line-number-hints-20261106-r1" data-editor-required integrity="sha384-c2NN5nMX0cvDo7qrTJUGQq7+YV4OV14vmZIDLBjwXcghDqCJHd6pHMUc6jb9JdtS" crossorigin="anonymous">
   <link rel="stylesheet" href="feedback.css?v=html-feedback-ui-20261019-r1" integrity="sha384-Ov5wZ7lOrI+NZAc5XSoXa3+aK9Po+xzt9s8nQGwdld02fJQQ1Vg/MJ8L50I9OmKw" crossorigin="anonymous">
   <link rel="stylesheet" href="../../css/display-settings.css?v=display-settings-20261026-r1" integrity="sha384-IrW1qsVKYNqen4SeokdHLEIkHSyuGXASeEhOiQ7Ye5uMRD7celjRy4PTw15Prp2w" crossorigin="anonymous">
 </head>
@@ -129,7 +129,7 @@
         <div class="pane-header-content">
         <div class="pane-title" id="editorPaneTitle">編集</div>
         <div class="breadcrumb"><span id="currentFileLabel"></span><span id="dirtyMark" aria-label="未保存の変更" hidden>＊</span><span class="save-shortcut">⌘Sで保存・プレビュー更新</span></div>
-        <button class="btn" id="findErrorsBtn" type="button" data-tip="自分で見直しても見つからないときに、行番号へ⚠を表示します。利用記録は提出時に授業担当者へ送られます。" hidden>エラーを探す</button>
+        <button class="btn" id="findErrorsBtn" type="button" data-tip="自分で見直しても見つからないときに、該当する行番号をヒントボタンにします。利用記録は提出時に授業担当者へ送られます。" hidden>エラーを探す</button>
         <button class="btn" id="saveBtn" type="button" data-tip="開いている実習ファイルに上書き保存し、プレビューを更新します（⌘S）。直接保存できない場合は保存方法を案内します。" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l4 4v14H3V3zM7 3v6h10V3M7 21v-8h10v8"/></svg><span>保存</span></button>
         </div>
       </div>
@@ -206,7 +206,7 @@
     <p>同じ実習フォルダのHTMLへのリンクは、プレビュー内だけで移動します。編集中のファイルと解説は変わりません。プレビューの更新や保存で、編集中のファイルの表示へ戻ります。外部サイトへのリンクは別タブで開きます。</p>
     <p>プレビュー更新時に、編集中のHTMLとその中のCSSを限定的に検査します。問題があれば以前のプレビューと題名を消して、修正を促します。実習ではhtml・bodyを明示し、br・imgなど終了タグを使わない要素以外は終了タグも書きます。HTML規格では省略できる場合もありますが、この実習用の条件は通常のブラウザとは異なります。</p>
     <p>class・style・href・srcなど主要属性の明確なつづり間違いと、head・body、リスト・説明リスト・表、見出しなどの基本的な囲む関係も確認します。data-*・aria-*や独自要素の属性は、このつづり検査から除きます。属性値・リンク先の正しさや、すべての配置規則を判定するものではありません。</p>
-    <p>まずは自分で見直してください。必要なときだけ「エラーを探す」を押すと行番号に⚠が付き、⚠を押すと短いヒントが出ます。最初に利用記録の送信を確認します。記録するのはボタンの利用回数・時刻・行番号・検査項目だけで、入力履歴は記録せず、自動減点もしません。編集すると古い印は消えます。</p>
+    <p>まずは自分で見直してください。必要なときだけ「エラーを探す」を押すと、該当する行番号が黄色い枠のヒントボタンになります。行番号を押すと短いヒントが出ます。最初に利用記録の送信を確認します。記録するのはボタンの利用回数・時刻・行番号・検査項目だけで、入力履歴は記録せず、自動減点もしません。編集すると通常の行番号に戻ります。</p>
     <p>検査はHTML/CSS規格のすべてや、文章・class/idの自由な名前のスペル・見た目の正解を確認するものではありません。別ファイルのCSSはそのCSSを開いて確認します。画像やCSSの読み込み不足は、コードのエラーとは別の案内です。</p>
     <p>別のHTMLへの相対リンクは、未保存の変更を確認してからそのファイルを開きます。外部サイトへのリンクは、クリックしたときだけ別タブで開きます。</p>
     <details><summary>対応範囲とファイルの上限</summary><p>HTML/HTM/CSSの本文はUTF-8・1ファイル2MiBまで、フォルダは200ファイル・合計50MiB・深さ8までです。CSS内の画像URL・@import・フォント、srcsetによる画像切替はプレビューの対応範囲外です。フォルダ全体の一括提出や、サイトの公開機能はありません。</p></details>
@@ -229,7 +229,7 @@
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.10.0（2026年10月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>HTMLエディタ 0.10.1（2026年11月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
     <p>通常の編集はこの端末とブラウザで処理します。「提出」を押すと、保存確認済みの内容をモーダル内の学校アカウント用フォームへ渡します。提出記録の作成は、フォーム内の「提出する」を押したときだけです。ログインや表示がうまくいかない場合は「表示・ログインで困ったとき」から「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
@@ -274,6 +274,6 @@
 <script src="layout.js?v=html-editor-layout-20261026-r1" data-editor-required integrity="sha384-WLQti+W6ngMC1kQJbIWf0Ox83b4aUKSn6vqIY3Xl6EwUFu0rLV4TeE8u6wWQCfTU" crossorigin="anonymous"></script>
 <script src="../../js/display_settings.js?v=display-settings-20261026-r1" integrity="sha384-mjOLf/HR609aWS9h46tGYa59S393hVpH432c5YV8/BhhXQcm1ic9yMwLAmcsLuA/" crossorigin="anonymous"></script>
 <script src="../../js/display_settings_ui.js?v=display-settings-20261026-r1" integrity="sha384-029272WHNXJuqSrj5agqjjZseUCfJCU6a3fm4BZjN5XxnTN6yYLGL6c8oVNWZsOc" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-editor-layout-20261026-r1" data-editor-required integrity="sha384-JjkStfMgG0ZKLGwOp/WVqYsaJkEaOEE4sU/ye5TgsYyWPiLltOahTC3n5YhVqPQC" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-editor-line-number-hints-20261106-r1" data-editor-required integrity="sha384-6MNyXYGI6QP/suYDeqB3bkzgWASiW1qEWWqF5OSF0yatdjTJszCj1kHybCFp6cTC" crossorigin="anonymous"></script>
 </body>
 </html>
