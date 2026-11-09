@@ -170,7 +170,7 @@
     if (busy || $('actionDialog').open) return;
     const opener = document.activeElement;
     busy = true; cm.setOption('readOnly', true); $('app').setAttribute('aria-busy', 'true'); displayState();
-    try { await action(); }
+    try { return await action(); }
     catch (error) { if (error.name !== 'AbortError') notify(errorMessage(error), 'error'); }
     finally {
       busy = false; cm.setOption('readOnly', doc ? false : 'nocursor'); $('app').removeAttribute('aria-busy'); displayState();
@@ -330,6 +330,29 @@
       $('previewNotice').hidden = false; receiveDiagnostics(result); return;
     }
     preview.update(content(), doc.fileName, fragment);
+  }
+  function refreshPreview() {
+    return exclusive(async () => {
+      if (!doc) return;
+      if (fs.isConnected()) await fs.scanDirectory();
+      runPreview();
+    });
+  }
+  function openProjectPreview() {
+    if (!doc || busy || $('actionDialog').open) return;
+    if (!/\.html?$/i.test(doc.fileName)) {
+      notify('表示したいHTMLを開いてから、プレビューを別タブで開いてください。');
+      return;
+    }
+    if (!window.HtmlProjectPreview) {
+      notify('別タブのプレビューを準備できませんでした。', 'warning');
+      return;
+    }
+    window.HtmlProjectPreview.open(() => exclusive(async () => {
+      if (fs.isConnected()) await fs.scanDirectory();
+      runPreview();
+      return {path:doc.fileName, source:content(), unsaved:dirty(), files:await fs.copyPreviewFiles(doc.fileName)};
+    }), message => notify(message, 'warning'));
   }
   function exposeHintNumbers() {
     // CodeMirrorは通常の行番号を読み上げから隠す。ボタンがある欄だけ操作対象にする。
@@ -815,7 +838,7 @@
       extraKeys:{Tab:editor => { if (doc && !busy) editor.replaceSelection('  ', 'end', '+input'); },
         Enter:editor => { if (doc && !busy) editor.replaceSelection('\n', 'end', '+input'); },
         'Cmd-S':save, 'Ctrl-S':save, 'Cmd-O':openSavedFile, 'Ctrl-O':openSavedFile,
-        'Cmd-Enter':() => runPreview(), 'Ctrl-Enter':() => runPreview()}
+        'Cmd-Enter':refreshPreview, 'Ctrl-Enter':refreshPreview}
     });
     window.HtmlEditorClipboard.install(cm, () => issuedMarker, notify);
     setupPaneHeaders();
@@ -860,9 +883,9 @@
     $('downloadBtn').addEventListener('click', event => { closeMenus(event.currentTarget); if (!busy) download(); });
     $('restoreBtn').addEventListener('click', event => { closeMenus(event.currentTarget); exclusive(() => restore()); });
     $('submitBtn').addEventListener('click', event => { event.currentTarget.focus(); submit(); });
-    $('runBtn').addEventListener('click', () => runPreview());
+    $('runBtn').addEventListener('click', refreshPreview);
     $('findErrorsBtn').addEventListener('click', findErrors);
-    $('openPreviewTabBtn').addEventListener('click', () => { if (doc && !busy) { runPreview(); preview.openInNewTab(); } });
+    $('openPreviewTabBtn').addEventListener('click', openProjectPreview);
     $('toggleLessonBtn').addEventListener('click', event => {
       paneLayout.toggle('left'); closeMenus(event.currentTarget);
     });

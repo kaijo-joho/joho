@@ -5,6 +5,28 @@
 })(typeof globalThis === 'undefined' ? this : globalThis, function (diagnostics) {
   'use strict';
   const CSP = "default-src 'none'; script-src 'none'; img-src blob: data:; style-src 'unsafe-inline' blob:; font-src data:; object-src 'none'; base-uri 'none'; form-action 'none'";
+  // コメント・通常の文字列は飛ばし、CSSのurl()だけを置き換える。
+  const CSS_REFERENCE = /\/\*[\s\S]*?(?:\*\/|$)|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|(@import\b)|(?<![\w\\\u0080-\uffff-])url\(\s*(?:"((?:[^"\\]|\\[\s\S])*)"|'((?:[^'\\]|\\[\s\S])*)'|((?:\\[\s\S]|[^\s"'()\\])*))\s*\)/gi;
+  function decodeCssUrl(value) {
+    return value.replace(/\\(?:([0-9a-f]{1,6})(?:\r\n|[\t\n\f\r ])?|(\r\n|[\n\r\f])|([\s\S]))/gi, (_, hex, newline, literal) => {
+      if (!hex) return newline ? '' : literal;
+      const code = Number.parseInt(hex, 16);
+      return !code || code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff) ? '\ufffd' : String.fromCodePoint(code);
+    });
+  }
+  function rewriteCssImages(css, fs, basePath, missing) {
+    return css.replace(CSS_REFERENCE, (token, imported, doubleQuoted, singleQuoted, unquoted) => {
+      if (imported) missing.add('CSSの @import（プレビューでは未対応）');
+      const raw = doubleQuoted ?? singleQuoted ?? unquoted;
+      if (!raw) return token;
+      const path = decodeCssUrl(raw);
+      if (!path || path.startsWith('#') || /^data:/i.test(path)) return token;
+      const url = fs?.resolveResourceUrl(path, basePath);
+      if (url) return 'url(' + JSON.stringify(url) + ')';
+      missing.add(path);
+      return 'url("data:,")';
+    });
+  }
   function resolveLocalLink(href, base, files) {
     if (typeof href !== 'string' || /^[a-z][a-z0-9+.-]*:|^\/|\\|[\u0000-\u001f\u007f]|%(?:2f|5c|00)/i.test(href)) return null;
     try {
@@ -63,13 +85,14 @@
   class HtmlPreview {
     constructor(options = {}) {
       this.iframe = options.iframe; this.fs = options.fs;
-      this.onNavigate = options.onNavigate || (href => this.navigate(href));
+      this.onNavigate = options.onNavigate;
       this.onNotice = options.onNotice || (() => {});
       this.onTitle = options.onTitle || (() => {});
       this.onDiagnostics = options.onDiagnostics || (() => {});
-      this.pageTitle = '';
-      this.lastHtml = ''; this.renderedHtml = ''; this.basePath = ''; this.fragment = ''; this.linked = false; this.revision = 0;
+      this.projectView = options.projectView === true;
+      this.renderedHtml = ''; this.basePath = ''; this.fragment = ''; this.linked = false; this.revision = 0;
       this.localLinks = new Map();
+      this.stylesheetUrls = new Set();
       this.iframe?.addEventListener('load', () => {
         try {
           const location = this.iframe.contentWindow.location;
@@ -82,21 +105,28 @@
           }
           // WebKitではscripts禁止iframe内の親製click handlerも働かない。
           // 通信を伴わないabout:blankへのネイティブ遷移を、親のloadで受ける。
-          // 読取り失敗でも元のプレビューを残す。編集対象や教材は切り替えない。
+          // 以前のsrcdocは読取り失敗時だけ戻す。先に戻すとWebKitで新しい表示と位置指定が競合する。
           this.revision++; this.fragment = '';
-          this.iframe.srcdoc = this.renderedHtml;
-          this.onNavigate(href);
+          if (this.onNavigate) {
+            this.iframe.srcdoc = this.renderedHtml;
+            this.onNavigate(href);
+          } else this.navigate(href, {restoreOnFailure:true});
         } catch { /* 親がアクセスできない画面には介入しない。 */ }
       });
     }
     update(source, basePath = '', fragment = '', linked = false) {
       this.revision++; this.linked = linked;
-      this.lastHtml = source; this.basePath = basePath;
+      this.basePath = basePath;
       this.fragment = typeof fragment === 'string' && fragment.startsWith('#') ? fragment : '';
+      this.releaseStylesheets();
       this.renderedHtml = this.transform(source);
       if (this.iframe) this.iframe.srcdoc = this.renderedHtml;
     }
-    async navigate(href) {
+    releaseStylesheets() {
+      for (const url of this.stylesheetUrls) URL.revokeObjectURL(url);
+      this.stylesheetUrls.clear();
+    }
+    async navigate(href, {restoreOnFailure = false} = {}) {
       const revision = this.revision, fs = this.fs;
       const entries = fs?.fileEntries, directory = fs?.dirHandle;
       const link = resolveLocalLink(href, this.basePath, entries);
@@ -107,29 +137,34 @@
         // 更新・別ファイルの選択・フォルダ変更後に古い読取りを表示しない。
         if (!current() || !fs.fileEntries.has(link.path)) return;
         this.update(source, link.path, link.fragment, true);
-      } catch (error) { if (current()) this.onNotice(error.message || 'リンク先をプレビューできませんでした。'); }
+      } catch (error) {
+        if (!current()) return;
+        if (restoreOnFailure && this.iframe) this.iframe.srcdoc = this.renderedHtml;
+        this.onNotice(error.message || 'リンク先をプレビューできませんでした。');
+      }
     }
-    blocked(detached = false) {
-      if (!detached) { this.localLinks.clear(); this.fragment = ''; this.pageTitle = ''; this.onTitle(null); }
-      const message = this.linked ? 'リンク先のコードに問題があります。「開く」からリンク先のファイルを開いて修正してください。プレビューを更新すると編集中のファイルへ戻ります。' :
+    blocked() {
+      this.localLinks.clear(); this.fragment = ''; this.onTitle(null);
+      const message = this.projectView ? 'このページのコードをエディタで見直してください。' :
+        this.linked ? 'リンク先のコードに問題があります。「開く」からリンク先のファイルを開いて修正してください。プレビューを更新すると編集中のファイルへ戻ります。' :
         'コードに問題があります。修正してからプレビューを更新してください。まずは自分で見直し、必要なときは「エラーを探す」を使えます。';
       this.onNotice(message);
       return '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' + CSP + '"></head><body>' +
         '<div role="alert" style="font-family:sans-serif;line-height:1.7;padding:20px;background:#fff4df;color:#723c00">' +
         '<strong>プレビューを表示していません</strong><p>' + message + '</p></div></body></html>';
     }
-    showBlocked() { this.revision++; this.renderedHtml = this.blocked(); if (this.iframe) this.iframe.srcdoc = this.renderedHtml; }
-    transform(source, detached = false) {
+    showBlocked() { this.revision++; this.releaseStylesheets(); this.renderedHtml = this.blocked(); if (this.iframe) this.iframe.srcdoc = this.renderedHtml; }
+    transform(source) {
       const result = diagnostics.check(source, {supports:typeof CSS === 'undefined' ? null : (name, value) => CSS.supports(name, value),
         selector:value => { try { document.createDocumentFragment().querySelector(value); return true; } catch { return false; } }});
-      if (!detached && !this.linked) this.onDiagnostics(result);
-      if (!result.valid) return this.blocked(detached);
+      if (!this.linked) this.onDiagnostics(result);
+      if (!result.valid) return this.blocked();
       // DOMParserの入力時点から通信禁止の方針を先頭へ置く。生徒のCSP等は後で除去する。
       const doc = new DOMParser().parseFromString('<meta http-equiv="Content-Security-Policy" content="' + CSP + '">' + source, 'text/html');
       const missing = new Set();
       const localLinks = new Map(), navigationId = crypto.randomUUID();
       doc.querySelectorAll('script,base,iframe,object,embed,meta[http-equiv],audio,video,source,track').forEach(node => node.remove());
-      if (!detached) { this.pageTitle = doc.title; this.onTitle(this.pageTitle); }
+      this.onTitle(doc.title);
       doc.querySelectorAll('*').forEach(node => [...node.attributes].forEach(attribute => {
         if (/^on/i.test(attribute.name) || ['srcset','ping','autofocus'].includes(attribute.name)) node.removeAttribute(attribute.name);
       }));
@@ -145,9 +180,18 @@
       });
       doc.querySelectorAll('link').forEach(node => {
         const href = node.getAttribute('href') || '';
-        const url = node.rel.toLowerCase() === 'stylesheet' && !external(href) && this.fs?.resolveResourceUrl(href, this.basePath);
-        if (url) node.setAttribute('href', url);
-        else { if (node.rel.toLowerCase() === 'stylesheet') missing.add(href || 'CSS'); node.remove(); }
+        const stylesheet = node.rel.toLowerCase() === 'stylesheet';
+        const file = stylesheet && !external(href) && this.fs?.resolveStylesheet(href, this.basePath);
+        if (!file) { if (stylesheet) missing.add(href || 'CSS'); node.remove(); return; }
+        const css = rewriteCssImages(file.text, this.fs, file.path, missing);
+        // CSSは別のBlobとして渡し、外部CSSの本文をHTMLのstyle要素に埋め込まない。
+        const url = URL.createObjectURL(new Blob([css], {type:'text/css;charset=utf-8'}));
+        this.stylesheetUrls.add(url);
+        node.setAttribute('href', url);
+      });
+      doc.querySelectorAll('style').forEach(node => { node.textContent = rewriteCssImages(node.textContent, this.fs, this.basePath, missing); });
+      doc.querySelectorAll('[style]').forEach(node => {
+        node.setAttribute('style', rewriteCssImages(node.getAttribute('style'), this.fs, this.basePath, missing));
       });
       doc.querySelectorAll('a').forEach(node => {
         const href = node.getAttribute('href') || '';
@@ -162,32 +206,15 @@
         else if (href && !external(href)) {
           const destination = 'about:blank#html-editor-' + navigationId + '-' + localLinks.size;
           node.setAttribute('data-local-link', href);
-          node.setAttribute('href', detached ? '#' : destination);
+          node.setAttribute('href', destination);
           localLinks.set(destination, href);
-          if (detached) node.setAttribute('title', 'ファイル間の移動は元のエディタで確認してください。');
         } else node.removeAttribute('href');
       });
-      if (doc.querySelector('style') && /(?:url\s*\(|@import)/i.test([...doc.querySelectorAll('style')].map(node => node.textContent).join('\n')) ||
-          [...doc.querySelectorAll('[style]')].some(node => /url\s*\(/i.test(node.getAttribute('style')))) {
-        missing.add('CSS内の画像・読み込み指定（このプレビューでは未対応）');
-      }
-      const linkedNotice = !detached && this.linked ? 'リンク先をプレビューしています：' + this.basePath + '。編集中のファイルは変わりません。更新すると元の表示へ戻ります。' : '';
+      const linkedNotice = !this.projectView && this.linked ? 'リンク先をプレビューしています：' + this.basePath + '。編集中のファイルは変わりません。更新すると元の表示へ戻ります。' : '';
       this.onNotice([linkedNotice, missing.size ? '表示できない参照：' + [...missing].slice(0,8).join('、') +
         '。画像やCSSを含むフォルダを読み込み、相対パスを確認してください。外部素材の自動読込は行いません。' : ''].filter(Boolean).join(' '));
-      if (!detached) this.localLinks = localLinks;
+      this.localLinks = localLinks;
       return '<!doctype html>\n' + doc.documentElement.outerHTML;
-    }
-    openInNewTab() {
-      const transformed = this.transform(this.lastHtml, true);
-      const srcdoc = transformed.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-      const title = (this.pageTitle || 'HTMLプレビュー').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const wrapper = '<!doctype html><html lang="ja"><meta charset="utf-8"><title>' + title + '</title>' +
-        '<style>body{margin:0;font-family:sans-serif}p{margin:0;padding:8px}iframe{display:block;border:0;width:100%;height:calc(100vh - 48px)}</style>' +
-        '<p>ファイル間の移動は元のエディタで確認してください。</p>' +
-        '<iframe title="HTMLプレビュー" sandbox="allow-popups allow-popups-to-escape-sandbox" srcdoc="' + srcdoc + '"></iframe></html>';
-      const url = URL.createObjectURL(new Blob([wrapper], {type:'text/html;charset=utf-8'}));
-      window.open(url, '_blank', 'noopener,noreferrer');
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
     }
   }
   HtmlPreview.missingStructure = missingStructure;

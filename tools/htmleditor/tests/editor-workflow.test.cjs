@@ -112,7 +112,6 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     HtmlPreview:class extends require('../preview.js') {
       constructor(options) { super(options); calls.preview = this; calls.previewOptions = options; calls.previewUpdates = []; this.transform = value => value; }
       update(...args) { calls.previewUpdates.push(args); super.update(...args); }
-      openInNewTab() {}
     },
     HtmlEditorDiagnostics:require('../diagnostics.js'), HtmlEditorHintUsage:require('../hint-usage.js'), HtmlEditorClipboard:require('../clipboard.js'), CSS:{supports:() => true},
     HtmlPracticeEditor:{lessons:() => [{id:'html11', title:'HTML', files:[]}], taskForFile:() => null, inspect:() => hintProof, submission() {}},
@@ -608,7 +607,9 @@ test('開く・保存・失敗を上部の一時通知へ表示し、固定の�
 test('⌘Enterはプレビューのみ、⌘Sは保存後のプレビュー更新。両者を混同しない', async () => {
   const h = makeHarness(); await h.tick(); await chooseSample(h);
   h.cm.setValue('new preview'); const previews = h.calls.previewUpdates.length;
-  h.calls.cmOptions.extraKeys['Cmd-Enter']();
+  const scans = h.calls.scan;
+  await h.calls.cmOptions.extraKeys['Cmd-Enter']();
+  assert.equal(h.calls.scan, scans + 1);
   assert.equal(h.calls.writes, 0); assert.equal(h.disk.get('sample.html'), 'old saved content');
   assert.equal(h.calls.previewUpdates.length, previews + 1);
   await h.calls.cmOptions.extraKeys['Cmd-S']();

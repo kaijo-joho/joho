@@ -20,8 +20,42 @@
   const sameEntry=async(a,b)=>a===b||Boolean(a&&b&&typeof a.isSameEntry==='function'&&await a.isSameEntry(b));
   // 既存の新規保存とも同じロックを使い、存在確認・競合確認から読戻しまで保護する。
   const FILE_WRITE_LOCK = 'joho.htmleditor.new-file';
-  const media=n=>/\.(?:jpg|jpeg|png|gif|svg|webp|mp3|mp4|woff2?|ttf|ico)$/i.test(n);
+  const IMAGE_RE = /\.(?:jpe?g|png|gif|svg|webp|ico)$/i;
+  const CSS_RE = /\.css$/i;
   const blob=f=>{try{return typeof URL!=='undefined'&&typeof URL.createObjectURL==='function'?URL.createObjectURL(f):null}catch(_){return null}};
+  function putFile(entries, blobs, path, handle, file, cssText) {
+    entries.set(path, {handle, file, kind:'file', cssText});
+    if (!IMAGE_RE.test(path)) return;
+    const previous = blobs.get(path);
+    if (previous) URL.revokeObjectURL(previous);
+    const url = blob(file);
+    if (url) blobs.set(path, url);
+    else blobs.delete(path);
+  }
+  async function stageFile(entries, blobs, path, handle, file) {
+    let cssText;
+    if (CSS_RE.test(path) && file.size <= MAX_TEXT_BYTES) {
+      try { cssText = decodeUtf8(new Uint8Array(await file.arrayBuffer())); }
+      catch { /* 読めないCSSだけをプレビューの参照エラーとして扱う。 */ }
+    }
+    putFile(entries, blobs, path, handle, file, cssText);
+  }
+  function resourcePath(reference, base) {
+    if (typeof reference !== 'string' || /%(?:2f|5c|00)/i.test(reference)) return null;
+    try {
+      const path = decodeURIComponent(reference.split(/[?#]/, 1)[0]);
+      if (!path || /^\/|^[a-z][a-z0-9+.-]*:|[\u0000-\u001f\u007f\\]/i.test(path)) return null;
+      const parts = base ? safePath(base).split('/').slice(0, -1) : [];
+      for (const segment of path.split('/')) {
+        if (!segment || segment === '.') continue;
+        if (segment === '..') {
+          if (!parts.length) return null;
+          parts.pop();
+        } else parts.push(segment);
+      }
+      return safePath(parts.join('/'));
+    } catch { return null; }
+  }
   class HtmlFileSystem{
     constructor(){this.dirHandle=null;this.dirName='';this.readOnly=false;this.fileEntries=new Map();this.blobUrlMap=new Map();this.currentFilePath='';this.listeners=new Set();this.newFileAttempts=new Map();}
     onChange(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn)}
@@ -45,7 +79,21 @@
       this._notify('directory-opened',{dirName:this.dirName});
       return true;
     }
-    async scanDirectory(){if(!this.dirHandle||this.readOnly)return[];const s=await this._stageDirectory(this.dirHandle);this._replace(s,this.dirHandle,this.dirName,false);const files=this.getFileList();this._notify('files-scanned',{files});return files}
+    async scanDirectory() {
+      if (!this.isConnected()) return [];
+      const directory = this.dirHandle, originalEntries = this.fileEntries;
+      const staged = await this._stageDirectory(directory);
+      if (this.dirHandle !== directory || this.fileEntries !== originalEntries) {
+        this._revoke(staged.blobs);
+        throw new Error('フォルダの接続先が変わりました。もう一度操作してください。');
+      }
+      const path = this.currentFilePath;
+      this._replace(staged, directory, this.dirName, false);
+      this.currentFilePath = path;
+      const files = this.getFileList();
+      this._notify('files-scanned', {files});
+      return files;
+    }
     async _stageDirectory(root) {
       const entries = new Map();
       const blobs = new Map();
@@ -62,8 +110,7 @@
           const file = await entry.getFile();
           total += Number(file.size) || 0;
           if (total > MAX_TOTAL_BYTES) throw new Error('フォルダの容量が上限を超えています。');
-          entries.set(relative, {handle:entry, file, kind:'file'});
-          if (media(name) || /\.css$/i.test(name)) { const url = blob(file); if (url) blobs.set(relative, url); }
+          await stageFile(entries, blobs, relative, entry, file);
         }
       };
       try { await walk(root, '', 0); } catch (error) { this._revoke(blobs); throw error; }
@@ -76,6 +123,8 @@
       const source = Array.from(files || []);
       if (!source.length) throw new Error('読み込むファイルがありません。');
       const directory = opt.directory === true;
+      const paths = opt.relativePaths;
+      if (paths && (directory || paths.length !== source.length)) throw new Error('ファイルの相対パスを確認できません。');
       const entries = new Map();
       const blobs = new Map();
       let root = '';
@@ -87,8 +136,8 @@
           if (parts.length < 2 || !parts[0]) throw new Error('フォルダ選択の相対パスを確認できません。');
           root = parts[0];
         }
-        for (const file of source) {
-          let relative = String(file.webkitRelativePath || file.name || '');
+        for (const [index, file] of source.entries()) {
+          let relative = String(paths ? paths[index] : file.webkitRelativePath || file.name || '');
           if (directory) {
             const prefix = root + '/';
             if (!relative.startsWith(prefix)) throw new Error('複数のフォルダを同時に読み込めません。');
@@ -101,8 +150,7 @@
           if (entries.size >= MAX_FILES) throw new Error('ファイル数が上限を超えています。');
           total += Number(file.size) || 0;
           if (total > MAX_TOTAL_BYTES) throw new Error('ファイル容量が上限を超えています。');
-          entries.set(relative, {handle:null, file, kind:'file'});
-          if (media(relative) || /\.css$/i.test(relative)) { const url = blob(file); if (url) blobs.set(relative, url); }
+          await stageFile(entries, blobs, relative, null, file);
         }
         if (!entries.size) throw new Error('読み込めるファイルがありません。');
       } catch (error) { this._revoke(blobs); throw error; }
@@ -110,7 +158,29 @@
       this._notify('files-imported', {files:this.getFileList(), readOnly:true});
       return this.getFileList();
     }
-    resolveResourceUrl(path,base=''){if(typeof path!=='string'||!path||path.startsWith('#')||path.startsWith('/')||/^[A-Za-z][A-Za-z0-9+.-]*:/.test(path)||path.startsWith('//')||/[\u0000-\u001f\u007f\\]/.test(path)||/%(?:2f|2F|5c|5C|00)/.test(path))return null;try{const b=base?safePath(base):'';const combined=b?b.split('/').slice(0,-1).concat(path.split('/')).join('/'):path;const stack=[];for(const p of combined.split('/')){if(!p||p==='.')continue;if(p==='..'){if(!stack.length)return null;stack.pop()}else stack.push(p)}const normalized=safePath(stack.join('/'));return this.blobUrlMap.get(normalized)||null}catch(_){return null}}
+    resolveResourceUrl(reference, base = '') {
+      const url = this.blobUrlMap.get(resourcePath(reference, base));
+      if (!url) return null;
+      const hash = reference.indexOf('#');
+      if (hash < 0) return url;
+      const withFragment = new URL(url);
+      withFragment.hash = reference.slice(hash);
+      return withFragment.href;
+    }
+    resolveStylesheet(reference, base = '') {
+      const path = resourcePath(reference, base);
+      const text = this.fileEntries.get(path)?.cssText;
+      return typeof text === 'string' ? {path, text} : null;
+    }
+    async copyPreviewFiles(currentPath) {
+      const files = [];
+      for (const [path, {file}] of this.fileEntries) {
+        if (path === currentPath || !file || (!TEXT_RE.test(path) && !IMAGE_RE.test(path))) continue;
+        // 別タブで読める固定データを作る。ディスクのハンドルは渡さない。
+        files.push({path, file:new File([await file.arrayBuffer()], file.name, {type:file.type})});
+      }
+      return files;
+    }
     getFileList(){return Array.from(this.fileEntries.keys()).sort((a,b)=>a.localeCompare(b))}
     async readFile(path, {activate = true} = {}) {
       const rel = textPath(path);
@@ -144,9 +214,8 @@
       try { await writable.write(content); await writable.close(); closed = true; }
       catch (error) { try { if (!closed && writable.abort) await writable.abort(); } catch (_) {} throw error; }
       const file = await this._verifyWrittenFile(handle, content);
-      this.fileEntries.set(rel, {handle, file, kind:'file'}); this.currentFilePath = rel;
-      const old = this.blobUrlMap.get(rel); if (old) { try { URL.revokeObjectURL(old); } catch (_) {} this.blobUrlMap.delete(rel); }
-      if (media(rel) || /\.css$/i.test(rel)) { const url = blob(file); if (url) this.blobUrlMap.set(rel, url); }
+      putFile(this.fileEntries, this.blobUrlMap, rel, handle, file, CSS_RE.test(rel) ? content : undefined);
+      this.currentFilePath = rel;
       this._notify('file-saved', {path:rel, lastModified:file.lastModified}); return {path:rel, lastModified:file.lastModified};
     }
     async _verifyWrittenFile(handle, content) {
@@ -218,8 +287,8 @@
         if(image)await this.getImagesDirectory(directory,destination);
       };
       const accept = file => {
-        this.fileEntries.set(rel, {handle, file, kind:'file'}); this.newFileAttempts.delete(rel);
-        if(media(rel)||/\.css$/i.test(rel)){const old=this.blobUrlMap.get(rel);if(old)URL.revokeObjectURL(old);const url=blob(file);if(url)this.blobUrlMap.set(rel,url);}
+        putFile(this.fileEntries, this.blobUrlMap, rel, handle, file, CSS_RE.test(rel) ? content : undefined);
+        this.newFileAttempts.delete(rel);
         this._notify('file-created', {path:rel}); return {path:rel, directory};
       };
       let handle = null;

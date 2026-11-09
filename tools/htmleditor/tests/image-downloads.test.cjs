@@ -16,8 +16,8 @@ test('現在の教材の明示画像だけ扱い、外部・別教材・クエ�
   for(const href of [url+'?x',url+'#x',url.replace('joho.kaijo.ed.jp','example.org'),url.replace('photo01','private'),url.replace('photo01.jpg','x.svg'),'javascript:alert(1)'])assert.equal(Images.fromLink('html14',href,base),null);
   assert.equal(Images.fromLink('html15',url,base),null);assert.throws(()=>Images.assetUrl({...asset},base));
 });
-test('エディタのSRIは画像保存・採点表・配付可否確認・列配置・表示設定を含む全46資産の実内容と一致する',()=>{
-  const html=fs.readFileSync(path.join(root,'tools/htmleditor/index.html'),'utf8');let count=0;
+test('エディタと作品プレビューのSRIが資産の実内容と一致する',()=>{
+  const html=fs.readFileSync(path.join(root,'tools/htmleditor/index.html'),'utf8');
   assert.match(html,/<script src="image-downloads\.js[^>]+integrity="sha384-[^"]+"/);
   assert.match(html,/<script src="download-availability\.js[^>]+integrity="sha384-[^"]+"/);
   assert.match(html,/<script src="layout\.js[^>]+integrity="sha384-[^"]+"/);
@@ -25,15 +25,19 @@ test('エディタのSRIは画像保存・採点表・配付可否確認・列�
   assert.match(html,/<script src="\.\.\/\.\.\/js\/display_settings_ui\.js[^>]+integrity="sha384-[^"]+"/);
   assert.match(html,/<link[^>]+href="\.\.\/\.\.\/css\/display-settings\.css[^>]+integrity="sha384-[^"]+"/);
   assert(html.includes('editor.css?v=html-editor-resize-scroll-20261106-r1'));
-  assert(html.includes('editor.js?v=html-editor-line-number-hints-20261106-r1'));
+  assert(html.includes('editor.js?v=html-editor-project-preview-r1'));
   for(const file of ['navigation.js','layout.js','download.js','submission.js','local-downloads.js','download-availability.js'])assert(html.includes(file+'?v=html-editor-layout-20261026-r1'),'unchanged asset keeps its current cached URL: '+file);
-  for(const tag of html.matchAll(/<(?:script|link)\b[^>]+>/g)){
-    const integrity=/integrity="([^"]+)"/.exec(tag[0]),source=/(?:src|href)="([^"?]+)(?:\?[^"]*)?"/.exec(tag[0]);
-    if(!integrity||!source)continue;
-    const file=path.resolve(root,'tools/htmleditor',source[1]);
-    assert.equal(integrity[1],'sha384-'+crypto.createHash('sha384').update(fs.readFileSync(file)).digest('base64'),source[1]);count++;
+  const viewer=fs.readFileSync(path.join(root,'tools/htmleditor/project-preview.html'),'utf8');
+  for(const [shell,expected] of [[html,47],[viewer,4]]) {
+    let count=0;
+    for(const tag of shell.matchAll(/<(?:script|link)\b[^>]+>/g)){
+      const integrity=/integrity="([^"]+)"/.exec(tag[0]),source=/(?:src|href)="([^"?]+)(?:\?[^"]*)?"/.exec(tag[0]);
+      if(!integrity||!source)continue;
+      const file=path.resolve(root,'tools/htmleditor',source[1]);
+      assert.equal(integrity[1],'sha384-'+crypto.createHash('sha384').update(fs.readFileSync(file)).digest('base64'),source[1]);count++;
+    }
+    assert.equal(count,expected);
   }
-  assert.equal(count,46);
 });
 test('取得は公開画像のみ、資格情報なし・redirect禁止・容量/ハッシュ検証',async()=>{
   const bytes=fs.readFileSync(path.join(root,'html/images',asset.name)),calls=[];

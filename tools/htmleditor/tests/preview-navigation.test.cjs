@@ -26,7 +26,11 @@ test('ネイティブなリンク移動からも編集用コールバックを�
   const h = setup(), destination = 'about:blank#html-editor-test';
   h.preview.localLinks.set(destination, 'pages/second.html'); await h.load(destination);
   assert.equal(h.iframe.srcdoc, 'preview:second'); assert.equal(h.calls.reads.length, 1);
-  assert.equal(h.calls.transforms, 2, '移動前の表示復元では編集元を再検査しない');
+  assert.equal(h.calls.transforms, 2, '元ページとリンク先だけを検査する');
+  h.preview.localLinks.set(destination, 'missing.html');
+  h.iframe.srcdoc = '';
+  await h.load(destination);
+  assert.equal(h.iframe.srcdoc, 'preview:second', 'リンク先がなければ直前の表示へ戻る');
 });
 test('未読込ファイル・フォルダ外・外部URL・不正パスは遷移せず、元の表示を残す', async () => {
   const h = setup();

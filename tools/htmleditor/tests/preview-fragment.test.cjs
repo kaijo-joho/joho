@@ -21,7 +21,7 @@ test('別ファイルの位置指定はsrcdocの読込み後にネイティブ�
   h.load();
   assert.deepEqual(h.calls.fragments, ['#topic-c']);
   assert.equal(h.iframe.contentWindow.location.href, 'about:srcdoc#topic-c');
-  assert.equal(h.preview.lastHtml, 'destination');
+  assert.equal(h.iframe.srcdoc, 'destination');
 });
 
 test('位置指定を伴わない更新は読込み待ちの指定を取り消す', () => {
