@@ -88,6 +88,18 @@ if (engine === 'chromium') {
   });
 }
 const frame = (tab, id) => tab.frameLocator('#' + id);
+const finderButton = tab => tab.locator('#projectPreviewFinder summary');
+const finderPath = tab => tab.locator('#projectPreviewFinderPath');
+const finderUnsaved = tab => tab.locator('#projectPreviewFinderUnsaved');
+const folderPrefix = engine === 'chromium' ? 'HTML最終課題 / ' : '';
+async function openViewer() {
+  const pending = context.waitForEvent('page');
+  await page.locator('#openPreviewTabBtn').click();
+  const tab = await pending;
+  await tab.locator('#projectPreviewFile').filter({hasText:/^index\.html$/}).waitFor();
+  await page.waitForFunction(() => !document.querySelector('#app').hasAttribute('aria-busy'));
+  return tab;
+}
 async function waitImage(tab, id, width) {
   await tab.waitForFunction(({id,width}) => {
     const image = document.getElementById(id).contentDocument?.querySelector('#park');
@@ -120,6 +132,11 @@ try {
   await page.getByRole('button',{name:'index.html',exact:true}).click();
   await frame(page,'previewIframe').getByRole('heading',{name:'海辺の公園'}).waitFor();
   await page.waitForFunction(() => !document.querySelector('#app').hasAttribute('aria-busy'));
+  popup = await openViewer();
+  await finderButton(popup).click();
+  assert.equal(await finderPath(popup).innerText(),folderPrefix+'index.html');
+  assert.equal(await finderUnsaved(popup).isHidden(),true);
+  await popup.close();
   await page.evaluate(() => {
     const cm = document.querySelector('.CodeMirror').CodeMirror;
     const start = cm.getValue().indexOf('<h1>') + 4;
@@ -166,9 +183,7 @@ try {
   assert.equal(await page.locator('#previewNotice').isHidden(),true);
   report.checks.push('Inline, HTML style and linked CSS images load and CSS strings and comments are ignored');
 
-  const pendingPopup = context.waitForEvent('page');
-  await page.locator('#openPreviewTabBtn').click();
-  popup = await pendingPopup;
+  popup = await openViewer();
   await waitImage(popup,'projectPreviewFrame',1536);
   const banner = popup.getByRole('banner',{name:'作品プレビュー'});
   await banner.getByText('未保存の編集を含みます').waitFor();
@@ -180,20 +195,49 @@ try {
   assert.equal(wide.width,wide.viewport);
   assert.equal(wide.color,'rgb(12, 76, 131)');
   await popup.screenshot({path:join(evidence,'project-preview.png'),clip:{x:0,y:0,width:1200,height:420}});
+  const guide = popup.locator('.finder-guide');
+  const work = popup.locator('#projectPreviewFrame');
+  const workBounds = await work.boundingBox();
+  assert.equal(await guide.isHidden(),true);
+  assert.equal(await finderButton(popup).textContent(),'ⓘ Finderで開く方法');
+  await finderButton(popup).focus();
+  await popup.keyboard.press('Enter');
+  assert.equal(await guide.isVisible(),true);
+  assert.equal(await finderPath(popup).innerText(),folderPrefix+'index.html');
+  assert.equal(await finderUnsaved(popup).innerText(),'Finderから開くと、最後に保存した内容が表示されます。');
+  assert.equal(await finderUnsaved(popup).isVisible(),true);
+  assert.match(await guide.innerText(),/⌘S[\s\S]*「このアプリケーションで開く」から Chrome または Safari/);
+  assert.deepEqual(await work.boundingBox(),workBounds);
+  const buttonBounds = await finderButton(popup).boundingBox();
+  assert.equal(buttonBounds.x + buttonBounds.width,wide.width-16);
+  await popup.screenshot({path:join(evidence,'project-preview-finder-guide.png'),clip:{x:0,y:0,width:1200,height:420}});
+  await popup.keyboard.press('Escape');
+  assert.equal(await guide.isHidden(),true);
+  assert.equal(await finderButton(popup).evaluate(node => document.activeElement === node),true);
   await popup.setViewportSize({width:390,height:760});
   const narrow = await bannerSize();
   assert.equal(narrow.width,narrow.viewport);
+  await finderButton(popup).click();
+  const guideBounds = await guide.boundingBox();
+  assert.ok(guideBounds.x >= 0 && guideBounds.x + guideBounds.width <= narrow.width);
+  assert.equal(await popup.evaluate(() => document.documentElement.scrollWidth),narrow.width);
+  await finderButton(popup).click();
   await page.close();
   const view = frame(popup,'projectPreviewFrame');
   await view.locator('#access').click();
   await view.getByRole('heading',{name:'アクセス',exact:true}).waitFor({timeout:6000});
   assert.equal(await popup.locator('#projectPreviewFile').textContent(),'pages/access.html');
+  await finderButton(popup).click();
+  assert.equal(await finderPath(popup).innerText(),folderPrefix+'pages/access.html');
+  await finderButton(popup).click();
   assert.equal(await view.locator('script').count(),0);
   assert.equal(await popup.evaluate(() => document.body.dataset.studentScript),undefined);
   await view.locator('#home').click();
   await view.getByRole('heading',{name:'海辺の公園の見どころ'}).waitFor();
   await waitImage(popup,'projectPreviewFrame',1536);
+  assert.equal(await finderPath(popup).textContent(),folderPrefix+'index.html');
   report.checks.push('Blue banner spans both widths and links and local images survive closing the editor');
+  report.checks.push('Finder guide stays inside both widths and follows links, with keyboard controls and an unsaved-only note');
   assert.deepEqual(report.errors,[]);
   assert.deepEqual(report.untrustedRequests,[]);
   report.checks.push('No page exceptions, student scripts or remote asset requests');

@@ -25,7 +25,7 @@ test('エディタと作品プレビューのSRIが資産の実内容と一致�
   assert.match(html,/<script src="\.\.\/\.\.\/js\/display_settings_ui\.js[^>]+integrity="sha384-[^"]+"/);
   assert.match(html,/<link[^>]+href="\.\.\/\.\.\/css\/display-settings\.css[^>]+integrity="sha384-[^"]+"/);
   assert(html.includes('editor.css?v=html-editor-resize-scroll-20261106-r1'));
-  assert(html.includes('editor.js?v=html-editor-project-preview-r1'));
+  assert(html.includes('editor.js?v=html-editor-project-preview-finder-r1'));
   for(const file of ['navigation.js','layout.js','download.js','submission.js','local-downloads.js','download-availability.js'])assert(html.includes(file+'?v=html-editor-layout-20261026-r1'),'unchanged asset keeps its current cached URL: '+file);
   const viewer=fs.readFileSync(path.join(root,'tools/htmleditor/project-preview.html'),'utf8');
   for(const [shell,expected] of [[html,47],[viewer,4]]) {

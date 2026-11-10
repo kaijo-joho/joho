@@ -18,7 +18,7 @@
         channel.onmessage = ({data}) => { if (data?.type === 'ready') resolve(); };
         timer = setTimeout(() => reject(new Error('別タブが開きませんでした。ブラウザのポップアップ設定を確認してください。')), WAIT_MS);
       });
-      const url = new URL('project-preview.html?v=1', location.href);
+      const url = new URL('project-preview.html?v=2', location.href);
       url.hash = key;
       // 素材の読み直しを待たず、ボタンを押した操作の中でタブを開く。
       window.open(url.href, '_blank', 'noopener,noreferrer');
@@ -31,23 +31,34 @@
   }
 
   async function renderProject(snapshot, iframe, showNotice) {
-    const {path, source, files, unsaved} = snapshot || {};
+    const {path, source, files, unsaved, folderName} = snapshot || {};
     if (!/\.html?$/i.test(path || '') || typeof source !== 'string' || !Array.isArray(files) ||
         files.some(item => typeof item?.path !== 'string' || !(item.file instanceof File))) throw new Error(retry);
     const fs = new HtmlFileSystem();
     const current = new File([source], path.split('/').pop(), {type:'text/html'});
     await fs.importFiles([current, ...files.map(item => item.file)], {relativePaths:[path, ...files.map(item => item.path)]});
     document.getElementById('projectPreviewUnsaved').hidden = unsaved !== true;
+    document.getElementById('projectPreviewFinderUnsaved').hidden = unsaved !== true;
     const fileLabel = document.getElementById('projectPreviewFile');
+    const finderPath = document.getElementById('projectPreviewFinderPath');
+    const folderPrefix = typeof folderName === 'string' && folderName ? folderName + ' / ' : '';
     const preview = new HtmlPreview({iframe, fs, projectView:true, onNotice:showNotice,
       onTitle:title => {
         fileLabel.textContent = preview.basePath;
+        finderPath.textContent = folderPrefix + preview.basePath;
         document.title = title ? title + ' — 作品プレビュー' : '作品プレビュー';
       }});
     preview.update(source, path);
   }
 
   function receive(iframe) {
+    const guide = document.getElementById('projectPreviewFinder');
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || !guide.open) return;
+      event.preventDefault();
+      guide.open = false;
+      guide.querySelector('summary').focus();
+    });
     const notice = document.getElementById('projectPreviewNotice');
     const showNotice = message => { notice.textContent = message; notice.hidden = !message; };
     const key = location.hash.slice(1);

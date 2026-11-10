@@ -9,8 +9,18 @@
   <title>作品プレビュー</title>
   <style>
     body { margin: 0; height: 100vh; height: 100dvh; display: grid; grid-template-rows: auto auto minmax(0, 1fr); background: #fff; font: 1rem/1.5 system-ui, sans-serif; }
-    header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1rem; padding: .55rem 1rem; background: #0c4c83; color: #fff; overflow-wrap: anywhere; }
-    header span { color: #e0efff; font-size: .9rem; }
+    header { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1rem; padding: .55rem 1rem; background: #0c4c83; color: #fff; overflow-wrap: anywhere; }
+    header > span { color: #e0efff; font-size: .9rem; }
+    #projectPreviewFinder { margin-inline-start: auto; }
+    #projectPreviewFinder summary { display: flex; align-items: center; gap: .35rem; min-block-size: 2.75rem; box-sizing: border-box; padding: .25rem .65rem; border: 1px solid #a9cee9; border-radius: .375rem; font-size: .9rem; list-style: none; cursor: pointer; }
+    #projectPreviewFinder summary::-webkit-details-marker { display: none; }
+    #projectPreviewFinder summary:hover, #projectPreviewFinder[open] summary { background: #22629a; }
+    #projectPreviewFinder summary:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    .finder-guide { position: absolute; inset-block-start: calc(100% + .35rem); inset-inline-end: 1rem; inline-size: min(24rem, calc(100% - 2rem)); box-sizing: border-box; padding: 1rem; border: 1px solid #b3c8db; border-radius: .5rem; background: #fff; color: #24384a; box-shadow: 0 .3rem 1rem #102b4640; font-size: .9rem; }
+    .finder-guide ol { margin: 0; padding-inline-start: 1.4rem; }
+    .finder-guide li + li { margin-block-start: .45rem; }
+    #projectPreviewFinderPath { display: block; }
+    #projectPreviewFinderUnsaved { margin: .75rem 0 0; padding: .5rem .65rem; border-radius: .25rem; background: #eaf3fb; color: #17466f; }
     #projectPreviewNotice { grid-row: 2; margin: 0; padding: .55rem 1rem; background: #f1f5f9; color: #24384a; overflow-wrap: anywhere; }
     main { grid-row: 3; min-height: 0; }
     iframe { display: block; width: 100%; height: 100%; border: 0; }
@@ -22,6 +32,19 @@
     <strong>作品プレビュー</strong>
     <span id="projectPreviewFile"></span>
     <span id="projectPreviewUnsaved" hidden>未保存の編集を含みます</span>
+    <details id="projectPreviewFinder">
+      <summary><span aria-hidden="true">ⓘ</span> Finderで開く方法</summary>
+      <div class="finder-guide">
+        <ol>
+          <li>エディタに戻り、編集した場合は保存（<kbd>⌘S</kbd>）します。</li>
+          <li>Finderで保存先のフォルダを開き、次のファイルを探します。
+            <strong id="projectPreviewFinderPath">表示したいHTMLファイル</strong>
+          </li>
+          <li>ファイルを右クリックし、「このアプリケーションで開く」から Chrome または Safari を選びます。</li>
+        </ol>
+        <p id="projectPreviewFinderUnsaved" hidden>Finderから開くと、最後に保存した内容が表示されます。</p>
+      </div>
+    </details>
   </header>
   <p id="projectPreviewNotice" role="status">作品を読み込んでいます。</p>
   <main>
@@ -31,6 +54,6 @@
   <script src="filesystem.js?v=html-editor-project-preview-r1" defer integrity="sha384-+FXBxKAGxZMpyvuVhdGwSQGnI+AbKgONJlySeAVR/7I7mjpqWCAYTJZj5yNpFxUO" crossorigin="anonymous"></script>
   <script src="diagnostics.js?v=html-editor-project-preview-r1" defer integrity="sha384-ArVXRo/o4B+2o0hz+bvR5rrrSaHmmMwrKhoVZp37OVlfV/7RBl6fOrmaSIP8oTWC" crossorigin="anonymous"></script>
   <script src="preview.js?v=html-editor-project-preview-r1" defer integrity="sha384-73cdlLf5iQd6OQZgAbp3K8oLzrKzSqQVQA14KvWzQtid7ongFyrYuMhczLgRO5zL" crossorigin="anonymous"></script>
-  <script src="project-preview.js?v=html-editor-project-preview-r1" defer integrity="sha384-k/AmJh3EMh6g/acXPfGOug0uX0dGUzfl3jA5LEpD/E/hrIMXpthwFBSsPNkxjQn6" crossorigin="anonymous"></script>
+  <script src="project-preview.js?v=html-editor-project-preview-finder-r1" defer integrity="sha384-nAp28xLxylf4rIJbSqZ66g04SIbfa0rhIDrY0Rb99kZoiLl9DCTNV1h+z3jQxjmZ" crossorigin="anonymous"></script>
 </body>
 </html>

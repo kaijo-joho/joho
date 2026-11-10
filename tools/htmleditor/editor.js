@@ -351,7 +351,8 @@
     window.HtmlProjectPreview.open(() => exclusive(async () => {
       if (fs.isConnected()) await fs.scanDirectory();
       runPreview();
-      return {path:doc.fileName, source:content(), unsaved:dirty(), files:await fs.copyPreviewFiles(doc.fileName)};
+      const folderName = doc.binding && doc.binding === fs.dirHandle ? fs.getDirectoryName() : '';
+      return {path:doc.fileName, source:content(), unsaved:dirty(), folderName, files:await fs.copyPreviewFiles(doc.fileName)};
     }), message => notify(message, 'warning'));
   }
   function exposeHintNumbers() {
