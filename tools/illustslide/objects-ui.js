@@ -9,7 +9,7 @@
     const body=()=>ctx.inspectorBody?.()||document.getElementById('inspector-body');
     const scope=()=>ctx.document().id+'|'+ctx.page().id;
     const icon=key=>ctx.icon(key);
-    const moreIcon=()=>'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.7"></circle><circle cx="12" cy="12" r="1.7"></circle><circle cx="12" cy="19" r="1.7"></circle></svg>';
+    const moreIcon=()=>ctx.icon('more');
     const pickId=id=>'object-pick-'+id;
     const groupPickId=id=>'object-group-pick-'+id;
     const named=object=>object.name||'名前なし';

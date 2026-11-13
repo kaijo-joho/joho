@@ -74,7 +74,7 @@
       close.className = 'document-tab-close';
       close.dataset.documentClose = item.id;
       close.setAttribute('aria-label', item.name + 'を閉じる');
-      close.textContent = '×';
+      close.innerHTML = global.IlapoIcons.svg('close');
 
       wrapper.appendChild(tab);
       wrapper.appendChild(close);

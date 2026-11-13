@@ -11,12 +11,12 @@
     controls.setAttribute('aria-label', 'キャンバス内の再生操作');
     controls.hidden = true;
     const icon = path => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
-    const button = (id, label, path) => `<button type="button" id="${id}" aria-label="${label}" data-tip="${label}">${icon(path)}</button>`;
-    controls.innerHTML = button('inline-playback-reset','最初から再生','<path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/>')
-      + button('inline-playback-previous','前の動きへ','<path d="M17 5 7 12l10 7Z"/>')
-      + button('inline-playback-next','次の動きを再生','<path d="m7 5 10 7-10 7Z"/>')
+    const button = (id, label, graphic) => `<button type="button" id="${id}" aria-label="${label}" data-tip="${label}">${graphic}</button>`;
+    controls.innerHTML = button('inline-playback-reset','最初から再生',root.IlapoIcons.svg('restart'))
+      + button('inline-playback-previous','前の動きへ',icon('<path d="M17 5 7 12l10 7Z"/>'))
+      + button('inline-playback-next','次の動きを再生',root.IlapoIcons.svg('play'))
       + '<span id="inline-playback-status"></span>'
-      + button('inline-playback-stop','再生を終了して編集へ戻る','<rect x="5" y="5" width="14" height="14" rx="1"/>');
+      + button('inline-playback-stop','再生を終了して編集へ戻る',root.IlapoIcons.svg('stop'));
     stage.append(controls);
     const byId = id => controls.querySelector('#inline-playback-' + id);
     let player = null, sourceScope = null, opener = null;

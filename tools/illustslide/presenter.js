@@ -6,13 +6,11 @@
   const channel = 'illustslide-presentation-1';
   const hiddenKey = 'kaijo-ilapo:presenter-hidden';
   const paths = {
-    previous:'m15 5-7 7 7 7', next:'m9 5 7 7-7 7', reset:'M4 4v6h6M4 10a8 8 0 1 1 1 9',
-    close:'m6 6 12 12M18 6 6 18', screen:'M3 3h18v14H3zM8 21h8M12 17v4',
+    previous:'m15 5-7 7 7 7', next:'m9 5 7 7-7 7', screen:'M3 3h18v14H3zM8 21h8M12 17v4',
     hide:'m3 3 18 18M10 5h2c6 0 10 7 10 7s-2 3-5 5M6 6c-3 2-4 6-4 6s4 7 10 7h2',
-    ghost:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12ZM12 8v8M9 9v6M15 9v6',
-    show:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Zm7 0a3 3 0 1 0 6 0 3 3 0 0 0-6 0'
+    ghost:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12ZM12 8v8M9 9v6M15 9v6'
   };
-  const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${paths[name]}"/></svg>`;
+  const icon = name => root.IlapoIcons.svg({reset:'restart',show:'view'}[name] || name) || `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${paths[name]}"/></svg>`;
   const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const button = (action, name, graphic) => `<button type="button" data-presenter-action="${action}" aria-label="${name}" title="${name}">${icon(graphic)}</button>`;
   const paper = (key, label) => `<div class="presenter-preview" data-preview="${key}"><div data-preview-paper="${key}" role="img" aria-label="${label}"></div></div>`;
@@ -34,7 +32,7 @@
     const dialog = document.createElement('dialog');
     dialog.id = 'illustslide-presenter'; dialog.className = 'ilapo-presenter-dialog';
     dialog.setAttribute('aria-label', '発表者ビュー');
-    dialog.innerHTML = `<header class="presenter-header"><strong>発表者ビュー</strong><span class="presenter-document">${esc(source.name)}</span><time class="presenter-clock" aria-label="経過時間">00:00</time>${button('close','発表を終了','close')}</header>
+    dialog.innerHTML = `<header class="presenter-header"><strong>発表者ビュー</strong><span class="presenter-document">${esc(source.name)}</span><time class="presenter-clock" aria-label="経過時間">00:00</time>${button('close','発表を終了','stop')}</header>
       <div class="presenter-connection"><span data-connection-status role="status">投影画面を開いています…</span><button type="button" data-presenter-action="screen">${icon('screen')}<span>投影画面を開く</span></button></div>
       <main class="presenter-layout">
         <section class="presenter-current"><div class="presenter-section-title"><h2>現在のページ</h2><span data-current-caption></span></div>${paper('current','現在のページ')}</section>

@@ -4,6 +4,7 @@
   const channel = 'illustslide-presentation-1', token = location.hash.slice(1), parent = root.opener;
   const viewport = document.getElementById('audience-viewport'), paper = document.getElementById('audience-paper');
   const message = document.getElementById('audience-message'), fullscreenButton = document.getElementById('audience-fullscreen');
+  fullscreenButton.insertAdjacentHTML('afterbegin', root.IlapoIcons.svg('fullscreen-enter'));
   const targetOrigin = location.protocol === 'file:' ? '*' : location.origin;
   let documentValue = null, player = null, pageId = null, sequence = -1, ended = false, swipe = null, suppressClick = false;
   function send(kind, payload = {}) {

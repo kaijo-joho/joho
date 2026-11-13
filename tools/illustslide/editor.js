@@ -5,34 +5,22 @@
   const $ = id => document.getElementById(id);
   const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const icons = {
-    direct:'m5 3 14 11-7 1-3 7zM17 3v5m-2-2h4',save:'M5 3h12l4 4v14H3V3h2zm2 0v6h10V3M7 21v-8h10v8',open:'M3 7V4h7l2 3h9v3M3 7v14h17l2-11H7L3 21',select:'m5 3 14 11-7 1-3 7z',undo:'M8 4 3 9l5 5M3 9h11a7 7 0 0 1 0 14',redo:'m16 4 5 5-5 5m5-5H10a7 7 0 0 0 0 14',pages:'M7 3h14v16H7zM3 7v16h14',view:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zm7 0a3 3 0 1 0 6 0 3 3 0 0 0-6 0',more:'M4 12h1m6 0h1m6 0h1',board:'M5 1v22M1 5h22M19 1v22M1 19h22',layers:'m12 3 10 5-10 5L2 8zm-10 9 10 5 10-5M2 17l10 5 10-5',fit:'M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6',rect:'M3 5h18v14H3z',roundrect:'M7 4h10q4 0 4 4v8q0 4-4 4H7q-4 0-4-4V8q0-4 4-4',ellipse:'M22 12a10 7 0 1 0-20 0 10 7 0 1 0 20 0',triangle:'m12 3 10 18H2z',pentagon:'m12 2 10 8-4 12H6L2 10z',line:'m3 20 18-16',text:'M3 4h18M12 4v17m-5 0h10',pan:'M8 11V5a2 2 0 0 1 4 0v6-8a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v10q0 7-7 7-4 0-6-3L2 14q-1-3 2-3l4 4'
+    direct:'m5 3 14 11-7 1-3 7zM17 3v5m-2-2h4',pages:'M7 3h14v16H7zM3 7v16h14',board:'M5 1v22M1 5h22M19 1v22M1 19h22',layers:'m12 3 10 5-10 5L2 8zm-10 9 10 5 10-5M2 17l10 5 10-5',rect:'M3 5h18v14H3z',roundrect:'M7 4h10q4 0 4 4v8q0 4-4 4H7q-4 0-4-4V8q0-4 4-4',ellipse:'M22 12a10 7 0 1 0-20 0 10 7 0 1 0 20 0',triangle:'m12 3 10 18H2z',pentagon:'m12 2 10 8-4 12H6L2 10z',line:'m3 20 18-16',text:'M3 4h18M12 4v17m-5 0h10',
   };
-  const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${icons[name] || icons.rect}"/></svg>`;
+  const icon = name => window.IlapoIcons.svg(name) || `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${icons[name] || icons.rect}"/></svg>`;
   Object.assign(icons,{diamond:'m12 2 10 10-10 10L2 12z',parallelogram:'M7 5h15l-5 14H2z',arrow:'M2 9h12V3l8 9-8 9v-6H2z',callout:'M2 3h20v14H11l-5 5v-5H2z',connector:'M3 19 21 5m-7-1 7 1-1 7','connector-orthogonal':'M3 4h9v16h9m-5-5 5 5-5 3'});
   Object.assign(icons,{
-    file:'M5 2h9l5 5v15H5zM14 2v6h5M8 12h8M8 16h8',help:'M22 12a10 10 0 1 0-20 0 10 10 0 0 0 20 0M9 8a3 3 0 1 1 5 2c-2 1-2 2-2 3M12 17h.01',
-    settings:'M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1zM16 12a4 4 0 1 0-8 0 4 4 0 0 0 8 0',
-    'theme-auto':'M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 21h8M12 17v4',
-    'theme-light':'M15.5 12a3.5 3.5 0 1 0-7 0 3.5 3.5 0 0 0 7 0M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42',
-    'theme-dark':'M20 15.2A8 8 0 0 1 8.8 4 8 8 0 1 0 20 15.2Z',
     style:'M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 0-4h-1a2 2 0 0 1 0-4h5a4 4 0 0 0 4-4c0-3-4-6-9-6zM7 9h.01M11 6h.01M16 7h.01M5 13h.01',
     transform:'M3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM17 17h4v4h-4zM7 5h10M5 7v10M19 7v10M7 19h10m-8-3 8-8m-5 0h5v5',
     outline:'M2 21 9 3h6l7 18h-5l-2-5H9l-2 5zM10 12h4l-2-5z',
     path:'M3 17C7 17 7 7 13 7s6 4 8 4M1 15h4v4H1zM11 5h4v4h-4zM13 7l5-4m-1-1h2v2h-2z',
-    'flip-h':'M12 2v3m0 3v3m0 3v3m0 3v2M3 5l6 6v7H3zM21 5l-6 6v7h6z','flip-v':'M2 12h3m3 0h3m3 0h3m3 0h2M5 3l6 6h7V3zM5 21l6-6h7v6z',
-    'rotate-left':'M3 3v6h6M3 9a9 9 0 1 1 1 10','rotate-right':'M21 3v6h-6M21 9a9 9 0 1 0-1 10',export:'M12 3v12m-5-5 5 5 5-5M4 15v6h16v-6',
-    details:'M3 5h18M3 12h18M3 19h18M8 2v6M16 9v6M9 16v6',back:'m14 5-7 7 7 7',edit:'m4 16 12-12 4 4L8 20l-5 1zM14 6l4 4',image:'M3 3h18v18H3zM3 16l5-6 4 5 3-3 6 7M15 7h.01',
-    arrange:'M4 2v20M8 5h12v5H8zM8 14h8v5H8z',animation:'m10 6 9 6-9 6zM3 7h3M1 12h5M3 17h3',
-    'align-left':'M3 2v20M6 4h15v5H6zM6 15h9v5H6z','align-center':'M12 1v22M3 4h18v5H3zM7 15h10v5H7z','align-right':'M21 2v20M3 4h15v5H3zM9 15h9v5H9z',
-    'align-top':'M2 3h20M4 6h5v15H4zM15 6h5v9h-5z','align-middle':'M1 12h22M4 3h5v18H4zM15 7h5v10h-5z','align-bottom':'M2 21h20M4 3h5v15H4zM15 9h5v9h-5z',
-    'align-distribute-x':'M2 4h3v16H2zM10 7h4v10h-4zM19 4h3v16h-3zM5 12h5m4 0h5','align-distribute-y':'M4 2h16v3H4zM7 10h10v4H7zM4 19h16v3H4zM12 5v5m0 4v5',
+    'rotate-left':'M3 3v6h6M3 9a9 9 0 1 1 1 10','rotate-right':'M21 3v6h-6M21 9a9 9 0 1 0-1 10',
+    details:'M3 5h18M3 12h18M3 19h18M8 2v6M16 9v6M9 16v6',back:'m14 5-7 7 7 7',image:'M3 3h18v18H3zM3 16l5-6 4 5 3-3 6 7M15 7h.01',
+    animation:'m10 6 9 6-9 6zM3 7h3M1 12h5M3 17h3',
     'align-width':'M3 9h18v4H3zM3 17h18v4H3zM3 4h18M6 1 3 4l3 3M18 1l3 3-3 3','align-height':'M9 3h4v18H9zM17 3h4v18h-4zM4 3v18M1 6l3-3 3 3M1 18l3 3 3-3',
     'align-size':'M3 3h7v7H3zM14 14h7v7h-7zM14 3h7v7M17 7l4-4M3 14v7h7M3 21l4-4',
-    copy:'M8 8h13v13H8zM4 16H3V3h13v1',duplicate:'M8 8h13v13H8zM4 16H3V3h13v1M11 14h7M14.5 11v7',
-    paste:'M8 4H4v17h16V4h-4M8 2h8v5H8zM8 11h8M8 15h6',delete:'M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7',
-    group:'M2 2h20v20H2zM6 6h8v8H6zM10 10h8v8h-8z',ungroup:'M2 8V2h6M16 2h6v6M22 16v6h-6M8 22H2v-6M6 6h8v8H6zM10 10h8v8h-8z',
-    lock:'M7 10V7a5 5 0 0 1 10 0v3M5 10h14v12H5zM12 14v4',brush:'m14 3 7 7-8 8-7-7zM8 13l-3 3M3 16h5v5H3z',
-    plus:'M12 4v16M4 12h16',up:'m5 14 7-7 7 7',down:'m5 10 7 7 7-7',right:'m9 5 7 7-7 7',unlock:'M7 10V7a5 5 0 0 1 9-3M5 10h14v12H5zM12 14v4',
+    brush:'m14 3 7 7-8 8-7-7zM8 13l-3 3M3 16h5v5H3z',
+    up:'m5 14 7-7 7 7',down:'m5 10 7 7 7-7',right:'m9 5 7 7-7 7',
     assets:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM17.5 14v7M14 17.5h7',
     'text-left':'M3 4h18M3 9h11M3 14h18M3 19h11','text-center':'M3 4h18M6 9h12M3 14h18M6 19h12','text-right':'M3 4h18M10 9h11M3 14h18M10 19h11',
     union:'M3 3h11v6h7v12H9v-7H3z',subtract:'M3 3h12v6H9v6H3zM18 9h3v12H9v-3',intersect:'M9 9h6v6H9zM3 15V3h12M21 9v12H9',
@@ -475,11 +463,11 @@
     $('command-menu').style.top=Math.max(8,down?r.bottom+5:r.top-m.height-5)+'px';
     submenus.forEach(positionSubmenu);
   }
-  const actionIcons={'path-union':'union','path-subtract':'subtract','path-intersect':'intersect','anchor-add':'anchor-add','anchor-position':'anchor-position','anchor-corner':'anchor-corner','anchor-smooth':'anchor-smooth','selection-path':'path',outline:'outline',transform:'transform',copy:'copy',paste:'paste',duplicate:'duplicate',delete:'delete',group:'group',ungroup:'ungroup',lock:'lock','style-copy':'brush','style-paste':'paste','text-edit':'text','component-save':'group','connection-between':'connector','connection-convert':'path','selection-arrange':'arrange','selection-order':'layers','selection-layer':'layers',animations:'animation'};
+  const actionIcons={'path-union':'union','path-subtract':'subtract','path-intersect':'intersect','anchor-add':'anchor-add','anchor-position':'anchor-position','anchor-corner':'anchor-corner','anchor-smooth':'anchor-smooth','selection-path':'path',outline:'outline',transform:'transform',copy:'copy',paste:'paste',duplicate:'duplicate',delete:'delete',group:'group',ungroup:'ungroup',lock:'lock','style-copy':'brush','style-paste':'paste','text-edit':'text','component-save':'save','connection-between':'connector','connection-convert':'path','selection-arrange':'arrange','selection-order':'layers','selection-layer':'layers',animations:'animation'};
   const actionSubmenus={'selection-path':'path','selection-arrange':'arrange','selection-order':'order','selection-layer':'layer-change'};
-  Object.assign(actionIcons,{new:'plus',save:'save','compact-select':'select',rename:'edit','save-browser':'save','save-local':'save',recovery:'open','open-file':'open','auto-start':'save','auto-stop':'save','select-all':'select','present-start':'animation','present-current':'animation','presenter-start':'presenter','presenter-current':'presenter'});
+  Object.assign(actionIcons,{new:'plus',save:'save','compact-select':'select',rename:'edit','save-browser':'save','save-local':'save',recovery:'open','open-file':'open','auto-start':'refresh','auto-stop':'stop','select-all':'select','present-start':'play','present-current':'play','presenter-start':'presenter','presenter-current':'presenter'});
   function menuButton(label,action,disabled=false){
-    const name=actionIcons[action]||(icons[action]?action:(action.startsWith('order-')||action.startsWith('layer-set:'))?'layers':null),child=actionSubmenus[action];
+    const name=action==='lock'&&!allUnlocked()?'unlock':actionIcons[action]||(icons[action]||window.IlapoIcons.has(action)?action:(action.startsWith('order-')||action.startsWith('layer-set:'))?'layers':null),child=actionSubmenus[action];
     return `<button data-action="${action}" ${child?`data-submenu="${child}" aria-haspopup="true" aria-expanded="false"`:''} ${disabled?'disabled':''}>${name?icon(name):''}<span>${label}</span>${child?caret('right'):''}</button>`;
   }
   function syncArrangeSelection(){
@@ -1053,6 +1041,8 @@
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushDocuments();});
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(settings.theme==='auto')applySettings();});
   try{help=window.JohoToolHelp?.create({root:$('operation-help'),opener:$('help-button'),title:'イラストスライドの使い方',storageKey:'kaijo-ilapo:help',bounds:()=>({top:document.querySelector('.top').getBoundingClientRect().bottom+8,bottom:$('stage').getBoundingClientRect().bottom-8}),isBusy:()=>!!drag,returnToEditor:()=>$('canvas').focus()});}catch(error){console.warn('Help unavailable',error);}
+  const helpClose=help?.root.querySelector('[data-help-close]');
+  if(helpClose)helpClose.innerHTML=icon('close');
   function showTooltip(target){if(!target||target===menuOpener&&$('command-menu').matches(':popover-open')||target.dataset.submenu&&target.getAttribute('aria-expanded')==='true')return;const r=target.getBoundingClientRect();$('tooltip').textContent=target.dataset.tip;$('tooltip').hidden=false;$('tooltip').style.left=Math.max(8,Math.min(r.left,innerWidth-$('tooltip').offsetWidth-8))+'px';$('tooltip').style.top=Math.min(r.bottom+7,innerHeight-$('tooltip').offsetHeight-8)+'px';}
   const hideTooltip=()=>$('tooltip').hidden=true;
   document.addEventListener('pointerover',event=>{if(event.pointerType!=='touch')showTooltip(event.target.closest('[data-tip]'));});

@@ -12,6 +12,6 @@ body { display: grid; grid-template-rows: minmax(0,1fr) auto; height: 100dvh; }
 nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px; background: #182230; }
 nav > span { min-width: 0; }
 button { display: flex; align-items: center; gap: 5px; flex: 0 0 auto; min-height: 44px; padding: 8px 14px; border-radius: 7px; border: 1px solid #8998ad; background: #26364c; color: white; cursor: pointer; font: inherit; }
-button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; }
 button:focus-visible { outline: 3px solid #8db7ff; outline-offset: 2px; }
 @media(max-width:480px) { nav { font-size: 12px; } }

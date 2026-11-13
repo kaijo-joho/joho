@@ -76,7 +76,7 @@
       if(!cancelled&&safe)move(state.id,state.to);
     }
     const pageButton=(action,label,icon,disabled=false)=>`<button type="button" id="pages-${action}" data-page-command="${action}" aria-label="${label}" data-tip="${label}" ${disabled?'disabled':''}>${ctx.icon(icon)}</button>`;
-    const moreIcon=()=>'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>';
+    const moreIcon=()=>ctx.icon('more');
     const dragIcon=()=>'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6h2m6 0h2M7 12h2m6 0h2M7 18h2m6 0h2"/></svg>';
     function open() {
       rememberNotes();cancelDrag();composingNotes=false;

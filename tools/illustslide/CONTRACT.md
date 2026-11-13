@@ -1,9 +1,41 @@
-# イラストスライド illustSlideの内部契約（0.4.30）
+# イラストスライド illustSlideの内部契約（0.4.32）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
 
 0.4.2から配置先は `tools/illustslide/`、保存名は `.illustslide.zip`。旧URLは案内ページを残し、旧 `.ilapo.zip`・保存キー・内部API・文書形式・SVG識別子は互換性を保つ。直接ファイル利用時のブラウザ保存は、旧ページでJSONとして取り出せる。
+
+## 操作アイコンの接続（0.4.32）
+
+`index.html` と `audience.html` は `../shared/ui-icons.js?v=20261113`、アプリの `icons.js`、既存モジュールの順にdeferで読む。共通定義の依存版は `a7f633ff0018c49ca1a2b412ac4344cb906462c3`。`IlapoIcons.svg(name)` は既知の標準IDを `JohoIcons.svg(id)` へ渡し、専用図柄には空文字を返す。専用図柄は既存モジュールが描く。`has(name)` は既存メニューでの名前判定用。共通JS欠落時の代替は同じ公開spriteへのuse参照だけで、座標や非公開仕様assetsを埋め込まない。
+
+| 標準ID | 接続先・既存名 |
+| --- | --- |
+| `undo`, `redo` | 上部の編集履歴、狭幅のファイルメニュー内の履歴 |
+| `settings`, `help` | 上部設定、ヘルプ |
+| `file`, `new`, `rename` | ファイルメニュー、作品一覧、新規作成（`plus`）、名前変更（`edit`） |
+| `save`, `open` | 明示保存、保存候補・ファイルを開く、自作部品へ登録 |
+| `copy`, `paste`, `duplicate`, `delete` | 選択対象・ページ・レイヤー・部品・動き・書き出しアセットの既存操作 |
+| `view`, `export` | 表示と吸着、オブジェクト／レイヤーの表示、発表者ビューの手元表示、書き出し |
+| `theme-auto`, `theme-light`, `theme-dark` | 設定のテーマ切替 |
+| `more` | 選択詳細、ページ・レイヤー・動きの詳細メニュー |
+| `close` | 作品タブ、追加パレット、右パネル（固定したパネルを含む）、ダイアログ、動きの編集、ヘルプ |
+| `zoom-in`, `zoom-out`, `fit` | 下部の表示倍率・全体表示。図形寸法・用紙サイズは変えない |
+| `fullscreen-enter`, `fullscreen-exit` | 発表の全画面状態。投影ウィンドウの入口はenterのみ |
+| `play`, `stop`, `restart` | 発表、キャンバス内の試し再生、終了、最初から再生／現在ページのリセット。発表者ビューを終了するボタンもstop |
+| `refresh` | ファイルへの自動保存開始。停止はstop、明示保存はsave |
+| `select`, `pan` | 全体の選択と表示範囲の移動。アンカー選択は専用図柄 |
+| `align-left`, `align-center`, `align-right`, `align-top`, `align-middle`, `align-bottom` | 図形の整列。入口の`arrange`はalign-left。文字の段落揃えは専用図柄 |
+| `distribute-horizontal`, `distribute-vertical` | 図形の等間隔（`align-distribute-x/y`） |
+| `flip-horizontal`, `flip-vertical` | 図形の反転（`flip-h/v`） |
+| `group`, `ungroup`, `lock`, `unlock` | グループ化・解除、図形／レイヤーの固定・解除。解除時はunlockへ切替 |
+| `pause` | 未使用。共通定義の存在を理由に一時停止操作を追加しない |
+
+SVGは装飾として `aria-hidden=true`・`focusable=false`、24×24 viewBox、currentColor・塗りなし・線幅1.7・丸端／丸角を使う。ラベル・ツールチップ・イベント・無効条件・選択状態をボタンへ残す。ヘルプは公開 `root` 内の `[data-help-close]` の装飾だけを置き換え、共通モジュールを変更しない。
+
+操作アイコンは原稿SVGへ入れない。`presentation.js` は `IlapoIcons` がある編集画面では図柄を追加し、`playback-export.js` が内包するオフラインHTMLでは従来の文字表示を使う。書き出し時に共通spriteや非公開仕様資料を取得しない。
+
+## 文書モデル
 
 文書: `{format:'kaijo-ilapo',version:1|2|3|4|5|6|7|8|9|10,id,name,pages:[page],exportAssets?:[exportAsset]}`。version1〜9を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5、page.layersがあればversion6、object.styleまたはpath.label.styleにfillOpacity/strokeOpacityがあればversion7、object.visibleがあればversion8、page.notes/skipがあればversion9、exportAssetsがあればversion10へ上げる。上がったversionを下げず、引数は変更しない。
 ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation],layers?:[layer],notes?:string,skip?:boolean}`。

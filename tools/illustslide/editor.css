@@ -4,8 +4,8 @@
 #app{height:100vh;height:100dvh;display:grid;grid-template:"top top top top" auto "palette stage export side" minmax(0,1fr) "palette status status side" 44px / 146px minmax(0,1fr) auto var(--side-tab-width);overflow:hidden}/* 共通の上部バー。標準は30pxの操作部＋上下5px＋境界線1px。 */
 .top{grid-area:top;display:flex;align-items:center;flex-wrap:nowrap;gap:4px;background:var(--panel);border-bottom:1px solid var(--line);padding:calc(5px * var(--ui-k)) 8px;min-width:0;z-index:5;--toolbar-button-height:calc(30px * var(--ui-k));--toolbar-button-width:calc(32px * var(--ui-k));font-size:calc(13px * var(--ui-k));line-height:1}
 .top button{flex:none;min-height:var(--toolbar-button-height);height:var(--toolbar-button-height);min-width:var(--toolbar-button-width);width:var(--toolbar-button-width);padding:0;gap:calc(2px * var(--ui-k));border:1px solid var(--line);border-radius:7px;line-height:1}
-.top button svg{width:calc(20px * var(--ui-k));height:calc(20px * var(--ui-k))}
-.top button[data-menu] svg{width:calc(18px * var(--ui-k));height:calc(18px * var(--ui-k))}
+.top button svg{width:calc(22px * var(--ui-k));height:calc(22px * var(--ui-k))}
+.top button[data-menu] svg{width:calc(22px * var(--ui-k));height:calc(22px * var(--ui-k))}
 .top button>.menu-caret{font-size:calc(6px * var(--ui-k))}
 .toolbar-group{display:flex;flex:none;align-items:center;gap:3px}
 .toolbar-settings{margin-left:auto}
@@ -38,7 +38,7 @@ dialog{padding:0;border:1px solid var(--line);border-radius:14px;box-shadow:var(
 .selection-bar button{width:36px;min-width:36px;padding:5px;flex:none}
 #selection-more{display:inline-flex}
 #command-menu button span{white-space:normal;text-align:left;min-width:0}
-#command-menu button svg{width:19px;height:19px;flex:none}
+#command-menu button svg{width:22px;height:22px;flex:none}
 .menu-caret{font-size:8px;line-height:1;flex:none;pointer-events:none}
 .selection-bar [data-menu]{width:46px;min-width:46px;gap:3px}
 #command-menu button[data-submenu]{position:relative}
@@ -96,7 +96,7 @@ dialog{padding:0;border:1px solid var(--line);border-radius:14px;box-shadow:var(
 .arrange-key{display:grid;gap:5px;margin:8px 0;font-size:.86em}.arrange-key select{width:100%;min-width:0;min-height:44px;text-overflow:ellipsis}
 .arrange-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.arrange-actions.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 #command-menu .arrange-actions button{flex-direction:column;justify-content:center;gap:4px;padding:7px 3px;min-height:58px;border:1px solid var(--line)}
-#command-menu .arrange-actions button svg{width:23px;height:23px}#command-menu .arrange-actions button span{font-size:.82em;text-align:center}
+#command-menu .arrange-actions button svg{width:22px;height:22px}#command-menu .arrange-actions button span{font-size:.82em;text-align:center}
 #command-menu .arrange-actions button[data-submenu]>.menu-caret{position:absolute;right:4px;bottom:5px}
 .arrange-note{font-size:.78em;color:var(--muted);line-height:1.5;margin:7px 0;overflow-wrap:anywhere}
 #arrange-reference{--reference:#a21caf;stroke:var(--reference);pointer-events:none}

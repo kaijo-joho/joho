@@ -12,7 +12,7 @@
 .animation-effect-picker>button{display:flex;align-items:center;gap:6px;min-height:44px}
 .animation-effect-picker>button svg{width:28px;height:28px}
 .animation-play{display:inline-grid;place-items:center;width:44px;min-width:44px;min-height:44px;padding:6px}
-.animation-play-icon{width:24px;height:24px}
+.animation-play svg{width:22px;height:22px}
 #animation-effect-menu{width:min(360px,calc(100vw - 16px));position:fixed;inset:auto;margin:0;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);box-shadow:0 8px 24px #0003;max-width:min(420px,calc(100vw - 16px));max-height:calc(100dvh - 16px);overflow:auto}
 .animation-time-range{width:100%;min-width:0}
 .animation-targets{display:flex;gap:8px;align-items:center;margin-bottom:10px;min-width:0}
@@ -28,7 +28,7 @@
 .animation-order-handle,.animation-more{width:32px;min-width:32px;min-height:40px;padding:4px;touch-action:none;cursor:grab}
 .animation-order-handle:active{cursor:grabbing}
 .animation-order-handle svg{width:22px;height:22px;fill:currentColor;stroke:none}
-.animation-more svg{width:22px;height:22px;fill:currentColor;stroke:none}
+.animation-more svg{width:22px;height:22px}
 .animation-row-dragging{opacity:.55}
 .animation-row-drop-before{box-shadow:inset 0 3px 0 var(--accent)}
 .animation-row-drop-after{box-shadow:inset 0 -3px 0 var(--accent)}
@@ -36,7 +36,7 @@
 .animation-row-menu{display:flex;justify-content:flex-end;gap:5px;margin-bottom:6px}
 .animation-row-menu .danger{color:var(--danger)}
 .animation-row-menu button{display:grid;place-items:center;width:44px;min-width:44px;min-height:44px;padding:7px}
-.animation-row-menu button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.animation-row-menu button svg{width:22px;height:22px}
 .animation-list .animation-title{display:grid;grid-template-columns:32px 28px minmax(0,1fr);gap:5px;align-items:center;padding:4px;min-height:44px}
 .animation-row-effect{display:grid;place-items:center;color:var(--accent)}
 .animation-row-effect svg{width:24px;height:24px}

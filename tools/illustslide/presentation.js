@@ -12,6 +12,12 @@
 
   var active = null;
 
+  function labelControl(button, label, icon) {
+    // 配布用HTMLでは外部のアイコン資産を要求せず、既存の文字表示を使う。
+    button.textContent = label;
+    if (root.IlapoIcons) button.insertAdjacentHTML('afterbegin', root.IlapoIcons.svg(icon));
+  }
+
   function clone(value) {
     if (Core && typeof Core.clone === 'function') return Core.clone(value);
     return JSON.parse(JSON.stringify(value));
@@ -59,7 +65,7 @@
     closeButton.type = 'button';
     closeButton.className = 'ilapo-present-close';
     closeButton.setAttribute('aria-label', '発表表示を終了');
-    closeButton.textContent = '終了';
+    labelControl(closeButton, '終了', 'stop');
     header.append(heading, status, closeButton);
 
     var viewport = doc.createElement('div');
@@ -80,10 +86,10 @@
     var nextButton = doc.createElement('button');
     nextButton.type = 'button'; nextButton.className = 'ilapo-present-next'; nextButton.textContent = '次へ ›';
     var resetButton = doc.createElement('button');
-    resetButton.type = 'button'; resetButton.className = 'ilapo-present-reset'; resetButton.textContent = 'やり直す';
+    resetButton.type = 'button'; resetButton.className = 'ilapo-present-reset'; labelControl(resetButton, 'やり直す', 'restart');
     resetButton.setAttribute('aria-label', 'このページのアニメーションをリセット');
     var fullscreenButton = doc.createElement('button');
-    fullscreenButton.type = 'button'; fullscreenButton.className = 'ilapo-present-fullscreen'; fullscreenButton.textContent = '全画面';
+    fullscreenButton.type = 'button'; fullscreenButton.className = 'ilapo-present-fullscreen'; labelControl(fullscreenButton, '全画面', 'fullscreen-enter');
     controls.append(previousButton, nextButton, resetButton, fullscreenButton);
 
     dialog.append(header, viewport, controls);
@@ -123,7 +129,7 @@
       previousButton.setAttribute('aria-label', previousButton.disabled ? '前の表示はありません' : animation?.step > 0 ? 'ひとつ前の動きへ戻る' : '前のページ');
       nextButton.setAttribute('aria-label', nextButton.disabled ? '次の表示はありません' : animation?.playing ? '再生中の動きを完了' : animation?.step < animation?.steps ? '次の動きを再生' : '次のページ');
       resetButton.hidden = !hasSteps;
-      fullscreenButton.textContent = fullscreen ? '全画面を終了' : '全画面';
+      labelControl(fullscreenButton, fullscreen ? '全画面を終了' : '全画面', fullscreen ? 'fullscreen-exit' : 'fullscreen-enter');
     }
 
     function render(atEnd) {
@@ -195,7 +201,7 @@
       fullscreen = ownsFullscreen&&doc.fullscreenElement === fullscreenTarget;
       if(!doc.fullscreenElement)ownsFullscreen=false;
       exitingFullscreen=false;
-      fullscreenButton.textContent = fullscreen ? '全画面を終了' : '全画面';
+      labelControl(fullscreenButton, fullscreen ? '全画面を終了' : '全画面', fullscreen ? 'fullscreen-exit' : 'fullscreen-enter');
       sizePaper();
       if (fullscreen) paper.focus({ preventScroll: true });
       if(nativeExit&&!closed)close();

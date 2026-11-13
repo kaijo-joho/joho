@@ -123,6 +123,10 @@ async function load(page, value) {
     await selectDocument(page, b); await page.evaluate(() => __documentSaveHarness.picks.push('AUTO_A'));
     await openFileMenu(page); await page.locator('#command-menu [data-action="auto-start"]').click();
     await page.waitForFunction(() => __documentSaveHarness.calls.some(call => call.id === 'AUTO_A'));
+    await openFileMenu(page);
+    await page.locator('#command-menu [data-action="auto-stop"]').waitFor();
+    assert.equal(await page.locator('#command-menu [data-action="auto-stop"] svg').getAttribute('data-joho-icon'), 'stop', '自動保存稼働中は明示保存と異なる停止アイコンを使う');
+    await page.keyboard.press('Escape');
     await selectDocument(page, c); await page.evaluate(() => __documentSaveHarness.picks.push('AUTO_B'));
     await openFileMenu(page); await page.locator('#command-menu [data-action="auto-start"]').click();
     await page.waitForFunction(() => __documentSaveHarness.calls.some(call => call.id === 'AUTO_B'));
