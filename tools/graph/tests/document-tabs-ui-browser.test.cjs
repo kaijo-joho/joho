@@ -5,18 +5,22 @@ try { ({ chromium } = require('playwright')); }
 catch { ({ chromium } = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'))); }
 const root = path.resolve(__dirname, '../../..');
 const server = http.createServer((req, res) => {
-  const file = path.resolve(root, '.' + decodeURIComponent(req.url));
+  if (req.url === '/tabs-fixture.html') { res.writeHead(200, {'Content-Type': 'text/html'}); return res.end('<!doctype html><title>Document tabs test</title>'); }
+  const file = path.resolve(root, '.' + decodeURIComponent(req.url.split('?')[0]));
   if (!file.startsWith(root + path.sep)) { res.writeHead(403); return res.end(); }
-  fs.readFile(file, (error, data) => { res.writeHead(error ? 404 : 200, { 'Content-Type': file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : 'text/html' }); res.end(error ? 'not found' : data); });
+  fs.readFile(file, (error, data) => { res.writeHead(error ? 404 : 200, { 'Content-Type': file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : file.endsWith('.svg') ? 'image/svg+xml' : 'text/html' }); res.end(error ? 'not found' : data); });
 });
 let browser, page;
 (async () => {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   browser = await chromium.launch({ channel: 'chrome', headless: true });
   page = await browser.newPage({ viewport: { width: 390, height: 850 }, hasTouch: true });
+  await page.goto('http://127.0.0.1:' + server.address().port + '/tabs-fixture.html');
   await page.setContent('<style>.top{display:flex;width:280px}</style><div class="top"><div id="document-tabs"></div></div><button id="outside">外側</button>');
   await page.addStyleTag({ url: 'http://127.0.0.1:' + server.address().port + '/tools/graph/document-tabs.css' });
-  await page.addScriptTag({ url: 'http://127.0.0.1:' + server.address().port + '/tools/graph/document-tabs-ui.js' });
+  for (const file of ['../shared/ui-icons.js', 'icons.js', 'document-tabs-ui.js']) {
+    await page.addScriptTag({ url: 'http://127.0.0.1:' + server.address().port + '/tools/graph/' + file });
+  }
   await page.evaluate(() => {
     window.events = []; window.tabList = [{ id: 'a', name: '最初のグラフは長い名前です', dirty: true }, { id: 'b', name: '比較用グラフも長い名前です', busy: true }, { id: 'c', name: '最後のグラフも長い名前です' }];
     window.tabs = GraphDocumentTabs.create(document.querySelector('#document-tabs'), {

@@ -88,7 +88,7 @@
     panels.url.append(providers);
     const fileInput = make('input', null, {type: 'file', accept: '.csv,.tsv,.txt,text/csv,text/tab-separated-values', 'data-import-file': ''});
     fileInput.hidden = true; root.append(fileInput);
-    const chooseFile = button(panels.file, 'CSV・TSVファイルを選ぶ', () => fileInput.click(), {class: 'primary full-button'}); decorate(chooseFile, 'file');
+    const chooseFile = button(panels.file, 'CSV・TSVファイルを選ぶ', () => fileInput.click(), {class: 'primary full-button'}); decorate(chooseFile, 'open');
     panels.file.append(make('p', 'CSV・TSV／1MB以内。UTF-8・Shift_JISを自動判別します。表計算や公開元から保存したファイルを使えます。', {class: 'small muted'}));
     fileInput.addEventListener('change', () => { const file = fileInput.files[0]; fileInput.value = ''; if (file) loadFile(file); });
 
@@ -116,7 +116,7 @@
     decorate(rawSave, 'download');
     const tableWrap = make('div', null, {class: 'data-import-table', tabindex: '0', role: 'region', 'aria-label': '元データの先頭8行'}); preview.append(tableWrap);
 
-    const details = make('details', null, {class: 'data-import-settings'}); details.append(decorate(make('summary', '読み取り設定'), 'settings')); preview.append(details);
+    const details = make('details', null, {class: 'data-import-settings'}); details.append(decorate(make('summary', '読み取り設定'), 'adjustments')); preview.append(details);
     const parseFields = make('div', null, {class: 'field-grid'}); details.append(parseFields);
     const encoding = select(parseFields, '文字コード', [['auto', '自動'], ['utf-8', 'UTF-8'], ['shift_jis', 'Shift_JIS'], ['utf-16le', 'UTF-16 LE'], ['utf-16be', 'UTF-16 BE']], 'auto');
     const delimiter = select(parseFields, '区切り文字', [['auto', '自動'], [',', 'カンマ'], ['\t', 'タブ'], [';', 'セミコロン']], 'auto');

@@ -114,7 +114,7 @@
       button.dataset.documentTabClose = tab.id;
       button.setAttribute('aria-label', tab.name + 'を閉じる');
       button.title = tab.name + 'を閉じる';
-      button.textContent = '×';
+      button.append(GraphIcons.create('close', button.ownerDocument));
       button.disabled = !!tab.busy;
       button.addEventListener('click', event => { event.stopPropagation(); close(); emit('close', tab.id); });
       button.addEventListener('keydown', event => {

@@ -101,7 +101,7 @@
     if(!Sessions.dirty(tab)){return removeTab(tab);}
     openDialog('未保存のグラフを閉じる',parent=>{
       parent.append(node('p','「'+tab.history.document.name+'」には、明示保存していない編集があります。自動保存とは別に保存できます。'));
-      parent.append(labeledButton('file','保存して閉じる',()=>{closeDialog();return saveCurrent(tab,true);},{id:'tab-save-close',class:'full-button'}),
+      parent.append(labeledButton('save','保存して閉じる',()=>{closeDialog();return saveCurrent(tab,true);},{id:'tab-save-close',class:'full-button'}),
         labeledButton('close','保存せずに閉じる',()=>{closeDialog();return removeTab(tab);},{id:'tab-discard-close',class:'full-button'}));
     },null);$('dialog-cancel').textContent='キャンセル';D.decorate($('dialog-cancel'),'close');
   }
@@ -297,7 +297,7 @@
     const visible=items[index].visible!==false;
     const action=(icon,label,callback,attrs={})=>{const control=button(null,callback,{role:'menuitem',...attrs});control.append(GraphIcons.create(icon,document),node('span',label));menu.append(control);};
     action(visible?'hide':'show',visible?'非表示':'表示',()=>{closeObjectMenu();changed(doc=>{const list=doc[objectCollection(type)];list[objectIndex(list,type,id)].visible=!visible;});focusObject(type,id,true);},type==='parameter'?{'data-tip':'スライダーと数値欄の表示を切り替えます。係数の値は数式で引き続き使います。'}:{});
-    action('copy','複製',()=>{closeObjectMenu();duplicateObject(type,id);});
+    action('duplicate','複製',()=>{closeObjectMenu();duplicateObject(type,id);});
     action('trash','削除',()=>{const next=items[index+1]||items[index-1];closeObjectMenu();try{if(type==='series')removeSeries(id);else if(type==='annotation')removeAnnotation(id);else if(type==='chart')removeChart(id);else{changed(doc=>{doc.parameters=doc.parameters.filter(p=>p.name!==id);});select(null);}}finally{focusObject(type,next?(type==='parameter'?next.name:next.id):id,true);}},{class:'danger'});
     positionObjectMenu();if(pinned)menu.querySelector('button')?.focus({preventScroll:true});
   }
@@ -696,7 +696,7 @@
     cancelTangentDraft();cancelGesture();cancelParameterPreview();cancelStylePreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=addTrigger||focused;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogListDetail=dialogOpener?.dataset.objectDetails;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
     $('editor-dialog').classList.remove('wide-dialog','data-import-dialog','axes-dialog');$('dialog-title').textContent=title;$('dialog-content').replaceChildren();$('dialog-error').hidden=true;$('dialog-submit').hidden=!onApply;$('dialog-submit').disabled=false;$('dialog-submit').textContent=submit;
     $('dialog-cancel').textContent=onApply?'キャンセル':'閉じる';build($('dialog-content'));$('editor-dialog').showModal();
-    D.decorate($('dialog-title'),/数表|データ/.test(title)?'table':/数式|関数|曲面|極座標|媒介/.test(title)?'function':/統計|分析|散布|ヒスト|箱ひげ|残差/.test(title)?'statistics':'settings');D.decorate($('dialog-submit'),'check');D.decorate($('dialog-cancel'),'close');
+    D.decorate($('dialog-title'),/数表|データ/.test(title)?'table':/数式|関数|曲面|極座標|媒介/.test(title)?'function':/統計|分析|散布|ヒスト|箱ひげ|残差/.test(title)?'statistics':'adjustments');D.decorate($('dialog-submit'),'check');D.decorate($('dialog-cancel'),'close');
     const focus=[...$('dialog-content').querySelectorAll('input,textarea,select,button')].find(el=>!el.disabled&&el.getClientRects().length);if(focus)focus.focus();
   }
   function closeDialog() {
@@ -1180,9 +1180,9 @@
         const matrixButton=button('散布図行列を作成',()=>addChart('matrix',{seriesId:source.value,columns:indices,name:sources.find(s=>s.id===source.value).name+'の散布図行列'}),{title:'集計する数値列を2〜4列選びます'});
         matrixButton.disabled=indices.length<2||indices.length>4;chartButtons.append(matrixButton);
         const actions=node('div',null,{class:'statistics-actions'});results.append(actions);
-        actions.append(button('統計量をCSVで保存',()=>download(C.tableCSV(summary.map(s=>[s.name,...definitions.map(([key])=>s[key]),s.warning]),['列',...definitions.map(([,label])=>label),'注意']),filename(sources.find(s=>s.id===source.value).name)+'-統計量.csv','text/csv;charset=utf-8')));
-        actions.append(button('相関行列をCSVで保存',()=>download(C.tableCSV(matrix.values.map((r,i)=>[labels[i],...r]),['Pearson r',...labels]),filename(sources.find(s=>s.id===source.value).name)+'-相関行列.csv','text/csv;charset=utf-8')));
-        actions.append(button('相関の使用数をCSVで保存',()=>download(C.tableCSV(matrix.counts.map((r,i)=>[labels[i],...r]),['使用数 n',...labels]),filename(sources.find(s=>s.id===source.value).name)+'-相関の使用数.csv','text/csv;charset=utf-8')));
+        actions.append(labeledButton('export','統計量をCSVで保存',()=>download(C.tableCSV(summary.map(s=>[s.name,...definitions.map(([key])=>s[key]),s.warning]),['列',...definitions.map(([,label])=>label),'注意']),filename(sources.find(s=>s.id===source.value).name)+'-統計量.csv','text/csv;charset=utf-8')));
+        actions.append(labeledButton('export','相関行列をCSVで保存',()=>download(C.tableCSV(matrix.values.map((r,i)=>[labels[i],...r]),['Pearson r',...labels]),filename(sources.find(s=>s.id===source.value).name)+'-相関行列.csv','text/csv;charset=utf-8')));
+        actions.append(labeledButton('export','相関の使用数をCSVで保存',()=>download(C.tableCSV(matrix.counts.map((r,i)=>[labels[i],...r]),['使用数 n',...labels]),filename(sources.find(s=>s.id===source.value).name)+'-相関の使用数.csv','text/csv;charset=utf-8')));
         results.append(node('h3','基本統計量'));appendDataTable(results,['統計量',...labels],definitions.map(([key,label])=>[label,...summary.map(s=>number(s[key]))]));
         summary.filter(s=>s.warning).forEach(s=>results.append(node('p',s.name+'：'+s.warning,{class:'small muted'})));
         results.append(node('h3','相関行列（Pearson r）'));
@@ -1226,7 +1226,7 @@
         const stats=node('dl',null,{class:'analysis-statistics'});
         for(const [label,value,key]of [['使用した点',String(result.n),'n'],['欠測で除外',String(result.skipped),'skipped'],['指定して除外',String(result.excluded||0),'excluded'],['R²',number(result.r2),'r2'],['相関係数 r',number(result.r),'r'],['RMSE',number(result.rmse),'rmse']]){const cell=node('div');cell.append(node('dt',label),node('dd',value,{'data-analysis-stat':key}));stats.append(cell);}preview.append(stats);
         const headers=['元の行',symbol('x'),symbol('y'),'近似値','残差（実測値 − 近似値）'];
-        residualBody.append(button('残差をCSVで保存',()=>download(C.tableCSV(result.residuals,headers),filename(name.value||'回帰分析')+'-残差.csv','text/csv;charset=utf-8')));
+        residualBody.append(labeledButton('export','残差をCSVで保存',()=>download(C.tableCSV(result.residuals,headers),filename(name.value||'回帰分析')+'-残差.csv','text/csv;charset=utf-8')));
         appendDataTable(residualBody,headers,result.residuals.map(r=>r.map(number)));
       };
       source.addEventListener('change',refresh);model.addEventListener('change',refresh);refresh();
@@ -1408,8 +1408,8 @@
     const item=templateLibrary.list().find(entry=>entry.id===id);if(!item)throw new Error('テンプレートが見つかりません。');let name,description;
     openDialog('テンプレートの管理',parent=>{
       name=field(parent,'テンプレート名',item.name,'text',{maxlength:160});description=area(parent,'説明',item.description);description.maxLength=1000;
-      parent.append(button('テンプレートをファイルに保存',()=>download(templateLibrary.export(id),filename(item.name)+'.graph-template.json','application/json'),{class:'full-button'}));
-      const details=node('details');details.append(node('summary','このテンプレートを削除'));details.append(node('p','登録したひな形だけを削除します。現在編集中の図は残ります。',{class:'small muted'}),button('削除する',()=>{templateLibrary.remove(id);templateList();closeDialog();notify('テンプレートを削除しました。');},{class:'full-button'}));parent.append(details);
+      parent.append(labeledButton('save','テンプレートをファイルに保存',()=>download(templateLibrary.export(id),filename(item.name)+'.graph-template.json','application/json'),{class:'full-button'}));
+      const details=node('details');details.append(node('summary','このテンプレートを削除'));details.append(node('p','登録したひな形だけを削除します。現在編集中の図は残ります。',{class:'small muted'}),labeledButton('delete','削除する',()=>{templateLibrary.remove(id);templateList();closeDialog();notify('テンプレートを削除しました。');},{class:'full-button'}));parent.append(details);
     },()=>{templateLibrary.save(GraphTemplateLibrary.create(item.document,{name:name.value,description:description.value}),id);templateList();notify('テンプレートの名前・説明を更新しました。');});
   }
   function filename(name) {return (name||'グラフ').replace(/[\x00-\x1f<>:"/\\|?*]/g,'_').slice(0,100);}
@@ -1458,8 +1458,8 @@
   function chooseSaveTarget(tab,closeAfter=false) {
     openDialog('保存先を選ぶ',parent=>{
       parent.append(node('p','「'+tab.history.document.name+'」の保存先を選びます。次の⌘/Ctrl+Sも同じ保存先を使います。'));
-      parent.append(labeledButton('file','ブラウザ内に保存',()=>{closeDialog();return executeSave(tab,'browser',closeAfter);},{id:'save-choice-browser',class:'full-button'}),
-        labeledButton('download','ローカルファイルに保存…',()=>{closeDialog();return executeSave(tab,'local',closeAfter);},{id:'save-choice-local',class:'full-button'}));
+      parent.append(labeledButton('save','ブラウザ内に保存',()=>{closeDialog();return executeSave(tab,'browser',closeAfter);},{id:'save-choice-browser',class:'full-button'}),
+        labeledButton('save','ローカルファイルに保存…',()=>{closeDialog();return executeSave(tab,'local',closeAfter);},{id:'save-choice-local',class:'full-button'}));
     },null);$('dialog-cancel').textContent='キャンセル';D.decorate($('dialog-cancel'),'close');
   }
   function saveCurrent(tab=activeTab,closeAfter=false) {
@@ -1497,7 +1497,7 @@
         },{class:'saved-option','data-save-kind':entry.kind,'data-saved-id':entry.id});
         b.append(node('strong',(entry.kind==='auto'?'自動保存':'明示保存')+'：'+entry.document.name),node('small','ブラウザ内・'+new Date(entry.at).toLocaleString('ja-JP')));parent.append(b);
       }
-      parent.append(button('ローカルファイルを開く…',()=>{closeDialog();$('file-input').click();},{class:'full-button'}));
+      parent.append(labeledButton('open','ローカルファイルを開く…',()=>{closeDialog();$('file-input').click();},{class:'full-button'}));
       parent.append(node('p','選んだ内容を新しいタブで開きます。ほかのタブと、選ばなかった保存内容は保持します。',{class:'small muted'}));
     },null);
   }
@@ -1563,7 +1563,7 @@
         $('editor-dialog').classList.add('wide-dialog');
         const preview=node('div',null,{class:'image-export-preview','data-background':result.output.background});
         preview.append(node('img',null,{src:result.url,alt:result.name+'の出力画像'}));parent.append(preview);
-        parent.append(button('この画像を保存',()=>{savePreparedImage(result);notify('確認した画像を保存しました。');},{class:'primary full-button'}));
+        parent.append(labeledButton('export','この画像を保存',()=>{savePreparedImage(result);notify('確認した画像を保存しました。');},{class:'primary full-button'}));
       });outputStatus('画像を確認しています。');
     }catch(error){outputStatus(error.message,true);throw error;}
     finally{setOutputBusy(false);}
@@ -1576,7 +1576,7 @@
       parent.append(node('p','非表示の系列も含めた作品全体の出典です。貼り付ける図に必要な出典を確認して、教材へ添えてください。',{class:'small muted'}));
       const input=area(parent,'出典・条件のテキスト',text);input.readOnly=true;input.className='publication-sources';
       const status=node('p',null,{class:'small',role:'status'});
-      parent.append(button('出典・条件をコピー',async()=>{
+      parent.append(labeledButton('copy','出典・条件をコピー',async()=>{
         try{if(!navigator.clipboard?.writeText)throw new Error();await navigator.clipboard.writeText(text);status.textContent='出典・条件をコピーしました。';}
         catch{input.focus();input.select();status.textContent='テキストを選択しました。⌘C / Ctrl+C でコピーできます。';}
       }),status);

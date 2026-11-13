@@ -12,6 +12,8 @@
 .graph-document-tabs__name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .graph-document-tabs__dirty{font-size:.65em;color:var(--danger);flex:none}
 .graph-document-tabs__close{width:25px;flex:none;border-radius:0 6px 6px 0;font-size:1rem;line-height:1}
+.graph-document-tabs__close{display:inline-flex;align-items:center;justify-content:center;padding:3px 1px}
+.graph-document-tabs__close svg{width:22px;height:22px;pointer-events:none}
 .graph-document-tabs__close:hover{background:var(--accent-soft)}
 .graph-document-tabs__menu{position:relative;flex:none}
 .graph-document-tabs__menu>summary{display:flex;align-items:center;justify-content:center;width:26px;min-height:30px;padding:2px;border:1px solid var(--line);border-radius:7px;background:var(--panel);list-style:none}
