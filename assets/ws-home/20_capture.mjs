@@ -1,5 +1,5 @@
 import {newDraft, editedDraft, checkPages, randomId, stateLabel, timeLabel, hashBlob, parsePairingQr} from './10_model.mjs?v=20261016-ocr1';
-import {processImage, processPairedImage, loadImage, detectMarkers, layouts} from './11_vision.mjs?v=20261016-ocr1';
+import {processImage, processPairedImage, loadImage, detectMarkers, layouts} from './11_vision.mjs?v=20261113-dr43-1';
 import {getDraft, saveDraft, probeStorage, deviceId} from './12_store.mjs';
 import {api, config, blobBase64, messageFor, loginUrl, openConnection, isNativeGas} from './13_api.mjs?v=20261016-6';
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
@@ -240,7 +240,7 @@ export async function mountCapture(root, {mode = 'phone', owner = null, onSubmit
         const header=section.querySelector('.header-preview');
         preview.onload=async()=>{
           if(stopped || draft.pages[side]!==p || !p.correctedBlob)return;
-          const c=(await layouts()).find(c=>c.pageSize===r?.pageSize&&c.identity.side===r?.qr?.side);
+          const c=(await layouts()).find(c=>c.pageSize===r?.pageSize&&c.identity.side===r?.qr?.side&&(!r?.layoutId||c.layoutId===r.layoutId));
           if(!c)return;
           const x=c.columns.middle.mm.x,y=Math.max(0,c.qr.region.mm.y-2),right=c.qr.region.mm.x+c.qr.region.mm.width+2,bottom=c.header.mm.y+c.header.mm.height+2;
           const sx=preview.naturalWidth/c.page.widthMm,sy=preview.naturalHeight/c.page.heightMm;

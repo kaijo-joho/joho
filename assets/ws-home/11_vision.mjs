@@ -1,11 +1,12 @@
 import {parseWorksheetQr, provisionalLimits, hashBlob} from './10_model.mjs?v=20261016-ocr1';
 import {recognizePrintedLabel, makeLabelViews} from './14_label_ocr.mjs?v=20261016-ocr1';
+import {annualEdition, annualMarkerFits, mapPoint, fitProjective, fitAffine} from './15_annual_geometry.mjs?v=20261113-dr43-1';
 const layoutCache = new Map();
 const rowNames = ['class', 'tens', 'ones'];
 const decodedQrFacts = new WeakMap();
 export async function layouts() {
   if (!layoutCache.size) {
-    for (const name of ['b5', 'b5-back', 'a4', 'a4-back']) {
+    for (const name of ['b5', 'b5-back', 'a4', 'a4-back', '2026-dr43-b5-F', '2026-dr43-b5-B', '2026-dr43-a4-F', '2026-dr43-a4-B']) {
       const r = await fetch(new URL('./layout/' + name + '.json',import.meta.url));
       if (!r.ok) throw Error('LAYOUT_NOT_AVAILABLE');
       layoutCache.set(name, await r.json());
@@ -48,7 +49,7 @@ function grayscale(c) {
   for (let i = 0; i < gray.length; i++) gray[i] = Math.round((rgba[i * 4] + rgba[i * 4 + 1] + rgba[i * 4 + 2]) / 3);
   return gray;
 }
-const markerCache = new WeakMap(), markerSetCache = new WeakMap(), paperCache = new WeakMap();
+const markerCache = new WeakMap(), markerSetCache = new WeakMap(), paperCache = new WeakMap(), annualGuides = new WeakMap();
 function polygonArea(points) {return Math.abs(points.reduce((sum,p,i)=>{const q=points[(i+1)%points.length];return sum+p.x*q.y-p.y*q.x;},0))/2;}
 function cross(a,b,c) {return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);}
 function convexHull(points) {
@@ -146,6 +147,7 @@ function markerSets(source) {
   const sets=quads.sort((a,b)=>a.score-b.score).slice(0,6);markerSetCache.set(source,sets);return sets;
 }
 export function detectMarkers(source) {
+  if(annualGuides.has(source))return annualGuides.get(source).map(p=>({...p}));
   const set=markerSets(source)[0];if(set)return set.points;
   // These are only starting positions for manual adjustment. Paper edges alone
   // never authorize correction: processImage still verifies the printed marks/QR.
@@ -348,6 +350,8 @@ function readQr(region,c) {
   if(!decoded)return null;
   let qr;try{qr=parseWorksheetQr(decoded.data);}catch{return null;}
   if(qr.side!==c.identity.side)return null;
+  if(annualEdition(c)&&['subject','year','worksheetId','side'].some(k=>qr[k]!==c.identity[k]))return null;
+  if(!annualEdition(c)&&qr.subject==='INFO1'&&qr.year===2026&&qr.worksheetId==='dr43')return null;
   const r=c.qr.region.mm,modules=decoded.version*4+17,quiet=r.width*4/(modules+8);
   const expected=[{x:r.x+quiet,y:r.y+quiet},{x:r.x+r.width-quiet,y:r.y+quiet},{x:r.x+r.width-quiet,y:r.y+r.height-quiet},{x:r.x+quiet,y:r.y+r.height-quiet}];
   const actual=['topLeftCorner','topRightCorner','bottomRightCorner','bottomLeftCorner'].map(key=>({x:decoded.location[key].x/density+left,y:decoded.location[key].y/density+top}));
@@ -577,17 +581,76 @@ async function exportCorrected(image) {
 function validCorners(points,source) {
   return points.length===4&&points.every(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=0&&p.y>=0&&p.x<source.width&&p.y<source.height)&&new Set(points.map(p=>Math.round(p.x)+','+Math.round(p.y))).size===4&&points.every((p,i)=>cross(p,points[(i+1)%4],points[(i+2)%4])>0)&&polygonArea(points)>source.width*source.height*.15;
 }
+function annualFits(source,c,sets,options={}) {
+  const names=['topLeft','topRight','bottomRight','bottomLeft'],physical=names.map(k=>c.markers[k].center.mm),all=Object.values(c.markers).map(m=>m.center.mm);
+  const upper=all.filter(p=>p.y<c.page.heightMm*.1).sort((a,b)=>a.x-b.x),lower=all.filter(p=>p.y>c.page.heightMm*.9).sort((a,b)=>a.x-b.x);
+  const outer=[upper[0],upper.at(-1),lower.at(-1),lower[0]],seeds=[];
+  for(const set of sets)for(let turn=0;turn<4;turn++){
+    const source=set.points.slice(turn).concat(set.points.slice(0,turn));seeds.push({source,target:physical},{source,target:outer});
+  }
+  if(!options.corners){
+    const edge=[{x:0,y:0},{x:c.page.widthMm,y:0},{x:c.page.widthMm,y:c.page.heightMm},{x:0,y:c.page.heightMm}];
+    const full=[{x:0,y:0},{x:source.width-1,y:0},{x:source.width-1,y:source.height-1},{x:0,y:source.height-1}];
+    for(const q of paperQuads(source).concat([full]))for(let turn=0;turn<4;turn++)seeds.push({source:q.slice(turn).concat(q.slice(0,turn)),target:edge});
+  }
+  return annualMarkerFits(markerComponents(source),c,seeds).filter(f=>validCorners(f.points,source));
+}
+function annualQrCandidates(source,catalog,sets,options) {
+  const result=[];
+  for(const c of catalog.filter(annualEdition)){
+    const seeds=[],observed=markerComponents(source);
+    const examine=fits=>{
+      options.onAnnualDiagnostic?.({layout:c.layoutId,pageSize:c.pageSize,side:c.identity.side,fits:fits.length});
+      for(const fit of fits){
+        const found=readQr(qrCrop(source,fit.points,c,options),c);
+        options.onAnnualDiagnostic?.({layout:c.layoutId,pageSize:c.pageSize,side:c.identity.side,observed:fit.observedCount,coverage:fit.coverageFraction,markerResidual:fit.residual,qrDecoded:!!found,qrError:found?.error,qrDecodedError:found?.decodedError});
+        if(!found)continue;
+        result.push({...found,c,points:fit.points,corners:fit.points,limit:.8,annual:fit});
+        // A decoded, actually photographed QR can seed a different assignment
+        // of the extra binding-edge squares. It cannot authorize a page fit:
+        // the same >=6 square observations and final QR limits still apply.
+        const measured=found.measured||found;
+        const actual=measured.actual.map(p=>mapPoint(fit.toSource,p));
+        seeds.push({source:actual,target:measured.expected});
+        // Distant photographed squares stabilize the QR's small observation
+        // baseline. These assignments are still hypotheses; the subsequent
+        // complete-pattern matcher independently selects and tests the squares.
+        const lower=fit.selected.filter(m=>m.expected.y>c.page.heightMm*.75);
+        if(lower.length>=3)seeds.push({source:actual.concat(lower.map(m=>m.source)),target:measured.expected.concat(lower.map(m=>m.expected))});
+        try{
+          // Affine extrapolation is only a second seed. Unlike extrapolating a
+          // small QR homography, it does not amplify corner noise at the foot.
+          const matrix=fitAffine(measured.expected,actual),page=[{x:0,y:0},{x:c.page.widthMm,y:0},{x:c.page.widthMm,y:c.page.heightMm},{x:0,y:c.page.heightMm}];
+          seeds.push({source:page.map(p=>mapPoint(matrix,p)),target:page});
+        }catch{}
+      }
+    };
+    examine(annualFits(source,c,sets,options));
+    if(seeds.length&&!result.some(v=>v.c===c&&v.error<=.8&&v.annual.observedCount>=10)){
+      examine(annualMarkerFits(observed,c,seeds,{seedSearchRadiusMm:6,anchorNearQr:true}).filter(f=>validCorners(f.points,source)));
+    }
+  }
+  return result;
+}
+function annualGeometryConflict(best,other) {
+  if(!best.annual||!other.annual||other.qr.payload!==best.qr.payload||other.error>.8||other.annual.observedCount<best.annual.observedCount-1)return false;
+  for(const x of [.1,.5,.9])for(const y of [.1,.5,.9]){
+    const point={x:x*best.c.page.widthMm,y:y*best.c.page.heightMm},source=mapPoint(other.annual.toSource,{x:x*other.c.page.widthMm,y:y*other.c.page.heightMm}),back=mapPoint(best.annual.toMm,source);
+    if(Math.hypot(point.x-back.x,point.y-back.y)>.6)return true;
+  }
+  return false;
+}
 export async function processImage(blob, options = {}) {
   const began=performance.now(),source=await loadImage(blob,options.turns||0);
   const sets=options.corners?[{points:options.corners.map(p=>options.preciseCorners?{...p}:snapMarker(source,p))}]:markerSets(source);
   let corners=sets[0]?.points||(!options.corners?detectMarkers(source):null);
   if(Math.max(source.width,source.height)<900)return {source,corners,reading:{status:'REVIEW',reason:'SOURCE_TOO_SMALL',message:'画像が小さすぎてQRを確認できません。スクリーンショットや縮小画像ではなく、撮影した元の写真を選んでください。'}};
   if(options.corners&&!validCorners(corners,source))return {source,corners,reading:{status:'REVIEW',reason:'INVALID_CORNERS',message:'黒いマーカーを左上→右上→右下→左下の順に指定してください。紙の角ではなく、黒い■の中心です。'}};
-  const candidates=[];
   const catalog=await layouts();
+  const candidates=annualQrCandidates(source,catalog,sets,options);
   for(const set of sets){
     if(!validCorners(set.points,source))continue;
-    for(const c of catalog)for(let turn=0;turn<4;turn++){
+    for(const c of catalog.filter(c=>!annualEdition(c)))for(let turn=0;turn<4;turn++){
       const points=set.points.slice(turn).concat(set.points.slice(0,turn)),found=readQr(qrCrop(source,points,c,options),c);
       if(found){
         if(completeMarkerSet(source,points,c))candidates.push({...found,c,points,corners:set.points});
@@ -600,7 +663,7 @@ export async function processImage(blob, options = {}) {
     if(candidates.some(v=>v.error<=(v.limit??.8)))break;
   }
   if(!options.corners&&!candidates.some(v=>v.error<=(v.limit??.8))){
-    for(const paper of paperQuads(source))for(const c of catalog)for(let turn=0;turn<4;turn++){
+    for(const paper of paperQuads(source))for(const c of catalog.filter(c=>!annualEdition(c)))for(let turn=0;turn<4;turn++){
       const page=[{x:0,y:0},{x:c.page.widthMm,y:0},{x:c.page.widthMm,y:c.page.heightMm},{x:0,y:c.page.heightMm}],matrix=homography(page,paper.slice(turn).concat(paper.slice(0,turn)));
       const points=targetMarkers(c,c.page.widthMm,c.page.heightMm).map(p=>transformPoint(matrix,p));
       if(!validCorners(points,source))continue;
@@ -611,15 +674,17 @@ export async function processImage(blob, options = {}) {
     }
   }
   candidates.sort((a,b)=>a.error/a.c.scale-b.error/b.c.scale);
-  const best=candidates[0],alternative=best&&candidates.find(v=>v.c.pageSize!==best.c.pageSize||v.qr.payload!==best.qr.payload);
+  const best=candidates[0],alternative=best&&candidates.find(v=>v.qr.payload!==best.qr.payload||v.c.pageSize!==best.c.pageSize&&!(v.annual&&best.annual));
   if(!best){
     const known=decodedQrFacts.get(source)?.size;
     return {source,corners,reading:{status:'REVIEW',reason:known?'QR_POSITION_MISMATCH':corners?'QR_UNREADABLE':'MARKERS_NOT_FOUND',message:known?'QRは検出されましたが、用紙との対応を確認できません。四隅の黒い■と正しい用紙かを確認してください。':corners?'WS識別QRを読み取れません。影・ピンぼけを避けて撮り直すか、「調整する」で四隅を確認してください。':'用紙の位置を確認できません。暗めの机の上で、用紙の四隅がすべて入るように撮影してください。'}};
   }
   if((decodedQrFacts.get(source)?.size||0)>1)return {source,corners,reading:{status:'REVIEW',reason:'QR_CONFLICT',message:'異なる内容のQRが検出されました。同じワークシートの表裏か確認してください。'}};
+  if(candidates.some(v=>v!==best&&annualGeometryConflict(best,v)))return {source,corners,reading:{status:'REVIEW',reason:'ANNUAL_GEOMETRY_AMBIGUOUS',message:'黒い■の対応を一つに確定できません。用紙を平らにして撮り直すか、四隅を確認してください。'}};
   corners=best.corners;
   if(best.error>(best.limit??.8)||alternative&&alternative.error/alternative.c.scale-best.error/best.c.scale<.1)return {source,corners,reading:{status:'REVIEW',reason:'QR_POSITION_MISMATCH',message:'QRは読めましたが、用紙と黒いマーカーの位置が合いません。紙の角ではなく四隅の黒い■の中心へ合わせてください。'}};
   const c=best.c,width=provisionalLimits.normalizedWidth,height=Math.round(width*c.page.heightMm/c.page.widthMm);
+  if(best.annual)annualGuides.set(source,corners);
   const corrected=warp(source,best.points,targetMarkers(c,width,height),width,height);tone(corrected,options.brightness||0,options.contrast||0,options.autoTone!==false);
   const q=quality(corrected,c);
   const {aligned:headerAligned,qrConsistent}=alignPrintedHeader(corrected,c);
@@ -628,6 +693,11 @@ export async function processImage(blob, options = {}) {
   const matrix=homography(targetMarkers(c,c.page.widthMm,c.page.heightMm),best.points),sourceQr=best.actual.map(p=>transformPoint(matrix,p));
   const modulePixels=Math.min(...sourceQr.map((p,i)=>Math.hypot(p.x-sourceQr[(i+1)%4].x,p.y-sourceQr[(i+1)%4].y)))/best.modules;
   if(modulePixels<3)problems.push('解像度が不足しています。用紙を大きく写して撮り直してください。');
+  if(best.annual){
+    const radii=[];
+    for(const marks of Object.values(c.omr))for(const mark of marks){const p=mark.center.mm,r=mark.sampleRadiusMm,s=mapPoint(best.annual.toSource,p);for(const q of [{x:p.x+r,y:p.y},{x:p.x,y:p.y+r}]){const t=mapPoint(best.annual.toSource,q);radii.push(Math.hypot(t.x-s.x,t.y-s.y));}}
+    if(Math.min(...radii)<4)problems.push('マーク欄の元画像の解像度が不足しています。用紙を大きく写して撮り直してください。');
+  }
   if(q.headerSharpness<25)problems.push('画像がぼけています。明るい場所でピントを合わせて撮り直してください。');
   if(q.paperBrightness<100)problems.push('画像が暗すぎます。明るさを調整するか、撮り直してください。');
   // After printed QR + three intact squares agree, standardize the four registration
@@ -643,7 +713,7 @@ export async function processImage(blob, options = {}) {
     }
   }
   const {blob:correctedBlob,grayscaleExport}=await exportCorrected(corrected);
-  return {source,corners,correctedBlob,sha256:await hashBlob(correctedBlob),reading:{status:problems.length?'REVIEW':'OK',message:problems[0]||'',qr:best.qr,qrModules:best.modules,identitySource:'qr',classNumber:omr.classNumber,number:omr.number,rows:omr.rows,pageSize:c.pageSize,quality:q,autoTone:options.autoTone!==false,grayscaleExport,headerAligned,registration:best.restored?'QRと残る3点で欠けた■を補正':'四隅の■で補正',restoredMarkers:best.restored?.length||0,sourcePixelsPerModule:modulePixels,elapsedMs:Math.round(performance.now()-began),correctedBytes:correctedBlob.size}};
+  return {source,corners,correctedBlob,sha256:await hashBlob(correctedBlob),reading:{status:problems.length?'REVIEW':'OK',message:problems[0]||'',qr:best.qr,qrModules:best.modules,identitySource:'qr',classNumber:omr.classNumber,number:omr.number,rows:omr.rows,pageSize:c.pageSize,layoutId:c.layoutId,quality:q,autoTone:options.autoTone!==false,grayscaleExport,headerAligned,registration:best.annual?'新書式の複数の■で補正':best.restored?'QRと残る3点で欠けた■を補正':'四隅の■で補正',observedMarkers:best.annual?.observedCount,restoredMarkers:best.restored?.length||0,sourcePixelsPerModule:modulePixels,elapsedMs:Math.round(performance.now()-began),correctedBytes:correctedBlob.size}};
 }
 
 function mappedOmr(c,model,dx=0,dy=0) {
@@ -680,7 +750,7 @@ export async function processPairedImage(blob,anchor,options={}) {
   if(a?.status!=='OK'||a.identityConfirmation||!anchor.sha256||![21,25,29,33].includes(a.qrModules)||rowNames.some(k=>a.rows?.[k]?.status!=='OK'))throw Error('PAIR_ANCHOR_REQUIRED');
   const identity=parseWorksheetQr(a.qr.payload);
   if(['subject','year','worksheetId','side'].some(k=>identity[k]!==a.qr[k]))throw Error('PAIR_ANCHOR_REQUIRED');
-  const side=identity.side==='F'?'B':'F',c=(await layouts()).find(c=>c.pageSize===a.pageSize&&c.identity.side===side);
+  const side=identity.side==='F'?'B':'F',c=(await layouts()).find(c=>c.pageSize===a.pageSize&&c.identity.side===side&&(!a.layoutId||c.layoutId===a.layoutId));
   if(!c)throw Error('PAIR_GEOMETRY_UNCONFIRMED');
   const source=options.sourceCanvas||await loadImage(blob,options.turns||0),width=provisionalLimits.normalizedWidth,height=Math.round(width*c.page.heightMm/c.page.widthMm);
   if(decodedQrFacts.get(source)?.size)throw Error('PAIR_QR_CONFLICT');
@@ -728,3 +798,4 @@ export async function processPairedImage(blob,anchor,options={}) {
       engine:ocr.engine,ocrViews:ocr.views,printedGrid:{count:fit.count,maxOffset:fit.maxOffset,maxResidual:fit.maxResidual}},
     elapsedMs:Math.round(performance.now()-began),correctedBytes:correctedBlob.size}};
 }
+
