@@ -213,7 +213,7 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
 
     // 共通部品が取得できない時にも、回路本体は初期化・編集できる。
     const unavailable = await browser.newContext();
-    await unavailable.route('**/shared/help-panel.js', route => route.abort());
+    await unavailable.route('**/shared/help-panel.js*', route => route.abort());
     const fallback = await unavailable.newPage(); fallback.on('pageerror', error => errors.push(error.message));
     await fallback.goto(url); await ready(fallback);
     await expect(helpButton(fallback)).toBeDisabled();

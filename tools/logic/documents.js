@@ -230,9 +230,10 @@
             if (next !== null) { event.preventDefault(); this.switchTo(this.docs[next].id, true); }
           });
           const rename = element('button', null, 'document-tab__rename'); rename.type = 'button';
-          rename.appendChild(root.JohoFileMenu.icon('rename'));
+          rename.appendChild(root.JohoIcons.create('rename'));
           rename.addEventListener('click', () => this.rename(doc, rename));
-          const close = element('button', '×', 'document-tab__close'); close.type = 'button';
+          const close = element('button', null, 'document-tab__close'); close.type = 'button';
+          close.appendChild(root.JohoIcons.create('close'));
           close.addEventListener('click', () => this.requestClose(doc));
           entry.append(tab, rename, close);
         }

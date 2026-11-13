@@ -42,7 +42,9 @@ button:hover:not(:disabled) { background: var(--hover); }
 button:disabled { opacity: .4; cursor: default; }
 button[aria-pressed="true"], button[aria-expanded="true"] { color: var(--accent); background: var(--accent-soft); }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: -2px; }
-button svg, [data-icon] svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+button svg, [data-icon] svg { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+.top .logic-editor__history-button svg { display: block; margin: auto; }
+.logic-editor-delete-control__glyph { color: var(--logic-error); }
 .icon-button { width: 44px; height: 44px; padding: 0; flex: none; }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
 button.primary:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 90%, var(--text)); }
@@ -90,7 +92,7 @@ summary:hover { background: var(--hover); }
 .selection-layout { position: relative; }
 .selection-layout__menu { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); width: min(220px, calc(100vw - 140px)); padding: 5px; display: flex; flex-direction: column; gap: 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); max-height: calc(100dvh - 240px); overflow: auto; }
 .selection-layout:not([open]) .selection-layout__menu { display: none; }
-.selection-layout__menu button { text-align: left; font-size: .88rem; }
+.selection-layout__menu button { display: flex; align-items: center; gap: 8px; text-align: left; font-size: .88rem; }
 .logic-editor-selection-marquee { fill: var(--accent-soft); fill-opacity: .4; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 3; pointer-events: none; }
 .logic-editor-node.is-multi-selected .logic-editor-node__box,
 .logic-editor-node.is-multi-selected .logic-gate__body { stroke-dasharray: 5 2; }
@@ -229,7 +231,7 @@ noscript { position: fixed; inset: 65px 15px auto; padding: 15px; background: va
 .top .joho-file-menu > summary { font-size: .7rem; }
 .view-menu { position: relative; flex: none; }
 .view-menu > summary { gap: 2px; font-size: .7rem; }
-.view-menu > summary svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.view-menu > summary svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; }
 .view-menu__items { position: absolute; top: 100%; left: 0; display: flex; flex-direction: column; gap: 5px; min-width: 160px; padding: 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); box-shadow: var(--shadow); z-index: 20; }
 .view-menu:not([open]) > .view-menu__items { display: none; }
 #app .top .view-menu__items button { width: 100%; height: auto; min-height: 34px; justify-content: flex-start; text-align: left; }
@@ -240,7 +242,7 @@ noscript { position: fixed; inset: 65px 15px auto; padding: 15px; background: va
 .document-tab:has([aria-selected="true"]) { background: var(--accent-soft); border-color: var(--accent); }
 .document-tab [aria-selected="true"] { color: var(--accent); }
 .top .document-tab__rename { min-width: 28px; width: 28px; padding: 0; }
-.document-tab__rename svg { width: 16px; height: 16px; }
+.document-tab__rename svg, .document-tab__close svg { width: 22px; height: 22px; }
 .top .document-tab__close { min-width: 22px; width: 22px; padding: 0; }
 #document-list { flex: none; width: 28px; padding-inline: 1px; font-size: 0; }
 #document-list option { color: var(--text); font-size: var(--ui-size); }

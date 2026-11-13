@@ -6,10 +6,11 @@
   <title>論理回路エディタ — 海城 情報科</title>
   <link rel="icon" type="image/svg+xml" href="./icon.svg?v=20260915-a">
   <link rel="stylesheet" href="../../css/logic-circuits.css">
-  <link rel="stylesheet" href="./editor.css?v=20261015-061">
-  <link rel="stylesheet" href="../shared/help-panel.css">
-  <link rel="stylesheet" href="../shared/file-menu.css?v=20261015-06">
+  <link rel="stylesheet" href="./editor.css?v=20261113-icons1">
+  <link rel="stylesheet" href="../shared/help-panel.css?v=20261113">
+  <link rel="stylesheet" href="../shared/file-menu.css?v=20261113">
   <link rel="stylesheet" href="./assignment.css">
+  <script defer src="../shared/ui-icons.js?v=20261113"></script>
   <script defer src="../../js/logic-core.js?v=20261015-06"></script>
   <script defer src="../../js/logic-renderer.js?v=20261015-06"></script>
   <script defer src="../../js/logic-widgets.js"></script>
@@ -19,9 +20,9 @@
   <script defer src="../../js/logic-workbench-files.js?v=20261015-06"></script>
   <script defer src="./recovery.js"></script>
   <script defer src="./ui.js"></script>
-  <script defer src="../shared/help-panel.js"></script>
-  <script defer src="../shared/file-menu.js?v=20261015-06b"></script>
-  <script defer src="./documents.js?v=20261015-061"></script>
+  <script defer src="../shared/help-panel.js?v=20261113"></script>
+  <script defer src="../shared/file-menu.js?v=20261113"></script>
+  <script defer src="./documents.js?v=20261113-icons1"></script>
   <script defer src="./truth-practice.js?v=20261015-06c"></script>
   <script defer src="../shared/assignment-lite.js"></script>
   <script defer src="../shared/assignment-lite-store.js"></script>
@@ -29,7 +30,7 @@
   <script defer src="../shared/assignment-lite-client.js"></script>
   <script defer src="./assignment-config.js"></script>
   <script defer src="./assignment.js"></script>
-  <script defer src="./editor.js?v=20261015-06"></script>
+  <script defer src="./editor.js?v=20261113-icons1"></script>
 </head>
 <body>
   <div id="app">
@@ -41,13 +42,13 @@
         <div id="basic-toolbar" class="toolbar" role="group" aria-label="基本ツールバー"></div>
       </details>
       <details id="view-menu" class="view-menu">
-        <summary aria-label="表示・整列"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span aria-hidden="true">▾</span></summary>
+        <summary aria-label="表示・整列"><span data-icon="view"></span><span aria-hidden="true">▾</span></summary>
         <div id="view-toolbar" class="view-menu__items"></div>
       </details>
       <div class="document-tabs-area"><div id="document-tabs" role="tablist" aria-label="開いている回路"></div><select id="document-list" aria-label="開いている回路の一覧"></select></div>
       <div id="display-toolbar" class="toolbar-end" role="group" aria-label="表示オプション">
         <button id="settings-button" type="button" class="icon-button" aria-label="表示設定" title="テーマ・文字サイズ" aria-haspopup="dialog" aria-controls="settings-dialog"><span data-icon="settings"></span></button>
-        <button id="fullscreen-button" type="button" class="icon-button" aria-label="全画面表示" title="全画面表示"><span data-icon="fullscreen"></span></button>
+        <button id="fullscreen-button" type="button" class="icon-button" aria-label="全画面表示" title="全画面表示"><span data-icon="fullscreen-enter"></span></button>
       </div>
     </header>
     <aside class="palette" aria-label="回路の編集ツール">
@@ -60,7 +61,7 @@
           <span id="selection-name"></span>
           <button id="insert-not" type="button" title="選択した配線の途中にNOTを挿入" hidden>NOTを挿入</button>
           <button id="insert-probe" type="button" title="配線の信号を変えずに中間点を挿入" hidden>中間点を挿入</button>
-          <button id="duplicate-selection" type="button" class="icon-button" aria-label="選択した部品を複製" title="選択した部品を複製"><span data-icon="copy"></span></button>
+          <button id="duplicate-selection" type="button" class="icon-button" aria-label="選択した部品を複製" title="選択した部品を複製"><span data-icon="duplicate"></span></button>
           <details id="selection-layout" class="selection-layout">
             <summary>配置 <span aria-hidden="true">▾</span></summary>
             <div class="selection-layout__menu" role="group" aria-label="選択した部品の配置">
@@ -135,7 +136,7 @@
   </dialog>
   <dialog id="settings-dialog" aria-labelledby="settings-title">
     <header><h2 id="settings-title">表示設定</h2><button type="button" data-close-dialog aria-label="表示設定を閉じる">×</button></header>
-    <div class="dialog-body"><div class="stack"><span>テーマ</span><div class="theme-options" role="group" aria-label="テーマ"><button type="button" data-theme-choice="auto" aria-label="テーマ：自動" title="自動"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor"/></svg></button><button type="button" data-theme-choice="light" aria-label="テーマ：ライト" title="ライト"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2"/></svg></button><button type="button" data-theme-choice="dark" aria-label="テーマ：ダーク" title="ダーク"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15a9 9 0 0 1-11-11A9 9 0 1 0 20 15Z"/></svg></button></div><select id="theme" class="visually-hidden" aria-label="テーマ設定" tabindex="-1"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></div><label class="stack">文字サイズ<select id="text-size"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label></div>
+    <div class="dialog-body"><div class="stack"><span>テーマ</span><div class="theme-options" role="group" aria-label="テーマ"><button type="button" data-theme-choice="auto" aria-label="テーマ：自動" title="自動"><span data-icon="theme-auto"></span></button><button type="button" data-theme-choice="light" aria-label="テーマ：ライト" title="ライト"><span data-icon="theme-light"></span></button><button type="button" data-theme-choice="dark" aria-label="テーマ：ダーク" title="ダーク"><span data-icon="theme-dark"></span></button></div><select id="theme" class="visually-hidden" aria-label="テーマ設定" tabindex="-1"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></div><label class="stack">文字サイズ<select id="text-size"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label></div>
   </dialog>
   <aside id="lc02-operation-dialog" aria-label="論理回路エディタの使い方" hidden>
     <section data-help-topic="parts" data-help-title="部品を置く・変更する">
@@ -198,7 +199,7 @@
         </dd></div>
       </dl>
       <footer class="help-credit" aria-label="バージョン情報と著作権">
-        <p>論理回路エディタ　バージョン 0.6.1 BETA（試作版。2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+        <p>論理回路エディタ　バージョン 0.6.2 BETA（試作版。2026年11月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
       </footer>
     </section>
   </aside>

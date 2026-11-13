@@ -2,26 +2,30 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const icons = {
-    settings: '<path d="M4 6h16M4 12h16M4 18h16M8 3v6M16 9v6M10 15v6"/>',
-    fullscreen: '<path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/>',
-    fit: '<rect x="4" y="6" width="16" height="12" rx="1"/><path d="M8 10h8v4H8z"/>',
+  // 真理値表とテンプレートは専用図柄。共通操作のpathは公開された共通定義から参照する。
+  const specificIcons = {
     table: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/>',
-    copy: '<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',
-    templates: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
-    export: '<path d="M12 15V3M8 7l4-4 4 4M5 12v8h14v-8"/>',
-    open: '<path d="M3 7V4h7l2 3h9v13H3zM3 10h18"/>',
-    clear: '<path d="M8 3h8M4 6h16M6 6l1 15h10l1-15M10 10v7M14 10v7"/>',
-    select: '<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><rect x="8" y="8" width="8" height="8" rx="1"/>'
+    templates: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'
   };
   function icon(name) {
+    if (!specificIcons[name]) return window.JohoIcons.create(name);
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 24 24');
     svg.setAttribute('aria-hidden', 'true');
-    svg.innerHTML = icons[name]; // 固定の定義のみ。入力・保存データをHTMLへ渡さない。
+    svg.innerHTML = specificIcons[name]; // 専用の固定図柄のみ。入力・保存データをHTMLへ渡さない。
     return svg;
   }
+  function controlIcon(button, name) {
+    if (!button || (button.dataset.logicIcon === name && button.querySelector('svg'))) return;
+    button.replaceChildren(icon(name)); button.dataset.logicIcon = name;
+  }
   document.querySelectorAll('[data-icon]').forEach(node => node.appendChild(icon(node.dataset.icon)));
+  document.querySelectorAll('[data-close-side], [data-close-dialog]').forEach(button => controlIcon(button, 'close'));
+  document.querySelectorAll('[data-theme-choice]').forEach(button => controlIcon(button, 'theme-' + button.dataset.themeChoice));
+  const alignmentIcons = { left: 'align-left', centerX: 'align-center', right: 'align-right',
+    top: 'align-top', centerY: 'align-middle', bottom: 'align-bottom', distributeX: 'distribute-horizontal', distributeY: 'distribute-vertical' };
+  document.querySelectorAll('[data-align]').forEach(button => button.prepend(icon(alignmentIcons[button.dataset.align])));
+  controlIcon($('zoom-in'), 'zoom-in'); controlIcon($('zoom-out'), 'zoom-out');
   const app = $('app'), side = $('side-panel');
   const panes = [...document.querySelectorAll('[data-pane]')];
   const tabs = [...document.querySelectorAll('[data-pane-button]')];
@@ -95,7 +99,8 @@
   $('component-tools').appendChild(editor.editor.querySelector('.logic-editor__palette'));
   $('basic-toolbar').append(editor.undoButton, editor.redoButton, separator(), selectionModeButton);
   $('view-toolbar').append(editor.alignButton, editor.signalButton, $('fullscreen-button'));
-  editor.clearButton.replaceChildren(icon('clear'));
+  [[editor.undoButton, 'undo'], [editor.redoButton, 'redo'], [editor.helpButton, 'help'],
+    [editor.deleteButton, 'delete'], [editor.clearButton, 'delete']].forEach(([button, name]) => controlIcon(button, name));
   editor.clearButton.classList.add('icon-button');
   editor.clearButton.setAttribute('aria-label', '全消去');
   editor.clearButton.title = '全消去（未保存の変更は保存を確認します）';
@@ -127,6 +132,13 @@
       queueDraft();
     }
   });
+  const syncFileIcons = () => {
+    const dialog = $('logic-file-dialog');
+    dialog.querySelectorAll('.lesson-supplement-dialog__close').forEach(button => controlIcon(button, 'close'));
+    dialog.querySelectorAll('.logic-editor__icon-button').forEach(button => controlIcon(button, 'delete'));
+  };
+  syncFileIcons();
+  new MutationObserver(syncFileIcons).observe($('logic-file-dialog'), { childList: true, subtree: true });
   $('template-list').appendChild(files.createTemplateList());
   $('open-saved').addEventListener('click', () => files.openLoad({ browserOnly: true, opener: fileMenu.summary }));
   window.logicWorkbenchEditor = editor;
@@ -224,6 +236,14 @@
     } catch (error) { exportError(error); }
   }
   function refresh(instance = editor, analysis = editor.getAnalysis()) {
+    const deleteMark = instance.svg.querySelector('.logic-editor-delete-control__mark');
+    if (deleteMark) {
+      const glyph = icon('delete');
+      glyph.classList.add('logic-editor-delete-control__glyph');
+      Object.entries({ x: -10, y: -10, width: 20, height: 20, 'pointer-events': 'none' })
+        .forEach(([name, value]) => glyph.setAttribute(name, value));
+      deleteMark.replaceWith(glyph);
+    }
     files?.refresh();
     const nodes = instance.getSelectedNodes();
     const node = nodes.length === 1 ? nodes[0] : null;
@@ -499,6 +519,7 @@
   document.addEventListener('fullscreenchange', () => {
     const label = document.fullscreenElement ? '全画面表示を終了' : '全画面表示';
     $('fullscreen-button').setAttribute('aria-label', label); $('fullscreen-button').title = label;
+    controlIcon($('fullscreen-button'), document.fullscreenElement ? 'fullscreen-exit' : 'fullscreen-enter');
     // WebKitではEscapeがページへ届かず全画面終了に使われる。その場合もモーダルを残さない。
     if (!document.fullscreenElement) {
       files.close();
@@ -548,5 +569,6 @@
       suspendNormal: () => { documents.flushImmediate(); clearTimeout(documents.timer); normalSuspended = true; fileMenu.update({ disabled: true }); },
       resumeNormal: () => { normalSuspended = false; fileMenu.update({ autosaving: documents.current.autoEnabled }); }
     });
+    controlIcon($('assignment-dialog').querySelector('header button'), 'close');
   }
 })();

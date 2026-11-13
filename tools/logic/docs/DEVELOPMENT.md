@@ -4,6 +4,35 @@
 
 論理回路エディタは、作成者の依頼に基づき本Codexスレッドで整備しています。他アプリの稼働コードは担当者へ引き継ぎます。共通部品は`tools/shared/`、共通仕様の正本はローカルの`tools/docs/README.md`です。
 
+## 2026-11-13：標準アイコンの適用（0.6.2 BETA）
+
+- 標準SVG46種と `JohoIcons.create` を使用し、標準pathをアプリへ複製しない。設定は歯車、ダークは肉厚の三日月。24×24 viewBox・currentColor・線幅1.7・round、上部は22pxを基準にする。SVGを読み上げ対象から外し、ボタンの既存の名前・説明・フォーカス・状態・有効無効を保持する。
+- `tools/shared/` は共通担当の単独更新とし、利用側の初期化前に共通APIを読み込む。ファイルメニューのJS/CSSも20261113版のURLへ更新する。ローカルの `tools/docs/assets/` は実行時に参照しない。
+
+| 標準ID | 操作 |
+|---|---|
+| `undo`, `redo` | 回路の編集履歴 |
+| `settings`, `help`, `view` | 表示設定、使い方、表示メニュー |
+| `theme-auto`, `theme-light`, `theme-dark` | テーマの3選択肢 |
+| `fit`, `zoom-in`, `zoom-out` | 回路全体の表示と表示倍率 |
+| `fullscreen-enter`, `fullscreen-exit` | 全画面の開始と終了 |
+| `duplicate` | 選択した部品の複製 |
+| `copy` | 真理値表とPNG画像のコピー |
+| `delete` | 選択・全消去・保存済み回路の削除。元の確認手順を維持 |
+| `close`, `rename` | パネル・ダイアログ・文書タブを閉じる、タブ名を変更 |
+| `open`, `export` | 保存回路の読込、書き出しパネル |
+| `align-left`, `align-center`, `align-right` | 選択した部品の横方向の端・中心 |
+| `align-top`, `align-middle`, `align-bottom` | 選択した部品の縦方向の端・中心 |
+| `distribute-horizontal`, `distribute-vertical` | 選択した部品を等間隔に配置 |
+| `file`, `new`, `rename`, `save`, `open`, `refresh`, `stop` | 共通ファイルメニューが提供する既存操作 |
+
+- ゲート、真理値表、テンプレート、回路全体の自動整列、AND/ORの交換、0/1、接続/保存の状態表示、折り畳み方向は標準46種の別操作へ置き換えない。共用の `js/logic-editor.js`・回路エンジン・真理値表・保存/提出形式は変更しない。
+- 回路上の削除ボタンは独立ツールの描画後に図柄だけを差し替え、元の操作領域とイベントを保持する。保存候補の削除図柄も独立ツール側で適用し、共有の保存処理は変更しない。
+
+共通依存版は `a7f633ff0018c49ca1a2b412ac4344cb906462c3`（2026-11-13の標準46種）。`ui-icons.js` のSHA-256は `dd63c189626eab912b47a0d2c2ac029e949f63e24eaeafc85b9019cfb4f4ef5c`、公開SVGは `2ad761942542bd1439f6118126d1223e04b07ac86a6d09e6a74e8ab656053a44`。仕様見本SVGのSHA-256は `e3df73c7939a649fc64e9436b3308fce9e10cdd5b9d1b636d272cada2aef2088`。46個のsymbolの子要素・属性・座標を照合した。
+
+検証入口は既存の `test-logic-workspace-browser.mjs`、`test-logic-editor-browser.mjs`、`test-tool-help-browser.mjs`。共通候補を利用したChrome / Playwright WebKitで、文書の保存・復元・競合・取消、コピー/複製・履歴・倍率、ゲート・配線・削除、真理値表演習、SVG/PNGの寸法と画素、CP21の固定入力を確認した。既存の27表示条件に加え、両ブラウザの1440/720/390px×light/dark/auto-light/auto-darkで外部SVGの描画、選択・無効・フォーカス、テーマ状態を確認した。Safariアプリと物理タッチ端末の確認とは区別する。
+
 ## 2026-10-15：タブからの名前変更
 
 - 共通仕様4.5へタブからの文書名変更を追加し、論理回路エディタへ適用。選択中のタブに共通ファイルメニューと同じ鉛筆アイコンを置き、タブ名のダブルクリックとF2でも既存の名前変更画面を開く。
