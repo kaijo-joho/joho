@@ -2,6 +2,7 @@
 .joho-file-menu > summary { display: flex; align-items: center; justify-content: center; gap: 2px; list-style: none; }
 .joho-file-menu > summary::-webkit-details-marker { display: none; }
 .joho-file-menu svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.joho-file-menu > summary svg { width: 22px; height: 22px; }
 .joho-file-menu__items { position: absolute; top: 100%; left: 0; padding: 7px; width: max-content; min-width: 235px; max-width: calc(100vw - 12px); max-height: calc(100dvh - 70px); overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); box-shadow: var(--shadow, 0 6px 20px #0002); z-index: 30; }
 .joho-file-menu:not([open]) > .joho-file-menu__items { display: none; }
 .joho-file-menu__items button { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 34px; height: auto; padding: 6px 9px; border: 0; border-radius: 5px; text-align: left; white-space: nowrap; color: inherit; background: transparent; font: inherit; }

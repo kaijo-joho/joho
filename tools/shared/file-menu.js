@@ -1,13 +1,10 @@
 // tools共通のファイルメニュー。保存処理は各アプリのアダプターへ渡す。
 (() => {
   'use strict';
-  const paths = Object.freeze({
-    document: 'M5 3h9l5 5v13H5zM14 3v6h5', new: 'M12 4v16M4 12h16',
-    rename: 'M4 16L16 4l4 4L8 20H4zM13 7l4 4',
-    save: 'M4 3h14l3 3v15H3V3zM7 3v7h10V3M7 21v-7h10v7',
-    open: 'M3 7V4h7l2 3h9v13H3zM3 10h18',
-    auto: 'M20 8a8 8 0 1 0 0 8M20 3v6h-6',
-    stop: 'M5 5h14v14H5z'
+  const sprite = new URL('ui-icons.svg?v=20261113', document.currentScript.src).href;
+  const iconIds = Object.freeze({
+    document: 'file', new: 'new', rename: 'rename', save: 'save', open: 'open',
+    auto: 'refresh', stop: 'stop'
   });
   const items = Object.freeze([
     ['new', '新規作成', 'new'], ['rename', '名前を変更…', 'rename'],
@@ -18,10 +15,17 @@
     ['auto', 'ファイルへの自動保存を開始…', 'auto', '', true]
   ]);
   function icon(name) {
+    const id = iconIds[name];
+    if (!id) throw new RangeError('未定義のファイルメニューアイコン: ' + name);
+    if (window.JohoIcons) return window.JohoIcons.create(id);
+    // 既存アプリは新しい補助JSを読み込まなくても、同じ共通SVGを利用できる。
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true');
-    const path = document.createElementNS(svg.namespaceURI, 'path');
-    path.setAttribute('d', paths[name]); svg.appendChild(path); return svg;
+    svg.setAttribute('focusable', 'false'); svg.setAttribute('data-joho-icon', id);
+    svg.setAttribute('width', '22'); svg.setAttribute('height', '22');
+    svg.setAttribute('style', 'fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round');
+    const use = document.createElementNS(svg.namespaceURI, 'use');
+    use.setAttribute('href', sprite + '#' + id); svg.appendChild(use); return svg;
   }
   function mount(host, { onAction, busy = () => false } = {}) {
     host.classList.add('joho-file-menu');
