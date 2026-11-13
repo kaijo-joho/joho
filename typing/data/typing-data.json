@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-10-08T09:01:56.459Z",
+  "generatedAt": "2026-11-13T14:50:11.869Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-10-08T09:01:56.459Z",
+    "generatedAt": "2026-11-13T14:50:11.869Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -340,6 +340,237 @@
         "enabled": true,
         "aliases": [],
         "note": ""
+      },
+      {
+        "category": "hyakunin_isshu",
+        "title": "百人一首",
+        "description": "小倉百人一首の全100首。原文・読み・意味・覚え方を収録。",
+        "idPrefix": "hya",
+        "idMode": "serial",
+        "sortOrder": 260,
+        "enabled": true,
+        "aliases": [],
+        "note": "2026-11-13 登録。20ステージ。1〜17は4〜6首、18〜20は7・7・8首。"
+      },
+      {
+        "category": "hyakunin_isshu_s01",
+        "title": "百人一首01：季節のうつろい",
+        "description": "百人一首のステージ1の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 261,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：2,15,36,98"
+      },
+      {
+        "category": "hyakunin_isshu_s02",
+        "title": "百人一首02：春の花と香り",
+        "description": "百人一首のステージ2の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 262,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：33,35,61,73"
+      },
+      {
+        "category": "hyakunin_isshu_s03",
+        "title": "百人一首03：紅葉と露のきらめき",
+        "description": "百人一首のステージ3の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 263,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：17,32,37,69"
+      },
+      {
+        "category": "hyakunin_isshu_s04",
+        "title": "百人一首04：秋の音と人の暮らし",
+        "description": "百人一首のステージ4の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 264,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：1,5,71,94"
+      },
+      {
+        "category": "hyakunin_isshu_s05",
+        "title": "百人一首05：月と夕暮れに映る心",
+        "description": "百人一首のステージ5の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 265,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：23,47,70,79,81"
+      },
+      {
+        "category": "hyakunin_isshu_s06",
+        "title": "百人一首06：秋風と冷えの気配",
+        "description": "百人一首のステージ6の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 266,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：22,29,87,91"
+      },
+      {
+        "category": "hyakunin_isshu_s07",
+        "title": "百人一首07：冬の白さと静けさ",
+        "description": "百人一首のステージ7の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 267,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：4,6,28,31,64,78"
+      },
+      {
+        "category": "hyakunin_isshu_s08",
+        "title": "百人一首08：旅立ちと海の眺め",
+        "description": "百人一首のステージ8の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 268,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：7,11,16,24,76,93"
+      },
+      {
+        "category": "hyakunin_isshu_s09",
+        "title": "百人一首09：出会いから深まる恋",
+        "description": "百人一首のステージ9の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 269,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：13,27,43,44"
+      },
+      {
+        "category": "hyakunin_isshu_s10",
+        "title": "百人一首10：隠しきれない恋",
+        "description": "百人一首のステージ10の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 270,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：18,39,40,41"
+      },
+      {
+        "category": "hyakunin_isshu_s11",
+        "title": "百人一首11：燃える思いと逢いたい願い",
+        "description": "百人一首のステージ11の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 271,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：19,20,49,51,89"
+      },
+      {
+        "category": "hyakunin_isshu_s12",
+        "title": "百人一首12：待ち続ける長い夜",
+        "description": "百人一首のステージ12の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 272,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：3,21,53,59,85,97"
+      },
+      {
+        "category": "hyakunin_isshu_s13",
+        "title": "百人一首13：別れのつらさと恋の不安",
+        "description": "百人一首のステージ13の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 273,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：30,52,56,80"
+      },
+      {
+        "category": "hyakunin_isshu_s14",
+        "title": "百人一首14：誓いと恋の行き詰まり",
+        "description": "百人一首のステージ14の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 274,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：38,42,63,65"
+      },
+      {
+        "category": "hyakunin_isshu_s15",
+        "title": "百人一首15：つれない相手と涙の嘆き",
+        "description": "百人一首のステージ15の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 275,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：45,74,82,86,90"
+      },
+      {
+        "category": "hyakunin_isshu_s16",
+        "title": "百人一首16：水と波にたとえる恋",
+        "description": "百人一首のステージ16の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 276,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：46,48,77,88,92"
+      },
+      {
+        "category": "hyakunin_isshu_s17",
+        "title": "百人一首17：昔と今を思う",
+        "description": "百人一首のステージ17の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 277,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：34,55,84,100"
+      },
+      {
+        "category": "hyakunin_isshu_s18",
+        "title": "百人一首18：命と老い、世の中への思い",
+        "description": "百人一首のステージ18の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 278,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：9,50,54,68,95,96,99"
+      },
+      {
+        "category": "hyakunin_isshu_s19",
+        "title": "百人一首19：出会いと別れ、心の居場所",
+        "description": "百人一首のステージ19の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 279,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：8,10,12,26,57,66,83"
+      },
+      {
+        "category": "hyakunin_isshu_s20",
+        "title": "百人一首20：言葉に込める機知と願い",
+        "description": "百人一首のステージ20の出題範囲を固定する分類。",
+        "idPrefix": "",
+        "idMode": "none",
+        "sortOrder": 280,
+        "enabled": true,
+        "aliases": [],
+        "note": "出題範囲固定用。自動採番は親カテゴリhyakunin_isshuのhya連番を使用。歌番号：14,25,58,60,62,67,72,75"
       }
     ],
     "skillTags": [
@@ -104088,6 +104319,1646 @@
         "lit18012",
         "lit09021"
       ]
+    },
+    {
+      "gameId": "Q-HYAKUNIN01",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage01",
+      "gameIcon": "",
+      "title": "季節のうつろい",
+      "subtitle": "百人一首 4首",
+      "description": "収録する4首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 4,
+      "sortOrder": 37010,
+      "filterId": "Q_HYAKUNIN01",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s01"
+        ]
+      },
+      "matching": {
+        "phraseCount": 4,
+        "totalLength": 242,
+        "avgLength": 60.5,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN01",
+        "stageNo": 1,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0002",
+        "hya0015",
+        "hya0036",
+        "hya0098"
+      ],
+      "note": "2026-11-13 登録。歌番号：2,15,36,98。基準時間は総打鍵数242÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 75,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN02",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage02",
+      "gameIcon": "",
+      "title": "春の花と香り",
+      "subtitle": "百人一首 4首",
+      "description": "収録する4首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 4,
+      "sortOrder": 37020,
+      "filterId": "Q_HYAKUNIN02",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s02"
+        ]
+      },
+      "matching": {
+        "phraseCount": 4,
+        "totalLength": 238,
+        "avgLength": 59.5,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN02",
+        "stageNo": 2,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0033",
+        "hya0035",
+        "hya0061",
+        "hya0073"
+      ],
+      "note": "2026-11-13 登録。歌番号：33,35,61,73。基準時間は総打鍵数238÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 75,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN03",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage03",
+      "gameIcon": "",
+      "title": "紅葉と露のきらめき",
+      "subtitle": "百人一首 4首",
+      "description": "収録する4首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 4,
+      "sortOrder": 37030,
+      "filterId": "Q_HYAKUNIN03",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s03"
+        ]
+      },
+      "matching": {
+        "phraseCount": 4,
+        "totalLength": 243,
+        "avgLength": 60.75,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN03",
+        "stageNo": 3,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0017",
+        "hya0032",
+        "hya0037",
+        "hya0069"
+      ],
+      "note": "2026-11-13 登録。歌番号：17,32,37,69。基準時間は総打鍵数243÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 75,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN04",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage04",
+      "gameIcon": "",
+      "title": "秋の音と人の暮らし",
+      "subtitle": "百人一首 4首",
+      "description": "収録する4首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 4,
+      "sortOrder": 37040,
+      "filterId": "Q_HYAKUNIN04",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s04"
+        ]
+      },
+      "matching": {
+        "phraseCount": 4,
+        "totalLength": 235,
+        "avgLength": 58.75,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN04",
+        "stageNo": 4,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0001",
+        "hya0005",
+        "hya0071",
+        "hya0094"
+      ],
+      "note": "2026-11-13 登録。歌番号：1,5,71,94。基準時間は総打鍵数235÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 75,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN05",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage05",
+      "gameIcon": "",
+      "title": "月と夕暮れに映る心",
+      "subtitle": "百人一首 5首",
+      "description": "収録する5首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 5,
+      "sortOrder": 37050,
+      "filterId": "Q_HYAKUNIN05",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s05"
+        ]
+      },
+      "matching": {
+        "phraseCount": 5,
+        "totalLength": 301,
+        "avgLength": 60.2,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN05",
+        "stageNo": 5,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0023",
+        "hya0047",
+        "hya0070",
+        "hya0079",
+        "hya0081"
+      ],
+      "note": "2026-11-13 登録。歌番号：23,47,70,79,81。基準時間は総打鍵数301÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 95,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN06",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage06",
+      "gameIcon": "",
+      "title": "秋風と冷えの気配",
+      "subtitle": "百人一首 4首",
+      "description": "収録する4首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 4,
+      "sortOrder": 37060,
+      "filterId": "Q_HYAKUNIN06",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s06"
+        ]
+      },
+      "matching": {
+        "phraseCount": 4,
+        "totalLength": 241,
+        "avgLength": 60.25,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN06",
+        "stageNo": 6,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0022",
+        "hya0029",
+        "hya0087",
+        "hya0091"
+      ],
+      "note": "2026-11-13 登録。歌番号：22,29,87,91。基準時間は総打鍵数241÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 75,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN07",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage07",
+      "gameIcon": "",
+      "title": "冬の白さと静けさ",
+      "subtitle": "百人一首 6首",
+      "description": "収録する6首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 6,
+      "sortOrder": 37070,
+      "filterId": "Q_HYAKUNIN07",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s07"
+        ]
+      },
+      "matching": {
+        "phraseCount": 6,
+        "totalLength": 360,
+        "avgLength": 60,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN07",
+        "stageNo": 7,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0004",
+        "hya0006",
+        "hya0028",
+        "hya0031",
+        "hya0064",
+        "hya0078"
+      ],
+      "note": "2026-11-13 登録。歌番号：4,6,28,31,64,78。基準時間は総打鍵数360÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 110,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN08",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage08",
+      "gameIcon": "",
+      "title": "旅立ちと海の眺め",
+      "subtitle": "百人一首 6首",
+      "description": "収録する6首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 6,
+      "sortOrder": 37080,
+      "filterId": "Q_HYAKUNIN08",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s08"
+        ]
+      },
+      "matching": {
+        "phraseCount": 6,
+        "totalLength": 363,
+        "avgLength": 60.5,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN08",
+        "stageNo": 8,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0007",
+        "hya0011",
+        "hya0016",
+        "hya0024",
+        "hya0076",
+        "hya0093"
+      ],
+      "note": "2026-11-13 登録。歌番号：7,11,16,24,76,93。基準時間は総打鍵数363÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 110,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN09",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage09",
+      "gameIcon": "",
+      "title": "出会いから深まる恋",
+      "subtitle": "百人一首 4首",
+      "description": "収録する4首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 4,
+      "sortOrder": 37090,
+      "filterId": "Q_HYAKUNIN09",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s09"
+        ]
+      },
+      "matching": {
+        "phraseCount": 4,
+        "totalLength": 236,
+        "avgLength": 59,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN09",
+        "stageNo": 9,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0013",
+        "hya0027",
+        "hya0043",
+        "hya0044"
+      ],
+      "note": "2026-11-13 登録。歌番号：13,27,43,44。基準時間は総打鍵数236÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 75,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN10",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage10",
+      "gameIcon": "",
+      "title": "隠しきれない恋",
+      "subtitle": "百人一首 4首",
+      "description": "収録する4首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 4,
+      "sortOrder": 37100,
+      "filterId": "Q_HYAKUNIN10",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s10"
+        ]
+      },
+      "matching": {
+        "phraseCount": 4,
+        "totalLength": 233,
+        "avgLength": 58.25,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN10",
+        "stageNo": 10,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0018",
+        "hya0039",
+        "hya0040",
+        "hya0041"
+      ],
+      "note": "2026-11-13 登録。歌番号：18,39,40,41。基準時間は総打鍵数233÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 70,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN11",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage11",
+      "gameIcon": "",
+      "title": "燃える思いと逢いたい願い",
+      "subtitle": "百人一首 5首",
+      "description": "収録する5首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 5,
+      "sortOrder": 37110,
+      "filterId": "Q_HYAKUNIN11",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s11"
+        ]
+      },
+      "matching": {
+        "phraseCount": 5,
+        "totalLength": 294,
+        "avgLength": 58.8,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN11",
+        "stageNo": 11,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0019",
+        "hya0020",
+        "hya0049",
+        "hya0051",
+        "hya0089"
+      ],
+      "note": "2026-11-13 登録。歌番号：19,20,49,51,89。基準時間は総打鍵数294÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 90,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN12",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage12",
+      "gameIcon": "",
+      "title": "待ち続ける長い夜",
+      "subtitle": "百人一首 6首",
+      "description": "収録する6首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 6,
+      "sortOrder": 37120,
+      "filterId": "Q_HYAKUNIN12",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s12"
+        ]
+      },
+      "matching": {
+        "phraseCount": 6,
+        "totalLength": 360,
+        "avgLength": 60,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN12",
+        "stageNo": 12,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0003",
+        "hya0021",
+        "hya0053",
+        "hya0059",
+        "hya0085",
+        "hya0097"
+      ],
+      "note": "2026-11-13 登録。歌番号：3,21,53,59,85,97。基準時間は総打鍵数360÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 110,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN13",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage13",
+      "gameIcon": "",
+      "title": "別れのつらさと恋の不安",
+      "subtitle": "百人一首 4首",
+      "description": "収録する4首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 4,
+      "sortOrder": 37130,
+      "filterId": "Q_HYAKUNIN13",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s13"
+        ]
+      },
+      "matching": {
+        "phraseCount": 4,
+        "totalLength": 233,
+        "avgLength": 58.25,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN13",
+        "stageNo": 13,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0030",
+        "hya0052",
+        "hya0056",
+        "hya0080"
+      ],
+      "note": "2026-11-13 登録。歌番号：30,52,56,80。基準時間は総打鍵数233÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 70,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN14",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage14",
+      "gameIcon": "",
+      "title": "誓いと恋の行き詰まり",
+      "subtitle": "百人一首 4首",
+      "description": "収録する4首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 4,
+      "sortOrder": 37140,
+      "filterId": "Q_HYAKUNIN14",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s14"
+        ]
+      },
+      "matching": {
+        "phraseCount": 4,
+        "totalLength": 234,
+        "avgLength": 58.5,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN14",
+        "stageNo": 14,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0038",
+        "hya0042",
+        "hya0063",
+        "hya0065"
+      ],
+      "note": "2026-11-13 登録。歌番号：38,42,63,65。基準時間は総打鍵数234÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 75,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN15",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage15",
+      "gameIcon": "",
+      "title": "つれない相手と涙の嘆き",
+      "subtitle": "百人一首 5首",
+      "description": "収録する5首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 5,
+      "sortOrder": 37150,
+      "filterId": "Q_HYAKUNIN15",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s15"
+        ]
+      },
+      "matching": {
+        "phraseCount": 5,
+        "totalLength": 291,
+        "avgLength": 58.2,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN15",
+        "stageNo": 15,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0045",
+        "hya0074",
+        "hya0082",
+        "hya0086",
+        "hya0090"
+      ],
+      "note": "2026-11-13 登録。歌番号：45,74,82,86,90。基準時間は総打鍵数291÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 90,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN16",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage16",
+      "gameIcon": "",
+      "title": "水と波にたとえる恋",
+      "subtitle": "百人一首 5首",
+      "description": "収録する5首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 5,
+      "sortOrder": 37160,
+      "filterId": "Q_HYAKUNIN16",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s16"
+        ]
+      },
+      "matching": {
+        "phraseCount": 5,
+        "totalLength": 294,
+        "avgLength": 58.8,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN16",
+        "stageNo": 16,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0046",
+        "hya0048",
+        "hya0077",
+        "hya0088",
+        "hya0092"
+      ],
+      "note": "2026-11-13 登録。歌番号：46,48,77,88,92。基準時間は総打鍵数294÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 90,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN17",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage17",
+      "gameIcon": "",
+      "title": "昔と今を思う",
+      "subtitle": "百人一首 4首",
+      "description": "収録する4首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 4,
+      "sortOrder": 37170,
+      "filterId": "Q_HYAKUNIN17",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s17"
+        ]
+      },
+      "matching": {
+        "phraseCount": 4,
+        "totalLength": 239,
+        "avgLength": 59.75,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN17",
+        "stageNo": 17,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0034",
+        "hya0055",
+        "hya0084",
+        "hya0100"
+      ],
+      "note": "2026-11-13 登録。歌番号：34,55,84,100。基準時間は総打鍵数239÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 75,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN18",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage18",
+      "gameIcon": "",
+      "title": "命と老い、世の中への思い",
+      "subtitle": "百人一首 7首",
+      "description": "収録する7首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 7,
+      "sortOrder": 37180,
+      "filterId": "Q_HYAKUNIN18",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s18"
+        ]
+      },
+      "matching": {
+        "phraseCount": 7,
+        "totalLength": 408,
+        "avgLength": 58.285714285714285,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN18",
+        "stageNo": 18,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0009",
+        "hya0050",
+        "hya0054",
+        "hya0068",
+        "hya0095",
+        "hya0096",
+        "hya0099"
+      ],
+      "note": "2026-11-13 登録。歌番号：9,50,54,68,95,96,99。基準時間は総打鍵数408÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 125,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN19",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage19",
+      "gameIcon": "",
+      "title": "出会いと別れ、心の居場所",
+      "subtitle": "百人一首 7首",
+      "description": "収録する7首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 7,
+      "sortOrder": 37190,
+      "filterId": "Q_HYAKUNIN19",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s19"
+        ]
+      },
+      "matching": {
+        "phraseCount": 7,
+        "totalLength": 415,
+        "avgLength": 59.285714285714285,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN19",
+        "stageNo": 19,
+        "boss": false
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0008",
+        "hya0010",
+        "hya0012",
+        "hya0026",
+        "hya0057",
+        "hya0066",
+        "hya0083"
+      ],
+      "note": "2026-11-13 登録。歌番号：8,10,12,26,57,66,83。基準時間は総打鍵数415÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 125,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
+    },
+    {
+      "gameId": "Q-HYAKUNIN20",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "complete",
+      "gameCode": "Stage20",
+      "gameIcon": "",
+      "title": "言葉に込める機知と願い",
+      "subtitle": "百人一首 8首",
+      "description": "収録する8首をランダム順に1回ずつ入力。全首入力でクリア。",
+      "durationSec": 600,
+      "phraseCount": 8,
+      "sortOrder": 37200,
+      "filterId": "Q_HYAKUNIN20",
+      "filter": {
+        "categoryAll": [
+          "hyakunin_isshu",
+          "hyakunin_isshu_s20"
+        ]
+      },
+      "matching": {
+        "phraseCount": 8,
+        "totalLength": 476,
+        "avgLength": 59.5,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {
+        "worldId": "HYAKUNIN",
+        "stageId": "Q-HYAKUNIN20",
+        "stageNo": 20,
+        "boss": true
+      },
+      "promotion": {},
+      "candidatePhraseIds": [
+        "hya0014",
+        "hya0025",
+        "hya0058",
+        "hya0060",
+        "hya0062",
+        "hya0067",
+        "hya0072",
+        "hya0075"
+      ],
+      "note": "2026-11-13 登録。歌番号：14,25,58,60,62,67,72,75。基準時間は総打鍵数476÷200CPM×60を5秒単位で切上げ。公開JSON・本番コードへの反映は別途。",
+      "rankRuleId": "HYA_COMPLETE_V1",
+      "targetTimeSec": 145,
+      "rankRule": {
+        "schema": "tq.rank-rule/v1",
+        "rankRuleId": "HYA_COMPLETE_V1",
+        "ranks": [
+          {
+            "rank": "S",
+            "minAccuracy": 98,
+            "maxTimeRatio": 1
+          },
+          {
+            "rank": "A",
+            "minAccuracy": 95,
+            "maxTimeRatio": 1.25
+          },
+          {
+            "rank": "B",
+            "minAccuracy": 90,
+            "maxTimeRatio": 1.5
+          },
+          {
+            "rank": "C",
+            "minAccuracy": 80,
+            "maxTimeRatio": 2
+          },
+          {
+            "rank": "D",
+            "minAccuracy": 70,
+            "maxTimeRatio": null
+          },
+          {
+            "rank": "E",
+            "minAccuracy": 0,
+            "maxTimeRatio": null
+          }
+        ]
+      }
     }
   ],
   "kanji": {
@@ -173265,6 +175136,33 @@
       "stageCount": 10,
       "sortOrder": 260,
       "note": "2026-10-07 登録：意味付き400件。同点スコアを分割しない10レベル。",
+      "filter": {
+        "category": [],
+        "categoryAny": [],
+        "categoryAll": [],
+        "skillTagsAny": [],
+        "skillTagsAll": [],
+        "skillTagsNone": []
+      },
+      "groupId": "WORDS"
+    },
+    {
+      "worldId": "HYAKUNIN",
+      "enabled": true,
+      "worldType": "category",
+      "title": "百人一首",
+      "subtitle": "意味で覚える全100首",
+      "description": "意味や情景で分けた20ステージを、全首入力でクリアするコース。",
+      "category": [],
+      "keyRows": [],
+      "skillTagsAny": [],
+      "skillTagsAll": [],
+      "skillTagsNone": [],
+      "minPhraseLevel": "",
+      "maxPhraseLevel": "",
+      "stageCount": 20,
+      "sortOrder": 270,
+      "note": "2026-11-13 登録。100首を重複なく20ステージに割当。後半3ステージは7・7・8首。",
       "filter": {
         "category": [],
         "categoryAny": [],
@@ -565929,6 +567827,4060 @@
       "scoreVersion": "v3.0",
       "source": "文学作品・作者／説明は独自作成",
       "note": "2026-10-07 候補登録：作品／オセアニアの作品"
+    },
+    {
+      "phraseId": "hya0001",
+      "enabled": true,
+      "displayText": "秋の田の　かりほの庵の　苫をあらみ　わが衣手は　露にぬれつつ",
+      "kanaText": "あきのたのかりおのいおのとまをあらみわがころもではつゆにぬれつつ",
+      "primaryRoman": "akinotanokarionoionotomawoaramiwagakoromodehatuyuninuretutu",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s04"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "粗い屋根の小屋で夜を過ごす人の衣が、秋の露に濡れ続ける。",
+      "adviceText": "粗い苫屋根から露が落ちる情景に、見張りをする人への思いやりを重ねる。",
+      "difficultyDetail": "base=59, top=35, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=1 ／ 作者：天智天皇 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第1首。作者：天智天皇。決まり字：あきの。小テーマ：秋の田の夜露。補助テーマ：秋,露,田,思いやり。かりほ・いほは「かりお・いお」の入力案。"
+    },
+    {
+      "phraseId": "hya0002",
+      "enabled": true,
+      "displayText": "春すぎて　夏来にけらし　白妙の　衣ほすてふ　天の香具山",
+      "kanaText": "はるすぎてなつきにけらししろたえのころもほすちょうあまのかぐやま",
+      "primaryRoman": "harusugitenatukinikerasisirotaenokoromohosutyouamanokaguyama",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 68.3,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s01"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "春が過ぎて夏が来たのだと、香具山の麓に干された白い衣を見て気づく。",
+      "adviceText": "白い衣を季節のしるしとして眺める。春から夏への移り変わりが一目で分かる。",
+      "difficultyDetail": "base=60, top=32, bottom=7, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=68.3, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=2 ／ 作者：持統天皇 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第2首。作者：持統天皇。決まり字：はるす。小テーマ：夏の訪れ。補助テーマ：夏,衣,香具山,季節の移り変わり。てふは「ちょう」と読む。"
+    },
+    {
+      "phraseId": "hya0003",
+      "enabled": true,
+      "displayText": "あしびきの　山鳥の尾の　しだり尾の　ながながし夜を　ひとりかも寝む",
+      "kanaText": "あしびきのやまどりのおのしだりおのながながしよをひとりかもねん",
+      "primaryRoman": "asibikinoyamadorinoonosidariononaganagasiyowohitorikamonenn",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s12"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "長い秋の夜を、山鳥のつがいのように離れて、ひとり寂しく寝るのだろうか。",
+      "adviceText": "垂れ下がる山鳥の尾を夜の長さに重ね、ひとり寝の寂しさを強める。",
+      "difficultyDetail": "base=59, top=28, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=3 ／ 作者：柿本人麻呂 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第3首。作者：柿本人麻呂。決まり字：あし。小テーマ：ひとり寝の長い秋夜。補助テーマ：秋,夜,孤独,山鳥。助動詞むは「ん」の入力案。"
+    },
+    {
+      "phraseId": "hya0004",
+      "enabled": true,
+      "displayText": "田子の浦に　うち出でて見れば　白妙の　富士の高嶺に　雪はふりつつ",
+      "kanaText": "たごのうらにうちいでてみればしろたえのふじのたかねにゆきはふりつつ",
+      "primaryRoman": "tagonouraniutiidetemirebasirotaenohujinotakaneniyukihahuritutu",
+      "extraVariants": [],
+      "length": 62,
+      "difficultyScore": 71.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s07"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "田子の浦から見渡すと、富士の高い峰には白い雪が降り続いている。",
+      "adviceText": "海岸から見上げる遠景と、頂に降り続く雪の白さが富士の大きさを際立たせる。",
+      "difficultyDetail": "base=62, top=38, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=71.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=4 ／ 作者：山部赤人 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第4首。作者：山部赤人。決まり字：たご。小テーマ：雪の富士を仰ぐ。補助テーマ：冬,富士山,雪,旅。"
+    },
+    {
+      "phraseId": "hya0005",
+      "enabled": true,
+      "displayText": "奥山に　もみぢ踏み分け　鳴く鹿の　声聞く時ぞ　秋は悲しき",
+      "kanaText": "おくやまにもみじふみわけなくしかのこえきくときぞあきはかなしき",
+      "primaryRoman": "okuyamanimomijihumiwakenakusikanokoekikutokizoakihakanasiki",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 65.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s04"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "紅葉を踏み分けて鹿の声を聞くと、秋の寂しさがいっそう身にしみる。",
+      "adviceText": "散り積もる葉を踏む音と、恋相手を求める鹿の声が奥山の寂寥をつくる。",
+      "difficultyDetail": "base=59, top=25, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=65.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=5 ／ 作者：猿丸大夫 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第5首。作者：猿丸大夫。決まり字：おく。小テーマ：鹿鳴く奥山の秋。補助テーマ：秋,紅葉,鹿,山。"
+    },
+    {
+      "phraseId": "hya0006",
+      "enabled": true,
+      "displayText": "かささぎの　渡せる橋に　おく霜の　白きを見れば　夜ぞふけにける",
+      "kanaText": "かささぎのわたせるはしにおくしものしろきをみればよぞふけにける",
+      "primaryRoman": "kasasaginowataseruhasiniokusimonosirokiwomirebayozohukenikeru",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 69,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s07"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "宮中の橋に霜が白く降り、夜が深まったことを感じさせる。",
+      "adviceText": "かささぎが翼で作る天の川の橋を宮中の橋に重ね、霜の白さを幻想的に描く。",
+      "difficultyDetail": "base=61, top=32, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=69, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=6 ／ 作者：中納言家持 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第6首。作者：中納言家持。決まり字：かさ。小テーマ：霜の橋と夜更け。補助テーマ：冬,霜,宮中,夜。"
+    },
+    {
+      "phraseId": "hya0007",
+      "enabled": true,
+      "displayText": "天の原　ふりさけ見れば　春日なる　三笠の山に　出でし月かも",
+      "kanaText": "あまのはらふりさけみればかすがなるみかさのやまにいでしつきかも",
+      "primaryRoman": "amanoharahurisakemirebakasuganarumikasanoyamaniidesitukikamo",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 66.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s08"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "異国で月を見上げ、奈良の三笠山に出ていた月を思い出す。",
+      "adviceText": "今いる場所と故郷で同じ月を見比べ、遠く離れた都への思いを表す。",
+      "difficultyDetail": "base=60, top=23, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=7 ／ 作者：安倍仲麿 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第7首。作者：安倍仲麿。決まり字：あまの。小テーマ：異国から故郷の月。補助テーマ：月,故郷,旅,望郷。"
+    },
+    {
+      "phraseId": "hya0008",
+      "enabled": true,
+      "displayText": "わが庵は　都のたつみ　しかぞすむ　世をうぢ山と　人はいふなり",
+      "kanaText": "わがいおはみやこのたつみしかぞすむよをうじやまとひとはいうなり",
+      "primaryRoman": "wagaiohamiyakonotatumisikazosumuyowoujiyamatohitohaiunari",
+      "extraVariants": [],
+      "length": 57,
+      "difficultyScore": 64.6,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s19"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "宇治の庵で静かに暮らす自分を、人々は世を避けていると言うらしい。",
+      "adviceText": "人里離れた暮らしと世間の評判を並べ、本人の静かな心持ちを伝える。",
+      "difficultyDetail": "base=57, top=31, bottom=7, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=64.6, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=8 ／ 作者：喜撰法師 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第8首。作者：喜撰法師。決まり字：わがい。小テーマ：宇治の静かな暮らし。補助テーマ：宇治,隠棲,静けさ,世評。いうはかな入力の綴りを採用。競技の読み上げの音写とは分ける。"
+    },
+    {
+      "phraseId": "hya0009",
+      "enabled": true,
+      "displayText": "花の色は　うつりにけりな　いたづらに　わが身世にふる　ながめせしまに",
+      "kanaText": "はなのいろはうつりにけりないたずらにわがみよにふるながめせしまに",
+      "primaryRoman": "hananoirohauturinikerinaitazuraniwagamiyonihurunagamesesimani",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 69.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s18"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "長雨と物思いのうちに花が色あせたように、自分の美しさも衰えてしまった。",
+      "adviceText": "色あせる桜と自分を重ね、「ながめ」に長雨と物思いを響かせる。",
+      "difficultyDetail": "base=61, top=30, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=69.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=9 ／ 作者：小野小町 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第9首。作者：小野小町。決まり字：はなの。小テーマ：色あせる桜と我が身。補助テーマ：春,桜,長雨,もの思い。"
+    },
+    {
+      "phraseId": "hya0010",
+      "enabled": true,
+      "displayText": "これやこの　行くも帰るも　別れては　知るも知らぬも　あふ坂の関",
+      "kanaText": "これやこのゆくもかえるもわかれてはしるもしらぬもおうさかのせき",
+      "primaryRoman": "koreyakonoyukumokaerumowakaretehasirumosiranumoousakanoseki",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 66.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s19"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "逢坂の関は、都へ行く人も帰る人も、知人も初対面の人も出会い別れる所だ。",
+      "adviceText": "「逢う」という名の関で人々が出会い、また別れる様子を繰り返す。",
+      "difficultyDetail": "base=59, top=32, bottom=7, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=10 ／ 作者：蟬丸 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第10首。作者：蟬丸。決まり字：これ。小テーマ：逢坂の出会いと別れ。補助テーマ：関,出会い,別れ,旅。地名「あふ坂」は「おうさか」。"
+    },
+    {
+      "phraseId": "hya0011",
+      "enabled": true,
+      "displayText": "わたの原　八十島かけて　漕ぎ出でぬと　人には告げよ　あまのつり舟",
+      "kanaText": "わたのはらやそしまかけてこぎいでぬとひとにはつげよあまのつりぶね",
+      "primaryRoman": "watanoharayasosimakaketekogiidenutohitonihatugeyoamanoturibune",
+      "extraVariants": [],
+      "length": 62,
+      "difficultyScore": 70.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s08"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "島々を目指して漕ぎ出す舟から、都の親しい人へ伝言を頼む。",
+      "adviceText": "海辺の釣り舟に呼びかけて、遠ざかる自分の旅立ちを都へ知らせようとする。",
+      "difficultyDetail": "base=62, top=33, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=70.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=11 ／ 作者：参議篁 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第11首。作者：参議篁。決まり字：わたのはらや。小テーマ：舟出と都への便り。補助テーマ：旅,別離,舟,都。"
+    },
+    {
+      "phraseId": "hya0012",
+      "enabled": true,
+      "displayText": "天つ風　雲のかよひ路　吹きとぢよ　をとめの姿　しばしとどめむ",
+      "kanaText": "あまつかぜくものかよいじふきとじよおとめのすがたしばしとどめん",
+      "primaryRoman": "amatukazekumonokayoijihukitojiyootomenosugatasibasitodomenn",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s19"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n",
+        "ji"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "舞う美しい人々をもう少し見ていたくて、風に雲の道を閉じてほしいと願う。",
+      "adviceText": "舞姫を天女に見立て、天へ帰る道を風に閉じてもらうという大きな比喩。",
+      "difficultyDetail": "base=59, top=30, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=12 ／ 作者：僧正遍昭 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第12首。作者：僧正遍昭。決まり字：あまつ。小テーマ：舞姫を引き留める。補助テーマ：舞,美,風,雲。助動詞むは「ん」の入力案。"
+    },
+    {
+      "phraseId": "hya0013",
+      "enabled": true,
+      "displayText": "つくばねの　峰より落つる　みなの川　こひぞつもりて　淵となりぬる",
+      "kanaText": "つくばねのみねよりおつるみなのがわこいぞつもりてふちとなりぬる",
+      "primaryRoman": "tukubanenomineyorioturuminanogawakoizotumoritehutitonarinuru",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 70.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s09"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "筑波山から流れる川が深い淵になるように、恋心も時とともに深まった。",
+      "adviceText": "水量が増して淵になる川を恋の深まりに重ね、「男女川」の名も響かせる。",
+      "difficultyDetail": "base=60, top=39, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=70.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=13 ／ 作者：陽成院 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第13首。作者：陽成院。決まり字：つく。小テーマ：恋心の深まり。補助テーマ：恋,川,深まり,掛詞。"
+    },
+    {
+      "phraseId": "hya0014",
+      "enabled": true,
+      "displayText": "陸奥の　しのぶもぢずり　誰ゆゑに　乱れそめにし　われならなくに",
+      "kanaText": "みちのくのしのぶもじずりたれゆえにみだれそめにしわれならなくに",
+      "primaryRoman": "mitinokunosinobumojizuritareyuenimidaresomenisiwarenaranakuni",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 70.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s20"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "乱れ模様のように心が乱れたのは、忍ぶ恋をさせるあなたのせいだ。",
+      "adviceText": "染め布の乱れ模様と心の乱れを重ねる。「誰ゆゑに」が相手への問い。",
+      "difficultyDetail": "base=61, top=34, bottom=14, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=70.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=14 ／ 作者：河原左大臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第14首。作者：河原左大臣。決まり字：みち。小テーマ：乱れる恋心。補助テーマ：恋,心の乱れ,染め,忍ぶ恋。"
+    },
+    {
+      "phraseId": "hya0015",
+      "enabled": true,
+      "displayText": "君がため　春の野に出でて　若菜つむ　わが衣手に　雪はふりつつ",
+      "kanaText": "きみがためはるののにいでてわかなつむわがころもでにゆきはふりつつ",
+      "primaryRoman": "kimigatameharunononiidetewakanatumuwagakoromodeniyukihahuritutu",
+      "extraVariants": [],
+      "length": 63,
+      "difficultyScore": 71.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s01"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "あなたに若菜を贈ろうと春野で摘む間、袖には雪が降りかかる。",
+      "adviceText": "春の若菜と降り続く雪を一緒に描き、相手を思って摘む行為を印象づける。",
+      "difficultyDetail": "base=63, top=34, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=71.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=15 ／ 作者：光孝天皇 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第15首。作者：光孝天皇。決まり字：きみがためは。小テーマ：雪の春野で若菜摘み。補助テーマ：春,若菜,雪,贈り物。"
+    },
+    {
+      "phraseId": "hya0016",
+      "enabled": true,
+      "displayText": "立ち別れ　いなばの山の　峰に生ふる　まつとし聞かば　今帰り来む",
+      "kanaText": "たちわかれいなばのやまのみねにおうるまつとしきかばいまかえりこん",
+      "primaryRoman": "tatiwakareinabanoyamanomineniourumatutosikikabaimakaerikonn",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s08"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "因幡へ行っても、あなたが待つと聞けばすぐに戻ってこよう。",
+      "adviceText": "因幡の「いなば」と「往なば」を響かせ、山の松と待つ人を結びつける。",
+      "difficultyDetail": "base=59, top=28, bottom=13, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=16 ／ 作者：中納言行平 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第16首。作者：中納言行平。決まり字：たち。小テーマ：待つ人への約束。補助テーマ：別れ,待つ,松,掛詞。生ふるは「おうる」。来むは「こん」の入力案。"
+    },
+    {
+      "phraseId": "hya0017",
+      "enabled": true,
+      "displayText": "ちはやぶる　神代もきかず　竜田川　からくれなゐに　水くくるとは",
+      "kanaText": "ちはやぶるかみよもきかずたつたがわからくれないにみずくくるとは",
+      "primaryRoman": "tihayaburukamiyomokikazutatutagawakarakurenainimizukukurutoha",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 68.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s03"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "神代にも聞かないほど、紅葉が川を真紅の絞り染めにして流れる。",
+      "adviceText": "川面を染める紅葉を絞り染めに見立て、神代を引き合いに美しさを強調する。",
+      "difficultyDetail": "base=61, top=31, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=17 ／ 作者：在原業平朝臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第17首。作者：在原業平朝臣。決まり字：ちは。小テーマ：紅葉の絞り染め。補助テーマ：秋,紅葉,川,染め。原文は「水くくる」を採用。"
+    },
+    {
+      "phraseId": "hya0018",
+      "enabled": true,
+      "displayText": "住の江の　岸による波　よるさへや　夢の通ひ路　人めよくらむ",
+      "kanaText": "すみのえのきしによるなみよるさえやゆめのかよいじひとめよくらん",
+      "primaryRoman": "suminoenokisiniyorunamiyorusaeyayumenokayoijihitomeyokurann",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 68.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s10"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n",
+        "ji"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "現実に逢う時だけでなく、夢の中でさえ、なぜ人目を避けるのだろう。",
+      "adviceText": "波が「寄る」と夜に「よる」を響かせ、夢の中まで忍ぶ恋のもどかしさを描く。",
+      "difficultyDetail": "base=59, top=35, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=18 ／ 作者：藤原敏行朝臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第18首。作者：藤原敏行朝臣。決まり字：す。小テーマ：夢にも忍ぶ恋。補助テーマ：恋,夢,人目,掛詞。助動詞らむは「らん」の入力案。"
+    },
+    {
+      "phraseId": "hya0019",
+      "enabled": true,
+      "displayText": "難波潟　みじかき葦の　ふしの間も　あはでこの世を　過ぐしてよとや",
+      "kanaText": "なにわがたみじかきあしのふしのまもあわでこのよをすぐしてよとや",
+      "primaryRoman": "naniwagatamijikakiasinohusinomamoawadekonoyowosugusiteyotoya",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s11"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "葦の節の短い間ほどの時間さえ、逢わずに過ごすのは耐えられない。",
+      "adviceText": "葦の節と節の間の短さを持ち出し、わずかな不在にも耐えられないと迫る。",
+      "difficultyDetail": "base=60, top=30, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=19 ／ 作者：伊勢 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第19首。作者：伊勢。決まり字：なにわが。小テーマ：逢えない短い間。補助テーマ：恋,逢えない,葦,嘆き。"
+    },
+    {
+      "phraseId": "hya0020",
+      "enabled": true,
+      "displayText": "わびぬれば　今はた同じ　難波なる　みをつくしても　あはむとぞ思ふ",
+      "kanaText": "わびぬればいまはたおなじなにわなるみをつくしてもあわんとぞおもう",
+      "primaryRoman": "wabinurebaimahataonajinaniwanarumiwotukusitemoawanntozoomou",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s11"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n",
+        "ji"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "思い悩み続けるのならもう同じこと。身を尽くしてでもあなたに逢いたい。",
+      "adviceText": "難波の「澪標」と「身を尽くし」を響かせ、恋のためなら命も惜しくないと訴える。",
+      "difficultyDetail": "base=59, top=30, bottom=14, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=20 ／ 作者：元良親王 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第20首。作者：元良親王。決まり字：わび。小テーマ：身を尽くす恋。補助テーマ：恋,逢いたい,命,掛詞。助動詞むは「ん」の入力案。"
+    },
+    {
+      "phraseId": "hya0021",
+      "enabled": true,
+      "displayText": "今こむと　言ひしばかりに　長月の　有明の月を　待ちいでつるかな",
+      "kanaText": "いまこんといいしばかりにながつきのありあけのつきをまちいでつるかな",
+      "primaryRoman": "imakonntoiisibakarininagatukinoariakenotukiwomatiideturukana",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 68.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s12"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "今行くと言ったあなたを待つうち、秋の夜が明けて有明の月が出てしまった。",
+      "adviceText": "秋の長い夜から明け方の月まで時間を進め、約束を守らない相手への恨みを示す。",
+      "difficultyDetail": "base=60, top=31, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=21 ／ 作者：素性法師 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第21首。作者：素性法師。決まり字：いまこ。小テーマ：待ち続けた明け方。補助テーマ：恋,待つ,秋,月。来むは「こん」の入力案。"
+    },
+    {
+      "phraseId": "hya0022",
+      "enabled": true,
+      "displayText": "吹くからに　秋の草木の　しをるれば　むべ山風を　嵐といふらむ",
+      "kanaText": "ふくからにあきのくさきのしおるればむべやまかぜをあらしというらん",
+      "primaryRoman": "hukukaraniakinokusakinosiorurebamubeyamakazewoarasitoiurann",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 66.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s06"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "山からの風が秋の草木をしおれさせる。なるほど、山風を嵐と呼ぶのだろう。",
+      "adviceText": "山風が草木を荒らす情景から、「山」と「風」を合わせた嵐の名を言葉遊びにする。",
+      "difficultyDetail": "base=59, top=28, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=22 ／ 作者：文屋康秀 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第22首。作者：文屋康秀。決まり字：ふ。小テーマ：嵐の名の由来。補助テーマ：秋,嵐,山風,言葉遊び。助動詞らむは「らん」の入力案。いうはかな入力の綴り。"
+    },
+    {
+      "phraseId": "hya0023",
+      "enabled": true,
+      "displayText": "月みれば　千々に物こそ　悲しけれ　我が身ひとつの　秋にはあらねど",
+      "kanaText": "つきみればちぢにものこそかなしけれわがみひとつのあきにはあらねど",
+      "primaryRoman": "tukimirebatidinimonokosokanasikerewagamihitotunoakinihaaranedo",
+      "extraVariants": [],
+      "length": 62,
+      "difficultyScore": 70.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s05"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "私だけの秋ではないのに、秋の月を見るとさまざまな悲しみが込み上げる。",
+      "adviceText": "みんなに訪れる秋と、自分の胸に湧く悲しみを対比して覚える。",
+      "difficultyDetail": "base=62, top=31, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=70.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=23 ／ 作者：大江千里 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第23首。作者：大江千里。決まり字：つき。小テーマ：秋月と孤独。補助テーマ：秋,月,孤独,もの思い。「千々」は「ちぢ」の入力案。"
+    },
+    {
+      "phraseId": "hya0024",
+      "enabled": true,
+      "displayText": "このたびは　ぬさもとりあへず　手向山　紅葉のにしき　神のまにまに",
+      "kanaText": "このたびはぬさもとりあえずたむけやまもみじのにしきかみのまにまに",
+      "primaryRoman": "konotabihanusamotoriaezutamukeyamamomijinonisikikaminomanimani",
+      "extraVariants": [],
+      "length": 62,
+      "difficultyScore": 70.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s08"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "急な旅で供え物を用意できなかったので、手向山の紅葉を幣として神に捧げる。",
+      "adviceText": "紅葉の錦を神への幣に見立て、旅先で目にした自然を供え物にする。",
+      "difficultyDetail": "base=62, top=27, bottom=17, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=70.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=24 ／ 作者：菅家 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第24首。作者：菅家。決まり字：この。小テーマ：紅葉を神への幣に。補助テーマ：旅,紅葉,神,手向山。"
+    },
+    {
+      "phraseId": "hya0025",
+      "enabled": true,
+      "displayText": "名にしおはば　逢坂山の　さねかづら　人に知られで　くるよしもがな",
+      "kanaText": "なにしおわばおうさかやまのさねかずらひとにしられでくるよしもがな",
+      "primaryRoman": "nanisiowabaousakayamanosanekazurahitonisiraredekuruyosimogana",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 68.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s20"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "逢坂山のさねかずらを手繰るように、誰にも知られずあなたのもとへ行きたい。",
+      "adviceText": "「逢坂」「さねかずら」「繰る・来る」が、逢いたい願いをつなぐ。",
+      "difficultyDetail": "base=61, top=27, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=25 ／ 作者：三条右大臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第25首。作者：三条右大臣。決まり字：なにし。小テーマ：人知れず逢う道。補助テーマ：恋,逢いたい,蔓,掛詞。地名「あふ坂」は「おうさか」。"
+    },
+    {
+      "phraseId": "hya0026",
+      "enabled": true,
+      "displayText": "小倉山　峰のもみぢ葉　心あらば　今ひとたびの　みゆき待たなむ",
+      "kanaText": "おぐらやまみねのもみじばこころあらばいまひとたびのみゆきまたなん",
+      "primaryRoman": "ogurayamaminenomomijibakokoroarabaimahitotabinomiyukimatanann",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 69.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s19"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n",
+        "ji"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "小倉山の紅葉よ、心があるなら、もう一度の御幸まで散らずに待っていてほしい。",
+      "adviceText": "紅葉に心があるかと呼びかけ、もう一度見てもらうまで散らないよう願う。",
+      "difficultyDetail": "base=61, top=27, bottom=16, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=69.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=26 ／ 作者：貞信公 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第26首。作者：貞信公。決まり字：おぐ。小テーマ：散らずに待つ紅葉。補助テーマ：秋,紅葉,願い,小倉山。助動詞なむは「なん」の入力案。"
+    },
+    {
+      "phraseId": "hya0027",
+      "enabled": true,
+      "displayText": "みかの原　わきて流るる　いづみ川　いつみきとてか　恋しかるらむ",
+      "kanaText": "みかのはらわきてながるるいずみがわいつみきとてかこいしかるらん",
+      "primaryRoman": "mikanoharawakitenagaruruizumigawaitumikitotekakoisikarurann",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 66.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s09"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "まだ会ったこともないのに、どうしてこんなに恋しいのだろう。",
+      "adviceText": "「いづみ川」と「いつ見」が響き合う。まだ逢わない相手への恋に注目。",
+      "difficultyDetail": "base=59, top=30, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=27 ／ 作者：中納言兼輔 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第27首。作者：中納言兼輔。決まり字：みかの。小テーマ：会わぬ人への恋。補助テーマ：恋,片思い,川,不思議。助動詞らむは「らん」の入力案。"
+    },
+    {
+      "phraseId": "hya0028",
+      "enabled": true,
+      "displayText": "山里は　冬ぞさびしさ　まさりける　人めも草も　かれぬと思へば",
+      "kanaText": "やまざとはふゆぞさびしさまさりけるひとめもくさもかれぬとおもえば",
+      "primaryRoman": "yamazatohahuyuzosabisisamasarikeruhitomemokusamokarenutoomoeba",
+      "extraVariants": [],
+      "length": 62,
+      "difficultyScore": 70,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s07"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "人の訪れも草木の気配もなくなる冬の山里は、いつにもまして寂しい。",
+      "adviceText": "季節を通じて寂しい山里が、冬には人の途絶えと草木の枯れでさらに静まる。",
+      "difficultyDetail": "base=62, top=29, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=70, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=28 ／ 作者：源宗于朝臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第28首。作者：源宗于朝臣。決まり字：やまざ。小テーマ：冬の山里。補助テーマ：冬,山里,孤独,枯野。"
+    },
+    {
+      "phraseId": "hya0029",
+      "enabled": true,
+      "displayText": "心あてに　折らばや折らむ　初霜の　おきまどはせる　白菊の花",
+      "kanaText": "こころあてにおらばやおらんはつしものおきまどわせるしらぎくのはな",
+      "primaryRoman": "kokoroateniorabayaorannhatusimonookimadowaserusiragikunohana",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s06"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "初霜と白菊を見分けられないので、見当をつけて花を折ってみようか。",
+      "adviceText": "白い霜と白い花が見分けられない。「心あて」は見当をつけること。",
+      "difficultyDetail": "base=60, top=29, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=29 ／ 作者：凡河内躬恒 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第29首。作者：凡河内躬恒。決まり字：こころあ。小テーマ：霜と白菊。補助テーマ：秋,菊,霜,白。助動詞むは「ん」の入力案。"
+    },
+    {
+      "phraseId": "hya0030",
+      "enabled": true,
+      "displayText": "ありあけの　つれなく見えし　別れより　暁ばかり　憂きものはなし",
+      "kanaText": "ありあけのつれなくみえしわかれよりあかつきばかりうきものはなし",
+      "primaryRoman": "ariakenoturenakumiesiwakareyoriakatukibakariukimonohanasi",
+      "extraVariants": [],
+      "length": 57,
+      "difficultyScore": 64.2,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s13"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "有明の月が冷たく見えた別れの朝以来、夜明けほどつらい時間はない。",
+      "adviceText": "残る月の冷たさを相手のそっけなさに重ね、夜明けへの恨みを強める。",
+      "difficultyDetail": "base=57, top=29, bottom=7, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=64.2, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=30 ／ 作者：壬生忠岑 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第30首。作者：壬生忠岑。決まり字：ありあ。小テーマ：冷たい別れの朝。補助テーマ：恋,別れ,月,夜明け。"
+    },
+    {
+      "phraseId": "hya0031",
+      "enabled": true,
+      "displayText": "朝ぼらけ　ありあけの月と　見るまでに　吉野の里に　降れる白雪",
+      "kanaText": "あさぼらけありあけのつきとみるまでによしののさとにふれるしらゆき",
+      "primaryRoman": "asaborakeariakenotukitomirumadeniyosinonosatonihurerusirayuki",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 69.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s07"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "夜明けの月かと思うほど、吉野の里には雪が白く積もっている。",
+      "adviceText": "ほのかな夜明けの光と雪の白さが重なり、月と見間違える景色をつくる。",
+      "difficultyDetail": "base=61, top=35, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=69.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=31 ／ 作者：坂上是則 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第31首。作者：坂上是則。決まり字：あさぼらけあ。小テーマ：月のような吉野の雪。補助テーマ：冬,雪,月,吉野。"
+    },
+    {
+      "phraseId": "hya0032",
+      "enabled": true,
+      "displayText": "山川に　風のかけたる　しがらみは　流れもあへぬ　紅葉なりけり",
+      "kanaText": "やまがわにかぜのかけたるしがらみはながれもあえぬもみじなりけり",
+      "primaryRoman": "yamagawanikazenokaketarusigaramihanagaremoaenumomijinarikeri",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s03"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "風が川にかけた柵のようなものは、流れきれずにたまった紅葉だった。",
+      "adviceText": "紅葉を柵に、風を柵の作り手に見立てる。末尾で正体が分かる。",
+      "difficultyDetail": "base=60, top=25, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=32 ／ 作者：春道列樹 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第32首。作者：春道列樹。決まり字：やまが。小テーマ：紅葉のしがらみ。補助テーマ：秋,紅葉,川,見立て。"
+    },
+    {
+      "phraseId": "hya0033",
+      "enabled": true,
+      "displayText": "ひさかたの　光のどけき　春の日に　しづ心なく　花の散るらむ",
+      "kanaText": "ひさかたのひかりのどけきはるのひにしずごころなくはなのちるらん",
+      "primaryRoman": "hisakatanohikarinodokekiharunohinisizugokoronakuhananotirurann",
+      "extraVariants": [],
+      "length": 62,
+      "difficultyScore": 69.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s02"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "のどかな春の日なのに、桜は落ち着かず散ってしまう。",
+      "adviceText": "穏やかな日差しと、慌ただしく散る花を対比し、散り急ぐ桜を惜しむ。",
+      "difficultyDetail": "base=62, top=28, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=69.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=33 ／ 作者：紀友則 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第33首。作者：紀友則。決まり字：ひさ。小テーマ：春日に散る桜。補助テーマ：春,桜,落花,惜しむ心。助動詞らむは「らん」の入力案。"
+    },
+    {
+      "phraseId": "hya0034",
+      "enabled": true,
+      "displayText": "誰をかも　知る人にせむ　高砂の　松も昔の　友ならなくに",
+      "kanaText": "たれをかもしるひとにせんたかさごのまつもむかしのともならなくに",
+      "primaryRoman": "tarewokamosiruhitonisenntakasagonomatumomukasinotomonaranakuni",
+      "extraVariants": [],
+      "length": 62,
+      "difficultyScore": 70.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s17"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "年老いた今、昔からの友はもういない。長寿の松も昔なじみではない。",
+      "adviceText": "高砂の松を友に挙げながら、松さえ昔からの友ではないという孤独をにじませる。",
+      "difficultyDetail": "base=62, top=29, bottom=13, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=70.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=34 ／ 作者：藤原興風 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第34首。作者：藤原興風。決まり字：たれ。小テーマ：老いて友を失う。補助テーマ：老い,友,松,孤独。助動詞むは「ん」の入力案。"
+    },
+    {
+      "phraseId": "hya0035",
+      "enabled": true,
+      "displayText": "人はいさ　心も知らず　ふるさとは　花ぞ昔の　香に匂ひける",
+      "kanaText": "ひとはいさこころもしらずふるさとははなぞむかしのかににおいける",
+      "primaryRoman": "hitohaisakokoromosirazuhurusatohahanazomukasinokaninioikeru",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 66.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s02"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "人の心が変わったかは分からないが、昔の里では梅が変わらず香っている。",
+      "adviceText": "変わりやすい人の心と、昔のまま香る梅を対比している。",
+      "difficultyDetail": "base=59, top=28, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=35 ／ 作者：紀貫之 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第35首。作者：紀貫之。決まり字：ひとは。小テーマ：変わらぬ梅の香。補助テーマ：春,梅,香り,心変わり。"
+    },
+    {
+      "phraseId": "hya0036",
+      "enabled": true,
+      "displayText": "夏の夜は　まだ宵ながら　明けぬるを　雲のいづこに　月やどるらむ",
+      "kanaText": "なつのよはまだよいながらあけぬるをくものいずこにつきやどるらん",
+      "primaryRoman": "natunoyohamadayoinagaraakenuruwokumonoizukonitukiyadorurann",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s01"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "夏の夜は宵のうちに明けてしまった。月は雲のどこに宿るのだろう。",
+      "adviceText": "夜明けが早く訪れる夏の短さを、月の居場所を気遣う問いで表す。",
+      "difficultyDetail": "base=59, top=30, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=36 ／ 作者：清原深養父 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第36首。作者：清原深養父。決まり字：なつ。小テーマ：夏の短い夜。補助テーマ：夏,月,夜明け,短夜。助動詞らむは「らん」の入力案。"
+    },
+    {
+      "phraseId": "hya0037",
+      "enabled": true,
+      "displayText": "白露に　風の吹きしく　秋の野は　つらぬきとめぬ　玉ぞ散りける",
+      "kanaText": "しらつゆにかぜのふきしくあきののはつらぬきとめぬたまぞちりける",
+      "primaryRoman": "siratuyunikazenohukisikuakinonohaturanukitomenutamazotirikeru",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 69.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s03"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "秋の野の葉に宿る露が風に散り、玉を糸に通さず撒いたように見える。",
+      "adviceText": "露を玉に見立てる。「つらぬきとめぬ」は糸に通して留めていないこと。",
+      "difficultyDetail": "base=61, top=34, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=69.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=37 ／ 作者：文屋朝康 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第37首。作者：文屋朝康。決まり字：しら。小テーマ：露の玉が散る野。補助テーマ：秋,露,風,玉。"
+    },
+    {
+      "phraseId": "hya0038",
+      "enabled": true,
+      "displayText": "忘らるる　身をば思はず　誓ひてし　人のいのちの　惜しくもあるかな",
+      "kanaText": "わすらるるみをばおもわずちかいてしひとのいのちのおしくもあるかな",
+      "primaryRoman": "wasurarurumiwobaomowazutikaitesihitonoinotinoosikumoarukana",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s14"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "自分が忘れられてもよいが、誓いを破ったあなたに神罰が下るのは惜しい。",
+      "adviceText": "自分の身より相手の身を案じる言葉で、誓いを破った恋の痛みを表す。",
+      "difficultyDetail": "base=59, top=35, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=38 ／ 作者：右近 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第38首。作者：右近。決まり字：わすら。小テーマ：誓いを破った相手。補助テーマ：恋,誓い,神,相手を思う。"
+    },
+    {
+      "phraseId": "hya0039",
+      "enabled": true,
+      "displayText": "浅茅生の　小野の篠原　しのぶれど　あまりてなどか　人の恋しき",
+      "kanaText": "あさじうのおののしのはらしのぶれどあまりてなどかひとのこいしき",
+      "primaryRoman": "asajiunoononosinoharasinoburedoamaritenadokahitonokoisiki",
+      "extraVariants": [],
+      "length": 57,
+      "difficultyScore": 64.4,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s10"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "耐えようとしても耐えきれないほど、あなたが恋しくてたまらない。",
+      "adviceText": "篠原の草を思わせる言葉を重ね、忍ぼうとしても抑えられない恋心を訴える。",
+      "difficultyDetail": "base=57, top=28, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=64.4, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=39 ／ 作者：参議等 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第39首。作者：参議等。決まり字：あさじ。小テーマ：耐えきれない恋。補助テーマ：恋,忍ぶ,片思い,苦しみ。「浅茅生」は「あさじう」の入力案。"
+    },
+    {
+      "phraseId": "hya0040",
+      "enabled": true,
+      "displayText": "しのぶれど　色に出でにけり　わが恋は　物や思ふと　人の問ふまで",
+      "kanaText": "しのぶれどいろにいでにけりわがこいはものやおもうとひとのとうまで",
+      "primaryRoman": "sinoburedoironiidenikeriwagakoihamonoyaomoutohitonotoumade",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 66.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s10"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "隠してきた恋心が顔に出て、人から悩みがあるのかと尋ねられる。",
+      "adviceText": "心にしまった思いと顔に表れた様子の対比で、隠しきれない恋を描く。",
+      "difficultyDetail": "base=58, top=35, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=40 ／ 作者：平兼盛 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第40首。作者：平兼盛。決まり字：しの。小テーマ：顔に出る恋心。補助テーマ：恋,秘密,表情,噂。"
+    },
+    {
+      "phraseId": "hya0041",
+      "enabled": true,
+      "displayText": "恋すてふ　わが名はまだき　立ちにけり　人知れずこそ　思ひ初めしか",
+      "kanaText": "こいすちょうわがなはまだきたちにけりひとしれずこそおもいそめしか",
+      "primaryRoman": "koisutyouwaganahamadakitatinikerihitosirezukosoomoisomesika",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 66.9,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s10"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "ひそかに思い始めただけなのに、恋の噂がもう世間に広まっている。",
+      "adviceText": "胸の内に留めたつもりの恋が「浮き名」になった驚きを伝える。",
+      "difficultyDetail": "base=59, top=31, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=66.9, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=41 ／ 作者：壬生忠見 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第41首。作者：壬生忠見。決まり字：こい。小テーマ：広まった恋の噂。補助テーマ：恋,秘密,噂,当惑。てふは「ちょう」と読む。"
+    },
+    {
+      "phraseId": "hya0042",
+      "enabled": true,
+      "displayText": "契りきな　かたみに袖を　しぼりつつ　末の松山　波越さじとは",
+      "kanaText": "ちぎりきなかたみにそでをしぼりつつすえのまつやまなみこさじとは",
+      "primaryRoman": "tigirikinakataminisodewosiboritutusuenomatuyamanamikosajitoha",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 69.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s14"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "涙で袖を濡らして誓った愛は、末の松山を波が越さないように変わらないはずだった。",
+      "adviceText": "波が越えないという言い伝えを誓いの比喩にし、約束と現実の隔たりをにじませる。",
+      "difficultyDetail": "base=61, top=32, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=69.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=42 ／ 作者：清原元輔 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第42首。作者：清原元輔。決まり字：ちぎりき。小テーマ：破られた恋の誓い。補助テーマ：恋,誓い,涙,松山。"
+    },
+    {
+      "phraseId": "hya0043",
+      "enabled": true,
+      "displayText": "あひ見ての　のちの心に　くらぶれば　昔は物を　思はざりけり",
+      "kanaText": "あいみてののちのこころにくらぶればむかしはものをおもわざりけり",
+      "primaryRoman": "aimitenonotinokokoronikuraburebamukasihamonowoomowazarikeri",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 68,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s09"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "会いたいと願っていたのに、会った後の恋の苦しさは会う前を上回る。",
+      "adviceText": "逢う前と逢った後の苦しさを比べ、恋が深まるほど増す切なさを描く。",
+      "difficultyDetail": "base=59, top=33, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=43 ／ 作者：権中納言敦忠 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第43首。作者：権中納言敦忠。決まり字：あい。小テーマ：逢った後の苦しみ。補助テーマ：恋,逢瀬,苦しみ,対比。"
+    },
+    {
+      "phraseId": "hya0044",
+      "enabled": true,
+      "displayText": "あふことの　たえてしなくは　なかなかに　人をも身をも　恨みざらまし",
+      "kanaText": "あうことのたえてしなくばなかなかにひとをもみをもうらみざらまし",
+      "primaryRoman": "aukotonotaetesinakubanakanakanihitowomomiwomouramizaramasi",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 65.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s09"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "もし逢うことがまったくなかったなら、相手も自分も恨まずに済んだだろうに。",
+      "adviceText": "逢わなかった場合を想像し、逢ったからこそ生まれる恨みを振り返る。",
+      "difficultyDetail": "base=58, top=27, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=65.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=44 ／ 作者：中納言朝忠 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第44首。作者：中納言朝忠。決まり字：おおこ。小テーマ：逢った後の恨み。補助テーマ：恋,逢瀬,恨み,つれなさ。「あふ」は通常のかな入力「あう」の案。競技読唱では「おう」。"
+    },
+    {
+      "phraseId": "hya0045",
+      "enabled": true,
+      "displayText": "あはれとも　いふべき人は　思ほえで　身のいたづらに　なりぬべきかな",
+      "kanaText": "あわれともいうべきひとはおもおえでみのいたずらになりぬべきかな",
+      "primaryRoman": "awaretomoiubekihitohaomooedeminoitazuraninarinubekikana",
+      "extraVariants": [],
+      "length": 55,
+      "difficultyScore": 63.2,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s15"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "哀れだと言ってくれる人も思い浮かばず、この身はむなしくなってしまいそうだ。",
+      "adviceText": "嘆きを分かち合う人の不在を思い、孤独な恋の行く末を想像する。",
+      "difficultyDetail": "base=55, top=30, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=63.2, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=45 ／ 作者：謙徳公 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第45首。作者：謙徳公。決まり字：あわれ。小テーマ：恋を嘆くひとり。補助テーマ：恋,孤独,片思い,嘆き。歴史的表記「思ほえ」は「おもおえ」と読む入力案。"
+    },
+    {
+      "phraseId": "hya0046",
+      "enabled": true,
+      "displayText": "由良のとを　渡る舟人　かぢを絶え　ゆくへも知らぬ　恋の道かな",
+      "kanaText": "ゆらのとをわたるふなびとかじをたえゆくえもしらぬこいのみちかな",
+      "primaryRoman": "yuranotowowataruhunabitokajiwotaeyukuemosiranukoinomitikana",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s16"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "かじを失って漂う舟のように、これからの恋がどこへ向かうか分からない。",
+      "adviceText": "かじをなくして漂う舟と、先の見えない恋の行方を重ねる。",
+      "difficultyDetail": "base=59, top=35, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=46 ／ 作者：曾禰好忠 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第46首。作者：曾禰好忠。決まり字：ゆら。小テーマ：行く先の見えない恋。補助テーマ：恋,不安,舟,行方。"
+    },
+    {
+      "phraseId": "hya0047",
+      "enabled": true,
+      "displayText": "八重むぐら　しげれる宿の　さびしきに　人こそ見えね　秋は来にけり",
+      "kanaText": "やえむぐらしげれるやどのさびしきにひとこそみえねあきはきにけり",
+      "primaryRoman": "yaemugurasigereruyadonosabisikinihitokosomieneakihakinikeri",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 66.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s05"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "人の訪れない荒れた家にも、秋だけは毎年やって来る。",
+      "adviceText": "蔓草に覆われた住まいの静けさと、変わらず訪れる秋を対比する。",
+      "difficultyDetail": "base=59, top=32, bottom=7, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=47 ／ 作者：恵慶法師 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第47首。作者：恵慶法師。決まり字：やえ。小テーマ：秋だけ訪れる家。補助テーマ：秋,荒れ家,孤独,蔓草。"
+    },
+    {
+      "phraseId": "hya0048",
+      "enabled": true,
+      "displayText": "風をいたみ　岩うつ波の　おのれのみ　くだけて物を　思ふころかな",
+      "kanaText": "かぜをいたみいわうつなみのおのれのみくだけてものをおもうころかな",
+      "primaryRoman": "kazewoitamiiwautunaminoonorenomikudaketemonowoomoukorokana",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 67,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s16"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "波だけが岩に砕けるように、私だけが恋に思い悩み、心を砕いている。",
+      "adviceText": "風に打たれる波の激しさを、相手の冷たさに苦しむ心に重ねる。",
+      "difficultyDetail": "base=58, top=33, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=48 ／ 作者：源重之 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第48首。作者：源重之。決まり字：かぜを。小テーマ：冷たさに砕ける心。補助テーマ：恋,つれなさ,波,苦しみ。"
+    },
+    {
+      "phraseId": "hya0049",
+      "enabled": true,
+      "displayText": "みかきもり　衛士のたく火の　夜は燃え　昼は消えつつ　物をこそ思へ",
+      "kanaText": "みかきもりえじのたくひのよるはもえひるはきえつつものをこそおもえ",
+      "primaryRoman": "mikakimoriejinotakuhinoyoruhamoehiruhakietutumonowokosoomoe",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s11"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "衛士の火が夜に燃え昼に消えるように、恋で夜は燃え立ち昼はしおれている。",
+      "adviceText": "夜に燃え昼に消える火を恋心になぞらえ、昼夜で異なる苦しさを描く。",
+      "difficultyDetail": "base=59, top=36, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=49 ／ 作者：大中臣能宣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第49首。作者：大中臣能宣。決まり字：みかき。小テーマ：昼夜の恋の苦しみ。補助テーマ：恋,夜,昼,火。"
+    },
+    {
+      "phraseId": "hya0050",
+      "enabled": true,
+      "displayText": "君がため　惜しからざりし　命さへ　長くもがなと　思ひけるかな",
+      "kanaText": "きみがためおしからざりしいのちさえながくもがなとおもいけるかな",
+      "primaryRoman": "kimigatameosikarazarisiinotisaenagakumoganatoomoikerukana",
+      "extraVariants": [],
+      "length": 57,
+      "difficultyScore": 63.8,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s18"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "あなたに会うまでは命も惜しくないと思ったが、今は長生きしたい。",
+      "adviceText": "命を惜しまない思いと、逢った後に生きたい願いの変化を示す。",
+      "difficultyDetail": "base=57, top=25, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=63.8, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=50 ／ 作者：藤原義孝 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第50首。作者：藤原義孝。決まり字：きみがためお。小テーマ：逢って変わる願い。補助テーマ：恋,逢瀬,命,心の変化。"
+    },
+    {
+      "phraseId": "hya0051",
+      "enabled": true,
+      "displayText": "かくとだに　えやはいぶきの　さしも草　さしも知らじな　もゆる思ひを",
+      "kanaText": "かくとだにえやはいぶきのさしもぐささしもしらじなもゆるおもいを",
+      "primaryRoman": "kakutodanieyahaibukinosasimogusasasimosirajinamoyuruomoiwo",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 65.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s11"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "こうだとさえ伝えられない燃える恋心を、あなたはきっと知らないのだろう。",
+      "adviceText": "伊吹山のさしも草が燃えるように、胸にあふれる思いを草に託す。",
+      "difficultyDetail": "base=58, top=28, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=65.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=51 ／ 作者：藤原実方朝臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第51首。作者：藤原実方朝臣。決まり字：かく。小テーマ：伝えられない恋心。補助テーマ：恋,伝えたい,炎,片思い。"
+    },
+    {
+      "phraseId": "hya0052",
+      "enabled": true,
+      "displayText": "明けぬれば　暮るるものとは　知りながら　なほうらめしき　朝ぼらけかな",
+      "kanaText": "あけぬればくるるものとはしりながらなおうらめしきあさぼらけかな",
+      "primaryRoman": "akenurebakururumonotohasirinagaranaouramesikiasaborakekana",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 65,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s13"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "また会えると分かっていても、別れを告げる夜明けはやはり恨めしい。",
+      "adviceText": "再会の見込みがあっても別れはつらいと、夜明けを相手にするように嘆く。",
+      "difficultyDetail": "base=58, top=26, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=65, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=52 ／ 作者：藤原道信朝臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第52首。作者：藤原道信朝臣。決まり字：あけ。小テーマ：別れを告げる夜明け。補助テーマ：恋,別れ,夜明け,再会。"
+    },
+    {
+      "phraseId": "hya0053",
+      "enabled": true,
+      "displayText": "嘆きつつ　ひとり寝る夜の　明くるまは　いかに久しき　ものとかは知る",
+      "kanaText": "なげきつつひとりぬるよのあくるまはいかにひさしきものとかはしる",
+      "primaryRoman": "nagekitutuhitorinuruyonoakurumahaikanihisasikimonotokahasiru",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s12"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "あなたが来ず、ひとりで夜明けを待つ長さを、あなたは知らないでしょう。",
+      "adviceText": "長い夜を一人で過ごす側の痛みを問いかけ、相手に分かってほしいと訴える。",
+      "difficultyDetail": "base=60, top=32, bottom=7, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=53 ／ 作者：右大将道綱母 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第53首。作者：右大将道綱母。決まり字：なげき。小テーマ：ひとり寝の長い夜。補助テーマ：恋,待つ,孤独,夜。「寝る」の活用は原文の「ぬる」を保持。"
+    },
+    {
+      "phraseId": "hya0054",
+      "enabled": true,
+      "displayText": "忘れじの　行く末までは　かたければ　今日をかぎりの　命ともがな",
+      "kanaText": "わすれじのゆくすえまではかたければきょうをかぎりのいのちともがな",
+      "primaryRoman": "wasurejinoyukusuemadehakatakerebakyouwokagirinoinotitomogana",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 68.3,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s18"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "ji"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "いつまでも忘れないという言葉を信じきれず、今日を最後の命と思いたい。",
+      "adviceText": "永遠を約束する言葉と先の見えない不安を並べ、今この時の切実さを示す。",
+      "difficultyDetail": "base=60, top=32, bottom=7, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=68.3, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=54 ／ 作者：儀同三司母 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第54首。作者：儀同三司母。決まり字：わすれ。小テーマ：永遠の言葉と不安。補助テーマ：恋,約束,不安,今。けふは「きょう」と読む。"
+    },
+    {
+      "phraseId": "hya0055",
+      "enabled": true,
+      "displayText": "滝の音は　絶えて久しく　なりぬれど　名こそ流れて　なほ聞こえけれ",
+      "kanaText": "たきのおとはたえてひさしくなりぬれどなこそながれてなおきこえけれ",
+      "primaryRoman": "takinootohataetehisasikunarinuredonakosonagaretenaokikoekere",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s17"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "滝の水音は長く聞こえないのに、その名声は今も世に伝わっている。",
+      "adviceText": "実際の水音と世間に残る評判を対比し、滝の名が続く不思議を味わう。",
+      "difficultyDetail": "base=60, top=32, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=55 ／ 作者：大納言公任 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第55首。作者：大納言公任。決まり字：たき。小テーマ：水のない滝の名声。補助テーマ：滝,名声,記憶,大覚寺。"
+    },
+    {
+      "phraseId": "hya0056",
+      "enabled": true,
+      "displayText": "あらざらむ　この世のほかの　思ひ出に　今ひとたびの　逢ふこともがな",
+      "kanaText": "あらざらんこのよのほかのおもいでにいまひとたびのあうこともがな",
+      "primaryRoman": "arazarannkonoyonohokanoomoideniimahitotabinoaukotomogana",
+      "extraVariants": [],
+      "length": 56,
+      "difficultyScore": 63.8,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s13"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "この世を去る前に、あの世へ持っていく思い出としてもう一度あなたに逢いたい。",
+      "adviceText": "残された時間を「あの世への思い出」に変え、最後の逢瀬を願う。",
+      "difficultyDetail": "base=56, top=26, bottom=13, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=63.8, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=56 ／ 作者：和泉式部 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第56首。作者：和泉式部。決まり字：あらざ。小テーマ：最後に願う再会。補助テーマ：恋,再会,命,別れ。助動詞むは「ん」の入力案。「あふ」は「あう」の入力案。"
+    },
+    {
+      "phraseId": "hya0057",
+      "enabled": true,
+      "displayText": "めぐりあひて　見しやそれとも　分かぬまに　雲がくれにし　夜半の月かな",
+      "kanaText": "めぐりあいてみしやそれともわかぬまにくもがくれにしよわのつきかな",
+      "primaryRoman": "meguriaitemisiyasoretomowakanumanikumogakurenisiyowanotukikana",
+      "extraVariants": [],
+      "length": 62,
+      "difficultyScore": 70.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s19"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "久しぶりに会った友が誰か確かめる間もなく帰り、月のように見えなくなった。",
+      "adviceText": "昔なじみとの再会が短く終わった名残惜しさを、雲間に隠れる月に重ねる。",
+      "difficultyDetail": "base=62, top=33, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=70.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=57 ／ 作者：紫式部 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第57首。作者：紫式部。決まり字：め。小テーマ：旧友との束の間の再会。補助テーマ：旧友,再会,月,別れ。夜半は「よわ」と読む。"
+    },
+    {
+      "phraseId": "hya0058",
+      "enabled": true,
+      "displayText": "ありま山　ゐなの笹原　風吹けば　いでそよ人を　忘れやはする",
+      "kanaText": "ありまやまいなのささはらかぜふけばいでそよひとをわすれやはする",
+      "primaryRoman": "arimayamainanosasaharakazehukebaidesoyohitowowasureyahasuru",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 65.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s20"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "笹原の名や風にそよぐ音を響かせながら、あなたを忘れることはないと答える。",
+      "adviceText": "「いな・否」「そよ・そうよ」を響かせて、忘れないと伝える。",
+      "difficultyDetail": "base=59, top=27, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=65.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=58 ／ 作者：大弐三位 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第58首。作者：大弐三位。決まり字：ありま。小テーマ：忘れないという返事。補助テーマ：恋,忘れない,笹,掛詞。"
+    },
+    {
+      "phraseId": "hya0059",
+      "enabled": true,
+      "displayText": "やすらはで　寝なましものを　さ夜更けて　かたぶくまでの　月を見しかな",
+      "kanaText": "やすらわでねなましものをさよふけてかたぶくまでのつきをみしかな",
+      "primaryRoman": "yasurawadenenamasimonowosayohuketekatabukumadenotukiwomisikana",
+      "extraVariants": [],
+      "length": 62,
+      "difficultyScore": 69.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s12"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "あなたを待ったために、沈んでいく月を見るまで夜を過ごしてしまった。",
+      "adviceText": "待たなければ寝ていたのにと反語で責め、沈む月が待ち時間の長さを示す。",
+      "difficultyDetail": "base=62, top=29, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=69.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=59 ／ 作者：赤染衛門 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第59首。作者：赤染衛門。決まり字：やす。小テーマ：月が沈むまで待つ。補助テーマ：恋,待つ,月,恨み。"
+    },
+    {
+      "phraseId": "hya0060",
+      "enabled": true,
+      "displayText": "大江山　いく野の道の　遠ければ　まだふみも見ず　天の橋立",
+      "kanaText": "おおえやまいくののみちのとおければまだふみもみずあまのはしだて",
+      "primaryRoman": "ooeyamaikunonomitinotookerebamadahumimomizuamanohasidate",
+      "extraVariants": [],
+      "length": 56,
+      "difficultyScore": 64,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s20"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "天橋立へ行ったことも母の手紙を見たこともないと、母の代作だという疑いを切り返す。",
+      "adviceText": "「ふみ」に手紙と踏むことを重ね、遠い地名を返答に使う。",
+      "difficultyDetail": "base=56, top=27, bottom=13, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=64, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=60 ／ 作者：小式部内侍 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第60首。作者：小式部内侍。決まり字：おおえ。小テーマ：母からの便り。補助テーマ：手紙,母,旅,返答。"
+    },
+    {
+      "phraseId": "hya0061",
+      "enabled": true,
+      "displayText": "いにしへの　奈良の都の　八重桜　けふ九重に　にほひぬるかな",
+      "kanaText": "いにしえのならのみやこのやえざくらきょうここのえににおいぬるかな",
+      "primaryRoman": "inisienonaranomiyakonoyaezakurakyoukokonoeninioinurukana",
+      "extraVariants": [],
+      "length": 56,
+      "difficultyScore": 64.7,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s02"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "奈良で咲いた八重桜が、今日は平安京の宮中を美しく彩っている。",
+      "adviceText": "昔の都から今の宮中へ花が移る時間と場所の重なりを、今日の桜で表す。",
+      "difficultyDetail": "base=56, top=29, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=64.7, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=61 ／ 作者：伊勢大輔 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第61首。作者：伊勢大輔。決まり字：いに。小テーマ：奈良から届いた桜。補助テーマ：春,桜,奈良,宮中。けふは「きょう」と読む。"
+    },
+    {
+      "phraseId": "hya0062",
+      "enabled": true,
+      "displayText": "夜をこめて　鳥のそらねは　はかるとも　よに逢坂の　関はゆるさじ",
+      "kanaText": "よをこめてとりのそらねははかるともよにおうさかのせきはゆるさじ",
+      "primaryRoman": "yowokometetorinosoranehahakarutomoyoniousakanosekihayurusaji",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 68,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s20"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "鶏の鳴きまねで夜明けだとだまそうとしても、私の心の関は開かない。",
+      "adviceText": "函谷関の故事をふまえ、「逢坂の関」を相手に心を許す境に見立てる。",
+      "difficultyDetail": "base=60, top=34, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=62 ／ 作者：清少納言 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第62首。作者：清少納言。決まり字：よを。小テーマ：鶏のまねを見破る。補助テーマ：機知,関,鶏,やり取り。地名「あふ坂」は「おうさか」。"
+    },
+    {
+      "phraseId": "hya0063",
+      "enabled": true,
+      "displayText": "今はただ　思ひ絶えなむ　とばかりを　人づてならで　言ふよしもがな",
+      "kanaText": "いまはただおもいたえなんとばかりをひとづてならでいうよしもがな",
+      "primaryRoman": "imahatadaomoitaenanntobakariwohitodutenaradeiuyosimogana",
+      "extraVariants": [],
+      "length": 56,
+      "difficultyScore": 63.2,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s14"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "もうあなたを思うのはやめよう、その一言だけでも人づてでなく直接伝えたい。",
+      "adviceText": "人づてでなく自分の声で伝えたいという願いに、別れの未練が表れる。",
+      "difficultyDetail": "base=56, top=27, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=63.2, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=63 ／ 作者：左京大夫道雅 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第63首。作者：左京大夫道雅。決まり字：いまは。小テーマ：直接告げたい別れ。補助テーマ：恋,別れ,伝言,未練。助動詞なむは「なん」の入力案。いうはかな入力の綴り。"
+    },
+    {
+      "phraseId": "hya0064",
+      "enabled": true,
+      "displayText": "朝ぼらけ　宇治の川霧　たえだえに　あらはれわたる　瀬々の網代木",
+      "kanaText": "あさぼらけうじのかわぎりたえだえにあらわれわたるせぜのあじろぎ",
+      "primaryRoman": "asaborakeujinokawagiritaedaeniarawarewatarusezenoajirogi",
+      "extraVariants": [],
+      "length": 56,
+      "difficultyScore": 62.8,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s07"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "朝の宇治川で霧が切れ、川瀬の網代木が少しずつ姿を見せる。",
+      "adviceText": "霧が晴れるにつれて網代木が現れる視覚の変化を、朝の清々しさとともに描く。",
+      "difficultyDetail": "base=56, top=29, bottom=5, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=62.8, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=64 ／ 作者：権中納言定頼 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第64首。作者：権中納言定頼。決まり字：あさぼらけう。小テーマ：霧晴れる宇治川。補助テーマ：冬,宇治川,霧,網代木。"
+    },
+    {
+      "phraseId": "hya0065",
+      "enabled": true,
+      "displayText": "恨みわび　ほさぬ袖だに　あるものを　恋にくちなむ　名こそ惜しけれ",
+      "kanaText": "うらみわびほさぬそでだにあるものをこいにくちなんなこそおしけれ",
+      "primaryRoman": "uramiwabihosanusodedaniarumonowokoinikutinannnakosoosikere",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 66,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s14"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n",
+        "n_before_n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "涙に濡れる袖より、恋の噂で傷ついていく自分の評判が惜しい。",
+      "adviceText": "「乾かない袖」と「朽ちる名」を対比。評判を失うつらさに注目。",
+      "difficultyDetail": "base=58, top=29, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=65 ／ 作者：相模 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第65首。作者：相模。決まり字：うら。小テーマ：恋の噂と名残り。補助テーマ：恋,噂,涙,評判。助動詞なむは「なん」の入力案。"
+    },
+    {
+      "phraseId": "hya0066",
+      "enabled": true,
+      "displayText": "もろともに　あはれと思へ　山桜　花よりほかに　知る人もなし",
+      "kanaText": "もろともにあわれとおもえやまざくらはなよりほかにしるひともなし",
+      "primaryRoman": "morotomoniawaretoomoeyamazakurahanayorihokanisiruhitomonasi",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s19"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "山桜よ、私の心を知るものとして、互いに懐かしく思ってほしい。",
+      "adviceText": "深山で向き合う山桜に語りかけ、孤独な修行者の心の通じ合いを求める。",
+      "difficultyDetail": "base=59, top=32, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=66 ／ 作者：前大僧正行尊 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第66首。作者：前大僧正行尊。決まり字：もろ。小テーマ：深山の桜を友に。補助テーマ：山桜,孤独,修行,呼びかけ。"
+    },
+    {
+      "phraseId": "hya0067",
+      "enabled": true,
+      "displayText": "春の夜の　夢ばかりなる　手枕に　かひなく立たむ　名こそ惜しけれ",
+      "kanaText": "はるのよのゆめばかりなるたまくらにかいなくたたんなこそおしけれ",
+      "primaryRoman": "harunoyonoyumebakarinarutamakuranikainakutatannnakosoosikere",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s20"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n",
+        "n_before_n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "春の夜の夢のようにはかない腕枕のために、浮き名が立つのは残念だ。",
+      "adviceText": "短い春の夜を夢にたとえ、軽い戯れが噂になることをやんわり断る。",
+      "difficultyDetail": "base=60, top=28, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=67 ／ 作者：周防内侍 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第67首。作者：周防内侍。決まり字：はるの。小テーマ：春夜の戯れを断る。補助テーマ：春,恋,噂,拒む心。助動詞むは「ん」の入力案。"
+    },
+    {
+      "phraseId": "hya0068",
+      "enabled": true,
+      "displayText": "心にも　あらでうき世に　ながらへば　恋しかるべき　夜半の月かな",
+      "kanaText": "こころにもあらでうきよにながらえばこいしかるべきよわのつきかな",
+      "primaryRoman": "kokoronimoaradeukiyoninagaraebakoisikarubekiyowanotukikana",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 65.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s18"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "思うにまかせない世に生き続ければ、今夜の月もいつか懐かしくなるだろう。",
+      "adviceText": "今の苦しい世と、いつか懐かしくなる今夜の月を重ねた切ない見通し。",
+      "difficultyDetail": "base=58, top=29, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=65.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=68 ／ 作者：三条院 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第68首。作者：三条院。決まり字：こころに。小テーマ：今夜の月を惜しむ。補助テーマ：月,世の中,無常,孤独。夜半は「よわ」と読む。"
+    },
+    {
+      "phraseId": "hya0069",
+      "enabled": true,
+      "displayText": "あらし吹く　み室の山の　もみぢ葉は　竜田の川の　錦なりけり",
+      "kanaText": "あらしふくみむろのやまのもみじばはたつたのかわのにしきなりけり",
+      "primaryRoman": "arasihukumimuronoyamanomomijibahatatutanokawanonisikinarikeri",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 69.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s03"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "山から散った紅葉が竜田川を流れ、錦の織物のように水面を彩る。",
+      "adviceText": "山の紅葉が川へ移り、錦になるという見立てで色の広がりを描く。",
+      "difficultyDetail": "base=61, top=29, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=69.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=69 ／ 作者：能因法師 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第69首。作者：能因法師。決まり字：あらし。小テーマ：川面に広がる紅葉。補助テーマ：秋,紅葉,川,錦。"
+    },
+    {
+      "phraseId": "hya0070",
+      "enabled": true,
+      "displayText": "さびしさに　宿をたち出でて　ながむれば　いづこも同じ　秋の夕暮れ",
+      "kanaText": "さびしさにやどをたちいでてながむればいずこもおなじあきのゆうぐれ",
+      "primaryRoman": "sabisisaniyadowotatiidetenagamurebaizukomoonajiakinoyuugure",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s05"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "庵を出て眺めても、秋の夕暮れはどこも同じように寂しく見える。",
+      "adviceText": "自分の心だけでなく周囲すべてが寂しいと感じる、秋の夕暮れの広がりを描く。",
+      "difficultyDetail": "base=59, top=31, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=70 ／ 作者：良暹法師 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第70首。作者：良暹法師。決まり字：さ。小テーマ：どこも寂しい秋夕。補助テーマ：秋,夕暮れ,庵,寂しさ。"
+    },
+    {
+      "phraseId": "hya0071",
+      "enabled": true,
+      "displayText": "夕されば　門田の稲葉　おとづれて　葦のまろやに　秋風ぞ吹く",
+      "kanaText": "ゆうさればかどたのいなばおとずれてあしのまろやにあきかぜぞふく",
+      "primaryRoman": "yuusarebakadotanoinabaotozureteasinomaroyaniakikazezohuku",
+      "extraVariants": [],
+      "length": 57,
+      "difficultyScore": 64.6,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s04"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "夕暮れの稲葉に音を立てて訪れる風が、葦葺きの仮屋に秋の到来を知らせる。",
+      "adviceText": "稲葉の音から風の通り道を追い、田と田舎家をひと続きに捉える。",
+      "difficultyDetail": "base=57, top=28, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=64.6, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=71 ／ 作者：大納言経信 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第71首。作者：大納言経信。決まり字：ゆう。小テーマ：田を渡る秋風。補助テーマ：秋,田,風,夕暮れ。"
+    },
+    {
+      "phraseId": "hya0072",
+      "enabled": true,
+      "displayText": "音にきく　たかしの浜の　あだ波は　かけじや袖の　ぬれもこそすれ",
+      "kanaText": "おとにきくたかしのはまのあだなみはかけじやそでのぬれもこそすれ",
+      "primaryRoman": "otonikikutakasinohamanoadanamihakakejiyasodenonuremokososure",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s20"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "浮気と評判のあなたには心を寄せまい。波にかかるように、涙で袖がぬれると困るから。",
+      "adviceText": "波しぶきと涙を「袖が濡れる」に重ね、浜の波と男の評判を同じ言葉で退ける。",
+      "difficultyDetail": "base=60, top=26, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=72 ／ 作者：祐子内親王家紀伊 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第72首。作者：祐子内親王家紀伊。決まり字：おと。小テーマ：涙を避ける拒絶。補助テーマ：恋,拒絶,波,掛詞。"
+    },
+    {
+      "phraseId": "hya0073",
+      "enabled": true,
+      "displayText": "高砂の　をのへの桜　咲きにけり　外山のかすみ　立たずもあらなむ",
+      "kanaText": "たかさごのおのえのさくらさきにけりとやまのかすみたたずもあらなん",
+      "primaryRoman": "takasagonoonoenosakurasakinikeritoyamanokasumitatazumoaranann",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 68.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s02"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "遠い山頂の桜を見たいので、手前に霞が立って隠さないでほしい。",
+      "adviceText": "近い外山に立つ霞が、遠い尾上の桜を隠さないよう願う。",
+      "difficultyDetail": "base=61, top=25, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=73 ／ 作者：前中納言匡房 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第73首。作者：前中納言匡房。決まり字：たか。小テーマ：霞の向こうの桜。補助テーマ：春,山桜,霞,遠景。助動詞なむは「なん」の入力案。"
+    },
+    {
+      "phraseId": "hya0074",
+      "enabled": true,
+      "displayText": "憂かりける　人を初瀬の　山おろしよ　はげしかれとは　祈らぬものを",
+      "kanaText": "うかりけるひとをはつせのやまおろしよはげしかれとはいのらぬものを",
+      "primaryRoman": "ukarikeruhitowohatusenoyamaorosiyohagesikaretohainoranumonowo",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 69.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s15"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "観音に願ったのは相手の心をなびかせること。山風のように冷たくなることではない。",
+      "adviceText": "祈願の「なびく」と冷たい山おろしを対照させ、願いがかなわない嘆きを表す。",
+      "difficultyDetail": "base=61, top=36, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=69.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=74 ／ 作者：源俊頼朝臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第74首。作者：源俊頼朝臣。決まり字：うか。小テーマ：祈りと冷たい風。補助テーマ：恋,祈り,山風,嘆き。採用本文は嵯峨嵐山文華館の「山おろしよ」。競技読手資料の「山おろし」との本文差を注記。"
+    },
+    {
+      "phraseId": "hya0075",
+      "enabled": true,
+      "displayText": "契りおきし　させもが露を　いのちにて　あはれ今年の　秋もいぬめり",
+      "kanaText": "ちぎりおきしさせもがつゆをいのちにてあわれことしのあきもいぬめり",
+      "primaryRoman": "tigiriokisisasemogatuyuwoinotiniteawarekotosinoakimoinumeri",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 68,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s20"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "子どもの将来を助けるというありがたい約束を頼みにしてきたが、今年も秋が過ぎる。",
+      "adviceText": "援助の約束を露と命綱にたとえ、願いが果たされないまま時が過ぎる悲しみを示す。",
+      "difficultyDetail": "base=59, top=38, bottom=7, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=75 ／ 作者：藤原基俊 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第75首。作者：藤原基俊。決まり字：ちぎりお。小テーマ：果たされない援助の約束。補助テーマ：約束,援助,子ども,嘆き。"
+    },
+    {
+      "phraseId": "hya0076",
+      "enabled": true,
+      "displayText": "わたの原　こぎ出でてみれば　久方の　雲ゐにまがふ　冲つ白波",
+      "kanaText": "わたのはらこぎいでてみればひさかたのくもいにまがうおきつしらなみ",
+      "primaryRoman": "watanoharakogiidetemirebahisakatanokumoinimagauokitusiranami",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s08"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "海へ舟を出して眺めると、沖の白波が遠くの白雲のように見える。",
+      "adviceText": "沖の波と空の雲の白さが溶け合う広々とした景色を、舟上から描く。",
+      "difficultyDetail": "base=60, top=28, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=76 ／ 作者：法性寺入道前関白太政大臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第76首。作者：法性寺入道前関白太政大臣。決まり字：わたのはらこ。小テーマ：雲に見える沖波。補助テーマ：海,舟,白波,雲。"
+    },
+    {
+      "phraseId": "hya0077",
+      "enabled": true,
+      "displayText": "瀬をはやみ　岩にせかるる　滝川の　われても末に　あはむとぞ思ふ",
+      "kanaText": "せをはやみいわにせかるるたきがわのわれてもすえにあわんとぞおもう",
+      "primaryRoman": "sewohayamiiwanisekarurutakigawanowaretemosueniawanntozoomou",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s16"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "二筋に分かれた急流がまた合うように、離れてもきっと再び会おう。",
+      "adviceText": "岩で分かれる水が再び合流する流れに、別れた二人の再会を託す。",
+      "difficultyDetail": "base=59, top=33, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=77 ／ 作者：崇徳院 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第77首。作者：崇徳院。決まり字：せ。小テーマ：別れても再び会う。補助テーマ：恋,別れ,再会,川。助動詞むは「ん」の入力案。"
+    },
+    {
+      "phraseId": "hya0078",
+      "enabled": true,
+      "displayText": "淡路島　かよふ千鳥の　鳴く声に　幾夜ねざめぬ　須磨の関守",
+      "kanaText": "あわじしまかようちどりのなくこえにいくよねざめぬすまのせきもり",
+      "primaryRoman": "awajisimakayoutidorinonakukoeniikuyonezamenusumanosekimori",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 66.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s07"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "淡路島から渡る千鳥の声に、須磨の関守は幾夜も目を覚ましたことだろう。",
+      "adviceText": "島から響く夜の鳥声を聞く関守の姿から、旅先の寂しさを想像する。",
+      "difficultyDetail": "base=58, top=30, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=78 ／ 作者：源兼昌 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第78首。作者：源兼昌。決まり字：あわじ。小テーマ：千鳥の声と旅の夜。補助テーマ：冬,旅,千鳥,須磨。"
+    },
+    {
+      "phraseId": "hya0079",
+      "enabled": true,
+      "displayText": "秋風に　たなびく雲の　たえ間より　もれ出づる月の　かげのさやけさ",
+      "kanaText": "あきかぜにたなびくくものたえまよりもれいずるつきのかげのさやけさ",
+      "primaryRoman": "akikazenitanabikukumonotaemayorimoreizurutukinokagenosayakesa",
+      "extraVariants": [],
+      "length": 61,
+      "difficultyScore": 69.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s05"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "秋風にたなびく雲の切れ間から、月の清らかな光が差し出ている。",
+      "adviceText": "雲が隠した月を少しだけ見せる構図で、光の清らかさを際立たせる。",
+      "difficultyDetail": "base=61, top=30, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=69.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=79 ／ 作者：左京大夫顕輔 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第79首。作者：左京大夫顕輔。決まり字：あきか。小テーマ：雲間の秋月。補助テーマ：秋,月,雲,光。"
+    },
+    {
+      "phraseId": "hya0080",
+      "enabled": true,
+      "displayText": "長からむ　心も知らず　黒髪の　乱れてけさは　物をこそ思へ",
+      "kanaText": "ながからんこころもしらずくろかみのみだれてけさはものをこそおもえ",
+      "primaryRoman": "nagakarannkokoromosirazukurokaminomidaretekesahamonowokosoomoe",
+      "extraVariants": [],
+      "length": 62,
+      "difficultyScore": 70,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s13"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "末永く愛すという誓いの真意が分からず、別れた朝も心が乱れている。",
+      "adviceText": "寝乱れた黒髪を心の乱れに重ね、一夜の後に残る不安を描く。",
+      "difficultyDetail": "base=62, top=29, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=70, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=80 ／ 作者：待賢門院堀河 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第80首。作者：待賢門院堀河。決まり字：ながか。小テーマ：誓いの後の不安。補助テーマ：恋,誓い,別れ,黒髪。助動詞むは「ん」の入力案。"
+    },
+    {
+      "phraseId": "hya0081",
+      "enabled": true,
+      "displayText": "ほととぎす　鳴きつる方を　ながむれば　ただありあけの　月ぞ残れる",
+      "kanaText": "ほととぎすなきつるかたをながむればただありあけのつきぞのこれる",
+      "primaryRoman": "hototogisunakiturukatawonagamurebatadaariakenotukizonokoreru",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 68,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s05"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "ほととぎすの鳴いた方を見ると姿はなく、明け方の月だけが残っていた。",
+      "adviceText": "鳥の声を追って見上げると、姿はなく月だけが残る場面を思い描く。",
+      "difficultyDetail": "base=60, top=33, bottom=7, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=81 ／ 作者：後徳大寺左大臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第81首。作者：後徳大寺左大臣。決まり字：ほ。小テーマ：ほととぎすの初音。補助テーマ：夏,ほととぎす,月,夜明け。"
+    },
+    {
+      "phraseId": "hya0082",
+      "enabled": true,
+      "displayText": "思ひわび　さてもいのちは　あるものを　憂きにたへぬは　涙なりけり",
+      "kanaText": "おもいわびさてもいのちはあるものをうきにたえぬはなみだなりけり",
+      "primaryRoman": "omoiwabisatemoinotihaarumonowoukinitaenuhanamidanarikeri",
+      "extraVariants": [],
+      "length": 56,
+      "difficultyScore": 64.2,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s15"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "恋に思い悩んでも命は絶えないのに、悲しみに耐えられない涙は流れ続ける。",
+      "adviceText": "生き続けている事実と、こらえられず流れる涙を対照させる。",
+      "difficultyDetail": "base=56, top=30, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=64.2, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=82 ／ 作者：道因法師 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第82首。作者：道因法師。決まり字：おも。小テーマ：止まらない恋の涙。補助テーマ：恋,涙,長年,苦しみ。"
+    },
+    {
+      "phraseId": "hya0083",
+      "enabled": true,
+      "displayText": "世の中よ　道こそなけれ　思ひ入る　山の奥にも　鹿ぞ鳴くなる",
+      "kanaText": "よのなかよみちこそなけれおもいいるやまのおくにもしかぞなくなる",
+      "primaryRoman": "yononakayomitikosonakereomoiiruyamanookunimosikazonakunaru",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 66.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s19"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "山奥へ逃れても、鹿が連れを求めて鳴く声から悲しみを避けられない。",
+      "adviceText": "世のつらさから離れた山にも妻を呼ぶ鹿の声が届き、悲しみは消えない。",
+      "difficultyDetail": "base=58, top=30, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=83 ／ 作者：皇太后宮大夫俊成 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第83首。作者：皇太后宮大夫俊成。決まり字：よのなかよ。小テーマ：山奥にも届く悲しみ。補助テーマ：鹿,山,孤独,悲しみ。"
+    },
+    {
+      "phraseId": "hya0084",
+      "enabled": true,
+      "displayText": "ながらへば　またこのごろや　しのばれむ　憂しと見し世ぞ　今は恋しき",
+      "kanaText": "ながらえばまたこのごろやしのばれんうしとみしよぞいまはこいしき",
+      "primaryRoman": "nagaraebamatakonogoroyasinobarennusitomisiyozoimahakoisiki",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 65.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s17"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n",
+        "n_before_vowel"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "つらい今も、後になれば懐かしく思い返す時が来るのだろうか。",
+      "adviceText": "過去の苦しさが今は懐かしいことを手がかりに、現在の痛みの先を考える。",
+      "difficultyDetail": "base=58, top=27, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=65.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=84 ／ 作者：藤原清輔朝臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第84首。作者：藤原清輔朝臣。決まり字：ながら。小テーマ：苦しい今の行く先。補助テーマ：世の中,記憶,苦しみ,時間。助動詞むは「ん」の入力案。"
+    },
+    {
+      "phraseId": "hya0085",
+      "enabled": true,
+      "displayText": "夜もすがら　物思ふころは　明けやらで　閨のひまさへ　つれなかりけり",
+      "kanaText": "よもすがらものおもうころはあけやらでねやのひまさえつれなかりけり",
+      "primaryRoman": "yomosugaramonoomoukorohaakeyaradeneyanohimasaeturenakarikeri",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s12"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "恋の物思いで夜が明けず、光の差さない寝室の隙間までもつれなく思える。",
+      "adviceText": "物思いする長い夜と、光の入らない寝室の隙間を結び付ける。",
+      "difficultyDetail": "base=60, top=31, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=85 ／ 作者：俊恵法師 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第85首。作者：俊恵法師。決まり字：よも。小テーマ：訪れを待つ夜。補助テーマ：恋,待つ,夜,戸。"
+    },
+    {
+      "phraseId": "hya0086",
+      "enabled": true,
+      "displayText": "嘆けとて　月やは物を　思はする　かこち顔なる　わが涙かな",
+      "kanaText": "なげけとてつきやはものをおもわするかこちがおなるわがなみだかな",
+      "primaryRoman": "nageketotetukiyahamonowoomowasurukakotigaonaruwaganamidakana",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s15"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "月が悲しませるわけではないのに、月を見れば涙がこぼれてしまう。",
+      "adviceText": "月のせいにしたくなるほど、心の悲しみが涙となって表れる。",
+      "difficultyDetail": "base=60, top=28, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=86 ／ 作者：西行法師 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第86首。作者：西行法師。決まり字：なげけ。小テーマ：月を見て流す涙。補助テーマ：恋,月,涙,もの思い。"
+    },
+    {
+      "phraseId": "hya0087",
+      "enabled": true,
+      "displayText": "村雨の　露もまだひぬ　まきの葉に　霧立ちのぼる　秋の夕暮れ",
+      "kanaText": "むらさめのつゆもまだひぬまきのはにきりたちのぼるあきのゆうぐれ",
+      "primaryRoman": "murasamenotuyumomadahinumakinohanikiritatinoboruakinoyuugure",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 68.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s06"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "通り雨のしずくがまだ乾かない木の葉に、霧が立ちのぼる秋の夕暮れ。",
+      "adviceText": "葉に残る雨粒と立ちのぼる霧を重ね、しっとりした秋夕を覚える。",
+      "difficultyDetail": "base=60, top=32, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=87 ／ 作者：寂蓮法師 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第87首。作者：寂蓮法師。決まり字：む。小テーマ：霧立つ谷の秋夕。補助テーマ：秋,夕暮れ,霧,雨。"
+    },
+    {
+      "phraseId": "hya0088",
+      "enabled": true,
+      "displayText": "難波江の　葦のかりねの　ひとよゆゑ　みをつくしてや　恋ひわたるべき",
+      "kanaText": "なにわえのあしのかりねのひとよゆえみをつくしてやこいわたるべき",
+      "primaryRoman": "naniwaenoasinokarinenohitoyoyuemiwotukusiteyakoiwatarubeki",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 66.8,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s16"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "旅先の一夜を過ごしただけなのに、私は一生をかけて恋するのだろうか。",
+      "adviceText": "短い逢瀬と長い恋を対比し、「澪標」と身を尽くす思いを響かせる。",
+      "difficultyDetail": "base=58, top=36, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66.8, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=88 ／ 作者：皇嘉門院別当 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第88首。作者：皇嘉門院別当。決まり字：なにわえ。小テーマ：一夜から続く恋。補助テーマ：恋,旅,一夜,掛詞。"
+    },
+    {
+      "phraseId": "hya0089",
+      "enabled": true,
+      "displayText": "玉のをよ　たえなばたえね　ながらへば　忍ぶることの　弱りもぞする",
+      "kanaText": "たまのおよたえなばたえねながらえばしのぶることのよわりもぞする",
+      "primaryRoman": "tamanooyotaenabataenenagaraebasinoburukotonoyowarimozosuru",
+      "extraVariants": [],
+      "length": 58,
+      "difficultyScore": 66.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s11"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "命よ、絶えるなら絶えてしまえ。生き続ければ恋を隠す力が弱まりそうだ。",
+      "adviceText": "命が尽きることと恋を隠す気力が尽きることを重ね、秘めた思いを強く表す。",
+      "difficultyDetail": "base=58, top=31, bottom=12, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=66.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=89 ／ 作者：式子内親王 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第89首。作者：式子内親王。決まり字：たま。小テーマ：秘めた恋の限界。補助テーマ：恋,秘密,命,忍ぶ恋。"
+    },
+    {
+      "phraseId": "hya0090",
+      "enabled": true,
+      "displayText": "見せばやな　雄島のあまの　袖だにも　濡れにぞ濡れし　色は変はらず",
+      "kanaText": "みせばやなおじまのあまのそでだにもぬれにぞぬれしいろはかわらず",
+      "primaryRoman": "misebayanaojimanoamanosodedanimonurenizonuresiirohakawarazu",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s15"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "海女の袖は海水にぬれても色が変わらない。私の袖は血の涙で色まで変わったのに。",
+      "adviceText": "海水の無色と血の涙の赤さを比べ、袖の色で恋の深い嘆きを表す。",
+      "difficultyDetail": "base=59, top=26, bottom=14, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=90 ／ 作者：殷富門院大輔 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第90首。作者：殷富門院大輔。決まり字：みせ。小テーマ：涙で色あせる袖。補助テーマ：恋,涙,袖,海。"
+    },
+    {
+      "phraseId": "hya0091",
+      "enabled": true,
+      "displayText": "きりぎりす　鳴くや霜夜の　さむしろに　衣かたしき　ひとりかも寝む",
+      "kanaText": "きりぎりすなくやしもよのさむしろにころもかたしきひとりかもねん",
+      "primaryRoman": "kirigirisunakuyasimoyonosamusironikoromokatasikihitorikamonenn",
+      "extraVariants": [],
+      "length": 62,
+      "difficultyScore": 70.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s06"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "霜の降る寒い夜、こおろぎの声を聞きながら、むしろに片袖を敷いてひとり寝る。",
+      "adviceText": "虫の声、霜夜、粗末なむしろと片袖を重ね、独り寝の寒さを伝える。",
+      "difficultyDetail": "base=62, top=33, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=70.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=91 ／ 作者：後京極摂政前太政大臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第91首。作者：後京極摂政前太政大臣。決まり字：きり。小テーマ：霜夜のひとり寝。補助テーマ：秋,霜,こおろぎ,孤独。助動詞むは「ん」の入力案。"
+    },
+    {
+      "phraseId": "hya0092",
+      "enabled": true,
+      "displayText": "わが袖は　潮干に見えぬ　沖の石の　人こそ知らね　乾くまもなし",
+      "kanaText": "わがそではしおひにみえぬおきのいしのひとこそしらねかわくまもなし",
+      "primaryRoman": "wagasodehasiohinimienuokinoisinohitokososiranekawakumamonasi",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s16"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "人には知られない片思いの涙で、袖は潮が引いても見えない沖の石のように濡れる。",
+      "adviceText": "見えない沖の石を秘密の恋に重ね、乾かない袖で涙の多さを示す。",
+      "difficultyDetail": "base=60, top=28, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=92 ／ 作者：二条院讃岐 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第92首。作者：二条院讃岐。決まり字：わがそ。小テーマ：人知れぬ恋の涙。補助テーマ：恋,片思い,涙,石。"
+    },
+    {
+      "phraseId": "hya0093",
+      "enabled": true,
+      "displayText": "世の中は　つねにもがもな　渚こぐ　あまの小舟の　綱手かなしも",
+      "kanaText": "よのなかはつねにもがもななぎさこぐあまのおぶねのつなでかなしも",
+      "primaryRoman": "yononakahatunenimogamonanagisakoguamanoobunenotunadekanasimo",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.6,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s08"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "海辺の小舟を引く人々の営みを愛おしみ、この世がいつまでも変わらずあってほしいと願う。",
+      "adviceText": "穏やかな海辺の小舟の営みをいとおしみ、変わらぬ平穏を願う。",
+      "difficultyDetail": "base=60, top=22, bottom=16, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.6, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=93 ／ 作者：鎌倉右大臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第93首。作者：鎌倉右大臣。決まり字：よのなかは。小テーマ：渚の舟と平穏。補助テーマ：旅,海,平和,舟。"
+    },
+    {
+      "phraseId": "hya0094",
+      "enabled": true,
+      "displayText": "み吉野の　山の秋風　さ夜ふけて　ふるさと寒く　衣うつなり",
+      "kanaText": "みよしののやまのあきかぜさよふけてふるさとさむくころもうつなり",
+      "primaryRoman": "miyosinonoyamanoakikazesayohuketehurusatosamukukoromoutunari",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 68.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s04"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "吉野の里に山の秋風が吹き、夜更けに衣を打つ音が寒々と響いている。",
+      "adviceText": "山風と夜更けの衣打つ音を重ね、秋夜の寒さを耳で感じる。",
+      "difficultyDetail": "base=60, top=32, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=94 ／ 作者：参議雅経 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第94首。作者：参議雅経。決まり字：みよ。小テーマ：砧の響く秋夜。補助テーマ：秋,夜,砧,吉野。"
+    },
+    {
+      "phraseId": "hya0095",
+      "enabled": true,
+      "displayText": "おほけなく　うき世の民に　おほふかな　わが立つ杣に　すみぞめの袖",
+      "kanaText": "おおけなくうきよのたみにおおうかなわがたつそまにすみぞめのそで",
+      "primaryRoman": "ookenakuukiyonotaminiooukanawagatatusomanisumizomenosode",
+      "extraVariants": [],
+      "length": 56,
+      "difficultyScore": 63.8,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s18"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "身には過ぎた願いだが、僧の墨染めの袖で世の人々を覆うように守りたい。",
+      "adviceText": "比叡山の僧衣の袖を人々にかける比喩で、皆のために祈る志を示す。",
+      "difficultyDetail": "base=56, top=28, bottom=11, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=63.8, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=95 ／ 作者：前大僧正慈円 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第95首。作者：前大僧正慈円。決まり字：おおけ。小テーマ：人々のための祈り。補助テーマ：祈り,人々,僧,比叡山。"
+    },
+    {
+      "phraseId": "hya0096",
+      "enabled": true,
+      "displayText": "花さそふ　嵐の庭の　雪ならで　ふりゆくものは　わが身なりけり",
+      "kanaText": "はなさそうあらしのにわのゆきならでふりゆくものはわがみなりけり",
+      "primaryRoman": "hanasasouarasinoniwanoyukinaradehuriyukumonohawagaminarikeri",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 67.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s18"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "庭の花を雪のように散らす嵐を見て、降る花に、老い衰えていく自分を重ねる。",
+      "adviceText": "「降る花」と「古る身」を掛ける。散る花と自分の老いを重ねる。",
+      "difficultyDetail": "base=60, top=28, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=96 ／ 作者：入道前太政大臣 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第96首。作者：入道前太政大臣。決まり字：はなさ。小テーマ：散る桜と老い。補助テーマ：春,桜,老い,掛詞。"
+    },
+    {
+      "phraseId": "hya0097",
+      "enabled": true,
+      "displayText": "こぬ人を　まつほの浦の　夕なぎに　焼くやもしほの　身もこがれつつ",
+      "kanaText": "こぬひとをまつほのうらのゆうなぎにやくやもしおのみもこがれつつ",
+      "primaryRoman": "konuhitowomatuhonouranoyuunaginiyakuyamosionomimokogaretutu",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 68,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s12"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "待つ人は来ず、浜の藻塩を焼く煙のように恋心に身を焦がす。",
+      "adviceText": "「待つ・松帆」と藻塩を焼く火をつなぎ、待ち焦がれる恋を覚える。",
+      "difficultyDetail": "base=59, top=35, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=97 ／ 作者：権中納言定家 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第97首。作者：権中納言定家。決まり字：こぬ。小テーマ：来ない人を待つ浜。補助テーマ：恋,待つ,浜,煙。地名「松帆」は「まつほ」を保持。"
+    },
+    {
+      "phraseId": "hya0098",
+      "enabled": true,
+      "displayText": "風そよぐ　ならの小川の　夕暮れは　みそぎぞ夏の　しるしなりける",
+      "kanaText": "かぜそよぐならのおがわのゆうぐれはみそぎぞなつのしるしなりける",
+      "primaryRoman": "kazesoyogunaranoogawanoyuugurehamisogizonatunosirusinarikeru",
+      "extraVariants": [],
+      "length": 60,
+      "difficultyScore": 68.2,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s01"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "夕風は秋のように涼しいが、川のみそぎを見るとまだ夏だと分かる。",
+      "adviceText": "涼しい風は秋を思わせるが、夏越の祓のみそぎが夏だと教える。",
+      "difficultyDetail": "base=60, top=32, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=68.2, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=98 ／ 作者：従二位家隆 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第98首。作者：従二位家隆。決まり字：かぜそ。小テーマ：夏の終わりの夕べ。補助テーマ：夏,秋,風,川。"
+    },
+    {
+      "phraseId": "hya0099",
+      "enabled": true,
+      "displayText": "人もをし　人も恨めし　あぢきなく　世を思ふゆゑに　物思ふ身は",
+      "kanaText": "ひともおしひともうらめしあじきなくよをおもうゆえにものおもうみは",
+      "primaryRoman": "hitomoosihitomouramesiajikinakuyowoomouyuenimonoomoumiha",
+      "extraVariants": [],
+      "length": 56,
+      "difficultyScore": 64.8,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s18"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "人を愛しく思う時も恨めしく思う時もあり、そんな世に心を悩ませて生きる。",
+      "adviceText": "愛憎が揺れる心と、思いどおりにならない世のあり方を重ねる。",
+      "difficultyDetail": "base=56, top=34, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=64.8, scoreLevel=D9, minLevel=D1, final=D9, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=99 ／ 作者：後鳥羽院 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第99首。作者：後鳥羽院。決まり字：ひとも。小テーマ：愛と恨みの世。補助テーマ：世の中,愛憎,もの思い,嘆き。"
+    },
+    {
+      "phraseId": "hya0100",
+      "enabled": true,
+      "displayText": "百敷や　ふるき軒端の　しのぶにも　なほあまりある　昔なりけり",
+      "kanaText": "ももしきやふるきのきばのしのぶにもなおあまりあるむかしなりけり",
+      "primaryRoman": "momosikiyahurukinokibanosinobunimonaoamariarumukasinarikeri",
+      "extraVariants": [],
+      "length": 59,
+      "difficultyScore": 67.4,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "hyakunin_isshu",
+        "hyakunin_isshu_s17"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "古びた宮中の軒に生える草を見て、栄えた昔の時代を懐かしむ。",
+      "adviceText": "軒のしのぶ草を、過ぎ去った時代を思いしのぶ心に重ねる。",
+      "difficultyDetail": "base=59, top=29, bottom=13, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=67.4, scoreLevel=D10, minLevel=D1, final=D10, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "https://www.samac.jp/search/poems_detail.php?id=100 ／ 作者：順徳院 ／ 意味・覚え方は独自要約",
+      "note": "2026-11-13 登録。百人一首第100首。作者：順徳院。決まり字：もも。小テーマ：昔をしのぶ宮中。補助テーマ：宮中,昔,衰え,しのぶ草。"
     }
   ],
   "questGroups": [
