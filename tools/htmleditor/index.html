@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-project-preview-finder-r1">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-standard-icons-20261113-r1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-v3-20261002-enabled" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
   <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-v3-20261002-enabled" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
   <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
-  <link rel="stylesheet" href="editor.css?v=html-editor-resize-scroll-20261106-r1" data-editor-required integrity="sha384-XMq8A/vPCptosk5oqKHNEkCFR5QkPPRlmlfeWgN3M5qWsnsu/jDgSU++RPyDzuC9" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-editor-standard-icons-20261113-r1" data-editor-required integrity="sha384-4U3c4AvGjsxwigsKp5RMmDH4L35YdMXpJODAViQ26vhbbzp/lu6MOmWgsZwvc4+L" crossorigin="anonymous">
   <link rel="stylesheet" href="feedback.css?v=html-feedback-ui-20261019-r1" integrity="sha384-Ov5wZ7lOrI+NZAc5XSoXa3+aK9Po+xzt9s8nQGwdld02fJQQ1Vg/MJ8L50I9OmKw" crossorigin="anonymous">
   <link rel="stylesheet" href="../../css/display-settings.css?v=display-settings-20261026-r1" integrity="sha384-IrW1qsVKYNqen4SeokdHLEIkHSyuGXASeEhOiQ7Ye5uMRD7celjRy4PTw15Prp2w" crossorigin="anonymous">
 </head>
@@ -57,13 +57,13 @@
   <header id="toolbar" aria-label="エディタの操作">
     <a class="brand" href="../index.html" aria-label="ツール一覧へ戻る"><img class="brand-icon" src="icon.svg" alt=""><span>HTMLエディタ</span></a>
     <div class="practice-actions" role="group" aria-label="実習の操作">
-    <button class="btn" id="taskDownloadBtn" type="button" data-tip="学校アカウントで新しい実習ファイルをダウンロードします。編集中の内容を保存する操作ではありません。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><span>ダウンロード</span></button>
-    <button class="btn" id="openFilesBtn" type="button" data-tip="OSのファイル選択で保存済みの実習ファイルを開きます（⌘O）。接続した実習フォルダ内のファイルを選んでください。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V4h6l2 3h10v3M3 7h7l2 3h10l-3 10H3z"/></svg><span>開く</span></button>
+    <button class="btn" id="taskDownloadBtn" type="button" data-tip="学校アカウントで新しい実習ファイルをダウンロードします。編集中の内容を保存する操作ではありません。"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="export"><use href="../shared/ui-icons.svg?v=20261113#export"/></svg><span>ダウンロード</span></button>
+    <button class="btn" id="openFilesBtn" type="button" data-tip="OSのファイル選択で保存済みの実習ファイルを開きます（⌘O）。接続した実習フォルダ内のファイルを選んでください。"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="open"><use href="../shared/ui-icons.svg?v=20261113#open"/></svg><span>開く</span></button>
     <button class="btn" id="submitBtn" type="button" aria-describedby="submissionState" data-tip="保存済みの実習ファイルを提出します。送信前に保存と提出条件を確認します。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4H5v17h14V4h-2M9 3h6v4H9zM12 17v-6M9 14l3-3 3 3"/></svg><span id="submitLabel">提出</span></button>
     <div class="practice-support-actions" role="group" aria-label="手順と表示">
     <button class="btn" id="practiceStepsBtn" type="button" data-tip="フォルダ接続・取得・編集・保存・提出の手順を確認します。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M2 5l1 1 2-3M2 12l1 1 2-3M2 19l1 1 2-3"/></svg><span>手順</span></button>
     <details class="menu-wrap" id="viewMenu">
-      <summary class="btn" data-tip="解説・プレビューを開閉し、列配置を初期値に戻せます。解説を別タブで開くこともできます。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM9 4v16"/></svg><span>表示</span></summary>
+      <summary class="btn" data-tip="解説・プレビューを開閉し、列配置を初期値に戻せます。解説を別タブで開くこともできます。"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="view"><use href="../shared/ui-icons.svg?v=20261113#view"/></svg><span>表示</span></summary>
       <div class="menu-dropdown">
         <button class="menu-item" id="toggleLessonBtn" type="button" aria-pressed="false">解説を折りたたむ</button>
         <button class="menu-item" id="togglePreviewBtn" type="button" aria-pressed="false">プレビューを折りたたむ</button>
@@ -75,7 +75,7 @@
     </div>
     <div class="toolbar-right">
       <details class="menu-wrap" id="displayMenuWrap">
-        <summary class="btn icon-only" aria-label="設定" title="設定"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 2h3l.5 2.5 1.5.7 2.1-1.4 2.2 2.2-1.4 2.1.6 1.4 3 1v3l-2.5.5-.7 1.5 1.4 2.1-2.2 2.2-2.1-1.4-1.4.6-1 3h-3l-.5-2.5-1.5-.7-2.1 1.4-2.2-2.2 1.4-2.1-.6-1.4-3-1v-3l2.5-.5.7-1.5-1.4-2.1 2.2-2.2 2.1 1.4 1.4-.6z"/><circle cx="12" cy="12" r="3"/></svg></summary>
+        <summary class="btn icon-only" aria-label="設定" title="設定"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="settings"><use href="../shared/ui-icons.svg?v=20261113#settings"/></svg></summary>
         <div class="menu-dropdown display-settings">
           <div id="editorDisplaySettings" hidden></div>
           <div id="legacyDisplaySettings">
@@ -93,7 +93,7 @@
             <p id="folderStatusText">フォルダ未接続</p>
             <p id="folderMemoryNotice"></p>
             <button class="menu-item" id="reconnectFolderBtn" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 9m0-5v5h-5M20 12a8 8 0 0 1-13.7 5.7L4 15m0 5v-5h5"/></svg><span>前回のフォルダへ再接続</span></button>
-            <button class="menu-item" id="settingsFolderBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V4h6l2 3h10v3M3 7h7l2 3h10l-3 10H3z"/></svg><span>フォルダを接続・変更…</span></button>
+            <button class="menu-item" id="settingsFolderBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="open"><use href="../shared/ui-icons.svg?v=20261113#open"/></svg><span>フォルダを接続・変更…</span></button>
             <button class="menu-item" id="disconnectBtn" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5-4 4a4 4 0 0 0 6 6l1-1M15 19l4-4a4 4 0 0 0-6-6l-1 1M3 3l18 18"/></svg><span>フォルダの接続を解除</span></button>
           </section>
           <section class="settings-section recovery-entry" aria-label="困ったときの復旧">
@@ -101,14 +101,14 @@
             <button class="btn" id="restoreBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6M12 7v6l4 2"/></svg><span>復旧候補を開く…</span></button>
           </section>
           <details class="settings-section"><summary>保存の補助操作</summary>
-            <button class="menu-item" id="folderSaveBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l4 4v14H3V3zM7 3v6h10V3M7 21v-8h10v8"/></svg><span>接続したフォルダへ保存…</span></button>
-            <button class="menu-item" id="downloadBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><span>編集中のファイルのコピーをダウンロード</span></button>
-            <button class="menu-item" id="openOtherFileBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7"/></svg><span>別の場所からファイルを開く…</span></button>
+            <button class="menu-item" id="folderSaveBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="save"><use href="../shared/ui-icons.svg?v=20261113#save"/></svg><span>接続したフォルダへ保存…</span></button>
+            <button class="menu-item" id="downloadBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="export"><use href="../shared/ui-icons.svg?v=20261113#export"/></svg><span>編集中のファイルのコピーをダウンロード</span></button>
+            <button class="menu-item" id="openOtherFileBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="open"><use href="../shared/ui-icons.svg?v=20261113#open"/></svg><span>別の場所からファイルを開く…</span></button>
           </details>
           <p id="usageNotice">基本編集・保存はログイン不要です。ローカルのHTML/CSSを開いて使います。</p>
         </div>
       </details>
-      <button class="btn icon-only" id="helpBtn" type="button" aria-label="ヘルプ" data-tip="操作方法・保存・復旧・提出についての説明を開きます。">?</button>
+      <button class="btn icon-only" id="helpBtn" type="button" aria-label="ヘルプ" data-tip="操作方法・保存・復旧・提出についての説明を開きます。"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="help"><use href="../shared/ui-icons.svg?v=20261113#help"/></svg></button>
     </div>
   </header>
   <div id="folderAlert" role="alert">
@@ -130,7 +130,7 @@
         <div class="pane-title" id="editorPaneTitle">編集</div>
         <div class="breadcrumb"><span id="currentFileLabel"></span><span id="dirtyMark" aria-label="未保存の変更" hidden>＊</span><span class="save-shortcut">⌘Sで保存・プレビュー更新</span></div>
         <button class="btn" id="findErrorsBtn" type="button" data-tip="自分で見直しても見つからないときに、該当する行番号をヒントボタンにします。利用記録は提出時に授業担当者へ送られます。" hidden>エラーを探す</button>
-        <button class="btn" id="saveBtn" type="button" data-tip="開いている実習ファイルに上書き保存し、プレビューを更新します（⌘S）。直接保存できない場合は保存方法を案内します。" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l4 4v14H3V3zM7 3v6h10V3M7 21v-8h10v8"/></svg><span>保存</span></button>
+        <button class="btn" id="saveBtn" type="button" data-tip="開いている実習ファイルに上書き保存し、プレビューを更新します（⌘S）。直接保存できない場合は保存方法を案内します。" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="save"><use href="../shared/ui-icons.svg?v=20261113#save"/></svg><span>保存</span></button>
         </div>
       </div>
       <p id="hintNotice" hidden></p>
@@ -139,7 +139,7 @@
     <div class="splitter" id="splitRight" role="separator" aria-label="プレビューを折りたたむ。左右矢印キーで幅を調整" aria-controls="rightPane" aria-orientation="vertical" tabindex="0"><span class="splitter-arrow" aria-hidden="true">›</span></div>
     <section class="pane" id="rightPane" aria-label="プレビュー">
       <div class="pane-header"><div class="pane-header-content"><div class="preview-heading"><div class="pane-title">プレビュー</div><span id="previewTitle" hidden></span></div><div class="pane-actions">
-        <button class="btn icon-only" id="runBtn" type="button" aria-label="プレビューを更新" data-tip="プレビューのみを更新します（⌘Enter）。Macのファイルには保存しません。" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.364-6.364L21 8.272m0-4v4h-4M21 12a9 9 0 0 1-15.364 6.364L3 15.728m0 4v-4h4"/></svg></button>
+        <button class="btn icon-only" id="runBtn" type="button" aria-label="プレビューを更新" data-tip="プレビューのみを更新します（⌘Enter）。Macのファイルには保存しません。" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="refresh"><use href="../shared/ui-icons.svg?v=20261113#refresh"/></svg></button>
         <button class="btn icon-only" id="openPreviewTabBtn" type="button" aria-label="プレビューを別タブで開く" title="プレビューを別タブで開く" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7"/></svg></button>
       </div></div></div>
       <p id="previewNotice" hidden></p>
@@ -231,12 +231,13 @@
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.10.4（2026年11月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>HTMLエディタ 0.10.5（2026年11月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
     <p>通常の編集はこの端末とブラウザで処理します。「提出」を押すと、保存確認済みの内容をモーダル内の学校アカウント用フォームへ渡します。提出記録の作成は、フォーム内の「提出する」を押したときだけです。ログインや表示がうまくいかない場合は「表示・ログインで困ったとき」から「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
+<script src="../shared/ui-icons.js?v=20261113" integrity="sha384-ofiHKJQQjYowpt1TYAgrtCF6fublRt3TKT9qz1+cCulXV9fF9YWrdy0jn10DAGWZ" crossorigin="anonymous"></script>
 <script src="../shared/ui-kit.js?v=html-editor-v3-20261002-enabled" integrity="sha384-gJtzyxvyBGTi1NPgFRgtgm9RQdY0TVXYqum+SjC1t7bk9gPwfLx1nWbXClyimQjk" crossorigin="anonymous"></script>
 <script src="../shared/help-panel.js?v=html-editor-v3-20261002-enabled" integrity="sha384-Ts3DYhHzaKGhPhPw8aYbXGEreQwLeHvt+Rj1agj95ZTBhphe94YBWz6EiTY1kmAL" crossorigin="anonymous"></script>
 <script src="vendor/codemirror.min.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-BEgQlz0fN4eG0n4jipmUe+nOg65hPY7L0E/lPVRaOPdzAfLPGEbXnpAodHtSnlwM" crossorigin="anonymous"></script>
@@ -277,6 +278,6 @@
 <script src="layout.js?v=html-editor-layout-20261026-r1" data-editor-required integrity="sha384-WLQti+W6ngMC1kQJbIWf0Ox83b4aUKSn6vqIY3Xl6EwUFu0rLV4TeE8u6wWQCfTU" crossorigin="anonymous"></script>
 <script src="../../js/display_settings.js?v=display-settings-20261026-r1" integrity="sha384-mjOLf/HR609aWS9h46tGYa59S393hVpH432c5YV8/BhhXQcm1ic9yMwLAmcsLuA/" crossorigin="anonymous"></script>
 <script src="../../js/display_settings_ui.js?v=display-settings-20261026-r1" integrity="sha384-029272WHNXJuqSrj5agqjjZseUCfJCU6a3fm4BZjN5XxnTN6yYLGL6c8oVNWZsOc" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-editor-project-preview-finder-r1" data-editor-required integrity="sha384-AWT8xDnBXXgSnARyg1/6/HUCUkfJsgpfNVOrN0voID8ASmXR+X5S9pq1vNuwua2j" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-editor-standard-icons-20261113-r1" data-editor-required integrity="sha384-OD9ChF9VYvFkSSJghiyZ9r26arNUt9VdXR2QlYuGxus8NiKHMg3zYD4ybOqzKug6" crossorigin="anonymous"></script>
 </body>
 </html>

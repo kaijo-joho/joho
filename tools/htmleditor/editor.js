@@ -197,6 +197,10 @@
       function button(label, value, callback) {
         const node = textNode($('actionButtons'), label, 'button');
         node.type = 'button'; node.className = 'btn'; node.dataset.choice = value;
+        if (value === 'close') {
+          try { const icon = window.JohoIcons?.create('close'); if (icon) node.prepend(icon); }
+          catch { /* 図柄が使えなくても、閉じる操作は維持する。 */ }
+        }
         node.addEventListener('click', async () => {
           node.disabled = true;
           try {
@@ -790,6 +794,11 @@
         const panel = window.siteDisplaySettingsUI?.createPanel({idPrefix:'html-editor-display', controller:api});
         if (!panel) throw Error('display panel unavailable');
         $('editorDisplaySettings').append(panel.element);
+        for (const [theme, icon] of [['system','theme-auto'],['light','theme-light'],['dark','theme-dark']]) {
+          const svg = panel.element.querySelector('[data-value="' + theme + '"] svg');
+          try { if (svg) window.JohoIcons?.apply(svg, icon); }
+          catch { /* 教材サイト共通UIは変更せず、既存のテーマ操作を続ける。 */ }
+        }
         $('editorDisplaySettings').hidden = false; $('legacyDisplaySettings').hidden = true;
       } catch {
         $('displayNotice').textContent = '表示パネルを読み込めませんでした。テーマと従来の文字サイズは変更できます。';
