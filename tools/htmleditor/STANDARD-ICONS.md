@@ -77,4 +77,8 @@ Playwrightを利用できるNode環境が必要。共通候補の準備中は `H
 
 公開URLは `https://joho.kaijo.ed.jp/tools/htmleditor/index.html`。公開コミット・HTTP読戻しは反映後に下記へ記録する。共通依存の公開確認と、HTML側の公開確認は分ける。
 
+2026-11-13、コードコミット `58ec99ab1131232ef4c5fba4616266bf6b288b01` を `origin/main` へpushした。公開初回の本体3ファイルは変更前の版と一致していたため再送せず待機し、次の読戻しで `index.html`、`editor.css`、`editor.js` と共通 `ui-icons.js`、`ui-icons.svg` の全5ファイルがHTTP 200・同コードコミットのバイト列と一致した。
+
+HTTP読戻しは `/private/tmp/html-icons-public-readback.json`、最初の旧版の記録は `/private/tmp/html-icons-public-readback-before.json`。認証情報・Cookie・生徒データを使わず公開ファイルだけを取得した。公開サイトでの実アカウント操作・実機の画面検証を行ったという意味ではない。
+
 戻す場合は、今回のHTML側のコミットだけを履歴を保つrevertで戻す。共有の `a7f633f` や他担当のコミットをrevert・resetしない。復元前のHTML側は上記の依存基点の版。ローカルの最終課題候補や既存未コミット差分も保持する。
