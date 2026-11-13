@@ -13,6 +13,18 @@ import { ConfirmationStore, CONFIRMATION_STORAGE_KEY, LEGACY_CONFIRMATION_STORAG
 import { ConfirmationPanel } from './confirmation-ui.mjs?v=20261017-confirmation-sync1';
 import { AdvicePanel } from './advice-ui.mjs?v=20261017-advice1';
 const $ = id => document.getElementById(id);
+// Only decoration is shared; the existing handlers retain their actions and labels.
+function addOperationIcon(button, id) {
+  if (!globalThis.JohoIcons) return;
+  button.title ||= button.textContent.trim();
+  button.prepend(JohoIcons.create(id, { className: 'tool-icon' }));
+  button.classList.add('with-icon');
+}
+function updateThemeIcon() {
+  const icon = $('theme-icon'), id = `theme-${$('theme').value}`;
+  if (globalThis.JohoIcons) JohoIcons.apply(icon, id);
+  else icon.querySelector('use').setAttribute('href', `../shared/ui-icons.svg?v=20261113#${id}`);
+}
 const entries = new Map(), outputs = new Map(), docs = new Map(), questionGroupTitles = new Map(), trialWrites = new Set(), trialRecordFailures = new Set();
 let catalog, selectedSet, question, cm, store, runSnapshot, busy = false, pendingImport;
 let saveFailed = false;
@@ -258,7 +270,7 @@ function renderOutput() {
     const figure = document.createElement('figure'), caption = document.createElement('figcaption');
     if (file.kind === 'figure') { const img = document.createElement('img'); img.src = `data:image/png;base64,${file.data}`; img.alt = `実行結果のグラフ ${index + 1}`; figure.append(img); }
     const label = document.createElement('span'); label.textContent = file.name;
-    const button = document.createElement('button'); button.textContent = 'ファイルに保存'; button.type = 'button';
+    const button = document.createElement('button'); button.textContent = 'ファイルに保存'; button.type = 'button'; addOperationIcon(button, 'save');
     button.addEventListener('click', () => {
       const bytes = Uint8Array.from(atob(file.data), c => c.charCodeAt(0));
       download(new Blob([bytes], { type: file.kind === 'figure' ? 'image/png' : 'application/octet-stream' }), file.name);
@@ -502,20 +514,20 @@ function restoreDialog() {
     const candidates = store.candidates(question); $('restore-options').replaceChildren();
     if (!candidates.length) { const p = document.createElement('p'); p.textContent = '保存された内容がありません。'; $('restore-options').append(p); }
     for (const c of candidates) {
-      const button = document.createElement('button'); button.textContent = `${c.label} / ${c.entry.updatedAt || '日時不明'}`; button.type = 'button';
+      const button = document.createElement('button'); button.textContent = `${c.label} / ${c.entry.updatedAt || '日時不明'}`; button.type = 'button'; addOperationIcon(button, 'open');
       button.addEventListener('click', () => { $('restore-dialog').close(); prepareImport([c.entry], c.label); });
       $('restore-options').append(button);
     }
     let copies = [], legacy;
     try { copies = confirmationStore.backups(); } catch { const p = document.createElement('p'); p.className = 'danger'; p.textContent = '確認記録の控えを読み取れません。元の控えは保持しています。'; $('restore-options').append(p); }
     for (const copy of copies) {
-      const button = document.createElement('button'); button.type = 'button'; button.textContent = `確認記録の控えを書き出す：${copy.reason} / ${copy.at}`;
+      const button = document.createElement('button'); button.type = 'button'; button.textContent = `確認記録の控えを書き出す：${copy.reason} / ${copy.at}`; addOperationIcon(button, 'export');
       button.addEventListener('click', () => { download(new Blob([JSON.stringify({ ...exportDraft(entries.values()), confirmationJournal: copy.journal }, null, 2)], { type: 'application/json' }), 'python-confirmation-backup.json'); showNotice('確認記録の控えを保存ファイルに書き出しました。'); });
       $('restore-options').append(button);
     }
     try { legacy = confirmationStore.legacySnapshot(); } catch { const p = document.createElement('p'); p.className = 'danger'; p.textContent = '旧版の確認記録を読み取れません。元の記録は保持しています。'; $('restore-options').append(p); }
     if (legacy) {
-      const button = document.createElement('button'); button.type = 'button'; button.textContent = '旧版の確認記録をファイルに書き出す';
+      const button = document.createElement('button'); button.type = 'button'; button.textContent = '旧版の確認記録をファイルに書き出す'; addOperationIcon(button, 'export');
       button.addEventListener('click', () => download(new Blob([JSON.stringify({ ...exportDraft(entries.values()), confirmationJournal: legacy }, null, 2)], { type: 'application/json' }), 'python-confirmation-legacy.json'));
       $('restore-options').append(button);
     }
@@ -600,6 +612,7 @@ async function init() {
   });
   advicePanel = new AdvicePanel({ snapshot: adviceSnapshot, closeMenus: () => closeMenus(true) });
   try { JohoUI.theme({storageKey:'joho.pythoneditor.view.v1',themeSelect:$('theme'),sizeSelect:$('text-size')}); JohoUI.tooltip(); } catch {}
+  updateThemeIcon(); $('theme').addEventListener('change', updateThemeIcon);
   if (cm) {
     $('text-size').addEventListener('change', () => cm.refresh());
     cm.refresh();

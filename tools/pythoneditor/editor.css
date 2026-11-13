@@ -123,3 +123,8 @@
 .confirmation-answer input,.confirmation-answer select{display:block;width:100%;margin-top:4px}.confirmation-note{margin:10px 0}
 .confirmation-history{margin-top:12px}.confirmation-history summary{min-height:44px;padding-block:8px}.confirmation-history ol{padding-left:1.6em}.confirmation-history li{margin:8px 0}
 .confirmation-history pre{background:var(--bg);padding:8px;max-height:200px;overflow:auto}.confirmation-history details>details{margin:8px 0}
+
+/* Standard operation symbols are owned by tools/shared; button behavior is unchanged. */
+.tool-icon{width:22px;height:22px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+.with-icon>.tool-icon{margin-inline-end:.5em}
+#file-menu>summary,.setting-label{display:inline-flex;align-items:center;gap:5px}
