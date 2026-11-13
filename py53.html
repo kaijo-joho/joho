@@ -143,40 +143,55 @@ plt.show()
           <title id="py53-weather-title">晴れ・曇り・雨の状態遷移図</title>
           <desc id="py53-weather-desc">晴れからは晴れ0.5、曇り0.3、雨0.2。曇りからは晴れ0.4、曇り0.4、雨0.2。雨からは晴れ0.2、曇り0.5、雨0.3の確率で翌日の天気へ移ります。</desc>
           <defs>
-            <marker id="py53-weather-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" orient="auto" markerUnits="userSpaceOnUse">
-              <path class="concept-diagram__arrow" d="M0,0 L12,6 L0,12 Z"></path>
+            <marker id="py53-weather-arrow" viewBox="0 0 14 14" refX="14" refY="7" markerWidth="14" markerHeight="14" orient="auto" markerUnits="userSpaceOnUse">
+              <path class="concept-diagram__arrow" d="M0,0 L14,7 L0,14 Z"></path>
             </marker>
           </defs>
 
-          <path class="concept-diagram__path" d="M320 110 C260 15 500 15 440 110" marker-end="url(#py53-weather-arrow)"></path>
-          <text class="concept-diagram__text concept-diagram__code" x="235" y="62">0.5</text>
+          <rect class="concept-diagram__state concept-diagram__state--sun" data-weather-state="0" x="280" y="150" width="200" height="80" rx="16"></rect>
+          <rect class="concept-diagram__state concept-diagram__state--cloud" data-weather-state="1" x="110" y="430" width="200" height="80" rx="16"></rect>
+          <rect class="concept-diagram__state concept-diagram__state--rain" data-weather-state="2" x="450" y="430" width="200" height="80" rx="16"></rect>
 
-          <path class="concept-diagram__path" d="M295 175 L180 392" marker-end="url(#py53-weather-arrow)"></path>
-          <text class="concept-diagram__text concept-diagram__code" x="218" y="252">0.3</text>
-          <path class="concept-diagram__path" d="M225 392 L345 198" marker-end="url(#py53-weather-arrow)"></path>
-          <text class="concept-diagram__text concept-diagram__code" x="294" y="315">0.4</text>
+          <g data-weather-from="0" data-weather-to="0">
+            <path class="concept-diagram__path" d="M350 148 A48 48 0 1 1 410 148" marker-end="url(#py53-weather-arrow)"></path>
+            <text class="concept-diagram__text concept-diagram__code" x="380" y="111" dominant-baseline="middle">0.5</text>
+          </g>
+          <g data-weather-from="0" data-weather-to="1">
+            <path class="concept-diagram__path" d="M300 232 L200 428" marker-end="url(#py53-weather-arrow)"></path>
+            <text class="concept-diagram__text concept-diagram__code" x="212" y="339">0.3</text>
+          </g>
+          <g data-weather-from="1" data-weather-to="0">
+            <path class="concept-diagram__path" d="M258 428 L358 232" marker-end="url(#py53-weather-arrow)"></path>
+            <text class="concept-diagram__text concept-diagram__code" x="345" y="339">0.4</text>
+          </g>
+          <g data-weather-from="0" data-weather-to="2">
+            <path class="concept-diagram__path" d="M460 232 L560 428" marker-end="url(#py53-weather-arrow)"></path>
+            <text class="concept-diagram__text concept-diagram__code" x="548" y="339">0.2</text>
+          </g>
+          <g data-weather-from="2" data-weather-to="0">
+            <path class="concept-diagram__path" d="M502 428 L402 232" marker-end="url(#py53-weather-arrow)"></path>
+            <text class="concept-diagram__text concept-diagram__code" x="415" y="339">0.2</text>
+          </g>
+          <g data-weather-from="1" data-weather-to="2">
+            <path class="concept-diagram__path" d="M312 452 H448" marker-end="url(#py53-weather-arrow)"></path>
+            <text class="concept-diagram__text concept-diagram__code" x="380" y="440">0.2</text>
+          </g>
+          <g data-weather-from="2" data-weather-to="1">
+            <path class="concept-diagram__path" d="M448 488 H312" marker-end="url(#py53-weather-arrow)"></path>
+            <text class="concept-diagram__text concept-diagram__code" x="380" y="520">0.5</text>
+          </g>
+          <g data-weather-from="1" data-weather-to="1">
+            <path class="concept-diagram__path" d="M108 450 A42 42 0 1 0 108 490" marker-end="url(#py53-weather-arrow)"></path>
+            <text class="concept-diagram__text concept-diagram__code" x="71" y="470" dominant-baseline="middle">0.4</text>
+          </g>
+          <g data-weather-from="2" data-weather-to="2">
+            <path class="concept-diagram__path" d="M652 450 A42 42 0 1 1 652 490" marker-end="url(#py53-weather-arrow)"></path>
+            <text class="concept-diagram__text concept-diagram__code" x="689" y="470" dominant-baseline="middle">0.3</text>
+          </g>
 
-          <path class="concept-diagram__path" d="M465 175 L580 392" marker-end="url(#py53-weather-arrow)"></path>
-          <text class="concept-diagram__text concept-diagram__code" x="542" y="252">0.2</text>
-          <path class="concept-diagram__path" d="M535 392 L415 198" marker-end="url(#py53-weather-arrow)"></path>
-          <text class="concept-diagram__text concept-diagram__code" x="466" y="315">0.2</text>
-
-          <path class="concept-diagram__path" d="M278 420 H482" marker-end="url(#py53-weather-arrow)"></path>
-          <text class="concept-diagram__text concept-diagram__code" x="380" y="405">0.2</text>
-          <path class="concept-diagram__path" d="M482 460 H278" marker-end="url(#py53-weather-arrow)"></path>
-          <text class="concept-diagram__text concept-diagram__code" x="380" y="500">0.5</text>
-
-          <path class="concept-diagram__path" d="M75 480 C-5 535 -10 375 45 415" marker-end="url(#py53-weather-arrow)"></path>
-          <text class="concept-diagram__text concept-diagram__code" x="52" y="540">0.4</text>
-          <path class="concept-diagram__path" d="M685 480 C765 535 770 375 715 415" marker-end="url(#py53-weather-arrow)"></path>
-          <text class="concept-diagram__text concept-diagram__code" x="708" y="540">0.3</text>
-
-          <rect class="concept-diagram__state concept-diagram__state--sun" x="270" y="110" width="220" height="80" rx="16"></rect>
-          <text class="concept-diagram__state-label" x="380" y="160">晴れ</text>
-          <rect class="concept-diagram__state concept-diagram__state--cloud" x="50" y="400" width="220" height="80" rx="16"></rect>
-          <text class="concept-diagram__state-label" x="160" y="450">曇り</text>
-          <rect class="concept-diagram__state concept-diagram__state--rain" x="490" y="400" width="220" height="80" rx="16"></rect>
-          <text class="concept-diagram__state-label" x="600" y="450">雨</text>
+          <text class="concept-diagram__state-label" x="380" y="200">晴れ</text>
+          <text class="concept-diagram__state-label" x="210" y="480">曇り</text>
+          <text class="concept-diagram__state-label" x="550" y="480">雨</text>
         </svg>
       </figure>
       <p>0日後の天気が「晴れ」として、30日後までの天気がどのように変化するか、また、各天気の種類の日が何日あるかを棒グラフで示しなさい。ただし、天気は、「晴れ」「曇り」「雨」の3種類とし、その天気が1日中続くものとします。</p>
