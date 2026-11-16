@@ -7,12 +7,15 @@
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>情報科ヘルプデスク — 画面試作</title>
-  <link rel="stylesheet" href="app.css">
-  <script type="module" src="app.mjs"></script>
+  <link rel="stylesheet" href="app.css?v=preview-comments-20261116">
+  <script type="module" src="app.mjs?v=preview-comments-20261116"></script>
 </head>
 <body>
   <a class="skip" href="#main">本文へ移動</a>
-  <div class="prototype-note">確認用の試作です。原稿とサンプル相談を使っています。入力は外部へ送らず、再読み込みで消えます。実際の相談受付・返信は行いません。</div>
+  <aside class="preview-comment preview-comment--banner" aria-label="プレビュー用コメント">
+    <span class="preview-comment__label">プレビュー用コメント</span>
+    <div class="preview-comment__body">オレンジ色の枠内は確認者向けの補足です。確認用の試作です。原稿とサンプル相談を使っています。入力は外部へ送らず、再読み込みで消えます。実際の相談受付・返信は行いません。</div>
+  </aside>
   <header class="site-header">
     <div><span class="eyebrow">情報科</span><p class="brand">ヘルプデスク</p></div>
     <div class="preferences">
@@ -22,6 +25,9 @@
   </header>
   <nav id="views" aria-label="試作する画面"></nav>
   <main id="main" tabindex="-1"></main>
-  <footer>情報科ヘルプデスク help-desk · 受付・返信機能は未接続の試作</footer>
+  <footer><aside class="preview-comment" aria-label="プレビュー用コメント">
+    <span class="preview-comment__label">プレビュー用コメント</span>
+    <div class="preview-comment__body">情報科ヘルプデスク help-desk · 受付・返信機能は未接続の試作</div>
+  </aside></footer>
 </body>
 </html>

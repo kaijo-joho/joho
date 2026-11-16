@@ -44,6 +44,8 @@ const card = (...items) => el('section', { class: 'card' }, items);
 const pill = text => el('span', { class: 'pill' }, text);
 const summary = rows => el('ul', { class: 'summary' }, rows.map(row => el('li', {}, el('small', {}, row.question), row.answer)));
 const intro = (title, text) => el('div', { class: 'hero' }, el('h1', {}, title), p(text, 'muted'));
+const previewComment = (...content) => el('aside', { class: 'preview-comment', 'aria-label': 'プレビュー用コメント' },
+  el('span', { class: 'preview-comment__label' }, 'プレビュー用コメント'), el('div', { class: 'preview-comment__body' }, ...content));
 
 function showView(view) {
   state.view = view;
@@ -89,14 +91,14 @@ function publicPage() {
     }, false, { 'aria-pressed': state.selectedApp === app.id ? 'true' : 'false' })))));
   const side = el('aside', { class: 'stack' },
     card(el('h2', {}, '必要な説明をその場で'), p('症状や操作から、条件・手順・正常な結果・注意を確認できます。'),
-      p(`試作では${Object.keys(draftGuides).length}アプリの原稿と旧FAQを確認用に表示します。正式運用と自動回答への採用は未実施です。`, 'muted')),
+      previewComment(`試作では${Object.keys(draftGuides).length}アプリの原稿と旧FAQを確認用に表示します。正式運用と自動回答への採用は未実施です。`)),
     card(el('h2', {}, '自分の相談'), p('送った相談への回答や追加の質問を確認できます。'), button('自分の相談を見る', () => { state.portalTab = 'cases'; showView('student'); })),
   );
   const content = el('div', { class: 'stack' }, applications);
   if (state.search && state.publicKind !== 'faq') {
     const matches = findArticles(draftGuides, state.search, state.selectedApp);
     append(content, card(el('h2', {}, `説明の候補 ${matches.length}件`),
-      p(state.selectedApp ? `${appName(state.selectedApp)}の説明から検索しています。` : '確認用の原稿から検索しています。', 'muted'),
+      p(state.selectedApp ? `${appName(state.selectedApp)}の説明から検索しています。` : '各アプリの説明から検索しています。', 'muted'),
       matches.length ? el('div', { class: 'choices' }, matches.slice(0, 20).map(item => button(`${appName(item.appId)} · ${item.title}`, () => openArticle(item.appId, item.itemId))))
         : p('該当する説明が見つかりませんでした。別の言葉で検索するか、下の確認から進めてください。'),
       matches.length > 20 ? p('20件まで表示しています。アプリや語句で絞り込めます。', 'muted') : null,
@@ -142,7 +144,7 @@ function faqIndex() {
     choices(categories, 'faq-category', '種類', state.faqCategory, value => { state.faqCategory = value; state.faqLimit = 15; render(); }));
   if (state.faqPage) append(filters, p(`教材ページ：${state.faqPage}`, 'muted'), button('ページの絞り込みを解除', () => { state.faqPage = ''; render(); }));
   const matches = findFaqs(legacyFaq, state.search, { course: state.faqCourse, page: state.faqPage, unit: state.faqUnit, category: state.faqCategory });
-  return card(el('h2', {}, '教材サイトのFAQ'), p(`${legacyFaq.entries.length}記事を取り込んだ確認用表示です。`, 'muted'), filters,
+  return card(el('h2', {}, '教材サイトのFAQ'), previewComment(`${legacyFaq.entries.length}記事を取り込んだ確認用表示です。`), filters,
     p(`${matches.length}件の候補`, 'step'),
     el('div', { class: 'choices' }, matches.slice(0, state.faqLimit).map(entry => button([
       el('strong', {}, entry.question), el('small', { class: 'muted' }, `${entry.course_label} · ${entry.unit} · ${entry.id}`),
@@ -198,10 +200,10 @@ function faqPanel() {
 
 function guideIndex(appId) {
   const guide = guideFor(appId);
-  if (!draftGuides[appId]) return card(el('h2', {}, appName(appId)), p('この試作では、このアプリの原稿はまだ表示していません。'),
+  if (!draftGuides[appId]) return card(el('h2', {}, appName(appId)), previewComment('この試作では、このアプリの原稿はまだ表示していません。'),
     button('確認のサンプルを試す', () => { state.flow = startFlow(guide, appId); render(true); }));
   const version = guide.version_basis === 'date' ? `${guide.verified_on || '未確認'}確認の原稿` : `対象版 ${guide.app_version || '未確認'}`;
-  return card(p('確認用原稿・正式採用前', 'step'), el('h2', {}, guide.app_name), p(`${version} · 改訂 ${guide.guide_revision}`, 'muted'),
+  return card(previewComment('この原稿は確認用です。正式採用前の内容を表示しています。'), el('h2', {}, guide.app_name), p(`${version} · 改訂 ${guide.guide_revision}`, 'muted'),
     el('h3', {}, '困っていることから確認する'),
     el('div', { class: 'choices' }, Object.entries(guide.nodes).filter(([, node]) => node.entry).map(([id, node]) => button(node.title, () => openArticle(appId, id)))),
     el('details', {}, el('summary', {}, `操作の説明から探す（${Object.keys(guide.operations).length}件）`),
@@ -279,12 +281,12 @@ function studentPage() {
     ? intro('自分の相談', '送った相談への回答や追加の質問を確認できます。')
     : intro('相談する', 'ここまでの確認を引き継いで、必要な内容だけ追加できます。');
   if (state.portalTab === 'cases') return [title, tabs, casePortal()];
-  if (state.stage === 'done') return [title, tabs, card(p('受付完了の表示例', 'step'), el('h2', {}, state.selectedCase),
-    p('この試作では実際の相談は送信されていません。受付後は、画面から回答や追加質問を確認できます。'),
+  if (state.stage === 'done') return [title, tabs, card(previewComment('受付完了の表示例です。この試作では実際の相談は送信されていません。'), el('h2', {}, state.selectedCase),
+    p('受付後は、画面から回答や追加質問を確認できます。'),
     actions(button('自分の相談を見る', () => { state.portalTab = 'cases'; render(true); }, true), button('ヘルプを探す', () => showView('public'))))];
   const body = state.stage === 'review' ? reviewPanel() : composePanel();
   return [title, tabs, el('div', { class: 'layout' }, el('div', { class: 'stack' }, body),
-    el('aside', { class: 'stack' }, inheritedPanel(), card(el('h2', {}, '送信する前に'), p('分かることだけで構いません。氏名やメールアドレスを本文に書く必要はありません。'), p('実際の返信は、ヘルプデスクの画面で確認できるようにします。', 'muted'))))];
+    el('aside', { class: 'stack' }, inheritedPanel(), card(el('h2', {}, '送信する前に'), p('分かることだけで構いません。氏名やメールアドレスを本文に書く必要はありません。'), previewComment('実際の返信は、ヘルプデスクの画面で確認できるようにします。'))))];
 }
 
 function composePanel() {
@@ -315,7 +317,7 @@ function composePanel() {
   block.append(actions(button('送信内容を確認', () => {
     if (!state.draft.text.trim() && !state.inherited?.summary.length) { state.error = '困っていることを一言入力してください。'; render(); document.querySelector('#description').focus(); return; }
     state.error = ''; state.stage = 'review'; render(true);
-  }, true)), p('相談の登録は、次の確認画面で「送信する」を押したときに行う設計です。', 'muted'));
+  }, true)), previewComment('相談の登録は、次の確認画面で「送信する」を押したときに行う設計です。'));
   return block;
 }
 
@@ -333,7 +335,7 @@ function reviewPanel() {
         title: text.slice(0, 36), status: '受付済み', messages: [{ role: 'student', text }], internal: [] });
       state.selectedCase = id; state.stage = 'done'; render(true);
     }, true), button('内容を直す', () => { state.stage = 'edit'; render(true); })),
-    p('試作のため、実際の送信・サーバー保存・メール通知は行いません。', 'muted'));
+    previewComment('試作のため、実際の送信・サーバー保存・メール通知は行いません。'));
   return block;
 }
 
@@ -343,7 +345,7 @@ function messageList(record) {
 }
 
 function caseList(onSelect) {
-  return card(el('h2', {}, '相談一覧（サンプル）'), state.cases.map(record => button([
+  return card(el('h2', {}, '相談一覧'), previewComment('サンプルの相談を使った表示例です。この試作で入力した相談も、再読み込みで消えます。'), state.cases.map(record => button([
     el('strong', {}, record.title), el('span', {}, `${record.id} · ${record.targetLabel || appName(record.appId)}`), pill(record.status),
   ], () => onSelect(record), false, { class: 'case-row', 'aria-pressed': String(record.id === state.selectedCase) })));
 }
@@ -381,9 +383,11 @@ function adminPage() {
       if (state.replyPreview !== preview || state.selectedCase !== record.id || state.replyDrafts[record.id] !== preview.text || !preview.text.trim()) return;
       record.messages.push({ role: 'desk', text: preview.text.trim() }); record.status = '再確認待ち'; state.replyDrafts[record.id] = ''; state.replyPreview = null; render(true);
     }, true, { id: 'confirm-reply', disabled: !preview.text.trim() })));
-  detail.append(el('details', {}, el('summary', {}, '修正が必要な場合'), p('対象・変更案・影響・検証・復元方法を案件ごとに確認してから承認する設計です。'),
-    p('この試作にはコード修正・承認記録・実行処理は接続していません。', 'muted')));
-  return [intro('相談を確認する', '教員用の表示例です。本番では、案件・内部メモ・回答・修正承認へのアクセスをサーバー側で認可します。'),
+  detail.append(el('details', {}, el('summary', {}, '修正が必要な場合'), previewComment(
+    p('対象・変更案・影響・検証・復元方法を案件ごとに確認してから承認する設計です。'),
+    p('この試作にはコード修正・承認記録・実行処理は接続していません。'))));
+  return [intro('相談を確認する', '相談の内容や回答案を確認できます。'),
+    previewComment('教員用の表示例です。本番では、案件・内部メモ・回答・修正承認へのアクセスをサーバー側で認可します。'),
     el('div', { class: 'layout' }, el('div', { class: 'stack' }, caseList(record => { state.selectedCase = record.id; state.replyPreview = null; render(true); }),
       card(el('h2', {}, '公開用資料の確認'), p('Webへの配信と自動回答への採用を別に管理します。'),
         el('table', {}, el('tbody', {}, el('tr', {}, el('th', {}, '資料'), el('td', {}, '確認用原稿とサンプル')), el('tr', {}, el('th', {}, 'Web配信'), el('td', {}, '試作専用ページで確認')), el('tr', {}, el('th', {}, '自動回答'), el('td', {}, '未採用')))))), detail)];
