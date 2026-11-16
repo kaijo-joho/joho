@@ -1,0 +1,663 @@
+@charset "UTF-8";
+
+/* ===== Headerbar ===== */
+
+/*
+<header id="site-header" role="banner">
+	<div class="headerbar">
+	<div class="headerbar__brand" aria-label="学校名">
+		海城中学高等学校 <span class="subject">情報科</span>
+	</div>
+	<div class="headerbar__course" aria-label="講座名">Python講座</div>
+	</div>
+</header>
+*/
+
+/* ====== あなたの既存レイアウト（変更なし） ====== */
+
+.headerbar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  width: var(--content-width);
+  margin: 0 auto;
+}
+.headerbar__actions {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.headerbar a:focus-visible {
+  outline: 2px solid color-mix(in oklab, #fff 90%, transparent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.headerbar__brand {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 1.8rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.headerbar__brand .subject {
+  font-weight: 200;
+  margin-left: 0.4em;
+}
+
+.headerbar__course {
+  font-weight: 600;
+  font-size: 1.2em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
+.site-preference-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.site-preference-menu {
+  position: relative;
+  flex: 0 0 auto;
+  color: #fff;
+}
+
+.site-preference-menu__trigger,
+.site-preference-menu__option {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  font-size: 1rem;
+  letter-spacing: normal;
+  line-height: 1;
+  transform: none;
+  transition: background-color 140ms ease, color 140ms ease, opacity 140ms ease, box-shadow 140ms ease;
+}
+
+.site-preference-menu__trigger {
+  border: 1px solid transparent;
+  background: transparent;
+  box-shadow: none;
+  color: rgba(255, 255, 255, .94);
+}
+
+.site-preference-menu__trigger:hover,
+.site-preference-menu__trigger[aria-expanded="true"] {
+  border-color: rgba(255, 255, 255, .58);
+  background: transparent;
+  box-shadow: none;
+  color: #fff;
+  transform: none;
+}
+
+.site-preference-menu__trigger:active {
+  background: rgba(255, 255, 255, .12);
+  box-shadow: none;
+  transform: none;
+}
+
+.site-preference-menu__trigger:focus-visible,
+.site-preference-menu__option:focus-visible {
+  z-index: 2;
+  outline: 3px solid rgba(255, 255, 255, .94);
+  outline-offset: 2px;
+}
+
+.site-preference-menu__options {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 6;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--brand-dark, #193e65) 92%, transparent);
+  -webkit-backdrop-filter: saturate(120%) blur(12px);
+  backdrop-filter: saturate(120%) blur(12px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .26);
+  animation: site-preference-menu-in 140ms cubic-bezier(.2, .7, .2, 1);
+}
+
+.site-preference-menu__options[hidden] {
+  display: none;
+}
+
+.site-preference-menu__option {
+  position: relative;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: rgba(255, 255, 255, .84);
+  opacity: .88;
+}
+
+.site-preference-menu__option:hover {
+  background: rgba(255, 255, 255, .18);
+  box-shadow: none;
+  color: #fff;
+  opacity: 1;
+  transform: none;
+}
+
+.site-preference-menu__option:active {
+  background: rgba(255, 255, 255, .24);
+  box-shadow: none;
+  transform: none;
+}
+
+.site-preference-menu__option.is-selected,
+.site-preference-menu__option.is-selected:hover,
+.site-preference-menu__option.is-selected:active {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+  color: var(--brand, #225386);
+  opacity: 1;
+}
+
+.site-preference-menu__option[hidden] {
+  display: none;
+}
+
+.site-preference-menu :is(.site-preference-menu__trigger, .site-preference-menu__option) svg {
+  display: block;
+  width: 21px;
+  height: 21px;
+  margin: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.site-text-size-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  font-family: var(--font-sans, sans-serif);
+  font-weight: 800;
+  letter-spacing: -.04em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.site-text-size-icon--standard { font-size: 15px; }
+.site-text-size-icon--large { font-size: 18px; }
+.site-text-size-icon--xlarge { font-size: 21px; }
+
+.site-preference-controls--legacy {
+  margin: 8px;
+}
+
+@keyframes site-preference-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .site-preference-menu__option[data-label]::after {
+    content: attr(data-label);
+    position: absolute;
+    top: calc(100% + 7px);
+    right: 0;
+    z-index: 7;
+    padding: 6px 8px;
+    border: 1px solid rgba(255, 255, 255, .16);
+    border-radius: 7px;
+    background: rgba(10, 14, 20, .94);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .24);
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-3px);
+    transition: opacity 120ms ease, transform 120ms ease;
+    visibility: hidden;
+    white-space: nowrap;
+  }
+
+  .site-preference-menu__option[data-label]:is(:hover, :focus-visible)::after {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+  }
+}
+
+@media (pointer: coarse) {
+  .site-preference-menu__trigger,
+  .site-preference-menu__option {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-preference-menu__options {
+    animation: none;
+  }
+  .site-preference-menu__trigger,
+  .site-preference-menu__option,
+  .site-preference-menu__option::after {
+    transition: none;
+  }
+}
+
+/* スマホ時は縦積みに */
+@media (max-width: 640px) {
+  .headerbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 12px 0;
+  }
+  .headerbar__course {
+    align-self: flex-start;
+  }
+  .headerbar__actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+}
+
+
+/* ====== ここから配色だけを定義／上書き ====== */
+
+/* テーマ色トークン：#225386 を基準に、ダーク時は少し暗くした色を使用 */
+:root {
+  --brand: #225386;     /* ライト時：ヘッダ背景 */
+  --brand-dark: #193E65;/* ダーク時：ヘッダ背景（#225386 をやや暗く） */
+
+  /* ピル（講座名）の色：既存の .headerbar__course が参照しているトークン */
+  --accent: #ffffff;                 /* ピルの文字色（白） */
+  --accent-bg: rgba(255, 255, 255, 0.14); /* ピルの背景（うっすら白） */
+}
+
+/* ライトモード：背景=テーマカラー、文字=白 */
+#site-header {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* ヘッダ内の文字色（学校名・学科） */
+.headerbar__brand, .headerbar__brand a { color: #fff; }
+.headerbar__brand .subject{ color: #fff; opacity: 0.9; }
+.headerbar__brand a{text-decoration: none;}
+.headerbar__brand a:hover{text-decoration: underline;}
+
+/* ピル（講座名）は既存の変数参照のまま。枠線色だけ明示上書き（白寄り） */
+.headerbar__course {
+  color: var(--accent);           /* = #fff */
+  background: var(--accent-bg);   /* = rgba(255,255,255,0.14) */
+  border-color: rgba(255, 255, 255, 0.26); /* 上の border 指定の色だけ後勝ちで上書き */
+}
+
+/* ダークモード：背景=暗くしたテーマカラー、文字=白 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #ffffff;                 /* ピルの文字は白のまま */
+    --accent-bg: rgba(255, 255, 255, 0.18); /* ダーク面では少し濃く */
+  }
+
+  #site-header {
+    background: var(--brand-dark);
+    color: #fff;
+    /* 対応環境なら、さらに微調整したい場合：
+       background: color-mix(in oklab, var(--brand) 70%, #000);
+    */
+  }
+
+  .headerbar__brand,
+  .headerbar__brand .subject {
+    color: #fff;
+  }
+
+  .headerbar__course {
+    color: var(--accent);         /* = #fff */
+    background: var(--accent-bg); /* = rgba(255,255,255,0.18) */
+    border-color: rgba(255, 255, 255, 0.32);
+  }
+}
+
+
+
+/* =========================================
+   Glassmorphism Header (追加/上書き)
+   ========================================= */
+
+/* ガラス共通トークン */
+:root {
+  --glass-blur: 14px;
+  --glass-bg-alpha: 0.30;          /* ヘッダの透け具合 */
+  --glass-pill-alpha: 0.22;        /* ピル背景の透け具合 */
+  --glass-stroke-light: rgba(255, 255, 255, 0.38);
+  --glass-stroke-dark: rgba(0, 0, 0, 0.38);
+  --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+}
+
+/* ヘッダ本体を“透け＋ぼかし”に */
+#site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  /* ブランド色に透過をかける */
+  background: color-mix(in oklab, var(--brand) calc(var(--glass-bg-alpha) * 100%), transparent);
+  -webkit-backdrop-filter: saturate(120%) blur(var(--glass-blur));
+  backdrop-filter: saturate(120%) blur(var(--glass-blur));
+
+  border-bottom: 1px solid color-mix(in oklab, var(--brand) 30%, var(--glass-stroke-light) 70%);
+  box-shadow: var(--glass-shadow);
+  color: #fff;
+}
+
+/* JavaScript有効時は、bodyの高さに制限されずページ全体で固定する。 */
+#site-header.site-header--scroll-controlled {
+  position: fixed;
+  inset: 0 0 auto;
+  width: 100%;
+  transition: transform 200ms ease;
+  will-change: transform;
+}
+
+#site-header.site-header--scroll-controlled.is-scroll-hidden {
+  transform: translateY(-100%);
+  box-shadow: none;
+}
+
+#site-header.site-header--scroll-controlled.is-scroll-focus-reveal {
+  transition: none;
+}
+
+/* fixed化しても、通常時の本文開始位置は従来どおり維持する。 */
+.site-header-spacer {
+  display: block;
+}
+
+/* 全画面時は既存のヘッダー非表示と同様に余白も作らない。 */
+body.is-lesson-fullscreen .site-header-spacer {
+  display: none;
+}
+
+/* ダークモードは濃いめにしつつ透明度は維持 */
+@media (prefers-color-scheme: dark) {
+  #site-header {
+    background: color-mix(in oklab, var(--brand-dark) 40%, transparent);
+    border-bottom-color: color-mix(in oklab, var(--brand-dark) 50%, var(--glass-stroke-dark) 50%);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.30);
+  }
+}
+
+/* backdrop-filter 非対応フォールバック（Firefox等） */
+@supports not (backdrop-filter: blur(1px)) {
+  #site-header {
+    /* 透明度を少し下げて視認性を確保 */
+    background: color-mix(in oklab, var(--brand) 85%, #fff 0%);
+  }
+  @media (prefers-color-scheme: dark) {
+    #site-header {
+      background: color-mix(in oklab, var(--brand-dark) 85%, #000 0%);
+    }
+  }
+}
+
+/* ブランドの文言は白で安定 */
+.headerbar__brand,
+.headerbar__brand .subject {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,.12);
+}
+
+/* 講座名ピル：<a> になった前提でデザイン */
+.headerbar__course {
+  display: inline-block;
+  font-weight: 600;
+  font-size: 1.05rem;
+  padding: 0.38rem 0.85rem;
+  border-radius: 9999px;
+  text-decoration: none;
+
+  /* ガラス風背景（白をうすく混ぜる） */
+  background: color-mix(in oklab, #fff calc(var(--glass-pill-alpha) * 100%), transparent);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: #fff;
+
+  transition: transform 120ms ease, background-color 120ms ease, border-color 120ms ease;
+}
+.headerbar__course:hover {
+  transform: translateY(-1px);
+  background: color-mix(in oklab, #fff 28%, transparent);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+.headerbar__course:active {
+  transform: translateY(0);
+}
+
+/* キーボードフォーカスの視認性 */
+.headerbar a:focus-visible {
+  outline: 2px solid color-mix(in oklab, #fff 90%, transparent);
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
+
+/* スマホ時の扱いは既存指定でOK（縦並び） */
+
+
+/* 目次・教材・表示設定・全画面開始の共通メニュー。 */
+.site-menu-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 1.25em;
+  height: 1.25em;
+  max-width: none;
+  pointer-events: none;
+}
+
+.site-header-menu {
+  position: relative;
+}
+
+.headerbar__actions > .site-course-menu {
+  flex: 0 1 auto;
+}
+
+.site-preference-controls {
+  flex: 0 0 auto;
+  padding-left: 8px;
+  margin-left: 0;
+  border-left: 1px solid rgba(255, 255, 255, .25);
+}
+
+.site-header-button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  transform: none;
+}
+
+.site-header-button:is(:hover, :active, [aria-expanded="true"]) {
+  border-color: currentColor;
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.site-header-button:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+}
+
+.site-header-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 10;
+  box-sizing: border-box;
+  width: min(360px, calc(100vw - 16px));
+  max-height: var(--header-panel-max-height, calc(100dvh - 140px));
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--ld-border);
+  border-radius: 12px;
+  background: rgba(var(--ld-glass-rgb), .97);
+  color: var(--ld-fg);
+  box-shadow: var(--ld-shadow);
+  font-size: 1rem;
+  line-height: 1.5;
+  letter-spacing: normal;
+  text-align: left;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  translate: var(--header-panel-offset, 0px) 0;
+  animation: site-header-panel-in 120ms ease;
+}
+
+.site-header-panel[hidden] {
+  display: none;
+}
+
+.site-header-panel :is(a, button, summary, input):focus-visible {
+  outline: 3px solid var(--theme-color, #225386);
+  outline-offset: -2px;
+}
+
+.site-header-panel__action {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.site-header-panel__action:is(:hover, :active) {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: inherit;
+  box-shadow: none;
+  transform: none;
+}
+
+.site-header-panel__empty {
+  margin: 0;
+  color: inherit;
+  font-size: 1rem;
+}
+
+/* 表示設定の3択は現在の横並びを保つ。 */
+.site-header-panel.site-preference-menu__options {
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  padding: 4px;
+  overflow: visible;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand-dark) 96%, transparent);
+  color: #fff;
+}
+
+@media (min-width: 641px) and (max-width: 1050px) {
+  .headerbar {
+    gap: clamp(4px, 1vw, 8px);
+    padding-block: 6px;
+  }
+  .headerbar__brand {
+    width: auto;
+    font-size: clamp(1.05rem, 2.4vw, 1.8rem);
+  }
+  .headerbar__brand .subject {
+    margin-left: .25em;
+  }
+  .headerbar__actions {
+    width: auto;
+    flex-wrap: nowrap;
+    gap: clamp(0px, .6vw, 6px);
+  }
+  .headerbar__actions > .site-course-menu {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .site-course-menu > .headerbar__course {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    padding-inline: 7px;
+    font-size: .9rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .site-preference-controls {
+    padding-left: 4px;
+  }
+}
+
+@keyframes site-header-panel-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header-panel { animation: none; }
+  #site-header.site-header--scroll-controlled { transition: none; }
+}
+
+@media print {
+  #site-header,
+  .site-header-spacer,
+  .site-header-menu,
+  #lesson-dock { display: none !important; }
+}

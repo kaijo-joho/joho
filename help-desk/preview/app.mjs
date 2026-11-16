@@ -3,6 +3,7 @@ import { draftGuides } from './draft-guides.mjs?v=worksheet-20261116';
 import { legacyFaq } from './legacy-faq.mjs';
 import { validateGuide, startFlow, choose, returnToQuestion, answeredQuestions, makeHandoff, validateHandoff, findArticles } from './core.mjs?v=question-flow-20261116';
 import { findFaqs, makeFaqHandoff, validateFaqHandoff, courseFilters, makeCourseHandoff, validateCourseHandoff, legacyLocation } from './faq-core.mjs?v=target-tabs-20261116';
+import { mountDisplayControls } from './display-ui.mjs?v=site-header-20261116';
 
 validateGuide(sampleGuide);
 Object.values(draftGuides).forEach(validateGuide);
@@ -16,7 +17,7 @@ const publicTargets = [
 const main = document.querySelector('#main');
 const state = {
   view: new URL(location.href).searchParams.get('view') || 'public',
-  publicTarget: '', publicMode: 'search', search: '', searchDraft: '', searchItem: null, selectedApp: null,
+  publicTarget: '', targetPickerOpen: false, publicMode: 'search', search: '', searchDraft: '', searchItem: null, selectedApp: null,
   selectedFaq: null, courseFaq: null, courseAnswers: [], courseLimit: 15, faqPage: '', faqUnit: '', faqCategory: '', faqLimit: 15,
   flow: null, inherited: null, portalTab: 'cases', stage: 'edit',
   draft: { appId: '', text: '', image: null }, error: '',
@@ -80,6 +81,7 @@ function targetDetails() {
 function setPublicTarget(key) {
   if (key && !publicTargets.some(target => target.key === key)) return false;
   state.publicTarget = key;
+  state.targetPickerOpen = false;
   const target = targetDetails();
   state.selectedApp = target?.kind === 'app' ? target.id : null;
   state.search = ''; state.searchDraft = ''; state.searchItem = null; state.selectedFaq = null; state.courseFaq = null;
@@ -118,17 +120,25 @@ function switchPublicMode(mode) {
 }
 
 function publicPage() {
+  const target = targetDetails();
+  const pickerOpen = !target || state.targetPickerOpen;
   const select = el('select', { id: 'public-target', on: { change: event => {
-    setPublicTarget(event.target.value); render(); document.querySelector('#public-target').focus();
+    if (!setPublicTarget(event.target.value)) return;
+    render(); document.querySelector('#change-target')?.focus();
   } } }, el('option', { value: '', disabled: true }, '対象を選んでください'),
   ...[['app', 'アプリ・サービス'], ['course', '教材サイトのコース']].map(([kind, label]) =>
     el('optgroup', { label }, publicTargets.filter(target => target.kind === kind).map(target => el('option', { value: target.key }, target.label)))));
   select.value = state.publicTarget;
-  const selector = card(el('div', { class: 'field target-field' }, el('label', { for: 'public-target' }, 'アプリ・教材コース'), select));
-  const target = targetDetails();
-  if (!target) return [intro('ヘルプを探す', '対象を選んでから、検索するか、質問に答えて確認するかを選べます。'), selector];
+  const picker = el('div', { id: 'target-picker', class: 'target-picker', hidden: !pickerOpen }, pickerOpen
+    ? el('div', { class: 'field target-field' }, el('label', { for: 'public-target' }, 'アプリ・教材コース'), select) : null);
+  if (!target) return [intro('ヘルプを探す', '何について調べますか？'), picker];
+  const heading = el('div', { class: 'public-heading' }, intro(target.label + 'のヘルプ', '検索するか、質問に答えて確認できます。'),
+    button(state.targetPickerOpen ? '対象の変更を閉じる' : '対象を変更', () => {
+      state.targetPickerOpen = !state.targetPickerOpen; render();
+      document.querySelector(state.targetPickerOpen ? '#public-target' : '#change-target')?.focus();
+    }, false, { id: 'change-target', class: 'quiet-button', 'aria-controls': 'target-picker', 'aria-expanded': String(state.targetPickerOpen) }));
   const modes = [['search', '検索する'], ['questions', '質問に答える']];
-  selector.append(el('div', { class: 'help-tabs', role: 'tablist', 'aria-label': 'ヘルプの探し方' }, modes.map(([mode, label], index) =>
+  const tabs = el('div', { class: 'help-tabs', role: 'tablist', 'aria-label': 'ヘルプの探し方' }, modes.map(([mode, label], index) =>
     el('button', { type: 'button', id: 'help-tab-' + mode, role: 'tab', 'aria-controls': 'help-panel-' + mode,
       'aria-selected': String(state.publicMode === mode), tabindex: state.publicMode === mode ? '0' : '-1',
       on: { click: () => switchPublicMode(mode), keydown: event => {
@@ -136,12 +146,12 @@ function publicPage() {
         event.preventDefault();
         const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : (index + 1) % 2;
         switchPublicMode(modes[next][0]);
-      } } }, label))));
+      } } }, label)));
   const panels = modes.map(([mode]) => el('div', { id: 'help-panel-' + mode, role: 'tabpanel',
     'aria-labelledby': 'help-tab-' + mode, hidden: state.publicMode !== mode },
     state.publicMode !== mode ? null : mode === 'search' ? searchPanel(target)
       : target.kind === 'app' ? guideSessionPage() : courseQuestionPanel(target)));
-  return [intro('ヘルプを探す', '検索と、一問ずつの確認を切り替えて使えます。'), selector,
+  return [heading, picker, tabs,
     el('div', { class: 'layout' }, el('div', { class: 'stack' }, panels), publicSidebar())];
 }
 
@@ -547,8 +557,7 @@ function adminPage() {
         el('table', {}, el('tbody', {}, el('tr', {}, el('th', {}, '資料'), el('td', {}, '確認用原稿とサンプル')), el('tr', {}, el('th', {}, 'Web配信'), el('td', {}, '試作専用ページで確認')), el('tr', {}, el('th', {}, '自動回答'), el('td', {}, '未採用')))))), detail)];
 }
 
-document.querySelector('#theme').addEventListener('change', event => { document.documentElement.dataset.theme = event.target.value; });
-document.querySelector('#size').addEventListener('change', event => { document.documentElement.dataset.size = event.target.value; });
+mountDisplayControls(document, window);
 window.addEventListener('popstate', () => {
   const view = new URL(location.href).searchParams.get('view'); state.view = ['public', 'student', 'admin'].includes(view) ? view : 'public';
   if (state.view === 'public') {

@@ -7,22 +7,35 @@
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>情報科ヘルプデスク — 画面試作</title>
-  <link rel="stylesheet" href="app.css?v=steps-focus-20261116">
-  <script type="module" src="app.mjs?v=worksheet-20261116"></script>
+  <link rel="stylesheet" href="assets/site/header.css">
+  <link rel="stylesheet" href="assets/site/display-settings.css">
+  <link rel="stylesheet" href="app.css?v=site-header-20261116">
+  <script src="assets/site/display_settings.js"></script>
+  <script defer src="assets/site/display_settings_ui.js"></script>
+  <script type="module" src="app.mjs?v=site-header-20261116"></script>
 </head>
 <body>
   <a class="skip" href="#main">本文へ移動</a>
-  <aside class="preview-comment preview-comment--banner" aria-label="プレビュー用コメント">
-    <span class="preview-comment__label">プレビュー用コメント</span>
-    <div class="preview-comment__body">オレンジ色の枠内は確認者向けの補足です。確認用の試作です。原稿とサンプル相談を使っています。入力は外部へ送らず、再読み込みで消えます。実際の相談受付・返信は行いません。</div>
-  </aside>
-  <header class="site-header">
-    <div><span class="eyebrow">情報科</span><p class="brand">ヘルプデスク</p></div>
-    <div class="preferences">
-      <label>表示 <select id="theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label>
-      <label>文字 <select id="size"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label>
+  <header id="site-header" role="banner">
+    <div class="headerbar">
+      <div class="headerbar__brand" aria-label="学校名"><a href="/">海城中学高等学校<span class="subject">情報科</span></a></div>
+      <div class="headerbar__actions">
+        <span class="headerbar__course">ヘルプデスク</span>
+        <div class="site-preference-controls">
+          <div class="site-header-menu site-preference-menu">
+            <button id="display-trigger" type="button" class="site-header-button site-preference-menu__trigger" popovertarget="display-settings" aria-controls="display-settings" aria-expanded="false" aria-label="表示設定" aria-haspopup="dialog" data-label="表示設定">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/><circle cx="9" cy="18" r="2" fill="currentColor"/></svg>
+            </button>
+            <div id="display-settings" popover="auto" class="site-header-panel" role="dialog" aria-label="表示設定"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
+  <aside class="preview-comment preview-comment--banner" aria-label="プレビュー用コメント">
+    <span class="preview-comment__label">プレビュー用コメント</span>
+    <div class="preview-comment__body">オレンジ色の枠内は確認者向けの補足です。確認用の試作です。原稿とサンプル相談を使っています。相談の入力は外部へ送らず、再読み込みで消えます。実際の相談受付・返信は行いません。</div>
+  </aside>
   <nav id="views" aria-label="試作する画面"></nav>
   <main id="main" tabindex="-1"></main>
   <footer><aside class="preview-comment" aria-label="プレビュー用コメント">
