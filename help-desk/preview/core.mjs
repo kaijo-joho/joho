@@ -96,9 +96,26 @@ export function makeHandoff(guide, state, appIds) {
 }
 
 export function goBack(guide, state) {
+  if (!state.history.length) return startFlow(guide, state.appId, state.rootId);
+  return returnToQuestion(guide, state, state.history.length - 1);
+}
+
+export function returnToQuestion(guide, state, index) {
+  if (!Number.isInteger(index) || index < 0 || index >= state.history.length) fail('戻る質問が不正です。');
   let previous = startFlow(guide, state.appId, state.rootId);
-  for (const answer of state.history.slice(0, -1)) previous = choose(guide, previous, answer.choice_id);
+  for (const answer of state.history.slice(0, index)) {
+    if (previous.phase !== 'question' || answer.item_id !== previous.nodeId) fail('回答の経路が不正です。');
+    previous = choose(guide, previous, answer.choice_id);
+  }
+  if (previous.phase !== 'question' || previous.nodeId !== state.history[index].item_id) fail('回答の経路が不正です。');
   return previous;
+}
+
+export function answeredQuestions(guide, state) {
+  return validateHandoff({
+    app_id: state.appId, guide_revision: guide.guide_revision, app_version: guide.app_version,
+    root_id: state.rootId, answers: state.history,
+  }, guide, [state.appId]).summary;
 }
 
 export function findArticles(guides, query, appId = null) {

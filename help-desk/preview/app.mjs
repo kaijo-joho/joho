@@ -1,7 +1,7 @@
 import { apps, guide as sampleGuide, sampleCases } from './data.mjs';
 import { draftGuides } from './draft-guides.mjs';
 import { legacyFaq } from './legacy-faq.mjs';
-import { validateGuide, startFlow, choose, goBack, makeHandoff, validateHandoff, findArticles } from './core.mjs';
+import { validateGuide, startFlow, choose, goBack, returnToQuestion, answeredQuestions, makeHandoff, validateHandoff, findArticles } from './core.mjs?v=question-flow-20261116';
 import { findFaqs, makeFaqHandoff, validateFaqHandoff, legacyLocation } from './faq-core.mjs';
 
 validateGuide(sampleGuide);
@@ -76,6 +76,7 @@ function render(focus = false) {
 }
 
 function publicPage() {
+  if (state.selectedApp && state.publicKind !== 'faq') return guideSessionPage();
   const search = el('input', { id: 'search', type: 'search', maxlength: '200', value: state.search, placeholder: '例：文字 確定、保存、画像', 'aria-label': '操作や困っていることを探す' });
   const form = el('form', { class: 'search', on: { submit: event => {
     event.preventDefault(); state.search = search.value.trim(); state.flow = null; state.selectedFaq = null; state.faqLimit = 15; render(true);
@@ -87,13 +88,8 @@ function publicPage() {
     }, false, { 'aria-pressed': String(state.publicKind === kind) }))),
     state.publicKind === 'faq' ? null : el('div', { class: 'field' }, el('h3', {}, 'アプリ・サービスを選ぶ'),
     el('div', { class: 'app-grid' }, apps.map(app => button(app.name, () => {
-      state.publicKind = 'guides'; state.selectedApp = app.id; state.selectedFaq = null; state.flow = null; state.stepIndex = 0; render(true);
+      state.publicKind = 'guides'; state.selectedApp = app.id; state.selectedFaq = null; state.flow = null; state.stepIndex = 0; state.search = ''; render(true);
     }, false, { 'aria-pressed': state.selectedApp === app.id ? 'true' : 'false' })))));
-  const side = el('aside', { class: 'stack' },
-    card(el('h2', {}, '必要な説明をその場で'), p('症状や操作から、条件・手順・正常な結果・注意を確認できます。'),
-      previewComment(`試作では${Object.keys(draftGuides).length}アプリの原稿と旧FAQを確認用に表示します。正式運用と自動回答への採用は未実施です。`)),
-    card(el('h2', {}, '自分の相談'), p('送った相談への回答や追加の質問を確認できます。'), button('自分の相談を見る', () => { state.portalTab = 'cases'; showView('student'); })),
-  );
   const content = el('div', { class: 'stack' }, applications);
   if (state.search && state.publicKind !== 'faq') {
     const matches = findArticles(draftGuides, state.search, state.selectedApp);
@@ -104,11 +100,50 @@ function publicPage() {
       matches.length > 20 ? p('20件まで表示しています。アプリや語句で絞り込めます。', 'muted') : null,
       state.selectedApp ? button('すべてのアプリから探す', () => { state.selectedApp = null; render(); }) : null));
   }
-  if (state.flow && state.publicKind !== 'faq') append(content, flowPanel());
   if (state.selectedFaq && state.publicKind !== 'guides') append(content, faqPanel());
-  if (state.selectedApp && state.publicKind !== 'faq') append(content, guideIndex(state.selectedApp));
   if (state.publicKind !== 'guides') append(content, faqIndex());
-  return [intro('困ったところから、一緒に確認します。', '必要な説明を探して、操作を確認できます。解決しないときは、ここまでの内容を引き継いで相談へ進めます。'), el('div', { class: 'layout' }, content, side)];
+  return [intro('困ったところから、一緒に確認します。', '必要な説明を探して、操作を確認できます。解決しないときは、ここまでの内容を引き継いで相談へ進めます。'), el('div', { class: 'layout' }, content, publicSidebar())];
+}
+
+function publicSidebar() {
+  return el('aside', { class: 'stack' },
+    card(el('h2', {}, '必要な説明をその場で'), p('症状や操作から、条件・手順・正常な結果・注意を確認できます。'),
+      previewComment(`試作では${Object.keys(draftGuides).length}アプリの原稿と旧FAQを確認用に表示します。正式運用と自動回答への採用は未実施です。`)),
+    card(el('h2', {}, '自分の相談'), p('送った相談への回答や追加の質問を確認できます。'), button('自分の相談を見る', () => { state.portalTab = 'cases'; showView('student'); })));
+}
+
+function guideSessionPage() {
+  const currentPanel = state.flow ? flowPanel() : guideIndex(state.selectedApp);
+  if (!state.flow) {
+    currentPanel.tabIndex = -1; currentPanel.setAttribute('data-focus-panel', '');
+    currentPanel.classList.add('current-question'); currentPanel.setAttribute('aria-label', 'いまの質問');
+  }
+  return [intro('困っていることを順に確認します。', 'いま表示されている質問に答えてください。前の回答は「変更する」から直せます。'),
+    el('div', { class: 'layout' }, el('div', { class: 'stack' }, answerHistoryPanel(),
+      currentPanel,
+      actions(button('ヘルプの検索に戻る', () => {
+        state.selectedApp = null; state.flow = null; state.stepIndex = 0; state.search = ''; state.publicKind = 'all'; render(true);
+      }))), publicSidebar())];
+}
+
+function answerHistoryPanel() {
+  const rows = [{ question: 'アプリ・サービス', answer: appName(state.selectedApp), change: () => {
+    state.selectedApp = null; state.flow = null; state.stepIndex = 0; state.search = ''; render(true);
+  } }];
+  if (state.flow) {
+    const flow = state.flow;
+    const guide = guideFor(flow.appId);
+    const directOperation = !flow.history.length && flow.guideId;
+    rows.push({ question: directOperation ? '操作の説明' : '困っていること',
+      answer: directOperation ? guide.operations[flow.guideId].title : guide.nodes[flow.rootId].title || guide.nodes[flow.rootId].question,
+      change: () => { state.flow = null; state.stepIndex = 0; render(true); } });
+    answeredQuestions(guide, flow).forEach((row, index) => rows.push({ ...row, change: () => {
+      state.flow = returnToQuestion(guide, flow, index); state.stepIndex = 0; render(true);
+    } }));
+  }
+  return card(el('h2', {}, 'ここまでの回答'), el('ol', { class: 'answer-history' }, rows.map(row => el('li', {},
+    el('div', {}, el('small', {}, row.question), p(row.answer)),
+    button('変更する', row.change, false, { 'aria-label': `${row.question}の回答を変更する` })))));
 }
 
 function openArticle(appId, itemId) {
@@ -218,7 +253,9 @@ function flowPanel() {
   block.tabIndex = -1; block.setAttribute('data-focus-panel', '');
   if (flow.phase === 'question') {
     const node = guide.nodes[flow.nodeId];
-    append(block, p(`確認 ${flow.history.length + 1}`, 'muted'),
+    block.classList.add('current-question');
+    block.setAttribute('aria-label', 'いまの質問');
+    append(block, p(`いまの質問 · 確認 ${flow.history.length + 1}`, 'step'),
       node.conditions ? p(node.conditions, 'muted') : null, flow.guidance ? p(flow.guidance, 'note') : null,
       el('h2', { class: 'choice-title' }, node.question),
       el('div', { class: 'choices' }, node.choices.map(choice => button(choice.label, () => { state.flow = choose(guide, state.flow, choice.id); state.stepIndex = 0; render(true); }))));
