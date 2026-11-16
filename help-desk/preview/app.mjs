@@ -2,27 +2,28 @@ import { apps, guide as sampleGuide, sampleCases } from './data.mjs';
 import { draftGuides } from './draft-guides.mjs';
 import { legacyFaq } from './legacy-faq.mjs';
 import { validateGuide, startFlow, choose, goBack, returnToQuestion, answeredQuestions, makeHandoff, validateHandoff, findArticles } from './core.mjs?v=question-flow-20261116';
-import { findFaqs, makeFaqHandoff, validateFaqHandoff, legacyLocation } from './faq-core.mjs';
+import { findFaqs, makeFaqHandoff, validateFaqHandoff, courseFilters, makeCourseHandoff, validateCourseHandoff, legacyLocation } from './faq-core.mjs?v=target-tabs-20261116';
 
 validateGuide(sampleGuide);
 Object.values(draftGuides).forEach(validateGuide);
 const appIds = apps.map(app => app.id);
 const appName = id => apps.find(app => app.id === id)?.name || '分からない・その他';
 const guideFor = id => draftGuides[id] || sampleGuide;
+const publicTargets = [
+  ...apps.map(app => ({ key: 'app:' + app.id, kind: 'app', id: app.id, label: app.name })),
+  ...[...new Map(legacyFaq.entries.map(entry => [entry.course, entry.course_label]))].map(([id, label]) => ({ key: 'course:' + id, kind: 'course', id, label })),
+];
 const main = document.querySelector('#main');
 const state = {
   view: new URL(location.href).searchParams.get('view') || 'public',
-  search: '', selectedApp: null, publicKind: 'all', selectedFaq: null, faqCourse: '', faqPage: '', faqUnit: '', faqCategory: '', faqLimit: 15,
-  stepIndex: 0, flow: null, inherited: null, portalTab: 'compose', stage: 'edit',
+  publicTarget: '', publicMode: 'search', search: '', searchDraft: '', searchItem: null, selectedApp: null,
+  selectedFaq: null, courseFaq: null, courseAnswers: [], courseLimit: 15, faqPage: '', faqUnit: '', faqCategory: '', faqLimit: 15,
+  flow: null, inherited: null, portalTab: 'compose', stage: 'edit',
   draft: { appId: '', text: '', image: null }, error: '',
   cases: structuredClone(sampleCases), selectedCase: 'HD-DEMO-001', replyDrafts: Object.create(null), replyPreview: null,
 };
 if (!['public', 'student', 'admin'].includes(state.view)) state.view = 'public';
-if (state.view === 'public') {
-  const incoming = legacyLocation(legacyFaq, location.href);
-  state.faqCourse = incoming.course; state.faqPage = incoming.page; state.selectedFaq = incoming.id;
-  if (incoming.course || incoming.page || incoming.id) state.publicKind = 'faq';
-}
+if (state.view === 'public') applyPublicLocation(location.href);
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -51,18 +52,14 @@ function showView(view) {
   state.view = view;
   const url = new URL(location.pathname, location.origin);
   url.searchParams.set('view', view);
-  if (view === 'public' && state.selectedFaq) url.hash = state.selectedFaq;
+  if (view === 'public') addPublicRoute(url);
   history.pushState(null, '', url);
   render(true);
 }
 function render(focus = false) {
   const route = new URL(location.pathname, location.origin);
   route.searchParams.set('view', state.view);
-  if (state.view === 'public' && state.selectedFaq) route.hash = state.selectedFaq;
-  else if (state.view === 'public' && state.publicKind === 'faq') {
-    if (state.faqCourse) route.searchParams.set('course', state.faqCourse);
-    if (state.faqPage) route.searchParams.set('page', state.faqPage);
-  }
+  if (state.view === 'public') addPublicRoute(route);
   history.replaceState(null, '', route);
   document.querySelector('#views').replaceChildren(
     ...[['public', 'ヘルプを探す'], ['student', '相談する'], ['admin', '管理画面（試作）']].map(([view, label]) =>
@@ -75,118 +72,242 @@ function render(focus = false) {
   }
 }
 
-function publicPage() {
-  if (state.selectedApp && state.publicKind !== 'faq') return guideSessionPage();
-  const search = el('input', { id: 'search', type: 'search', maxlength: '200', value: state.search, placeholder: '例：文字 確定、保存、画像', 'aria-label': '操作や困っていることを探す' });
-  const form = el('form', { class: 'search', on: { submit: event => {
-    event.preventDefault(); state.search = search.value.trim(); state.flow = null; state.selectedFaq = null; state.faqLimit = 15; render(true);
-  } } },
-    search, el('button', { type: 'submit' }, '検索'));
-  const applications = card(el('h2', {}, '操作や困っていることを探す'), form,
-    actions(...[['all', 'すべて'], ['guides', 'アプリのヘルプ'], ['faq', '教材サイトのFAQ']].map(([kind, label]) => button(label, () => {
-      state.publicKind = kind; state.selectedApp = null; state.selectedFaq = null; state.flow = null; state.faqLimit = 15; render(true);
-    }, false, { 'aria-pressed': String(state.publicKind === kind) }))),
-    state.publicKind === 'faq' ? null : el('div', { class: 'field' }, el('h3', {}, 'アプリ・サービスを選ぶ'),
-    el('div', { class: 'app-grid' }, apps.map(app => button(app.name, () => {
-      state.publicKind = 'guides'; state.selectedApp = app.id; state.selectedFaq = null; state.flow = null; state.stepIndex = 0; state.search = ''; render(true);
-    }, false, { 'aria-pressed': state.selectedApp === app.id ? 'true' : 'false' })))));
-  const content = el('div', { class: 'stack' }, applications);
-  if (state.search && state.publicKind !== 'faq') {
-    const matches = findArticles(draftGuides, state.search, state.selectedApp);
-    append(content, card(el('h2', {}, `説明の候補 ${matches.length}件`),
-      p(state.selectedApp ? `${appName(state.selectedApp)}の説明から検索しています。` : '各アプリの説明から検索しています。', 'muted'),
-      matches.length ? el('div', { class: 'choices' }, matches.slice(0, 20).map(item => button(`${appName(item.appId)} · ${item.title}`, () => openArticle(item.appId, item.itemId))))
-        : p('該当する説明が見つかりませんでした。別の言葉で検索するか、下の確認から進めてください。'),
-      matches.length > 20 ? p('20件まで表示しています。アプリや語句で絞り込めます。', 'muted') : null,
-      state.selectedApp ? button('すべてのアプリから探す', () => { state.selectedApp = null; render(); }) : null));
+function targetDetails() {
+  return publicTargets.find(target => target.key === state.publicTarget) || null;
+}
+
+function setPublicTarget(key) {
+  if (key && !publicTargets.some(target => target.key === key)) return false;
+  state.publicTarget = key;
+  const target = targetDetails();
+  state.selectedApp = target?.kind === 'app' ? target.id : null;
+  state.search = ''; state.searchDraft = ''; state.searchItem = null; state.selectedFaq = null; state.courseFaq = null;
+  state.flow = null; state.courseAnswers = []; state.courseLimit = 15;
+  state.faqPage = ''; state.faqUnit = ''; state.faqCategory = ''; state.faqLimit = 15;
+  return true;
+}
+
+function applyPublicLocation(href, preserve = false) {
+  const incoming = legacyLocation(legacyFaq, href);
+  const entry = legacyFaq.entries.find(item => item.id === incoming.id);
+  const pageCourses = new Set(legacyFaq.entries.filter(item => item.display_pages.includes(incoming.page)).map(item => item.course));
+  const course = entry?.course || incoming.course || (pageCourses.size === 1 ? [...pageCourses][0] : '');
+  const app = new URL(href).searchParams.get('app');
+  const key = course ? 'course:' + course : apps.some(item => item.id === app) ? 'app:' + app : '';
+  if (!preserve || key !== state.publicTarget) { setPublicTarget(key); state.publicMode = 'search'; }
+  state.faqPage = incoming.page;
+  if (state.publicMode === 'questions' && course) state.courseFaq = incoming.id;
+  else state.selectedFaq = incoming.id;
+}
+
+function addPublicRoute(url) {
+  const target = targetDetails();
+  if (target) url.searchParams.set(target.kind === 'course' ? 'course' : 'app', target.id);
+  if (target?.kind === 'course') {
+    const faq = state.publicMode === 'questions' ? state.courseFaq : state.selectedFaq;
+    if (faq) url.hash = faq;
+    if (state.publicMode === 'search' && state.faqPage) url.searchParams.set('page', state.faqPage);
   }
-  if (state.selectedFaq && state.publicKind !== 'guides') append(content, faqPanel());
-  if (state.publicKind !== 'guides') append(content, faqIndex());
-  return [intro('困ったところから、一緒に確認します。', '必要な説明を探して、操作を確認できます。解決しないときは、ここまでの内容を引き継いで相談へ進めます。'), el('div', { class: 'layout' }, content, publicSidebar())];
+}
+
+function switchPublicMode(mode) {
+  if (!['search', 'questions'].includes(mode)) return;
+  state.publicMode = mode; render();
+  document.querySelector('#help-tab-' + mode)?.focus();
+}
+
+function publicPage() {
+  const select = el('select', { id: 'public-target', on: { change: event => {
+    setPublicTarget(event.target.value); render(); document.querySelector('#public-target').focus();
+  } } }, el('option', { value: '', disabled: true }, '対象を選んでください'),
+  ...[['app', 'アプリ・サービス'], ['course', '教材サイトのコース']].map(([kind, label]) =>
+    el('optgroup', { label }, publicTargets.filter(target => target.kind === kind).map(target => el('option', { value: target.key }, target.label)))));
+  select.value = state.publicTarget;
+  const selector = card(el('div', { class: 'field target-field' }, el('label', { for: 'public-target' }, 'アプリ・教材コース'), select));
+  const target = targetDetails();
+  if (!target) return [intro('ヘルプを探す', '対象を選んでから、検索するか、質問に答えて確認するかを選べます。'), selector];
+  const modes = [['search', '検索する'], ['questions', '質問に答える']];
+  selector.append(el('div', { class: 'help-tabs', role: 'tablist', 'aria-label': 'ヘルプの探し方' }, modes.map(([mode, label], index) =>
+    el('button', { type: 'button', id: 'help-tab-' + mode, role: 'tab', 'aria-controls': 'help-panel-' + mode,
+      'aria-selected': String(state.publicMode === mode), tabindex: state.publicMode === mode ? '0' : '-1',
+      on: { click: () => switchPublicMode(mode), keydown: event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : (index + 1) % 2;
+        switchPublicMode(modes[next][0]);
+      } } }, label))));
+  const panels = modes.map(([mode]) => el('div', { id: 'help-panel-' + mode, role: 'tabpanel',
+    'aria-labelledby': 'help-tab-' + mode, hidden: state.publicMode !== mode },
+    state.publicMode !== mode ? null : mode === 'search' ? searchPanel(target)
+      : target.kind === 'app' ? guideSessionPage() : courseQuestionPanel(target)));
+  return [intro('ヘルプを探す', '検索と、一問ずつの確認を切り替えて使えます。'), selector,
+    el('div', { class: 'layout' }, el('div', { class: 'stack' }, panels), publicSidebar())];
 }
 
 function publicSidebar() {
   return el('aside', { class: 'stack' },
-    card(el('h2', {}, '必要な説明をその場で'), p('症状や操作から、条件・手順・正常な結果・注意を確認できます。'),
-      previewComment(`試作では${Object.keys(draftGuides).length}アプリの原稿と旧FAQを確認用に表示します。正式運用と自動回答への採用は未実施です。`)),
-    card(el('h2', {}, '自分の相談'), p('送った相談への回答や追加の質問を確認できます。'), button('自分の相談を見る', () => { state.portalTab = 'cases'; showView('student'); })));
+    previewComment('6アプリの原稿と、教材サイトの5コースのFAQを確認用に表示します。正式運用と自動回答への採用は未実施です。'),
+    card(el('h2', {}, '自分の相談'), p('送った相談への回答や追加の質問を確認できます。'),
+      button('自分の相談を見る', () => { state.portalTab = 'cases'; showView('student'); })));
+}
+
+function searchPanel(target) {
+  const input = el('input', { id: 'search', type: 'search', maxlength: '200', value: state.searchDraft,
+    placeholder: '例：保存、画像、開けない', 'aria-label': target.label + 'のヘルプを検索',
+    on: { input: event => { state.searchDraft = event.target.value; } } });
+  const form = card(el('form', { class: 'search', on: { submit: event => {
+    event.preventDefault(); state.search = input.value.trim(); state.searchItem = null; state.selectedFaq = null; state.faqLimit = 15; render(true);
+  } } }, input, el('button', { type: 'submit' }, '検索')));
+  let result;
+  if (target.kind === 'course') result = state.selectedFaq ? faqPanel() : faqIndex(target);
+  else if (state.searchItem) result = operationSearchPanel(target);
+  else {
+    const guide = draftGuides[target.id];
+    const matches = state.search ? findArticles(draftGuides, state.search, target.id)
+      : Object.entries(guide?.operations || {}).map(([itemId, item]) => ({ appId: target.id, itemId, kind: 'operation', title: item.title }));
+    result = focusPanel(card(el('h2', {}, state.search ? '検索結果' : '操作の説明'), p(matches.length + '件', 'step'),
+      el('div', { class: 'choices' }, matches.map(item => button([
+        el('strong', {}, item.title), el('small', { class: 'muted' }, item.kind === 'symptom' ? '質問に答えて確認する' : '操作の説明'),
+      ], () => openArticle(target.id, item.itemId)))),
+      matches.length ? null : p('該当する説明がありません。検索語を変えるか、「質問に答える」へ切り替えてください。')));
+  }
+  return el('div', { class: 'stack' }, form, result);
+}
+
+function operationContent(operation, guidance = '') {
+  return [
+    operation.conditions ? p('対象：' + operation.conditions, 'prose muted') : null,
+    guidance ? p(guidance, 'note') : null,
+    operation.caution ? el('div', { class: 'note' }, el('h3', {}, '操作前の注意'), p(operation.caution, 'prose')) : null,
+    el('h3', {}, '手順'), el('ol', { class: 'operation-steps' }, operation.steps.map(step => el('li', { class: 'prose' }, step))),
+    operation.expected ? el('div', { class: 'field' }, el('h3', {}, '正常な結果'), p(operation.expected, 'prose')) : null,
+    operation.supplement ? el('details', {}, el('summary', {}, '補足'), p(operation.supplement, 'prose')) : null,
+  ];
+}
+
+function operationSearchPanel(target) {
+  const guide = guideFor(target.id);
+  const operation = guide.operations[state.searchItem.itemId];
+  return focusPanel(card(el('h2', {}, operation.title), operationContent(operation),
+    actions(button('説明の一覧に戻る', () => { state.searchItem = null; render(true); }),
+      button('相談へ進む', () => {
+        const flow = { ...startFlow(guide, target.id), phase: 'guide', guideId: state.searchItem.itemId };
+        const payload = makeHandoff(guide, flow, appIds);
+        const checked = validateHandoff(payload, guide, appIds);
+        prepareConsultation({ appId: target.id, kind: 'guide', payload, summary: checked.summary });
+      }, true))));
+}
+
+function focusPanel(panel) {
+  panel.tabIndex = -1; panel.setAttribute('data-focus-panel', ''); return panel;
+}
+
+function currentQuestion(panel) {
+  focusPanel(panel); panel.classList.add('current-question'); panel.setAttribute('aria-label', 'いまの質問'); return panel;
 }
 
 function guideSessionPage() {
-  const currentPanel = state.flow ? flowPanel() : guideIndex(state.selectedApp);
-  if (!state.flow) {
-    currentPanel.tabIndex = -1; currentPanel.setAttribute('data-focus-panel', '');
-    currentPanel.classList.add('current-question'); currentPanel.setAttribute('aria-label', 'いまの質問');
-  }
-  return [intro('困っていることを順に確認します。', 'いま表示されている質問に答えてください。前の回答は「変更する」から直せます。'),
-    el('div', { class: 'layout' }, el('div', { class: 'stack' }, answerHistoryPanel(),
-      currentPanel,
-      actions(button('ヘルプの検索に戻る', () => {
-        state.selectedApp = null; state.flow = null; state.stepIndex = 0; state.search = ''; state.publicKind = 'all'; render(true);
-      }))), publicSidebar())];
+  const currentPanel = state.flow ? flowPanel() : currentQuestion(guideIndex(state.selectedApp));
+  return el('div', { class: 'stack' }, answerHistoryPanel(), currentPanel);
+}
+
+function historyPanel(rows) {
+  if (!rows.length) return null;
+  return card(el('h2', {}, 'ここまでの回答'), el('ol', { class: 'answer-history' }, rows.map(row => el('li', {},
+    el('div', {}, el('small', {}, row.question), p(row.answer)),
+    button('変更する', row.change, false, { 'aria-label': row.question + 'の回答を変更する' })))));
 }
 
 function answerHistoryPanel() {
-  const rows = [{ question: 'アプリ・サービス', answer: appName(state.selectedApp), change: () => {
-    state.selectedApp = null; state.flow = null; state.stepIndex = 0; state.search = ''; render(true);
-  } }];
-  if (state.flow) {
-    const flow = state.flow;
-    const guide = guideFor(flow.appId);
-    const directOperation = !flow.history.length && flow.guideId;
-    rows.push({ question: directOperation ? '操作の説明' : '困っていること',
-      answer: directOperation ? guide.operations[flow.guideId].title : guide.nodes[flow.rootId].title || guide.nodes[flow.rootId].question,
-      change: () => { state.flow = null; state.stepIndex = 0; render(true); } });
-    answeredQuestions(guide, flow).forEach((row, index) => rows.push({ ...row, change: () => {
-      state.flow = returnToQuestion(guide, flow, index); state.stepIndex = 0; render(true);
-    } }));
-  }
-  return card(el('h2', {}, 'ここまでの回答'), el('ol', { class: 'answer-history' }, rows.map(row => el('li', {},
-    el('div', {}, el('small', {}, row.question), p(row.answer)),
-    button('変更する', row.change, false, { 'aria-label': `${row.question}の回答を変更する` })))));
+  if (!state.flow) return null;
+  const flow = state.flow, guide = guideFor(flow.appId);
+  const rows = [{ question: '困っていること', answer: guide.nodes[flow.rootId].title || guide.nodes[flow.rootId].question,
+    change: () => { state.flow = null; render(true); } }];
+  answeredQuestions(guide, flow).forEach((row, index) => rows.push({ ...row, change: () => {
+    state.flow = returnToQuestion(guide, flow, index); render(true);
+  } }));
+  return historyPanel(rows);
 }
 
 function openArticle(appId, itemId) {
+  if (state.publicTarget !== 'app:' + appId) setPublicTarget('app:' + appId);
   const guide = guideFor(appId);
-  state.publicKind = 'guides'; state.selectedFaq = null; state.selectedApp = appId; state.stepIndex = 0;
-  if (itemId.startsWith('tr-')) state.flow = startFlow(guide, appId, itemId);
-  else state.flow = { ...startFlow(guide, appId), phase: 'guide', guideId: itemId };
+  if (itemId.startsWith('tr-')) {
+    state.publicMode = 'questions'; state.flow = startFlow(guide, appId, itemId);
+  } else {
+    state.publicMode = 'search'; state.searchItem = { appId, itemId };
+  }
   render(true);
 }
 
 function openFaq(id) {
   const entry = legacyFaq.entries.find(entry => entry.id === id);
   if (!entry) return;
-  state.publicKind = 'faq'; state.selectedFaq = id; state.selectedApp = null; state.flow = null;
-  state.faqCourse = entry.course; state.faqUnit = ''; state.faqCategory = ''; state.faqPage = '';
+  if (state.publicTarget !== 'course:' + entry.course) {
+    setPublicTarget('course:' + entry.course); state.publicMode = 'search';
+  }
+  if (state.publicMode === 'questions') state.courseFaq = id;
+  else state.selectedFaq = id;
   showView('public');
 }
 
-function faqIndex() {
+function faqIndex(target) {
   const choices = (values, id, label, current, handler) => {
     const select = el('select', { id, on: { change: event => handler(event.target.value) } }, el('option', { value: '' }, 'すべて'),
-      values.map(([value, name]) => el('option', { value }, name)));
+      values.map(item => el('option', { value: item.value }, item.label)));
     select.value = current;
     return el('div', { class: 'field' }, el('label', { for: id }, label), select);
   };
-  const courses = [...new Map(legacyFaq.entries.map(entry => [entry.course, entry.course_label])).entries()];
-  const scope = legacyFaq.entries.filter(entry => !state.faqCourse || entry.course === state.faqCourse);
-  const units = [...new Set(scope.map(entry => entry.unit).filter(Boolean))].map(value => [value, value]);
-  const categories = [...new Set(scope.map(entry => entry.category).filter(Boolean))].map(value => [value, legacyFaq.categories.find(row => row.type === 'category' && row.key === value)?.label || value]);
-  const filters = el('details', { open: !!(state.faqCourse || state.faqUnit || state.faqCategory || state.faqPage) }, el('summary', {}, '講座・単元・種類で絞り込む'),
-    choices(courses, 'faq-course', '講座', state.faqCourse, value => { state.faqCourse = value; state.faqUnit = ''; state.faqCategory = ''; state.faqLimit = 15; render(); }),
-    choices(units, 'faq-unit', '単元', state.faqUnit, value => { state.faqUnit = value; state.faqLimit = 15; render(); }),
-    choices(categories, 'faq-category', '種類', state.faqCategory, value => { state.faqCategory = value; state.faqLimit = 15; render(); }));
-  if (state.faqPage) append(filters, p(`教材ページ：${state.faqPage}`, 'muted'), button('ページの絞り込みを解除', () => { state.faqPage = ''; render(); }));
-  const matches = findFaqs(legacyFaq, state.search, { course: state.faqCourse, page: state.faqPage, unit: state.faqUnit, category: state.faqCategory });
-  return card(el('h2', {}, '教材サイトのFAQ'), previewComment(`${legacyFaq.entries.length}記事を取り込んだ確認用表示です。`), filters,
-    p(`${matches.length}件の候補`, 'step'),
+  const available = courseFilters(legacyFaq, target.id, state.faqUnit);
+  const filters = el('details', { open: !!(state.faqUnit || state.faqCategory || state.faqPage) }, el('summary', {}, '単元・内容の種類で絞り込む'),
+    choices(available.units, 'faq-unit', '単元', state.faqUnit, value => { state.faqUnit = value; state.faqCategory = ''; state.faqLimit = 15; render(); }),
+    choices(available.categories, 'faq-category', '内容の種類', state.faqCategory, value => { state.faqCategory = value; state.faqLimit = 15; render(); }));
+  if (state.faqPage) append(filters, p('教材ページ：' + state.faqPage, 'muted'),
+    button('ページの絞り込みを解除', () => { state.faqPage = ''; render(); }));
+  const matches = findFaqs(legacyFaq, state.search, { course: target.id, page: state.faqPage, unit: state.faqUnit, category: state.faqCategory });
+  return focusPanel(card(el('h2', {}, state.search ? '検索結果' : 'FAQの説明'), filters, p(matches.length + '件', 'step'),
     el('div', { class: 'choices' }, matches.slice(0, state.faqLimit).map(entry => button([
-      el('strong', {}, entry.question), el('small', { class: 'muted' }, `${entry.course_label} · ${entry.unit} · ${entry.id}`),
+      el('strong', {}, entry.question), el('small', { class: 'muted' }, entry.unit),
     ], () => openFaq(entry.id)))),
-    matches.length === 0 ? p('該当するFAQはありません。検索語や絞り込みを変えられます。') : null,
-    matches.length > state.faqLimit ? actions(button('さらに15件表示', () => { state.faqLimit += 15; render(); })) : null);
+    matches.length === 0 ? p('該当するFAQがありません。検索語や絞り込みを変えられます。') : null,
+    matches.length > state.faqLimit ? actions(button('さらに15件表示', () => { state.faqLimit += 15; render(); })) : null));
 }
+
+function beginCourseConsultation(target) {
+  const payload = makeCourseHandoff(legacyFaq, target.id, state.courseAnswers[0] || '', state.courseAnswers[1] || '');
+  const checked = validateCourseHandoff(legacyFaq, payload);
+  prepareConsultation({ appId: '', kind: 'course', targetLabel: checked.label, payload, summary: checked.summary });
+}
+
+function courseQuestionPanel(target) {
+  const answers = state.courseAnswers;
+  const available = courseFilters(legacyFaq, target.id, answers[0] || '');
+  const rows = answers.map((value, index) => ({ question: index === 0 ? '単元' : '内容の種類',
+    answer: value ? index === 0 ? value : available.categories.find(item => item.value === value).label : '分からない',
+    change: () => { state.courseAnswers = answers.slice(0, index); state.courseFaq = null; state.courseLimit = 15; render(true); } }));
+  if (state.courseFaq) {
+    return el('div', { class: 'stack' }, historyPanel(rows), faqPanel(state.courseFaq));
+  }
+  let panel;
+  if (answers.length < 2) {
+    const index = answers.length;
+    const options = index === 0 ? available.units : available.categories;
+    panel = currentQuestion(card(p('いまの質問 · 確認 ' + (index + 1), 'step'),
+      el('h2', {}, index === 0 ? 'どの単元についてですか？' : 'どんな内容についてですか？'),
+      el('div', { class: 'choices' }, [...options, { value: '', label: '分からない・絞り込まずに進む' }].map(item =>
+        button(item.label, () => { state.courseAnswers = [...answers, item.value]; state.courseLimit = 15; render(true); }))),
+      actions(button('選択肢にない・文章で説明する', () => beginCourseConsultation(target)),
+        button('今は確認できない・相談へ進む', () => beginCourseConsultation(target)))));
+  } else {
+    const matches = findFaqs(legacyFaq, '', { course: target.id, unit: answers[0], category: answers[1] });
+    panel = currentQuestion(card(p('いまの質問 · 確認 3', 'step'), el('h2', {}, '近い内容はありますか？'),
+      el('div', { class: 'choices' }, matches.slice(0, state.courseLimit).map(entry => button(entry.question, () => openFaq(entry.id)))),
+      matches.length > state.courseLimit ? button('さらに15件表示', () => { state.courseLimit += 15; render(); }) : null,
+      actions(button('当てはまる説明がない・相談へ進む', () => beginCourseConsultation(target), true))));
+  }
+  return el('div', { class: 'stack' }, historyPanel(rows), panel);
+}
+
 
 const faqTags = new Set(['p', 'br', 'hr', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'pre', 'code', 'em', 'strong', 'b', 'i', 'a', 'img', 'aside', 'div', 'span', 'kbd', 'blockquote', 'dl', 'dt', 'dd', 'table', 'thead', 'tbody', 'tr', 'td', 'th']);
 function faqNode(node) {
@@ -216,15 +337,19 @@ function prepareConsultation(context) {
   state.inherited = context; state.portalTab = 'compose'; state.stage = 'edit'; state.error = ''; showView('student');
 }
 
-function faqPanel() {
-  const entry = legacyFaq.entries.find(entry => entry.id === state.selectedFaq);
+function faqPanel(id = state.selectedFaq) {
+  const entry = legacyFaq.entries.find(entry => entry.id === id);
   if (!entry) return p('FAQが見つかりません。');
   const related = entry.related_faq.map(id => legacyFaq.entries.find(item => item.id === id)).filter(Boolean);
   const panel = card(p(`${entry.course_label} · ${entry.unit} · ${entry.id}`, 'step'), el('h2', { id: entry.id }, entry.question),
     el('div', { class: 'legacy-body' }, entry.body_nodes.map(faqNode)),
     related.length ? el('details', {}, el('summary', {}, '関連するFAQ'), el('div', { class: 'choices' }, related.map(item => button(item.question, () => openFaq(item.id))))) : null,
     actions(...[['関連する教材を開く', entry.related_page], ['関連するスライドを開く', entry.related_slide]].filter(([, href]) => href).map(([label, href]) => el('a', { href, target: '_blank', rel: 'noopener noreferrer' }, label))),
-    actions(button('解決した', () => { state.selectedFaq = null; render(true); }, true), button('相談へ進む', () => {
+    actions(button(state.publicMode === 'questions' ? '説明を選び直す' : '検索結果に戻る', () => {
+      if (state.publicMode === 'questions') state.courseFaq = null;
+      else state.selectedFaq = null;
+      render(true);
+    }), button('相談へ進む', () => {
       const payload = makeFaqHandoff(legacyFaq, entry.id);
       const checked = validateFaqHandoff(legacyFaq, payload);
       prepareConsultation({ appId: '', kind: 'faq', payload, summary: checked.summary });
@@ -239,17 +364,15 @@ function guideIndex(appId) {
     button('確認のサンプルを試す', () => { state.flow = startFlow(guide, appId); render(true); }));
   const version = guide.version_basis === 'date' ? `${guide.verified_on || '未確認'}確認の原稿` : `対象版 ${guide.app_version || '未確認'}`;
   return card(previewComment('この原稿は確認用です。正式採用前の内容を表示しています。'), el('h2', {}, guide.app_name), p(`${version} · 改訂 ${guide.guide_revision}`, 'muted'),
-    el('h3', {}, '困っていることから確認する'),
+    p('いまの質問', 'step'), el('h3', {}, '困っていることを選んでください'),
     el('div', { class: 'choices' }, Object.entries(guide.nodes).filter(([, node]) => node.entry).map(([id, node]) => button(node.title, () => openArticle(appId, id)))),
-    el('details', {}, el('summary', {}, `操作の説明から探す（${Object.keys(guide.operations).length}件）`),
-      el('div', { class: 'choices' }, Object.entries(guide.operations).map(([id, operation]) => button(operation.title, () => openArticle(appId, id))))),
     el('details', {}, el('summary', {}, '共通の利用条件'), p(guide.general_conditions, 'prose')));
 }
 
 function flowPanel() {
   const flow = state.flow;
   const guide = guideFor(flow.appId);
-  const block = card(p(appName(flow.appId), 'step'));
+  const block = card();
   block.tabIndex = -1; block.setAttribute('data-focus-panel', '');
   if (flow.phase === 'question') {
     const node = guide.nodes[flow.nodeId];
@@ -258,23 +381,13 @@ function flowPanel() {
     append(block, p(`いまの質問 · 確認 ${flow.history.length + 1}`, 'step'),
       node.conditions ? p(node.conditions, 'muted') : null, flow.guidance ? p(flow.guidance, 'note') : null,
       el('h2', { class: 'choice-title' }, node.question),
-      el('div', { class: 'choices' }, node.choices.map(choice => button(choice.label, () => { state.flow = choose(guide, state.flow, choice.id); state.stepIndex = 0; render(true); }))));
+      el('div', { class: 'choices' }, node.choices.map(choice => button(choice.label, () => { state.flow = choose(guide, state.flow, choice.id); render(true); }))));
   } else if (flow.phase === 'guide') {
     const operation = guide.operations[flow.guideId];
     block.id = flow.guideId || 'inline-guidance';
     append(block, el('h2', {}, operation?.title || '確認する手順'));
-    if (operation) {
-      const index = Math.min(state.stepIndex, operation.steps.length - 1);
-      append(block, operation.conditions ? p(`対象：${operation.conditions}`, 'prose muted') : null,
-        flow.guidance ? p(flow.guidance, 'note') : null,
-        operation.caution ? el('div', { class: 'note' }, el('h3', {}, '操作前の注意'), p(operation.caution, 'prose')) : null,
-        p(`手順 ${index + 1} / ${operation.steps.length}`, 'step'), p(operation.steps[index], 'prose'),
-        actions(button('前の手順', () => { state.stepIndex = index - 1; render(true); }, false, { disabled: index === 0 }),
-          button('次の手順', () => { state.stepIndex = index + 1; render(true); }, false, { disabled: index === operation.steps.length - 1 })),
-        el('details', {}, el('summary', {}, '全手順をまとめて読む'), el('ol', {}, operation.steps.map(step => el('li', { class: 'prose' }, step)))),
-        operation.expected ? el('div', { class: 'field' }, el('h3', {}, '正常な結果'), p(operation.expected, 'prose')) : null,
-        operation.supplement ? el('details', {}, el('summary', {}, '補足'), p(operation.supplement, 'prose')) : null);
-    } else append(block, p(flow.guidance, 'prose'));
+    if (operation) append(block, operationContent(operation, flow.guidance));
+    else append(block, p(flow.guidance, 'prose'));
     append(block,
       actions(button('解決した', () => { state.flow = { ...flow, phase: 'solved' }; render(true); }, true),
         button('解決しない', () => { state.flow = { ...flow, phase: 'handoff' }; render(true); })));
@@ -284,15 +397,15 @@ function flowPanel() {
     const payload = makeHandoff(guide, flow, appIds);
     const checked = validateHandoff(payload, guide, appIds);
     append(block, el('h2', {}, '解決しないときは、相談へ進めます。'),
-      checked.summary.length ? summary(checked.summary) : p('確認できた内容だけを引き継げます。'),
+      p('ここまでの回答を引き継げます。'),
       p('文章での説明や画像は、次の画面で必要な場合だけ追加します。', 'muted'),
       button('相談へ進む', () => {
         prepareConsultation({ appId: flow.appId, kind: 'guide', payload, summary: checked.summary });
       }, true));
   }
   append(block, actions(
-    button('一つ戻る', () => { state.flow = goBack(guide, state.flow); state.stepIndex = 0; render(true); }, false, { disabled: !flow.history.length }),
-    button('最初から', () => { state.flow = startFlow(guide, flow.appId, flow.rootId); state.stepIndex = 0; render(true); }),
+    button('一つ戻る', () => { state.flow = goBack(guide, state.flow); render(true); }, false, { disabled: !flow.history.length }),
+    button('最初から', () => { state.flow = startFlow(guide, flow.appId, flow.rootId); render(true); }),
     ...(flow.phase === 'question' || flow.phase === 'guide' ? [button('相談へ進む', () => { state.flow = { ...flow, phase: 'handoff' }; render(true); })] : []),
   ));
   return block;
@@ -300,9 +413,13 @@ function flowPanel() {
 
 function inheritedPanel() {
   const rows = state.inherited?.summary || [];
-  const target = state.inherited?.kind === 'faq' ? '教材サイトのFAQ' : appName(state.draft.appId);
+  const target = consultationTarget();
   return card(el('h2', {}, 'ここまで確認したこと'), p(target, 'step'),
     rows.length ? summary(rows) : p('引継ぎはありません。分かることから入力できます。'));
+}
+
+function consultationTarget() {
+  return state.inherited?.targetLabel || (state.inherited?.kind === 'faq' ? '教材サイトのFAQ' : appName(state.draft.appId));
 }
 
 function studentPage() {
@@ -332,7 +449,7 @@ function composePanel() {
     if (state.inherited && state.inherited.appId !== state.draft.appId) state.inherited = null;
     render();
   } } },
-    el('option', { value: '' }, state.inherited?.kind === 'faq' ? '教材サイトのFAQ' : '分からない・その他'), apps.map(app => el('option', { value: app.id }, app.name)));
+    el('option', { value: '' }, state.inherited?.targetLabel || (state.inherited?.kind === 'faq' ? '教材サイトのFAQ' : '分からない・その他')), apps.map(app => el('option', { value: app.id }, app.name)));
   appSelect.value = state.draft.appId;
   const text = el('textarea', { id: 'description', value: state.draft.text, placeholder: '何をしようとして、どこで困りましたか？',
     'aria-describedby': 'description-help', on: { input: event => { state.draft.text = event.target.value; } } });
@@ -345,7 +462,7 @@ function composePanel() {
     state.draft.image = { name: image.name, url: URL.createObjectURL(image) }; state.error = ''; render();
   } } });
   const block = card(el('h2', {}, '追加で伝えたいこと'),
-    el('div', { class: 'field' }, el('label', { for: 'target' }, '対象のアプリ'), appSelect),
+    el('div', { class: 'field' }, el('label', { for: 'target' }, '対象'), appSelect),
     el('div', { class: 'field' }, el('label', { for: 'description' }, '困っていること・補足'), text,
       el('small', { id: 'description-help' }, state.inherited?.summary.length ? 'ここまでの確認があれば、追記なしでも進めます。' : 'まずは短い説明だけで構いません。')),
     el('details', {}, el('summary', {}, 'スクリーンショットを付ける（任意）'), p('ほかの人の情報が写っていないか、送信前に確認してください。'), file));
@@ -361,7 +478,7 @@ function composePanel() {
 function imagePreview() { return el('img', { class: 'preview-image', src: state.draft.image.url, alt: '添付するスクリーンショットのプレビュー' }); }
 
 function reviewPanel() {
-  const target = state.inherited?.kind === 'faq' ? '教材サイトのFAQ' : appName(state.draft.appId);
+  const target = consultationTarget();
   const block = card(el('h2', {}, '送信内容の確認'), p(target, 'step'),
     p(state.draft.text.trim() || '追加の文章はありません。'),
     state.draft.image ? imagePreview() : p('添付なし', 'muted'),
@@ -435,8 +552,7 @@ document.querySelector('#size').addEventListener('change', event => { document.d
 window.addEventListener('popstate', () => {
   const view = new URL(location.href).searchParams.get('view'); state.view = ['public', 'student', 'admin'].includes(view) ? view : 'public';
   if (state.view === 'public') {
-    const incoming = legacyLocation(legacyFaq, location.href);
-    if (incoming.course || incoming.page || incoming.id) { state.publicKind = 'faq'; state.faqCourse = incoming.course; state.faqPage = incoming.page; state.selectedFaq = incoming.id; }
+    applyPublicLocation(location.href, true);
   }
   render(true);
 });

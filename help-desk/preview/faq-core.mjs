@@ -33,6 +33,36 @@ export function validateFaqHandoff(catalog, payload) {
   return { entry, summary: [{ question: '表示したFAQ', answer: entry.question }, { question: '講座', answer: entry.course_label }] };
 }
 
+export function courseFilters(catalog, course, unit = '') {
+  const rows = catalog.entries.filter(entry => entry.course === course);
+  if (!rows.length) fail('教材コースが不正です。');
+  const units = [...new Set(rows.map(entry => entry.unit).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja'));
+  if (unit && !units.includes(unit)) fail('単元がこのコースにありません。');
+  const categories = [...new Set(rows.filter(entry => !unit || entry.unit === unit).map(entry => entry.category).filter(Boolean))]
+    .map(value => ({ value, label: catalog.categories.find(row => row.type === 'category' && row.key === value)?.label || value }));
+  return { label: rows[0].course_label, units: units.map(value => ({ value, label: value })), categories };
+}
+
+export function makeCourseHandoff(catalog, course, unit = '', category = '') {
+  const payload = { kind: 'course', source_sha256: catalog.source_sha256, course, unit, category };
+  validateCourseHandoff(catalog, payload);
+  return payload;
+}
+
+export function validateCourseHandoff(catalog, payload) {
+  const keys = ['kind', 'source_sha256', 'course', 'unit', 'category'];
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload) || Object.keys(payload).length !== keys.length
+    || keys.some(key => !Object.hasOwn(payload, key) || typeof payload[key] !== 'string') || payload.kind !== 'course') fail('コースの引継ぎ項目が不正です。');
+  if (payload.source_sha256 !== catalog.source_sha256) fail('FAQ資料の版が一致しません。');
+  const filters = courseFilters(catalog, payload.course, payload.unit);
+  const category = filters.categories.find(item => item.value === payload.category);
+  if (payload.category && !category) fail('内容区分がこのコース・単元にありません。');
+  const summary = [{ question: '教材コース', answer: filters.label }];
+  if (payload.unit) summary.push({ question: '単元', answer: payload.unit });
+  if (category) summary.push({ question: '内容の種類', answer: category.label });
+  return { label: filters.label, summary };
+}
+
 export function legacyLocation(catalog, href) {
   const url = new URL(href);
   const courses = new Set(catalog.entries.map(entry => entry.course));
