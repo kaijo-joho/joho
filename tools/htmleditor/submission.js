@@ -32,7 +32,7 @@
         new TextEncoder().encode(savedFile.text).length > 2 * 1024 * 1024)) throw Error('保存済みファイルを確認できません。');
     const file = savedFile ? Object.freeze({fileName:savedFile.fileName, text:savedFile.text,
       hintUsage:root.HtmlEditorHintUsage ? root.HtmlEditorHintUsage.normalize(savedFile.hintUsage, targetId, savedFile.fileName) : {v:1,status:'unavailable'}}) : null;
-    let phase = 'loading', protectedResult = '', source = null, sourceOrigin = '', disposed = false, slowTimer, transfer = false, frame = null, bridge = '', integrated = false, localComplete = false;
+    let phase = 'loading', protectedResult = '', receiptShown = false, source = null, sourceOrigin = '', disposed = false, slowTimer, transfer = false, frame = null, bridge = '', integrated = false, localComplete = false;
     const node = (parent, text, tag = 'p', className = '') => {
       const element = document.createElement(tag); element.textContent = text;
       if (className) element.className = className;
@@ -40,7 +40,7 @@
     };
     function needsAttention() { return protectedResult === 'pending' || ['selected','previous-received','sending','uncertain','checking','grading','downloading'].includes(phase); }
     function canClose() {
-      if (protectedResult === 'pending' || phase === 'sending' || phase === 'uncertain' || phase === 'checking') return root.confirm('提出処理中、または受領結果をまだ確認できていません。閉じても送信は取り消されません。閉じますか？');
+      if (protectedResult === 'pending' || protectedResult !== 'receipt' && ['sending','uncertain','checking'].includes(phase)) return root.confirm('提出処理中、または受領結果をまだ確認できていません。閉じても送信は取り消されません。閉じますか？');
       if (phase === 'selected' || phase === 'previous-received') return root.confirm('今回のファイルはまだ提出していません。提出フォームを閉じますか？');
       if (phase === 'grading') return root.confirm('提出は受け付けていますが、採点結果を確認中です。閉じますか？');
       if (phase === 'downloading') return root.confirm('控えを取得中です。閉じると保存できない場合があります。閉じますか？');
@@ -71,7 +71,7 @@
       localFeedback.completed.then(() => {
         if(disposed || localEpoch!==epoch || !isCurrent())return;
         localComplete=Boolean(localFeedback.hasCompleteResult?.());
-        localHost.hidden=protectedResult==='receipt' || phase==='previous-received';
+        localHost.hidden=receiptShown;
         sendFeedbackState();formStage.hidden=false;
       });
     }
@@ -143,10 +143,13 @@
         localComplete = false; sendFeedbackState(); transfer=false; prepareLocal(true);
       }
       phase = data.phase; clearTimeout(slowTimer);
-      if (['sending','uncertain','checking'].includes(phase)) protectedResult = 'pending';
+      if (['sending','uncertain','checking'].includes(phase) && protectedResult !== 'receipt') protectedResult = 'pending';
       else if (['received','grading','downloading'].includes(phase)) protectedResult = 'receipt';
       else if (phase === 'previous-received') protectedResult = '';
-      if(localHost)localHost.hidden=protectedResult==='receipt' || phase==='previous-received';
+      // 受領の確定と、その後の照会中という状態は別。照会が遅くても表へ戻さない。
+      if(['received','grading','downloading','previous-received'].includes(phase))receiptShown=true;
+      else if(['loading','ready','selected'].includes(phase))receiptShown=false;
+      if(localHost)localHost.hidden=receiptShown;
       label.textContent = MESSAGES[phase]; spinner.hidden = !['loading','sending','checking','grading','downloading'].includes(phase);
     };
     function clearFrame() {
@@ -158,7 +161,7 @@
         localFeedback:localComplete ? 'complete-v1' : ''}, sourceOrigin);
     }
     function startFrame() {
-      clearFrame(); phase = 'loading'; protectedResult = ''; status.hidden = false; spinner.hidden = false;
+      clearFrame(); phase = 'loading'; protectedResult = ''; receiptShown=false;if(localHost)localHost.hidden=false; status.hidden = false; spinner.hidden = false;
       label.textContent = '提出フォームを読み込んでいます…';
       if (root.location.origin === ORIGIN && root.top === root) {
         try { bridge = Array.from(root.crypto.getRandomValues(new Uint8Array(24)), n => n.toString(16).padStart(2,'0')).join(''); } catch { /* 別タブへ案内 */ }

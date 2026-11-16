@@ -22,7 +22,7 @@ function embeddedForm(url,stalled) {
   assert(/^html\d{2}-\d{2}$/.test(target)&&/^[a-f0-9]{48}$/.test(bridge));
   const boot=JSON.stringify({targetId:target,embedBridge:bridge});
   const script=`<script>window.__HTML_ASSIGNMENT_BOOT__=${boot};window.syntheticCalls=[];var received={submissionId:'7'.padStart(32,'0'),targetId:'${target}',fileName:'${target}.html',title:'合成課題',receivedAt:'2026-11-16T03:00:00Z',gradingState:'queued',rules:[]};function runner(ok,fail){var r={withSuccessHandler:f=>runner(f,fail),withFailureHandler:f=>runner(ok,f)};r.getHtmlAssignmentInfo=function(arg){syntheticCalls.push('info');setTimeout(()=>ok({targetId:'${target}',fileName:'${target}.html',title:'合成課題',requestId:'1'.padStart(32,'0')}),10);};for(var method of ['submitHtmlAssignmentSavedFile','submitHtmlAssignment']){r[method]=function(arg){syntheticCalls.push('submit');setTimeout(()=>ok(received),10);};}r.processHtmlAssignmentSubmission=function(){syntheticCalls.push('process');setTimeout(()=>ok({...received,gradingState:'graded',rules:[{label:'合成採点項目',mark:'★'}]}),20);};r.getHtmlAssignmentReceipt=function(){syntheticCalls.push('receipt');setTimeout(()=>ok(received),10);};return r;}window.google={script:{run:runner(()=>{},()=>{})}};</script>`;
-  const runtime=stalled?script.replace("syntheticCalls.push('process');setTimeout", "syntheticCalls.push('process');return;setTimeout"):script;
+  const runtime=stalled?script.replace("syntheticCalls.push('process');setTimeout", "syntheticCalls.push('process');return;setTimeout").replace("syntheticCalls.push('receipt');setTimeout", "syntheticCalls.push('receipt');return;setTimeout"):script;
   return form.replace('<script>',runtime+'<script>');
 }
 const browser=await(engine==='webkit'?webkit.launch():chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'}));
@@ -40,7 +40,7 @@ try {
     {name:'grade-stalled',target:'html15-01',suffix:'1-5_1',rows:7,stalled:true}
   ]) {
     const context=await browser.newContext({viewport:{width:item.narrow?390:1200,height:900},reducedMotion:item.narrow?'reduce':'no-preference'});
-    const page=await context.newPage();page.on('pageerror',e=>{
+    const page=await context.newPage();await page.addInitScript(()=>{window.syntheticPhases=[];window.addEventListener('message',e=>{if(e.data?.channel==='joho-html-submission-v1'&&e.data.type==='state')syntheticPhases.push(e.data.phase);});});page.on('pageerror',e=>{
       // WebKitはGAS内枠のサイズ変更通知の持越しをpageerrorとして届ける。消さず別に記録する。
       const bucket=engine==='webkit' && e.message==='ResizeObserver loop completed with undelivered notifications.' ? report.resizeObserverNotices : report.errors;
       bucket.push(item.name+': '+e.message);
@@ -88,6 +88,8 @@ try {
       assert(await frame.locator('#gradingProgress').isHidden());assert((await frame.locator('#state').innerText()).includes('提出は完了'));
       if(item.stalled){
         await frame.locator('#refresh').waitFor({timeout:25000});await frame.locator('#refresh').click();
+        await page.waitForFunction(()=>syntheticPhases.at(-1)==='checking');
+        assert(await local.isHidden(),'照会の応答を止めても受領済みの表を出し直さない');
         assert(await frame.locator('#rules').isHidden());assert(await frame.locator('#gradingProgress').isHidden());
         assert.equal(await frame.locator('body').evaluate(()=>window.syntheticCalls.filter(x=>x==='submit').length),1);
       }

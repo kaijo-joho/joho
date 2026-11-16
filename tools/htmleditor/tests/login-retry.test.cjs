@@ -203,6 +203,14 @@ test('submission: 端末内採点の部品が読めない場合にも、提出�
   const h=setup('submission');await Promise.resolve();
   assert(h.find('確認待ち'));assert.equal(h.formStage.hidden,false);assert.equal(h.localHost.hidden,false);
 });
+test('submission: 受領後の照会が遅い・失敗しても親表を出し直さず、受領前の不明状態とは分ける',async()=>{
+  const h=setup('submission',{local:'complete'}),child=h.connect();h.finishLocal();await Promise.resolve();
+  h.state(child,'received');h.state(child,'checking');assert.equal(h.localHost.hidden,true);
+  assert.equal(h.panel.canClose(),true);assert.equal(h.confirmations.length,0);
+  h.state(child,'error');assert.equal(h.localHost.hidden,true);assert.equal(h.panel.canClose(),true);
+  const pending=setup('submission',{local:'complete'}),other=pending.connect();pending.state(other,'checking');
+  assert.equal(pending.panel.canClose(),false);assert.equal(pending.confirmations.length,1);
+});
 test('submission: 手動選択の通知が採点完了より先でも、後から表示済みへ戻さない',async()=>{
   const h=setup('submission',{local:'complete'}),child=h.connect();
   h.message(h.event(child,{type:'layout',layout:'integrated-v1'}));
