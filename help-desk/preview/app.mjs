@@ -1,7 +1,7 @@
 import { apps, guide as sampleGuide, sampleCases } from './data.mjs';
-import { draftGuides } from './draft-guides.mjs';
+import { draftGuides } from './draft-guides.mjs?v=steps-focus-20261116';
 import { legacyFaq } from './legacy-faq.mjs';
-import { validateGuide, startFlow, choose, goBack, returnToQuestion, answeredQuestions, makeHandoff, validateHandoff, findArticles } from './core.mjs?v=question-flow-20261116';
+import { validateGuide, startFlow, choose, returnToQuestion, answeredQuestions, makeHandoff, validateHandoff, findArticles } from './core.mjs?v=question-flow-20261116';
 import { findFaqs, makeFaqHandoff, validateFaqHandoff, courseFilters, makeCourseHandoff, validateCourseHandoff, legacyLocation } from './faq-core.mjs?v=target-tabs-20261116';
 
 validateGuide(sampleGuide);
@@ -18,7 +18,7 @@ const state = {
   view: new URL(location.href).searchParams.get('view') || 'public',
   publicTarget: '', publicMode: 'search', search: '', searchDraft: '', searchItem: null, selectedApp: null,
   selectedFaq: null, courseFaq: null, courseAnswers: [], courseLimit: 15, faqPage: '', faqUnit: '', faqCategory: '', faqLimit: 15,
-  flow: null, inherited: null, portalTab: 'compose', stage: 'edit',
+  flow: null, inherited: null, portalTab: 'cases', stage: 'edit',
   draft: { appId: '', text: '', image: null }, error: '',
   cases: structuredClone(sampleCases), selectedCase: 'HD-DEMO-001', replyDrafts: Object.create(null), replyPreview: null,
 };
@@ -62,8 +62,9 @@ function render(focus = false) {
   if (state.view === 'public') addPublicRoute(route);
   history.replaceState(null, '', route);
   document.querySelector('#views').replaceChildren(
-    ...[['public', 'ヘルプを探す'], ['student', '相談する'], ['admin', '管理画面（試作）']].map(([view, label]) =>
-      button(label, () => showView(view), false, { 'aria-current': state.view === view ? 'page' : false })),
+    ...[['public', 'ヘルプを探す'], ['student', '自分の相談'], ['admin', '管理画面（試作）']].map(([view, label]) =>
+      button(label, () => { if (view === 'student') state.portalTab = 'cases'; showView(view); }, false,
+        { 'aria-current': state.view === view && (view !== 'student' || state.portalTab === 'cases') ? 'page' : false })),
   );
   main.replaceChildren(...(state.view === 'public' ? publicPage() : state.view === 'student' ? studentPage() : adminPage()));
   if (focus) {
@@ -146,9 +147,7 @@ function publicPage() {
 
 function publicSidebar() {
   return el('aside', { class: 'stack' },
-    previewComment('6アプリの原稿と、教材サイトの5コースのFAQを確認用に表示します。正式運用と自動回答への採用は未実施です。'),
-    card(el('h2', {}, '自分の相談'), p('送った相談への回答や追加の質問を確認できます。'),
-      button('自分の相談を見る', () => { state.portalTab = 'cases'; showView('student'); })));
+    previewComment('6アプリの原稿と、教材サイトの5コースのFAQを確認用に表示します。正式運用と自動回答への採用は未実施です。'));
 }
 
 function searchPanel(target) {
@@ -175,27 +174,44 @@ function searchPanel(target) {
 }
 
 function operationContent(operation, guidance = '') {
+  const supplements = [...new Set([guidance, operation.supplement].filter(Boolean))];
   return [
-    operation.conditions ? p('対象：' + operation.conditions, 'prose muted') : null,
-    guidance ? p(guidance, 'note') : null,
-    operation.caution ? el('div', { class: 'note' }, el('h3', {}, '操作前の注意'), p(operation.caution, 'prose')) : null,
-    el('h3', {}, '手順'), el('ol', { class: 'operation-steps' }, operation.steps.map(step => el('li', { class: 'prose' }, step))),
-    operation.expected ? el('div', { class: 'field' }, el('h3', {}, '正常な結果'), p(operation.expected, 'prose')) : null,
-    operation.supplement ? el('details', {}, el('summary', {}, '補足'), p(operation.supplement, 'prose')) : null,
+    operation.conditions || operation.caution ? el('details', { class: 'operation-notes' }, el('summary', {}, '始める前の確認'),
+      operation.conditions ? el('div', {}, el('h4', {}, '使える場面'), p(operation.conditions, 'prose')) : null,
+      operation.caution ? el('div', {}, el('h4', {}, '注意すること'), p(operation.caution, 'prose')) : null) : null,
+    el('section', { class: 'procedure', 'aria-label': '手順' }, el('h3', {}, '手順'),
+      el('ol', { class: 'operation-steps' }, operation.steps.map(step => el('li', { class: 'prose' }, step)))),
+    operation.expected ? el('details', { class: 'operation-notes' }, el('summary', {}, 'できたときの表示・状態'), p(operation.expected, 'prose')) : null,
+    supplements.length ? el('details', { class: 'operation-notes' }, el('summary', {}, '補足'), supplements.map(text => p(text, 'prose'))) : null,
   ];
+}
+
+function solutionActions(onSolved, onUnsolved) {
+  return actions(button('解決した', onSolved, true), button('解決しない', onUnsolved));
+}
+
+function consultAboutGuide(guide, flow, unresolved = false) {
+  const payload = makeHandoff(guide, flow, appIds);
+  const checked = validateHandoff(payload, guide, appIds);
+  const rows = unresolved ? [...checked.summary, { question: '案内の結果', answer: '解決しなかった' }] : checked.summary;
+  return prepareConsultation({ appId: flow.appId, kind: 'guide', payload, summary: rows });
+}
+
+function answerGuideQuestion(guide, choiceId) {
+  const next = choose(guide, state.flow, choiceId);
+  if (next.phase === 'handoff') {
+    if (consultAboutGuide(guide, next)) state.flow = next;
+  } else { state.flow = next; render(true); }
 }
 
 function operationSearchPanel(target) {
   const guide = guideFor(target.id);
   const operation = guide.operations[state.searchItem.itemId];
   return focusPanel(card(el('h2', {}, operation.title), operationContent(operation),
-    actions(button('説明の一覧に戻る', () => { state.searchItem = null; render(true); }),
-      button('相談へ進む', () => {
+    solutionActions(() => { state.searchItem = null; render(true); }, () => {
         const flow = { ...startFlow(guide, target.id), phase: 'guide', guideId: state.searchItem.itemId };
-        const payload = makeHandoff(guide, flow, appIds);
-        const checked = validateHandoff(payload, guide, appIds);
-        prepareConsultation({ appId: target.id, kind: 'guide', payload, summary: checked.summary });
-      }, true))));
+        consultAboutGuide(guide, flow, true);
+      })));
 }
 
 function focusPanel(panel) {
@@ -297,13 +313,13 @@ function courseQuestionPanel(target) {
       el('div', { class: 'choices' }, [...options, { value: '', label: '分からない・絞り込まずに進む' }].map(item =>
         button(item.label, () => { state.courseAnswers = [...answers, item.value]; state.courseLimit = 15; render(true); }))),
       actions(button('選択肢にない・文章で説明する', () => beginCourseConsultation(target)),
-        button('今は確認できない・相談へ進む', () => beginCourseConsultation(target)))));
+        button('今は確認できない', () => beginCourseConsultation(target)))));
   } else {
     const matches = findFaqs(legacyFaq, '', { course: target.id, unit: answers[0], category: answers[1] });
     panel = currentQuestion(card(p('いまの質問 · 確認 3', 'step'), el('h2', {}, '近い内容はありますか？'),
       el('div', { class: 'choices' }, matches.slice(0, state.courseLimit).map(entry => button(entry.question, () => openFaq(entry.id)))),
       matches.length > state.courseLimit ? button('さらに15件表示', () => { state.courseLimit += 15; render(); }) : null,
-      actions(button('当てはまる説明がない・相談へ進む', () => beginCourseConsultation(target), true))));
+      actions(button('当てはまる説明がない', () => beginCourseConsultation(target), true))));
   }
   return el('div', { class: 'stack' }, historyPanel(rows), panel);
 }
@@ -331,29 +347,31 @@ function faqNode(node) {
 }
 
 function prepareConsultation(context) {
-  if ((state.draft.text || state.draft.image) && !window.confirm('入力中の相談があります。入力を消して、今回の相談に切り替えますか？')) return;
+  if (state.stage !== 'done' && (state.draft.text || state.draft.image) && !window.confirm('入力中の相談があります。入力を消して、今回の相談に切り替えますか？')) return false;
   if (state.draft.image) URL.revokeObjectURL(state.draft.image.url);
   state.draft = { appId: context.appId, text: '', image: null };
   state.inherited = context; state.portalTab = 'compose'; state.stage = 'edit'; state.error = ''; showView('student');
+  return true;
 }
 
 function faqPanel(id = state.selectedFaq) {
   const entry = legacyFaq.entries.find(entry => entry.id === id);
   if (!entry) return p('FAQが見つかりません。');
   const related = entry.related_faq.map(id => legacyFaq.entries.find(item => item.id === id)).filter(Boolean);
-  const panel = card(p(`${entry.course_label} · ${entry.unit} · ${entry.id}`, 'step'), el('h2', { id: entry.id }, entry.question),
+  const panel = card(p(`${entry.course_label} · ${entry.unit}`, 'step'), el('h2', { id: entry.id }, entry.question),
     el('div', { class: 'legacy-body' }, entry.body_nodes.map(faqNode)),
     related.length ? el('details', {}, el('summary', {}, '関連するFAQ'), el('div', { class: 'choices' }, related.map(item => button(item.question, () => openFaq(item.id))))) : null,
     actions(...[['関連する教材を開く', entry.related_page], ['関連するスライドを開く', entry.related_slide]].filter(([, href]) => href).map(([label, href]) => el('a', { href, target: '_blank', rel: 'noopener noreferrer' }, label))),
-    actions(button(state.publicMode === 'questions' ? '説明を選び直す' : '検索結果に戻る', () => {
+    solutionActions(() => {
       if (state.publicMode === 'questions') state.courseFaq = null;
       else state.selectedFaq = null;
       render(true);
-    }), button('相談へ進む', () => {
+    }, () => {
       const payload = makeFaqHandoff(legacyFaq, entry.id);
       const checked = validateFaqHandoff(legacyFaq, payload);
-      prepareConsultation({ appId: '', kind: 'faq', payload, summary: checked.summary });
-    })), p('解決しない場合は、表示したFAQを引き継いで相談へ進めます。', 'muted'));
+      prepareConsultation({ appId: '', kind: 'faq', payload,
+        summary: [...checked.summary, { question: '案内の結果', answer: '解決しなかった' }] });
+    }));
   panel.tabIndex = -1; panel.setAttribute('data-focus-panel', '');
   return panel;
 }
@@ -381,33 +399,21 @@ function flowPanel() {
     append(block, p(`いまの質問 · 確認 ${flow.history.length + 1}`, 'step'),
       node.conditions ? p(node.conditions, 'muted') : null, flow.guidance ? p(flow.guidance, 'note') : null,
       el('h2', { class: 'choice-title' }, node.question),
-      el('div', { class: 'choices' }, node.choices.map(choice => button(choice.label, () => { state.flow = choose(guide, state.flow, choice.id); render(true); }))));
+      el('div', { class: 'choices' }, node.choices.map(choice => button(choice.label, () => answerGuideQuestion(guide, choice.id)))));
   } else if (flow.phase === 'guide') {
     const operation = guide.operations[flow.guideId];
     block.id = flow.guideId || 'inline-guidance';
     append(block, el('h2', {}, operation?.title || '確認する手順'));
     if (operation) append(block, operationContent(operation, flow.guidance));
-    else append(block, p(flow.guidance, 'prose'));
+    else append(block, el('section', { class: 'procedure' }, el('h3', {}, '確認すること'), p(flow.guidance, 'prose')));
     append(block,
-      actions(button('解決した', () => { state.flow = { ...flow, phase: 'solved' }; render(true); }, true),
-        button('解決しない', () => { state.flow = { ...flow, phase: 'handoff' }; render(true); })));
+      solutionActions(() => { state.flow = { ...flow, phase: 'solved' }; render(true); }, () => consultAboutGuide(guide, flow, true)));
   } else if (flow.phase === 'solved') {
     append(block, el('h2', {}, '元の作業を続けてください。'), p('この確認だけでは相談の送信や通知は行いません。'));
   } else {
-    const payload = makeHandoff(guide, flow, appIds);
-    const checked = validateHandoff(payload, guide, appIds);
-    append(block, el('h2', {}, '解決しないときは、相談へ進めます。'),
-      p('ここまでの回答を引き継げます。'),
-      p('文章での説明や画像は、次の画面で必要な場合だけ追加します。', 'muted'),
-      button('相談へ進む', () => {
-        prepareConsultation({ appId: flow.appId, kind: 'guide', payload, summary: checked.summary });
-      }, true));
+    append(block, el('h2', {}, '相談の入力画面を開きました。'),
+      p('入力中の内容は、上の「自分の相談」から再開できます。'));
   }
-  append(block, actions(
-    button('一つ戻る', () => { state.flow = goBack(guide, state.flow); render(true); }, false, { disabled: !flow.history.length }),
-    button('最初から', () => { state.flow = startFlow(guide, flow.appId, flow.rootId); render(true); }),
-    ...(flow.phase === 'question' || flow.phase === 'guide' ? [button('相談へ進む', () => { state.flow = { ...flow, phase: 'handoff' }; render(true); })] : []),
-  ));
   return block;
 }
 
@@ -423,23 +429,17 @@ function consultationTarget() {
 }
 
 function studentPage() {
-  const tabs = actions(button('新しい相談', () => {
-    if (state.stage === 'done') {
-      if (state.draft.image) URL.revokeObjectURL(state.draft.image.url);
-      state.draft = { appId: '', text: '', image: null }; state.inherited = null; state.stage = 'edit';
-    }
-    state.portalTab = 'compose'; render();
-  }, false, { 'aria-pressed': String(state.portalTab === 'compose') }),
-    button('自分の相談', () => { state.portalTab = 'cases'; render(); }, false, { 'aria-pressed': String(state.portalTab === 'cases') }));
   const title = state.portalTab === 'cases'
     ? intro('自分の相談', '送った相談への回答や追加の質問を確認できます。')
     : intro('相談する', 'ここまでの確認を引き継いで、必要な内容だけ追加できます。');
-  if (state.portalTab === 'cases') return [title, tabs, casePortal()];
-  if (state.stage === 'done') return [title, tabs, card(previewComment('受付完了の表示例です。この試作では実際の相談は送信されていません。'), el('h2', {}, state.selectedCase),
+  if (state.portalTab === 'cases') return [title,
+    state.inherited && state.stage !== 'done' ? card(p('送信前の相談があります。'),
+      button('入力中の相談を続ける', () => { state.portalTab = 'compose'; render(true); })) : null, casePortal()];
+  if (state.stage === 'done') return [title, card(previewComment('受付完了の表示例です。この試作では実際の相談は送信されていません。'), el('h2', {}, state.selectedCase),
     p('受付後は、画面から回答や追加質問を確認できます。'),
     actions(button('自分の相談を見る', () => { state.portalTab = 'cases'; render(true); }, true), button('ヘルプを探す', () => showView('public'))))];
   const body = state.stage === 'review' ? reviewPanel() : composePanel();
-  return [title, tabs, el('div', { class: 'layout' }, el('div', { class: 'stack' }, body),
+  return [title, el('div', { class: 'layout' }, el('div', { class: 'stack' }, body),
     el('aside', { class: 'stack' }, inheritedPanel(), card(el('h2', {}, '送信する前に'), p('分かることだけで構いません。氏名やメールアドレスを本文に書く必要はありません。'), previewComment('実際の返信は、ヘルプデスクの画面で確認できるようにします。'))))];
 }
 
