@@ -612,7 +612,8 @@ export const draftGuides = {
         ]
       }
     },
-    "owner_reviewed": true
+    "owner_reviewed": true,
+    "preview_verified": true
   },
   "pythoneditor": {
     "format_version": 2,
@@ -1864,7 +1865,8 @@ export const draftGuides = {
         ]
       }
     },
-    "owner_reviewed": true
+    "owner_reviewed": true,
+    "preview_verified": true
   },
   "logic": {
     "format_version": 2,
@@ -2860,7 +2862,8 @@ export const draftGuides = {
         ]
       }
     },
-    "owner_reviewed": true
+    "owner_reviewed": true,
+    "preview_verified": true
   },
   "graph": {
     "format_version": 2,
@@ -4055,7 +4058,8 @@ export const draftGuides = {
         ]
       }
     },
-    "owner_reviewed": true
+    "owner_reviewed": true,
+    "preview_verified": true
   },
   "illustslide": {
     "format_version": 2,
@@ -5548,7 +5552,8 @@ export const draftGuides = {
         ]
       }
     },
-    "owner_reviewed": true
+    "owner_reviewed": true,
+    "preview_verified": true
   },
   "flowchart": {
     "format_version": 2,
@@ -6767,6 +6772,579 @@ export const draftGuides = {
         ]
       }
     },
-    "owner_reviewed": true
+    "owner_reviewed": true,
+    "preview_verified": true
+  },
+  "worksheet-submission": {
+    "format_version": 2,
+    "app_id": "worksheet-submission",
+    "app_name": "ワークシートの提出・確認",
+    "guide_revision": 1,
+    "version_basis": "date",
+    "app_version": null,
+    "verified_on": "2026-11-16",
+    "preview_only": true,
+    "source_sha256": "268aa88c7c1508c50ed3cc66db67b6a3fc254f9ab8d6ef6c3d51f64b16177556",
+    "general_conditions": "| 項目 | 内容 |\n| --- | --- |\n| 対応環境 | 提出画面を利用できるMac・パソコン、またはスマートフォンのブラウザ。撮影にはカメラ、撮影済み写真の選択には写真を開く操作が必要です。 |\n| 必要なアカウント | 提出・本人の記録確認には、対象の生徒名簿に登録された学校のGoogleアカウントを使います。スマホでログインしない方法では、ログイン済みMacとの連携が必要です。 |\n| 対象となる利用モード | 授業での紙の提出、Macからの写真提出、スマホでログインして提出、ログイン済みMacとスマホをつないで提出。 |\n| 利用を始める前の条件 | 授業で指定されたワークシートと提出方法を確認します。写真を使う場合は同じワークシートのオモテ・ウラを用意します。 |",
+    "operations": {
+      "op-choose-method": {
+        "title": "提出方法を選ぶ",
+        "conditions": "提出を始めるとき。授業で提出方法を指定されている場合は、その指示に従います。",
+        "steps": [
+          "「ワークシート」の入口（https://joho.kaijo.ed.jp/ws/）を開きます。",
+          "写真で提出する場合は、使う端末に合った提出方法を選びます。希望する方法が見えなければ「すべての提出方法を表示」を押します。",
+          "紙で提出する場合は、授業で指示された方法で提出します。提出後の確認は、入口の「提出状況を確認する」から行います。"
+        ],
+        "expected": "選んだ写真提出の画面、または自分の提出状況の画面へ進めます。",
+        "caution": "入口を開いたり提出方法を選んだりするだけでは、提出は完了しません。紙の提出場所やその回の期限は授業の指示を確認してください。",
+        "supplement": ""
+      },
+      "op-prepare-photos": {
+        "title": "オモテ・ウラの写真を用意する",
+        "conditions": "写真を使って提出するとき。写真が1枚だけ、読み取りの警告がある、表裏や組・番号が違う場合も対象です。",
+        "steps": [
+          "同じワークシートのオモテ面とウラ面を用意し、両面の組・番号が自分のものと一致しているか確認します。",
+          "「①写真を2枚追加」で撮影するか、撮影済みの写真を2枚選びます。用紙全体が写り、四隅やQR・組番号のマークが欠けないようにします。",
+          "読み取りの警告があれば、表示された内容に合わせて写真や用紙の記入を確認します。",
+          "「②読み取り結果を確認」で、用紙・表裏・組・番号の表示を確かめ、正しい場合に先へ進みます。"
+        ],
+        "expected": "オモテ・ウラを確認でき、「③提出方法を選ぶ」へ進めます。",
+        "caution": "写真の取り込みや補正だけでは提出されません。違う人の組・番号や、誤った用紙の表示のまま進めないでください。画面を閉じる・開き直す・アカウントを切り替える前に、必要な写真を保存し、手元に残っていることを確認してください。",
+        "supplement": ""
+      },
+      "op-submit-phone": {
+        "title": "スマホでログインして提出する",
+        "conditions": "スマホで学校アカウントにログインして写真を提出するとき。",
+        "steps": [
+          "入口の「スマホからGoogleアカウントにログインして提出」を選び、自分の学校アカウントで開きます。",
+          "「①写真を2枚追加」「②読み取り結果を確認」でオモテ・ウラと自分の組・番号を確認します。",
+          "「③提出方法を選ぶ」で「スマホでログインして送信」を選びます。別のログイン・接続確認画面が開いた場合は、確認後に元の撮影タブへ戻り「ログイン完了後に送信」を押します。",
+          "画面を開いたまま処理・受付状況を確認し、その後「提出状況を確認する」で自分の記録も確認します。"
+        ],
+        "expected": "処理・受付状況が表示されます。受付の確認中と「受理済み」は区別して確認します。",
+        "caution": "送信操作により写真を提出先へ送ります。写真の保存・共有やログインの完了だけでは提出されません。送信結果が分からない場合は、別の提出を繰り返す前に、表示中の受付状況を確認してください。",
+        "supplement": ""
+      },
+      "op-submit-mac": {
+        "title": "Macから写真を選んで提出する",
+        "conditions": "手元の写真をMacから選んで提出するとき。",
+        "steps": [
+          "オモテ・ウラの写真をMacで選べる状態にし、入口の「Macから写真を選んで提出」を開きます。",
+          "自分の学校アカウントで開き、「①写真を2枚追加」で写真を選びます。",
+          "「②読み取り結果を確認」で用紙・表裏・組・番号を確認します。",
+          "「③提出方法を選ぶ」で「このMacから提出」を選び、画面を開いたまま処理・受付状況を確認します。",
+          "「提出状況を確認する」で自分の記録も確認します。"
+        ],
+        "expected": "処理・受付状況が表示されます。提出状況へ反映されるまで時間がかかる場合があります。",
+        "caution": "提出操作により写真を提出先へ送ります。スマホでの保存やMacへの転送だけでは提出されません。結果が分からない場合は、表示中の受付状況を先に確認してください。",
+        "supplement": ""
+      },
+      "op-submit-pair": {
+        "title": "スマホをログイン済みMacにつないで提出する",
+        "conditions": "スマホでは学校アカウントにログインせず、ログイン済みMacと連携して写真を提出するとき。",
+        "steps": [
+          "Macで入口の「Macでスマホからの写真を受け取って提出」を開き、自分の学校アカウントでログインします。",
+          "Macでスマホ提出用QRを表示し、その画面を提出が終わるまで開いたままにします。",
+          "スマホで写真2枚と読み取り結果を確認し、「③提出方法を選ぶ」の「Macと接続して提出」からMacのQRを読み取ります。",
+          "スマホとMacに同じ確認コードが表示されていることを確かめ、Macで接続を承認します。QRの期限切れ等が表示された場合は、写真を保持したままMacで新しいQRを表示して接続し直します。",
+          "スマホの「画像を送信」を押し、処理・受付状況と自分の提出記録を確認します。"
+        ],
+        "expected": "Macとの接続が承認され、画像送信後に処理・受付状況が表示されます。",
+        "caution": "自分のMac画面のQRだけを使い、他の人のQRや確認コードを使わないでください。接続の承認と画像の送信は別の操作です。QRや確認コードを相談のスクリーンショットへ含めないでください。",
+        "supplement": ""
+      },
+      "op-refresh-status": {
+        "title": "自分の提出状況を確認する",
+        "conditions": "提出後の確認、記録の取得失敗、「受付処理中」等が表示されているとき。",
+        "steps": [
+          "「ワークシート」の入口から「提出状況を確認する」を開き、自分の学校アカウントでログインします。",
+          "見たいワークシートが見つからなければ、表示条件を「すべて」にします。",
+          "「最新の記録を確認」を押し、表示された提出状況と「最新版の受付」を確認します。",
+          "「受付処理中」「確認できません」等の場合は未提出と決めず、少し待って同じボタンで確認します。"
+        ],
+        "expected": "現在確認できる提出状況と、記録がある場合は最新版の受付が表示されます。",
+        "caution": "この操作は記録の確認であり、新しい提出ではありません。表示できないことと、正式な提出記録がないことを同じ意味に扱わないでください。このヘルプの画面では本人の実際の記録は確認できません。",
+        "supplement": ""
+      },
+      "op-wait-for-record": {
+        "title": "提出直後に記録が出ないときの確認",
+        "conditions": "紙をスキャンした直後や、写真の送信後に受信・検証・受付の確認が続いているとき。",
+        "steps": [
+          "写真の場合は、送信した画面の「処理・受付状況」を確認します。送信中はその画面を開いたまま待ちます。",
+          "「検証待ち」等の場合は、まだ確認が続いています。結果が分からないまま、新しい提出を繰り返さないようにします。",
+          "少し待って、提出状況の「最新の記録を確認」を押します。",
+          "紙のスキャン後は反映の目安の1時間を過ぎても出ない場合、両面の組・番号を確認し、提出画面の未反映の確認へ進みます。写真も確認待ちが続く場合は、表示されている受付状況を添えて相談してください。"
+        ],
+        "expected": "反映後の提出状況、または引き続き確認中であることを確かめられます。",
+        "caution": "スキャン後の1時間は目安であり、写真の処理時間や受理を保証するものではありません。受信・検証待ちの表示だけで提出完了や未提出を断定しません。",
+        "supplement": ""
+      },
+      "op-open-details": {
+        "title": "提出した画像・履歴・★を確認する",
+        "conditions": "提出状況は表示されたが、画像・履歴・★を確認したいとき。",
+        "steps": [
+          "提出状況の対象ワークシートで「詳細」を開きます。",
+          "「詳細を読み込んでいます…」の場合は、後から表示されるまで待ちます。",
+          "提出版を選べる場合は「表示する提出版」で確認したい最新版や旧版を選び、オモテ・ウラの画像を確認します。",
+          "詳細の取得失敗等が表示された場合は「最新の記録を確認」で再確認します。★だけが出ない場合も、提出状況と分けて確認します。"
+        ],
+        "expected": "取得できた画像・履歴等が表示されます。★は表示できる場合に追加されます。",
+        "caution": "提出状況が先に、★・画像・履歴等が後から表示されます。★がないことを未提出や評価ゼロの意味にしないでください。★の内容の判断や訂正は、この案内では扱いません。",
+        "supplement": ""
+      },
+      "op-use-existing-request": {
+        "title": "未反映・自分の答案ではないときの確認を申し出る",
+        "conditions": "記録の再確認後も未反映、または自分のものではない答案が表示されるとき。",
+        "steps": [
+          "自分の学校アカウントで対象ワークシートを開いていることを確認します。",
+          "紙の提出が反映されない場合は、オモテ・ウラの組・番号のマークを確かめます。誤りがあれば直して授業で指定された方法で再提出します。",
+          "マークが正しいのに反映されない場合は、提出画面にある「提出したが記録に反映されない」または「確認を申請する」から確認を申し出ます。",
+          "別の人の答案が表示された場合は、提出画面に「自分の答案ではない」があればそこから申告します。画像を共有・転送しないでください。",
+          "申告済みの場合は、表示される受付・確認中の状態を確認します。該当する操作がない、操作できない、追加の相談が必要な場合はヘルプデスクへ進みます。"
+        ],
+        "expected": "申告を利用できる場合は、受付や確認中の状態が表示されます。",
+        "caution": "申告を送っても、正式な提出記録や★がその場で訂正されるわけではありません。既存の申告機能でできる確認は提出画面で行います。別の人の答案や個人情報をヘルプデスクの画像に添付しないでください。",
+        "supplement": ""
+      },
+      "op-open-school-account": {
+        "title": "提出・確認の画面を学校アカウントで開く",
+        "conditions": "学校アカウントで開き直すよう表示される、ログイン・本人の確認で進めないとき。",
+        "steps": [
+          "撮影・選択済みの写真がある場合は、必要な写真を保存し、手元に残っていることを確認します。",
+          "「ワークシート」の入口から目的の画面を開き、自分の学校のGoogleアカウントを選びます。",
+          "記録確認の場合は「最新の記録を確認」を押します。写真提出の場合は画面に表示されるログイン・接続確認を行い、元の撮影画面へ戻ります。",
+          "自分のアカウントでも進めない場合は、表示された短いメッセージを確認し、相談へ進みます。"
+        ],
+        "expected": "利用対象の本人であることを確認できれば、自分の提出・記録確認を続けられます。",
+        "caution": "他の人のアカウントや個人用アカウントで代わりに提出しないでください。パスワード・認証コード・接続用QRをヘルプデスクへ送る必要はありません。ブラウザの保存データの消去は案内していません。",
+        "supplement": ""
+      }
+    },
+    "nodes": {
+      "tr-submit-start": {
+        "title": "提出方法が分からない",
+        "entry": true,
+        "conditions": "提出を始めたいが、方法を選べないとき。",
+        "symptom": "どの入口・端末から提出すればよいか分かりません。",
+        "question": "どの方法で提出したいですか？",
+        "choices": [
+          {
+            "id": "paper",
+            "label": "授業で指示された方法で紙を提出する",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-choose-method"
+          },
+          {
+            "id": "phone",
+            "label": "スマホの写真を使う",
+            "guidance": "",
+            "next": "question",
+            "ref": "tr-phone-route"
+          },
+          {
+            "id": "mac",
+            "label": "Macにある写真を選ぶ",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-submit-mac"
+          },
+          {
+            "id": "other",
+            "label": "選択肢にない・文章で説明する",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unknown",
+            "label": "分からない",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-choose-method"
+          },
+          {
+            "id": "unavailable",
+            "label": "今は確認できない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          }
+        ]
+      },
+      "tr-phone-route": {
+        "title": "スマホの提出方法を選びたい",
+        "entry": false,
+        "conditions": "スマホの写真を使って提出するとき。",
+        "symptom": "スマホでログインする方法とMacを使う方法を選びたいです。",
+        "question": "スマホとMacをどのように使いますか？",
+        "choices": [
+          {
+            "id": "phone-login",
+            "label": "スマホで学校アカウントにログインする",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-submit-phone"
+          },
+          {
+            "id": "mac-connect",
+            "label": "スマホではログインせず、ログイン済みMacにつなぐ",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-submit-pair"
+          },
+          {
+            "id": "mac-files",
+            "label": "写真をMacへ移して、Macで選ぶ",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-submit-mac"
+          },
+          {
+            "id": "other",
+            "label": "選択肢にない・文章で説明する",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unknown",
+            "label": "分からない",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-choose-method"
+          },
+          {
+            "id": "unavailable",
+            "label": "今は確認できない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          }
+        ]
+      },
+      "tr-photo-check": {
+        "title": "写真の読み取りや確認で進めない",
+        "entry": true,
+        "conditions": "写真の追加から読み取り結果の確認までで止まるとき。",
+        "symptom": "写真を読み取れない、次へ進めない、用紙・表裏・組・番号が違います。",
+        "question": "写真の画面はどの状態ですか？",
+        "choices": [
+          {
+            "id": "one-photo",
+            "label": "写真をまだ2枚追加していない",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-prepare-photos"
+          },
+          {
+            "id": "warning",
+            "label": "写真の読み取りで警告が出る",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-prepare-photos"
+          },
+          {
+            "id": "mismatch",
+            "label": "用紙・表裏・組・番号の表示が違う",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-prepare-photos"
+          },
+          {
+            "id": "other",
+            "label": "選択肢にない・文章で説明する",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unknown",
+            "label": "分からない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unavailable",
+            "label": "今は確認できない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          }
+        ]
+      },
+      "tr-pair-connection": {
+        "title": "スマホとMacを接続できない",
+        "entry": true,
+        "conditions": "MacのQRを使う提出で止まるとき。",
+        "symptom": "QRが使えない、接続の承認で止まる、画像を送信できません。",
+        "question": "接続の画面に何が表示されていますか？",
+        "choices": [
+          {
+            "id": "expired",
+            "label": "QRの期限切れ・使用済み・取消",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-submit-pair"
+          },
+          {
+            "id": "approval",
+            "label": "Macでの承認待ち",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-submit-pair"
+          },
+          {
+            "id": "approved",
+            "label": "承認されたが画像をまだ送っていない",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-submit-pair"
+          },
+          {
+            "id": "other",
+            "label": "選択肢にない・文章で説明する",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unknown",
+            "label": "分からない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unavailable",
+            "label": "今は確認できない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          }
+        ]
+      },
+      "tr-status-start": {
+        "title": "提出したのに記録を確認できない",
+        "entry": true,
+        "conditions": "紙を提出した後、または写真の送信後に自分の提出状況を確認するとき。",
+        "symptom": "提出したつもりですが、記録が出ない、確認中の表示が続いています。",
+        "question": "今の表示に近いものはどれですか？",
+        "choices": [
+          {
+            "id": "paper-no-record",
+            "label": "紙をスキャンしたが、提出状況に記録がない",
+            "guidance": "",
+            "next": "question",
+            "ref": "tr-status-time"
+          },
+          {
+            "id": "photo-waiting",
+            "label": "写真を送信し、受信・検証・受付の確認中",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-wait-for-record"
+          },
+          {
+            "id": "saved-only",
+            "label": "写真を保存・共有したところまで",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-choose-method"
+          },
+          {
+            "id": "cannot-load",
+            "label": "受付処理中・記録を確認できないと出る",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-refresh-status"
+          },
+          {
+            "id": "details-only",
+            "label": "提出状況はあるが、画像や★が出ない",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-open-details"
+          },
+          {
+            "id": "other",
+            "label": "選択肢にない・文章で説明する",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unknown",
+            "label": "分からない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unavailable",
+            "label": "今は確認できない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          }
+        ]
+      },
+      "tr-status-time": {
+        "title": "紙のスキャン後の時間を確認する",
+        "entry": false,
+        "conditions": "紙をスキャンした後に記録が見つからないとき。",
+        "symptom": "紙をスキャンした後、まだ提出状況に記録がありません。",
+        "question": "スキャンしてから1時間ほどたちましたか？",
+        "choices": [
+          {
+            "id": "recent",
+            "label": "まだ1時間たっていない",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-wait-for-record"
+          },
+          {
+            "id": "elapsed",
+            "label": "1時間以上たっている",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-use-existing-request"
+          },
+          {
+            "id": "other",
+            "label": "選択肢にない・文章で説明する",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unknown",
+            "label": "分からない",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-refresh-status"
+          },
+          {
+            "id": "unavailable",
+            "label": "今は確認できない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          }
+        ]
+      },
+      "tr-details": {
+        "title": "提出した画像や★を確認したい",
+        "entry": true,
+        "conditions": "提出状況の表示後、画像・履歴・★または表示された答案について困っているとき。",
+        "symptom": "提出状況はあるのに詳細が出ない、以前の提出を見たい、表示された答案が自分のものではありません。",
+        "question": "どのことで困っていますか？",
+        "choices": [
+          {
+            "id": "detail-wait",
+            "label": "画像・履歴をまだ見られない",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-open-details"
+          },
+          {
+            "id": "stars-missing",
+            "label": "★だけが表示されない",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-open-details"
+          },
+          {
+            "id": "old-version",
+            "label": "前に提出した版を見たい",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-open-details"
+          },
+          {
+            "id": "not-mine",
+            "label": "自分の答案ではない",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-use-existing-request"
+          },
+          {
+            "id": "rating-question",
+            "label": "★の内容について確認したい",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "other",
+            "label": "選択肢にない・文章で説明する",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unknown",
+            "label": "分からない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unavailable",
+            "label": "今は確認できない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          }
+        ]
+      },
+      "tr-login": {
+        "title": "提出・確認の画面を開けない",
+        "entry": true,
+        "conditions": "ログイン、本人の確認、学校アカウントの案内で進めないとき。",
+        "symptom": "提出画面を開けない、学校アカウントでの確認を求められます。",
+        "question": "学校アカウントでの確認を求める案内が出ていますか？",
+        "choices": [
+          {
+            "id": "account-message",
+            "label": "学校アカウントで開き直すよう表示される",
+            "guidance": "",
+            "next": "guide",
+            "ref": "op-open-school-account"
+          },
+          {
+            "id": "own-account",
+            "label": "自分の学校アカウントでも進めない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "other",
+            "label": "選択肢にない・文章で説明する",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unknown",
+            "label": "分からない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          },
+          {
+            "id": "unavailable",
+            "label": "今は確認できない",
+            "guidance": "",
+            "next": "handoff",
+            "ref": "-"
+          }
+        ]
+      }
+    },
+    "owner_reviewed": false,
+    "preview_verified": true
   }
 };

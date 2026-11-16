@@ -1,5 +1,5 @@
-import { apps, guide as sampleGuide, sampleCases } from './data.mjs';
-import { draftGuides } from './draft-guides.mjs?v=steps-focus-20261116';
+import { apps, guide as sampleGuide, sampleCases } from './data.mjs?v=worksheet-20261116';
+import { draftGuides } from './draft-guides.mjs?v=worksheet-20261116';
 import { legacyFaq } from './legacy-faq.mjs';
 import { validateGuide, startFlow, choose, returnToQuestion, answeredQuestions, makeHandoff, validateHandoff, findArticles } from './core.mjs?v=question-flow-20261116';
 import { findFaqs, makeFaqHandoff, validateFaqHandoff, courseFilters, makeCourseHandoff, validateCourseHandoff, legacyLocation } from './faq-core.mjs?v=target-tabs-20261116';
@@ -147,7 +147,7 @@ function publicPage() {
 
 function publicSidebar() {
   return el('aside', { class: 'stack' },
-    previewComment('6アプリの原稿と、教材サイトの5コースのFAQを確認用に表示します。正式運用と自動回答への採用は未実施です。'));
+    previewComment('6アプリの原稿、ワークシートの提出・確認、教材サイトの5コースのFAQを確認用に表示します。正式運用と自動回答への採用は未実施です。'));
 }
 
 function searchPanel(target) {

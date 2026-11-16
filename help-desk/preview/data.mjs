@@ -5,6 +5,7 @@ export const apps = [
   { id: 'graph', name: 'グラフエディタ' },
   { id: 'illustslide', name: 'イラストスライド' },
   { id: 'flowchart', name: 'フローチャート' },
+  { id: 'worksheet-submission', name: 'ワークシートの提出・確認' },
   { id: 'google-drive', name: 'Google Drive' },
   { id: 'classroom', name: 'Google Classroom' },
   { id: 'class-apps', name: '授業で使うアプリ（その他）' },
