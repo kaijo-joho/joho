@@ -1,9 +1,9 @@
 import { apps, guide as sampleGuide, sampleCases } from './data.mjs?v=worksheet-20261116';
-import { draftGuides } from './draft-guides.mjs?v=worksheet-20261116';
+import { draftGuides } from './draft-guides.mjs?v=readable-guides-20261116';
 import { legacyFaq } from './legacy-faq.mjs';
 import { validateGuide, startFlow, choose, returnToQuestion, answeredQuestions, makeHandoff, validateHandoff, findArticles } from './core.mjs?v=question-flow-20261116';
 import { findFaqs, makeFaqHandoff, validateFaqHandoff, courseFilters, makeCourseHandoff, validateCourseHandoff, legacyLocation } from './faq-core.mjs?v=target-tabs-20261116';
-import { mountDisplayControls } from './display-ui.mjs?v=site-header-20261116';
+import { mountDisplayControls } from './display-ui.mjs?v=readable-guides-20261116';
 
 validateGuide(sampleGuide);
 Object.values(draftGuides).forEach(validateGuide);
@@ -15,6 +15,7 @@ const publicTargets = [
   ...[...new Map(legacyFaq.entries.map(entry => [entry.course, entry.course_label]))].map(([id, label]) => ({ key: 'course:' + id, kind: 'course', id, label })),
 ];
 const main = document.querySelector('#main');
+const previewComments = [];
 const state = {
   view: new URL(location.href).searchParams.get('view') || 'public',
   publicTarget: '', targetPickerOpen: false, publicMode: 'search', search: '', searchDraft: '', searchItem: null, selectedApp: null,
@@ -46,8 +47,7 @@ const card = (...items) => el('section', { class: 'card' }, items);
 const pill = text => el('span', { class: 'pill' }, text);
 const summary = rows => el('ul', { class: 'summary' }, rows.map(row => el('li', {}, el('small', {}, row.question), row.answer)));
 const intro = (title, text) => el('div', { class: 'hero' }, el('h1', {}, title), p(text, 'muted'));
-const previewComment = (...content) => el('aside', { class: 'preview-comment', 'aria-label': 'プレビュー用コメント' },
-  el('span', { class: 'preview-comment__label' }, 'プレビュー用コメント'), el('div', { class: 'preview-comment__body' }, ...content));
+const previewComment = (...content) => { previewComments.push(content); return document.createTextNode(''); };
 
 function showView(view) {
   state.view = view;
@@ -58,6 +58,7 @@ function showView(view) {
   render(true);
 }
 function render(focus = false) {
+  previewComments.length = 0;
   const route = new URL(location.pathname, location.origin);
   route.searchParams.set('view', state.view);
   if (state.view === 'public') addPublicRoute(route);
@@ -68,6 +69,10 @@ function render(focus = false) {
         { 'aria-current': state.view === view && (view !== 'student' || state.portalTab === 'cases') ? 'page' : false })),
   );
   main.replaceChildren(...(state.view === 'public' ? publicPage() : state.view === 'student' ? studentPage() : adminPage()));
+  main.setAttribute('data-view', state.view);
+  document.querySelector('#preview-comments-body')?.replaceChildren(
+    p('確認用の試作です。相談の入力は外部へ送らず、再読み込みで消えます。実際の相談受付・返信は行いません。表示設定は教材サイトと共通の保存先に記憶します。'),
+    ...previewComments.map(content => el('div', { class: 'preview-comment__item' }, ...content)));
   if (focus) {
     const panel = main.querySelector('[data-focus-panel]') || main;
     panel.focus();
@@ -120,6 +125,7 @@ function switchPublicMode(mode) {
 }
 
 function publicPage() {
+  previewComment('対象の利用ガイドと、教材サイト5コースのFAQを確認用に表示します。正式運用と自動回答への採用は未実施です。');
   const target = targetDetails();
   const pickerOpen = !target || state.targetPickerOpen;
   const select = el('select', { id: 'public-target', on: { change: event => {
@@ -152,17 +158,19 @@ function publicPage() {
     state.publicMode !== mode ? null : mode === 'search' ? searchPanel(target)
       : target.kind === 'app' ? guideSessionPage() : courseQuestionPanel(target)));
   return [heading, picker, tabs,
-    el('div', { class: 'layout' }, el('div', { class: 'stack' }, panels), publicSidebar())];
+    el('div', { class: 'public-content stack' }, panels)];
 }
 
-function publicSidebar() {
-  return el('aside', { class: 'stack' },
-    previewComment('6アプリの原稿、ワークシートの提出・確認、教材サイトの5コースのFAQを確認用に表示します。正式運用と自動回答への採用は未実施です。'));
-}
+const searchExamples = {
+  app: { htmleditor: '画像、プレビュー', pythoneditor: '実行、保存', logic: '配線、部品', graph: '関数、軸',
+    illustslide: '文字、保存', flowchart: '図形、接続', 'worksheet-submission': '未反映、写真',
+    'google-drive': '開けない、検索', classroom: '提出、クラス', 'class-apps': '開けない、操作' },
+  course: { html: '画像、リンク', py: '変数、実行', ss: '関数、グラフ', il: '文字、色', dr11: '2進数、著作権' },
+};
 
 function searchPanel(target) {
   const input = el('input', { id: 'search', type: 'search', maxlength: '200', value: state.searchDraft,
-    placeholder: '例：保存、画像、開けない', 'aria-label': target.label + 'のヘルプを検索',
+    placeholder: '例：' + (searchExamples[target.kind]?.[target.id] || '操作、困っていること'), 'aria-label': target.label + 'のヘルプを検索',
     on: { input: event => { state.searchDraft = event.target.value; } } });
   const form = card(el('form', { class: 'search', on: { submit: event => {
     event.preventDefault(); state.search = input.value.trim(); state.searchItem = null; state.selectedFaq = null; state.faqLimit = 15; render(true);
@@ -218,6 +226,7 @@ function operationSearchPanel(target) {
   const guide = guideFor(target.id);
   const operation = guide.operations[state.searchItem.itemId];
   return focusPanel(card(el('h2', {}, operation.title), operationContent(operation),
+    guideReferences(guide),
     solutionActions(() => { state.searchItem = null; render(true); }, () => {
         const flow = { ...startFlow(guide, target.id), phase: 'guide', guideId: state.searchItem.itemId };
         consultAboutGuide(guide, flow, true);
@@ -394,7 +403,14 @@ function guideIndex(appId) {
   return card(previewComment('この原稿は確認用です。正式採用前の内容を表示しています。'), el('h2', {}, guide.app_name), p(`${version} · 改訂 ${guide.guide_revision}`, 'muted'),
     p('いまの質問', 'step'), el('h3', {}, '困っていることを選んでください'),
     el('div', { class: 'choices' }, Object.entries(guide.nodes).filter(([, node]) => node.entry).map(([id, node]) => button(node.title, () => openArticle(appId, id)))),
-    el('details', {}, el('summary', {}, '共通の利用条件'), p(guide.general_conditions, 'prose')));
+    el('details', {}, el('summary', {}, '共通の利用条件'), p(guide.general_conditions, 'prose')), guideReferences(guide));
+}
+
+function guideReferences(guide) {
+  if (!guide.references?.length) return null;
+  return el('details', { class: 'operation-notes' }, el('summary', {}, '公式ヘルプ・確認日'),
+    p(guide.verified_on + 'に公式ヘルプと照合。画面の表示は端末や更新で異なることがあります。', 'muted'),
+    el('ul', {}, guide.references.map(source => el('li', {}, el('a', { href: source.url, target: '_blank', rel: 'noopener noreferrer' }, source.title)))));
 }
 
 function flowPanel() {
@@ -416,6 +432,7 @@ function flowPanel() {
     append(block, el('h2', {}, operation?.title || '確認する手順'));
     if (operation) append(block, operationContent(operation, flow.guidance));
     else append(block, el('section', { class: 'procedure' }, el('h3', {}, '確認すること'), p(flow.guidance, 'prose')));
+    append(block, guideReferences(guide));
     append(block,
       solutionActions(() => { state.flow = { ...flow, phase: 'solved' }; render(true); }, () => consultAboutGuide(guide, flow, true)));
   } else if (flow.phase === 'solved') {
@@ -547,9 +564,10 @@ function adminPage() {
       if (state.replyPreview !== preview || state.selectedCase !== record.id || state.replyDrafts[record.id] !== preview.text || !preview.text.trim()) return;
       record.messages.push({ role: 'desk', text: preview.text.trim() }); record.status = '再確認待ち'; state.replyDrafts[record.id] = ''; state.replyPreview = null; render(true);
     }, true, { id: 'confirm-reply', disabled: !preview.text.trim() })));
-  detail.append(el('details', {}, el('summary', {}, '修正が必要な場合'), previewComment(
+  previewComment(
+    el('h3', {}, '修正が必要な場合'),
     p('対象・変更案・影響・検証・復元方法を案件ごとに確認してから承認する設計です。'),
-    p('この試作にはコード修正・承認記録・実行処理は接続していません。'))));
+    p('この試作にはコード修正・承認記録・実行処理は接続していません。'));
   return [intro('相談を確認する', '相談の内容や回答案を確認できます。'),
     previewComment('教員用の表示例です。本番では、案件・内部メモ・回答・修正承認へのアクセスをサーバー側で認可します。'),
     el('div', { class: 'layout' }, el('div', { class: 'stack' }, caseList(record => { state.selectedCase = record.id; state.replyPreview = null; render(true); }),

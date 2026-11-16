@@ -25,7 +25,7 @@
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) #site-header{background:var(--brand-dark)}}
 :root[data-theme="light"] #site-header{background:var(--brand)}
 .headerbar__brand{min-width:0}.headerbar__course{line-height:1.5}.headerbar__actions{gap:.7rem}
-#display-settings{position:fixed;inset:auto;top:var(--display-panel-top,5rem);right:var(--display-panel-right,1rem);width:min(380px,calc(100vw - 16px));max-height:var(--display-panel-height,calc(100dvh - 7rem));margin:0;padding:0;translate:none;background:var(--panel);color:var(--text);box-shadow:var(--ld-shadow);overflow:auto}
+#display-settings{position:fixed;inset:auto;top:var(--display-panel-top,5rem);right:var(--display-panel-right,1rem);width:var(--display-panel-width,min(380px,calc(100vw - 16px)));max-height:var(--display-panel-height,calc(100dvh - 7rem));margin:0;padding:0;translate:none;background:var(--panel);color:var(--text);box-shadow:var(--ld-shadow);overflow:auto}
 #display-settings .site-display-settings__panel{width:100%;max-width:none}
 #display-settings input[type="checkbox"]{padding:0;min-height:0}
 .site-header-button[data-label]{position:relative}
@@ -35,3 +35,4 @@
 [hidden]{display:none!important}
 :root[data-line-spacing="relaxed"] body{line-height:2}:root[data-line-spacing="relaxed"] .procedure .operation-steps{line-height:2.2}.legacy-body pre{line-height:var(--site-code-line-height,1.7)}:root[data-code-wrap="true"] .legacy-body pre{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:640px){.headerbar__brand{font-size:1.25rem;white-space:normal}.headerbar__brand a{display:inline-flex;flex-wrap:wrap;gap:.15em}.headerbar__brand .subject{margin-left:.25em}.headerbar__actions{flex-wrap:nowrap}.public-heading{align-items:flex-start;gap:.35rem}.public-heading h1{font-size:1.45rem}.quiet-button{font-size:.85rem}.target-picker{max-width:none}}
+main[data-view="public"]{max-width:900px}.public-content{min-width:0}.public-content .card{width:100%}.preview-status{display:inline-block;font-size:.7em;font-weight:500;opacity:.9;margin-left:.25rem}.preview-comment--group{display:block}.preview-comment--group>summary{padding:.2rem 0}.preview-comment--group>summary .preview-comment__label{display:inline-block;margin-left:.3rem}.preview-comment--group .preview-comment__body{margin-top:.7rem}.preview-comment__item+.preview-comment__item{margin-top:.75rem;padding-top:.75rem;border-top:1px dashed var(--preview-line)}

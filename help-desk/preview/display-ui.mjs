@@ -14,9 +14,13 @@ export function mountDisplayControls(document, window) {
   panel.setAttribute('aria-labelledby', widget.element.getAttribute('aria-labelledby'));
   const position = () => {
     const rect = trigger.getBoundingClientRect();
+    const viewportWidth = document.documentElement.clientWidth;
+    const width = Math.min(380, Math.max(0, viewportWidth - 16));
+    const right = Math.max(8, Math.min(viewportWidth - rect.right, viewportWidth - width - 8));
     const top = Math.min(rect.bottom + 8, window.innerHeight - 60);
     panel.style.setProperty('--display-panel-top', Math.max(8, top) + 'px');
-    panel.style.setProperty('--display-panel-right', Math.max(8, document.documentElement.clientWidth - rect.right) + 'px');
+    panel.style.setProperty('--display-panel-width', width + 'px');
+    panel.style.setProperty('--display-panel-right', right + 'px');
     panel.style.setProperty('--display-panel-height', Math.max(44, window.innerHeight - top - 8) + 'px');
   };
   const syncOpen = open => {

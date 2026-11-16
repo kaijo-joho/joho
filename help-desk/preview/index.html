@@ -9,10 +9,10 @@
   <title>情報科ヘルプデスク — 画面試作</title>
   <link rel="stylesheet" href="assets/site/header.css">
   <link rel="stylesheet" href="assets/site/display-settings.css">
-  <link rel="stylesheet" href="app.css?v=site-header-20261116">
+  <link rel="stylesheet" href="app.css?v=readable-guides-20261116">
   <script src="assets/site/display_settings.js"></script>
   <script defer src="assets/site/display_settings_ui.js"></script>
-  <script type="module" src="app.mjs?v=site-header-20261116"></script>
+  <script type="module" src="app.mjs?v=readable-guides-20261116"></script>
 </head>
 <body>
   <a class="skip" href="#main">本文へ移動</a>
@@ -20,7 +20,7 @@
     <div class="headerbar">
       <div class="headerbar__brand" aria-label="学校名"><a href="/">海城中学高等学校<span class="subject">情報科</span></a></div>
       <div class="headerbar__actions">
-        <span class="headerbar__course">ヘルプデスク</span>
+        <span class="headerbar__course">ヘルプデスク <small class="preview-status">試作</small></span>
         <div class="site-preference-controls">
           <div class="site-header-menu site-preference-menu">
             <button id="display-trigger" type="button" class="site-header-button site-preference-menu__trigger" popovertarget="display-settings" aria-controls="display-settings" aria-expanded="false" aria-label="表示設定" aria-haspopup="dialog" data-label="表示設定">
@@ -32,15 +32,11 @@
       </div>
     </div>
   </header>
-  <aside class="preview-comment preview-comment--banner" aria-label="プレビュー用コメント">
-    <span class="preview-comment__label">プレビュー用コメント</span>
-    <div class="preview-comment__body">オレンジ色の枠内は確認者向けの補足です。確認用の試作です。原稿とサンプル相談を使っています。相談の入力は外部へ送らず、再読み込みで消えます。実際の相談受付・返信は行いません。</div>
-  </aside>
   <nav id="views" aria-label="試作する画面"></nav>
   <main id="main" tabindex="-1"></main>
-  <footer><aside class="preview-comment" aria-label="プレビュー用コメント">
-    <span class="preview-comment__label">プレビュー用コメント</span>
-    <div class="preview-comment__body">情報科ヘルプデスク help-desk · 受付・返信機能は未接続の試作</div>
-  </aside></footer>
+  <footer><details id="preview-comments" class="preview-comment preview-comment--group">
+    <summary><span class="preview-comment__label">プレビュー用コメント</span></summary>
+    <div id="preview-comments-body" class="preview-comment__body">確認用の試作です。実際の相談受付・返信は行いません。</div>
+  </details></footer>
 </body>
 </html>
