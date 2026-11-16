@@ -520,8 +520,10 @@
       try {
         rememberedFolder = await folderMemory.load();
         if (rememberedFolder) await fs.reconnectDirectory(rememberedFolder); // 起動時に許可を要求しない。
-      } catch {
-        folderMemoryIssue = '前回のフォルダに自動接続できませんでした。「設定」から再接続・選び直しができます。';
+      } catch (error) {
+        folderMemoryIssue = error.name === 'TimeoutError' ?
+          '前回のフォルダが応答しなかったため、自動接続を中止しました。「設定」から接続先を変更・解除できます。' :
+          '前回のフォルダに自動接続できませんでした。「設定」から再接続・選び直しができます。';
         notify(folderMemoryIssue, 'warning');
       }
       // 接続先だけを復元する。編集中のファイル・ブラウザの控えは開かない。

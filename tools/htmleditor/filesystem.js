@@ -23,6 +23,38 @@
   const IMAGE_RE = /\.(?:jpe?g|png|gif|svg|webp|ico)$/i;
   const CSS_RE = /\.css$/i;
   const blob=f=>{try{return typeof URL!=='undefined'&&typeof URL.createObjectURL==='function'?URL.createObjectURL(f):null}catch(_){return null}};
+  function aborted(signal) { if (signal?.aborted) throw signal.reason; }
+  function readOperation(action, signal) {
+    aborted(signal);
+    return new Promise((resolve, reject) => {
+      const cleanup = () => signal?.removeEventListener('abort', cancel);
+      const cancel = () => { cleanup(); reject(signal.reason); };
+      signal?.addEventListener('abort', cancel, {once:true});
+      try {
+        Promise.resolve(action()).then(value => {
+          cleanup();
+          if (signal?.aborted) reject(signal.reason); else resolve(value);
+        }, error => { cleanup(); reject(error); });
+      } catch (error) { cleanup(); reject(error); }
+    });
+  }
+  async function* directoryEntries(directory, signal) {
+    const iterable=directory.entries();
+    const iterator=iterable[Symbol.asyncIterator]?.() || iterable[Symbol.iterator]?.() || iterable;
+    let complete=false;
+    try {
+      while(true) {
+        const next=await readOperation(()=>iterator.next(),signal);
+        if(next.done){complete=true;return;}
+        yield next.value;
+      }
+    } finally {
+      if(!complete && typeof iterator.return==='function') {
+        // ネイティブの列挙終了も応答しない場合があるので、ここでは待たない。
+        try { Promise.resolve(iterator.return()).catch(()=>{}); } catch {}
+      }
+    }
+  }
   function putFile(entries, blobs, path, handle, file, cssText) {
     entries.set(path, {handle, file, kind:'file', cssText});
     if (!IMAGE_RE.test(path)) return;
@@ -32,12 +64,13 @@
     if (url) blobs.set(path, url);
     else blobs.delete(path);
   }
-  async function stageFile(entries, blobs, path, handle, file) {
+  async function stageFile(entries, blobs, path, handle, file, signal) {
     let cssText;
     if (CSS_RE.test(path) && file.size <= MAX_TEXT_BYTES) {
-      try { cssText = decodeUtf8(new Uint8Array(await file.arrayBuffer())); }
-      catch { /* 読めないCSSだけをプレビューの参照エラーとして扱う。 */ }
+      try { cssText = decodeUtf8(new Uint8Array(await readOperation(() => file.arrayBuffer(), signal))); }
+      catch { aborted(signal); /* 読めないCSSだけをプレビューの参照エラーとして扱う。 */ }
     }
+    aborted(signal);
     putFile(entries, blobs, path, handle, file, cssText);
   }
   function resourcePath(reference, base) {
@@ -57,60 +90,100 @@
     } catch { return null; }
   }
   class HtmlFileSystem{
-    constructor(){this.dirHandle=null;this.dirName='';this.readOnly=false;this.fileEntries=new Map();this.blobUrlMap=new Map();this.currentFilePath='';this.listeners=new Set();this.newFileAttempts=new Map();}
+    constructor({directoryTimeoutMs=15000}={}){
+      if(!Number.isFinite(directoryTimeoutMs)||directoryTimeoutMs<=0)throw new Error('フォルダ確認の待機時間を確認してください。');
+      this.directoryTimeoutMs=directoryTimeoutMs;this._pendingDirectoryOperation=null;
+      this.dirHandle=null;this.dirName='';this.readOnly=false;this.fileEntries=new Map();this.blobUrlMap=new Map();this.currentFilePath='';this.listeners=new Set();this.newFileAttempts=new Map();
+    }
     onChange(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn)}
     _notify(e,d){for(const fn of this.listeners){try{fn(e,d)}catch(x){console.error(x)}}}
     isSupported(){return typeof window!=='undefined'&&'showDirectoryPicker'in window}
     isConnected(){return this.dirHandle!==null&&!this.readOnly}
     getDirectoryName(){return this.dirName||(this.isConnected()?'実習フォルダ':'')}
     getCurrentFilePath(){return this.currentFilePath}
-    async openDirectory(){if(!this.isSupported())throw new Error('お使いのブラウザはフォルダ直接操作に対応していません。Google Chromeを推奨します。');const h=await window.showDirectoryPicker({mode:'readwrite'});const s=await this._stageDirectory(h);this._replace(s,h,h.name,false);this._notify('directory-opened',{dirName:this.dirName});return this.dirName}
+    async _directoryOperation(action, {picker=false}={}) {
+      this._pendingDirectoryOperation?.abort();
+      const controller = new AbortController();
+      const operation = {abort() { const error=new Error('フォルダの接続確認を中止しました。'); error.name='AbortError'; controller.abort(error); }};
+      this._pendingDirectoryOperation=operation;
+      let timer;
+      const start = () => {
+        clearTimeout(timer);
+        timer=setTimeout(() => {
+          const error=new Error('フォルダの応答を確認できませんでした（時間切れ）。「設定」から接続先を変更・解除できます。編集中の内容は保持しています。');
+          error.name='TimeoutError'; controller.abort(error);
+        },this.directoryTimeoutMs);
+      };
+      if(!picker)start();
+      try { return await action(controller.signal,start); }
+      finally { clearTimeout(timer); if(this._pendingDirectoryOperation===operation)this._pendingDirectoryOperation=null; }
+    }
+    async openDirectory(){
+      if(!this.isSupported())throw new Error('お使いのブラウザはフォルダ直接操作に対応していません。Google Chromeを推奨します。');
+      return this._directoryOperation(async(signal,start)=>{
+        const h=await readOperation(()=>window.showDirectoryPicker({mode:'readwrite'}),signal);
+        start(); // OSの選択画面を開いている時間は、読取りの時間切れに含めない。
+        const s=await this._stageDirectory(h,signal);
+        this._checkDirectoryStage(s,signal);this._replace(s,h,h.name,false);
+        this._notify('directory-opened',{dirName:this.dirName});return this.dirName;
+      },{picker:true});
+    }
     async reconnectDirectory(handle,{requestPermission=false}={}){
       if(!handle||handle.kind!=='directory'||typeof handle.name!=='string'||!handle.name||typeof handle.entries!=='function'||typeof handle.queryPermission!=='function')throw new Error('保存されたフォルダーハンドルを利用できません。フォルダーを選び直してください。');
-      let permission;
-      try{permission=await handle.queryPermission({mode:'readwrite'})}catch(error){throw new Error(`フォルダーの利用許可を確認できません: ${error.message||error}`)}
-      if(permission!=='granted'&&requestPermission===true){
-        if(typeof handle.requestPermission!=='function')throw new Error('このブラウザーではフォルダーの利用許可を再確認できません。');
-        try{permission=await handle.requestPermission({mode:'readwrite'})}catch(error){throw new Error(`フォルダーの利用許可を再確認できません: ${error.message||error}`)}
-      }
-      if(permission!=='granted')return false;
-      const s=await this._stageDirectory(handle);
-      this._replace(s,handle,handle.name,false);
-      this._notify('directory-opened',{dirName:this.dirName});
-      return true;
+      return this._directoryOperation(async signal=>{
+        let permission;
+        try{permission=await readOperation(()=>handle.queryPermission({mode:'readwrite'}),signal)}catch(error){aborted(signal);throw new Error(`フォルダーの利用許可を確認できません: ${error.message||error}`)}
+        if(permission!=='granted'&&requestPermission===true){
+          if(typeof handle.requestPermission!=='function')throw new Error('このブラウザーではフォルダーの利用許可を再確認できません。');
+          try{permission=await readOperation(()=>handle.requestPermission({mode:'readwrite'}),signal)}catch(error){aborted(signal);throw new Error(`フォルダーの利用許可を再確認できません: ${error.message||error}`)}
+        }
+        if(permission!=='granted')return false;
+        const s=await this._stageDirectory(handle,signal);
+        this._checkDirectoryStage(s,signal);
+        this._replace(s,handle,handle.name,false);
+        this._notify('directory-opened',{dirName:this.dirName});
+        return true;
+      });
     }
     async scanDirectory() {
       if (!this.isConnected()) return [];
-      const directory = this.dirHandle, originalEntries = this.fileEntries;
-      const staged = await this._stageDirectory(directory);
-      if (this.dirHandle !== directory || this.fileEntries !== originalEntries) {
-        this._revoke(staged.blobs);
-        throw new Error('フォルダの接続先が変わりました。もう一度操作してください。');
-      }
-      const path = this.currentFilePath;
-      this._replace(staged, directory, this.dirName, false);
-      this.currentFilePath = path;
-      const files = this.getFileList();
-      this._notify('files-scanned', {files});
-      return files;
+      return this._directoryOperation(async signal=>{
+        const directory = this.dirHandle, originalEntries = this.fileEntries;
+        const staged = await this._stageDirectory(directory,signal);
+        this._checkDirectoryStage(staged,signal);
+        if (this.dirHandle !== directory || this.fileEntries !== originalEntries) {
+          this._revoke(staged.blobs);
+          throw new Error('フォルダの接続先が変わりました。もう一度操作してください。');
+        }
+        const path = this.currentFilePath;
+        this._replace(staged, directory, this.dirName, false);
+        this.currentFilePath = path;
+        const files = this.getFileList();
+        this._notify('files-scanned', {files});
+        return files;
+      });
     }
-    async _stageDirectory(root) {
+    _checkDirectoryStage(staged,signal) {
+      if(signal?.aborted)this._revoke(staged.blobs);
+      aborted(signal);
+    }
+    async _stageDirectory(root, signal) {
       const entries = new Map();
       const blobs = new Map();
       let total = 0;
       const walk = async (dir, prefix, depth) => {
         if (depth > MAX_DEPTH) throw new Error('フォルダの深さが上限を超えています。');
-        for await (const [name, entry] of dir.entries()) {
+        for await(const [name,entry] of directoryEntries(dir,signal)) {
           if (name.startsWith('.') || name === 'node_modules') continue;
           const relative = prefix ? `${prefix}/${name}` : name;
           safePath(relative);
           if (entry.kind === 'directory') { await walk(entry, relative, depth + 1); continue; }
           if (entry.kind !== 'file') continue;
           if (entries.size >= MAX_FILES) throw new Error('ファイル数が上限を超えています。');
-          const file = await entry.getFile();
+          const file = await readOperation(()=>entry.getFile(),signal);
           total += Number(file.size) || 0;
           if (total > MAX_TOTAL_BYTES) throw new Error('フォルダの容量が上限を超えています。');
-          await stageFile(entries, blobs, relative, entry, file);
+          await stageFile(entries, blobs, relative, entry, file,signal);
         }
       };
       try { await walk(root, '', 0); } catch (error) { this._revoke(blobs); throw error; }
@@ -120,6 +193,7 @@
     _revoke(m){for(const u of m.values()){try{URL.revokeObjectURL(u)}catch(_){}}}
     _clearBlobUrls(){this._revoke(this.blobUrlMap);this.blobUrlMap.clear()}
     async importFiles(files, opt = {}) {
+      this._pendingDirectoryOperation?.abort();
       const source = Array.from(files || []);
       if (!source.length) throw new Error('読み込むファイルがありません。');
       const directory = opt.directory === true;
@@ -329,7 +403,7 @@
       return locks?.request ? locks.request(FILE_WRITE_LOCK, write) : write();
     }
     async _getOrCreateFileHandle(path){const parts=path.split('/');let d=this.dirHandle;for(let i=0;i<parts.length-1;i++)d=await d.getDirectoryHandle(parts[i],{create:true});return d.getFileHandle(parts[parts.length-1],{create:true})}
-    disconnect(){this._clearBlobUrls();this.dirHandle=null;this.dirName='';this.readOnly=false;this.fileEntries.clear();this.newFileAttempts.clear();this.currentFilePath='';this._notify('disconnected')}
+    disconnect(){this._pendingDirectoryOperation?.abort();this._clearBlobUrls();this.dirHandle=null;this.dirName='';this.readOnly=false;this.fileEntries.clear();this.newFileAttempts.clear();this.currentFilePath='';this._notify('disconnected')}
     saveDraft(content,meta={}){try{localStorage.setItem(DRAFT_STORAGE_KEY,JSON.stringify({content,meta,updatedAt:Date.now()}))}catch(e){console.warn('一時保存に失敗しました:',e)}}
     loadDraft(){try{const raw=localStorage.getItem(DRAFT_STORAGE_KEY);return raw?JSON.parse(raw):null}catch(_){return null}}
     clearDraft(){try{localStorage.removeItem(DRAFT_STORAGE_KEY)}catch(_){} }

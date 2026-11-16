@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-standard-icons-20261113-r1">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-editor-folder-recovery-20261116-r1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -184,6 +184,7 @@
     <h3>保存と復元</h3>
     <p>Chromeでフォルダを接続し、その中から開いたファイルは「保存」（Command+S）で上書きできます。別に開いたファイルを接続先へ保存するときは、場所と同名ファイルの上書きを確認します。保存先フォルダの確認・変更・接続解除は「設定」から行います。</p>
     <p>フォルダの接続先をこのブラウザに記憶します。再読み込み後も利用許可が続いていれば自動接続し、許可が必要な場合は「前回のフォルダへ再接続」を押します。ファイルは自動で開きません。プライベートブラウズ・ブラウザのデータ消去・権限変更などで再選択が必要になることがあります。「接続を解除」はアプリの記憶も解除しますが、ブラウザ自体の許可設定は変更しません。</p>
+    <p>前回のフォルダが応答しないときは自動接続を中止します。「設定」で接続先を変更・解除してください。編集中の内容や復旧用の控えは消えません。Chromeで継続して許可する選択肢が出る場合は、それを選ぶと再確認を減らせます。</p>
     <p>Safariなど上書き保存できない場合は「保存」の案内から「コピーをダウンロード」を使います。ダウンロードを開始しただけでは、Macへの保存完了を確認できません。同名ファイルの「(1)」などに注意し、保存先と指定のファイル名を確認します。予備のコピーは「設定」→「保存の補助操作」からも取得できます。</p>
     <p>編集中の内容とファイル保存時の控えは、万が一の復旧用にブラウザへ残します。普段の保存先ではなく、起動・リロード時には自動で復元しません。必要なときだけ「設定」→「復旧候補を開く…」で、日時とファイル名を見て選びます。選ばなかった控えも削除しません。自動保存は編集を止めて約0.5秒後に行い、同じ文書の控えを更新します。すべての編集履歴が残るわけではありません。</p>
     <p>復旧してもMacのファイルは変更されません。復旧した内容は、保存先を確認してファイルへ保存してください。</p>
@@ -231,7 +232,7 @@
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.10.5（2026年11月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>HTMLエディタ 0.10.6（2026年11月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
     <p>通常の編集はこの端末とブラウザで処理します。「提出」を押すと、保存確認済みの内容をモーダル内の学校アカウント用フォームへ渡します。提出記録の作成は、フォーム内の「提出する」を押したときだけです。ログインや表示がうまくいかない場合は「表示・ログインで困ったとき」から「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
@@ -267,7 +268,7 @@
 <script src="routing.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
 <script src="navigation.js?v=html-editor-layout-20261026-r1" data-editor-required integrity="sha384-SSqeFBXrJRRMxT42MuCTEBdqdMmEK0wJTnin7DDG8RxXLrgcL1uJWTi77sgfn8/d" crossorigin="anonymous"></script>
 <script src="recovery.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-j5rv44DgQetWLG8LlvUQBTDmR8Ex6u3HktVI3w2QwWplULJLYh8Jn7Oqn+spWRUO" crossorigin="anonymous"></script>
-<script src="filesystem.js?v=html-editor-project-preview-r1" data-editor-required integrity="sha384-+FXBxKAGxZMpyvuVhdGwSQGnI+AbKgONJlySeAVR/7I7mjpqWCAYTJZj5yNpFxUO" crossorigin="anonymous"></script>
+<script src="filesystem.js?v=html-editor-folder-recovery-20261116-r1" data-editor-required integrity="sha384-6I9ovAXssK4MqKJlrS7+zln/o3dVrVq49IenBz5AS5NREpaT5MhoJHTuLsM+KZSR" crossorigin="anonymous"></script>
 <script src="folder-memory.js?v=html-editor-v3-20261002-enabled" integrity="sha384-X0jCctHQJZmYAtsq/o7avFraHuzzySbJTNpOMmVbYCw0Ct4ywp/H5hccAHB8XF1v" crossorigin="anonymous"></script>
 <script src="diagnostics.js?v=html-editor-attribute-layout-20261005" data-editor-required integrity="sha384-ArVXRo/o4B+2o0hz+bvR5rrrSaHmmMwrKhoVZp37OVlfV/7RBl6fOrmaSIP8oTWC" crossorigin="anonymous"></script>
 <script src="hint-usage.js?v=html-editor-error-hints-20261005" integrity="sha384-IshffaAoBNtrVXRzCv6fdav0aNzXw/vCGhz5nr4rpbuEs8A7Ug/z2NY/0JyjOMm1" crossorigin="anonymous"></script>
@@ -278,6 +279,6 @@
 <script src="layout.js?v=html-editor-layout-20261026-r1" data-editor-required integrity="sha384-WLQti+W6ngMC1kQJbIWf0Ox83b4aUKSn6vqIY3Xl6EwUFu0rLV4TeE8u6wWQCfTU" crossorigin="anonymous"></script>
 <script src="../../js/display_settings.js?v=display-settings-20261026-r1" integrity="sha384-mjOLf/HR609aWS9h46tGYa59S393hVpH432c5YV8/BhhXQcm1ic9yMwLAmcsLuA/" crossorigin="anonymous"></script>
 <script src="../../js/display_settings_ui.js?v=display-settings-20261026-r1" integrity="sha384-029272WHNXJuqSrj5agqjjZseUCfJCU6a3fm4BZjN5XxnTN6yYLGL6c8oVNWZsOc" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-editor-standard-icons-20261113-r1" data-editor-required integrity="sha384-OD9ChF9VYvFkSSJghiyZ9r26arNUt9VdXR2QlYuGxus8NiKHMg3zYD4ybOqzKug6" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-editor-folder-recovery-20261116-r1" data-editor-required integrity="sha384-eAh1jrQVd/QYzHa+xuGrJ9WNmdSh93dEldBTt4mhYpaKpnGod19CWu0qMTP5BgTp" crossorigin="anonymous"></script>
 </body>
 </html>
