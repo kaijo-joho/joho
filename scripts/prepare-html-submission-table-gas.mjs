@@ -12,6 +12,10 @@ export function updateSubmissionTable(source) {
   replace("localFeedback=false,receiptNotice='';","localFeedback=false,receiptNotice='',receiptOnly=false;");
   replace("function compactReceipt(){return Boolean(integrated&&transfer&&localFeedback&&latest&&!previousReceipt&&boot.targetId!=='html11-01');}",
     "function compactReceipt(){return Boolean(integrated&&latest&&(receiptOnly||transfer&&localFeedback&&!previousReceipt&&boot.targetId!=='html11-01'));}");
+  // 結果の表示は省略するが、停止時の照会・再試行まで省略しない。
+  replace("if(compactReceipt())mode='';","if(compactReceipt()&&!receiptOnly)mode='';");
+  replace("$('gradingProgress').hidden=!mode;","$('gradingProgress').hidden=!mode||compactReceipt();");
+  replace("latest&&!compact&&pending(latest)","latest&&(!compact||receiptOnly)&&pending(latest)");
   replace("      localFeedback=integrated&&transfer&&data.localFeedback==='complete-v1';",
     "      localFeedback=integrated&&transfer&&data.localFeedback==='complete-v1';\n"+
     "      // 表示の希望だけ。採点完了・受領・本人確認・受付許可の根拠には使わない。\n"+

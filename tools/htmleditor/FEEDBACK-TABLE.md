@@ -20,20 +20,20 @@
 
 ## 固定した候補と検証
 
-GASの事前読取では、公開版136とHEADが75ファイルで一致した。退避・候補・差分は `/private/tmp/html-feedback-table-20261116-evidence/` に置く。GAS変更は `21_html_assignment_upload.html`・`_CHANGELOG.html`・`_OVERVIEW.html` の3ファイルだけ。候補生成は `scripts/prepare-html-submission-table-gas.mjs`、合成試験は `scripts/test-html-submission-table-gas.mjs` を使う。生成は反映を行わない。
+GASの事前読取では、公開版136とHEADが75ファイルで一致した。退避・候補・差分は `/private/tmp/html-feedback-table-20261116-evidence/` に置く。現在の候補は `candidate-recovery/`、初回の `candidate/` は比較用に保持する。GAS変更は `21_html_assignment_upload.html`・`_CHANGELOG.html`・`_OVERVIEW.html` の3ファイルだけ。候補生成は `scripts/prepare-html-submission-table-gas.mjs`、合成試験は `scripts/test-html-submission-table-gas.mjs` を使う。生成は反映を行わない。
 
 担当側の検証:
 
 - エディタの回帰334件、対象別表示・不確定結果・元の採点結果の不変・遅延応答の保持を確認。
-- GAS候補の新規7ケースと既存13ケース。新指定の受領情報だけの表示、旧親・単独の互換性、HTML11、手動選択、前回の受領、通信不明、サーバー採点が無応答の場合を確認。
-- `tools/htmleditor/tests/feedback-table.browser.mjs` で実ブラウザ上の親と候補GAS clientを、GASの外枠・内枠に相当する合成originで接続した。Chrome8ケースで、通常の対象別表と確認待ちの表、手動選択、採点資産の取得失敗、HTML11、受領後の表非表示・受領情報だけの表示を確認した。390px・ダークテーマ・動きを減らす設定、長い35行の表、ツールチップの位置とEscapeも確認した。
-- WebKitも8ケースが成功したが、この合成ランタイムでは5ケースの採点Workerが `grading_failed` となった。そこでの検証は1行の確認待ち表への安全な退避と受領画面であり、通常採点の成功とは報告しない。実GAS・学校アカウント・生徒データは使っていない。証拠は同一時フォルダ内 `browser-chromium/report.json` と `browser-webkit/report.json`。
+- GAS修正候補の新規8ケースと既存13ケース。新指定の受領情報だけの表示、旧親・単独の互換性、HTML11、手動選択、前回の受領、通信不明、サーバー採点が無応答の場合と自動照会が停止した場合の復旧を確認。
+- `tools/htmleditor/tests/feedback-table.browser.mjs` で実ブラウザ上の親と候補GAS clientを、GASの外枠・内枠に相当する合成originで接続した。最終Chrome9ケースで、通常の対象別表と確認待ちの表、手動選択、採点資産の取得失敗、HTML11、受領後の表非表示・受領情報だけの表示、採点要求が無応答の場合の20秒後の再確認を確認した。390px・ダークテーマ・動きを減らす設定、長い35行の表、ツールチップの位置とEscapeも確認した。
+- 最終WebKitも9ケースが成功したが、この合成ランタイムでは6ケースの採点Workerが `grading_failed` となった。そこでの検証は1行の確認待ち表への安全な退避と受領画面であり、通常採点の成功とは報告しない。内枠のResizeObserver通知はページ例外と分けて保存する（最終実行は0件）。実GAS・学校アカウント・生徒データは使っていない。証拠は同一時フォルダ内 `browser-chromium/report.json` と `browser-webkit/report.json`。
 - SRI48参照、検索索引75ページの一致を確認した。原本・採点器・カタログは変更していない。合成試験・読戻し・利用者端末での確認は別に扱う。
 
 ## 監査・公開・復元
 
-監査対象のコード版、監査結果、サイトとGASの公開版・読戻しは、各工程の完了後に追記する。実生徒の提出・Safariアプリ・40名の授業負荷は未確認。
+初回の監査対象は `62df816a48d2108d21f782f584506dcb5ddfc65b` と初回GAS候補。2026-11-16の独立監査で、受領後の採点処理が無応答/自動照会停止のとき、再確認操作まで隠れるP2を1件受けた。星・採点待ちの非表示と復旧タイマー/再確認条件を分離し、20秒後・自動照会停止時には同じ受領の再確認だけを残す修正を加えた。元のGAS計画は未実行で保持する。監査証拠は `/private/tmp/html-feedback-audit-20261116-s1vnlurb/audit-result.json`。再監査と公開・読戻しは完了後に追記する。実生徒の提出・Safariアプリ・40名の授業負荷は未確認。
 
-Python担当へ共有gradeの反映範囲を連絡し、相手側に並行書込みの予定がないことを正規読取で確認した。GASの固定候補は既存 `gas_ops` のplan/dep/verifyを使い、共有gradeの古いローカル作業コピーへは書き戻さず、固定コピーを明示入力とする。計画は `/Users/takashi/Documents/GAS/_backups/gas/grade/20261116-121603-plan-3bcdb640/plan.json`。生成時の差分は上記3ファイルのみで、候補内容hashは `f57db2ca35d5574c2b6e11f57d0a1618d9cc9172575df3fc26effc6212d03d7c`。
+Python担当へ共有gradeの反映範囲を連絡し、相手側に並行書込みの予定がないことを正規読取で確認した。GASの固定候補は既存 `gas_ops` のplan/dep/verifyを使い、共有gradeの古いローカル作業コピーへは書き戻さず、固定コピーを明示入力とする。現在の計画は `/Users/takashi/Documents/GAS/_backups/gas/grade/20261116-123240-plan-e5f5b078/plan.json`。差分は上記3ファイルのみで、候補内容hashは `5647763baad0c32696db4587860e768123e142a0f666bafbabd3acb60b2c6fbb`。旧計画 `20261116-121603-plan-3bcdb640` は実行しない。
 
 復元時はサイトの今回分を履歴を残してrevertし、GASは退避した同じ固定deploymentの公開版136を再指定する。今回のデータ・権限操作はなく、受領・成績・実習ファイル・本人情報・フォルダ記憶・復旧用の控えを削除しない。表示指定に対応しない旧親でも既存の提出経路を維持する。

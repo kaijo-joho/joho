@@ -8,7 +8,7 @@ const {chromium,webkit}=createRequire(import.meta.url)('playwright');
 const root=resolve(fileURLToPath(new URL('../../../',import.meta.url)));
 const engine=process.env.HTML_FEEDBACK_ENGINE || 'chromium';
 const evidence=process.env.HTML_FEEDBACK_EVIDENCE || '/private/tmp/html-feedback-table-20261116-evidence/browser-'+engine;
-const gas=process.env.HTML_FEEDBACK_GAS || '/private/tmp/html-feedback-table-20261116-evidence/candidate';
+const gas=process.env.HTML_FEEDBACK_GAS || '/private/tmp/html-feedback-table-20261116-evidence/candidate-recovery';
 await mkdir(evidence,{recursive:true});
 const form=await readFile(join(gas,'21_html_assignment_upload.html'),'utf8');
 const catalog=JSON.parse(await readFile(join(root,'tools/htmleditor/grading/catalog.json'),'utf8'));
@@ -17,15 +17,16 @@ const harness=`<!doctype html><html lang="ja" data-theme="light"><meta charset="
 <dialog id="actionDialog"><h2>実習ファイルの提出</h2><div id="actionBody"></div><button id="close">閉じる</button></dialog>
 ${['feedback','grading-assets','local-grading','download','submission'].map(n=>'<script src="/tools/htmleditor/'+n+'.js"></script>').join('')}
 <script>window.syntheticErrors=[];const NativeWorker=Worker;window.Worker=class extends NativeWorker{constructor(...args){super(...args);this.addEventListener('error',event=>syntheticErrors.push(event.message));}};const local=HtmlEditorLocalGrading;window.HtmlEditorLocalGrading={...local,create(options){const grader=local.create(options);return{async grade(input){try{return await grader.grade(input);}catch(error){syntheticErrors.push(error.message);throw error;}}};}};window.openCase=function(data){document.documentElement.dataset.theme=data.dark?'dark':'light';window.testPanel=HtmlEditorSubmission.create({container:document.getElementById('actionBody'),dialog:document.getElementById('actionDialog'),url:'https://script.google.com/macros/s/SYNTHETIC/exec?kind=html&flow=normal&kadai='+data.target,targetId:data.target,proof:data.proof,savedFile:data.manual?null:{fileName:data.target+'.html',text:data.source},isCurrent:()=>true,requestClose:()=>document.getElementById('actionDialog').close()});document.getElementById('close').onclick=()=>{testPanel.dispose();document.getElementById('actionDialog').close();};document.getElementById('actionDialog').showModal();};</script></body></html>`;
-function embeddedForm(url) {
+function embeddedForm(url,stalled) {
   const target=url.searchParams.get('kadai'),bridge=url.searchParams.get('bridge');
   assert(/^html\d{2}-\d{2}$/.test(target)&&/^[a-f0-9]{48}$/.test(bridge));
   const boot=JSON.stringify({targetId:target,embedBridge:bridge});
   const script=`<script>window.__HTML_ASSIGNMENT_BOOT__=${boot};window.syntheticCalls=[];var received={submissionId:'7'.padStart(32,'0'),targetId:'${target}',fileName:'${target}.html',title:'合成課題',receivedAt:'2026-11-16T03:00:00Z',gradingState:'queued',rules:[]};function runner(ok,fail){var r={withSuccessHandler:f=>runner(f,fail),withFailureHandler:f=>runner(ok,f)};r.getHtmlAssignmentInfo=function(arg){syntheticCalls.push('info');setTimeout(()=>ok({targetId:'${target}',fileName:'${target}.html',title:'合成課題',requestId:'1'.padStart(32,'0')}),10);};for(var method of ['submitHtmlAssignmentSavedFile','submitHtmlAssignment']){r[method]=function(arg){syntheticCalls.push('submit');setTimeout(()=>ok(received),10);};}r.processHtmlAssignmentSubmission=function(){syntheticCalls.push('process');setTimeout(()=>ok({...received,gradingState:'graded',rules:[{label:'合成採点項目',mark:'★'}]}),20);};r.getHtmlAssignmentReceipt=function(){syntheticCalls.push('receipt');setTimeout(()=>ok(received),10);};return r;}window.google={script:{run:runner(()=>{},()=>{})}};</script>`;
-  return form.replace('<script>',script+'<script>');
+  const runtime=stalled?script.replace("syntheticCalls.push('process');setTimeout", "syntheticCalls.push('process');return;setTimeout"):script;
+  return form.replace('<script>',runtime+'<script>');
 }
 const browser=await(engine==='webkit'?webkit.launch():chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'}));
-const report={engine,cases:[],errors:[],externalRequests:[]};
+const report={engine,cases:[],errors:[],resizeObserverNotices:[],externalRequests:[]};
 try {
   for(const item of [
     {name:'graded15',target:'html15-01',suffix:'1-5_1',rows:7},
@@ -35,14 +36,19 @@ try {
     {name:'pending17',target:'html17-01',suffix:'1-7',pending:true,rows:4,narrow:true},
     {name:'manual',target:'html15-01',suffix:'1-5_1',manual:true,rows:1,narrow:true},
     {name:'asset-failure',target:'html15-02',suffix:'1-5_2',assetFailure:true,rows:1},
-    {name:'receipt11',target:'html11-01',rows:1,narrow:true}
+    {name:'receipt11',target:'html11-01',rows:1,narrow:true},
+    {name:'grade-stalled',target:'html15-01',suffix:'1-5_1',rows:7,stalled:true}
   ]) {
     const context=await browser.newContext({viewport:{width:item.narrow?390:1200,height:900},reducedMotion:item.narrow?'reduce':'no-preference'});
-    const page=await context.newPage();page.on('pageerror',e=>report.errors.push(item.name+': '+e.message));
+    const page=await context.newPage();page.on('pageerror',e=>{
+      // WebKitはGAS内枠のサイズ変更通知の持越しをpageerrorとして届ける。消さず別に記録する。
+      const bucket=engine==='webkit' && e.message==='ResizeObserver loop completed with undelivered notifications.' ? report.resizeObserverNotices : report.errors;
+      bucket.push(item.name+': '+e.message);
+    });
     await context.route('**/*',async route=>{
       const url=new URL(route.request().url());
       if(url.origin==='https://script.google.com')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><style>body{margin:0}iframe{display:block;width:100%;height:800px;border:0}</style><iframe src="https://synthetic-script.googleusercontent.com/form'+url.search+'"></iframe>'});
-      if(url.origin==='https://synthetic-script.googleusercontent.com')return route.fulfill({status:200,contentType:'text/html',body:embeddedForm(url)});
+      if(url.origin==='https://synthetic-script.googleusercontent.com')return route.fulfill({status:200,contentType:'text/html',body:embeddedForm(url,item.stalled)});
       if(url.origin!==origin){report.externalRequests.push(url.origin);return route.abort();}
       if(url.pathname==='/tools/htmleditor/__feedback-test')return route.fulfill({status:200,contentType:'text/html',body:harness});
       if(item.assetFailure&&url.pathname.endsWith('/grading/normal-engine.js'))return route.fulfill({status:503,body:'synthetic asset failure'});
@@ -80,6 +86,11 @@ try {
       await page.waitForFunction(()=>document.querySelector('.submission-local-results').hidden);
       assert(await frame.locator('#rules').isHidden());assert.equal(await frame.locator('#rules li').count(),0);
       assert(await frame.locator('#gradingProgress').isHidden());assert((await frame.locator('#state').innerText()).includes('提出は完了'));
+      if(item.stalled){
+        await frame.locator('#refresh').waitFor({timeout:25000});await frame.locator('#refresh').click();
+        assert(await frame.locator('#rules').isHidden());assert(await frame.locator('#gradingProgress').isHidden());
+        assert.equal(await frame.locator('body').evaluate(()=>window.syntheticCalls.filter(x=>x==='submit').length),1);
+      }
       assert.equal(await frame.locator('#intake').isVisible(),false);
       assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
       await page.screenshot({path:join(evidence,item.name+'-after.png')});

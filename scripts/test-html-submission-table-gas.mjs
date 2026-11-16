@@ -52,10 +52,18 @@ test('前回の不明受領は採点を見せず、今回の未提出案内と�
   assert.equal(h.elements.rules.hidden,true);assert.match(h.elements.state.textContent,/今回のファイルはまだ提出していません/);
   assert.equal(h.elements.prepareCurrent.hidden,false);assert.equal(h.elements.refresh.hidden,false);
 });
-test('受領後の採点応答が無応答でも、受付完了を保ち自動再送しない',()=>{
-  const h=submit(connected(),boot.targetId,{gradingState:'queued'});h.advance(300001);
-  assert.equal(h.elements.gradingProgress.hidden,true);assert.equal(h.elements.refresh.hidden,true);
-  assert.equal(h.elements.receipt.hidden,false);assert.equal(h.call('submitSaved',1),undefined);
+test('受領後の採点応答が無応答なら、結果を隠したまま20秒後に同じ受領の再確認を残す',()=>{
+  const h=submit(connected(),boot.targetId,{gradingState:'queued'});h.advance(19999);assert.equal(h.elements.refresh.hidden,true);
+  h.advance(1);assert.equal(h.elements.gradingProgress.hidden,true);assert.equal(h.elements.refresh.hidden,false);
+  assert.equal(h.elements.receipt.hidden,false);h.click('refresh');assert.equal(h.call('receipt').arg.submissionId,id(7));
+  h.call('receipt').ok(receipt(7));assert.equal(h.elements.refresh.hidden,true);assert.equal(h.elements.rules.hidden,true);
+  assert.equal(h.call('submitSaved',1),undefined);
+});
+test('受領後の自動照会が失敗して止まった場合も、同じ受領の再確認へ進める',()=>{
+  const h=submit(connected(),boot.targetId,{gradingState:'queued'});h.call('process').fail({message:'synthetic'});
+  h.advance(1000);h.call('receipt').fail({code:'receipt_missing'});
+  assert.equal(h.elements.refresh.hidden,false);assert.equal(h.elements.gradingProgress.hidden,true);assert.equal(h.elements.rules.hidden,true);
+  h.click('refresh');assert.equal(h.call('receipt',1).arg.submissionId,id(7));assert.equal(h.call('submitSaved',1),undefined);
 });
 test('再適用・未知のコピーを拒否し、採点用のサーバーコードも構文確認する',()=>{
   assert.throws(()=>updateSubmissionTable(html),/unexpected/);assert.throws(()=>updateSubmissionTable('<html></html>'),/unexpected/);
