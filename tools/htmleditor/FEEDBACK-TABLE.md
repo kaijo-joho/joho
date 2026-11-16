@@ -36,6 +36,12 @@ GASの事前読取では、公開版136とHEADが75ファイルで一致した�
 
 `8512b03`の限定再監査で上記P2は解消したが、再確認中の親表の再表示を追加P2として受けた。受領表示済みの状態を照会中の状態から分け、照会が遅い/返らない/失敗した場合も表を隠し続けるよう修正した。受領前の通信不明の確認は維持し、すでに受領を確認した照会は未受領扱いへ戻さない。照会応答を止めたChrome/WebKitの9ケースと単体試験を追加した。証拠は `/private/tmp/html-feedback-recovery-audit-20261116-pel3e388/audit-result.json`。この親側修正でGAS候補・計画は変更していない。
 
+最終コード版 `0a29b4cc2cbbf981ef8c5b368cf6484b89bc2c80` と固定GAS候補を限定再監査し、修正必須の指摘なし・P2の2件とも解消との結論を受領した。独立した335件・SRI・検索75ページと、照会応答を止めたChromeでの親表非表示、提出送信が1回のままであることを確認した。最終監査記録は `/private/tmp/html-recheck-state-audit-20261116-et3092x6/audit-result.json`。実GASでの提出操作・生徒実機等の未確認は引き続き残す。
+
+GASは同じ固定deploymentの公開版136から138へ反映した。更新直後の照合は不一致で `needs-inspection` として停止したため、再push・version再作成・deployment再更新はせず、公式 `verify` による読戻しで公開138とHEADの候補一致を確認し `deployed` を確定した。独立したAPI読戻しでも、75ファイル中上記3ファイルだけの変更、manifest・他deployment・ローカル設定の不変と認証の一致を確認した。証拠は同一時フォルダの `deploy-output.log`・`verify-output.log`・`gas-public-readback.json` と固定計画のstate。
+
+サイトのコード版は `origin/main` へpush済み。2026-11-16 12:57 JST、公開 `index.html`・`feedback.css`・`feedback.js`・`local-grading.js`・`submission.js` の5ファイルを読み戻し、HTTP 200・コード版とのbytes一致を確認した。CSS/JSは実際の `?v=html-feedback-table-20261116-r1` 付き参照URLで照合した。証拠は同一時フォルダの `site-public-readback.json`。既に開いている旧親は互換表示のままなので、編集内容を保存してからエディタを再読み込みすると0.10.7を使える。
+
 Python担当へ共有gradeの反映範囲を連絡し、相手側に並行書込みの予定がないことを正規読取で確認した。GASの固定候補は既存 `gas_ops` のplan/dep/verifyを使い、共有gradeの古いローカル作業コピーへは書き戻さず、固定コピーを明示入力とする。現在の計画は `/Users/takashi/Documents/GAS/_backups/gas/grade/20261116-123240-plan-e5f5b078/plan.json`。差分は上記3ファイルのみで、候補内容hashは `5647763baad0c32696db4587860e768123e142a0f666bafbabd3acb60b2c6fbb`。旧計画 `20261116-121603-plan-3bcdb640` は実行しない。
 
-復元時はサイトの今回分を履歴を残してrevertし、GASは退避した同じ固定deploymentの公開版136を再指定する。今回のデータ・権限操作はなく、受領・成績・実習ファイル・本人情報・フォルダ記憶・復旧用の控えを削除しない。表示指定に対応しない旧親でも既存の提出経路を維持する。
+復元時は後続変更がないことを再照合してから、サイトの今回分を履歴を残してrevertし、GASは固定計画で退避した同じdeploymentの公開版136へ戻す。今回のデータ・権限操作はなく、受領・成績・実習ファイル・本人情報・フォルダ記憶・復旧用の控えを削除しない。表示指定に対応しない旧親でも既存の提出経路を維持する。
