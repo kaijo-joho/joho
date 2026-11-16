@@ -9,18 +9,19 @@
   <title>情報科ヘルプデスク — 画面試作</title>
   <link rel="stylesheet" href="assets/site/header.css">
   <link rel="stylesheet" href="assets/site/display-settings.css">
-  <link rel="stylesheet" href="app.css?v=readable-guides-20261116">
+  <link rel="stylesheet" href="app.css?v=header-nav-20261117">
   <script src="assets/site/display_settings.js"></script>
   <script defer src="assets/site/display_settings_ui.js"></script>
-  <script type="module" src="app.mjs?v=readable-guides-20261116"></script>
+  <script type="module" src="app.mjs?v=header-nav-20261117"></script>
 </head>
 <body>
   <a class="skip" href="#main">本文へ移動</a>
   <header id="site-header" role="banner">
     <div class="headerbar">
       <div class="headerbar__brand" aria-label="学校名"><a href="/">海城中学高等学校<span class="subject">情報科</span></a></div>
+      <nav id="views" aria-label="画面の切替"></nav>
       <div class="headerbar__actions">
-        <span class="headerbar__course">ヘルプデスク <small class="preview-status">試作</small></span>
+        <span class="headerbar__course"><span class="header-page-name">ヘルプデスク</span> <small class="preview-status">試作</small></span>
         <div class="site-preference-controls">
           <div class="site-header-menu site-preference-menu">
             <button id="display-trigger" type="button" class="site-header-button site-preference-menu__trigger" popovertarget="display-settings" aria-controls="display-settings" aria-expanded="false" aria-label="表示設定" aria-haspopup="dialog" data-label="表示設定">
@@ -32,7 +33,6 @@
       </div>
     </div>
   </header>
-  <nav id="views" aria-label="試作する画面"></nav>
   <main id="main" tabindex="-1"></main>
   <footer><details id="preview-comments" class="preview-comment preview-comment--group">
     <summary><span class="preview-comment__label">プレビュー用コメント</span></summary>

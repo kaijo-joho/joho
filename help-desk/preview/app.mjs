@@ -68,7 +68,7 @@ function render(focus = false) {
       button(label, () => { if (view === 'student') state.portalTab = 'cases'; showView(view); }, false,
         { 'aria-current': state.view === view && (view !== 'student' || state.portalTab === 'cases') ? 'page' : false })),
   );
-  main.replaceChildren(...(state.view === 'public' ? publicPage() : state.view === 'student' ? studentPage() : adminPage()));
+  main.replaceChildren(...(state.view === 'public' ? publicPage() : state.view === 'student' ? studentPage() : adminPage()).filter(node => node != null));
   main.setAttribute('data-view', state.view);
   document.querySelector('#preview-comments-body')?.replaceChildren(
     p('確認用の試作です。相談の入力は外部へ送らず、再読み込みで消えます。実際の相談受付・返信は行いません。表示設定は教材サイトと共通の保存先に記憶します。'),
