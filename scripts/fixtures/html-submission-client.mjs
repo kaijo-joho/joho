@@ -103,10 +103,10 @@ export function setup(html, options = {}) {
     time = end;
   }
   const call = (kind, n = 0) => calls.filter(c => c.kind === kind)[n];
-  function choose() { elements.htmlFile.files = [{name:'html12-01.html', size:100}]; }
-  function connect({localFeedback='', layout='integrated-v1', fileTransfer='saved-html-v1', origin='https://joho.kaijo.ed.jp', source=top,
+  function choose(name='html12-01.html') { elements.htmlFile.files = [{name, size:100}]; }
+  function connect({localFeedback='', receiptDisplay='', layout='integrated-v1', fileTransfer='saved-html-v1', origin='https://joho.kaijo.ed.jp', source=top,
     bridge=boot.embedBridge, targetId=boot.targetId} = {}) {
-    dispatchMessage({source, origin, data:{channel:'joho-html-submission-v1',type:'connect',bridge,targetId,layout,fileTransfer,localFeedback}});
+    dispatchMessage({source, origin, data:{channel:'joho-html-submission-v1',type:'connect',bridge,targetId,layout,fileTransfer,localFeedback,receiptDisplay}});
   }
   function replyFile(data = {}, {origin='https://joho.kaijo.ed.jp', source=top} = {}) {
     const request = messages.filter(entry => entry.data.type === 'file-request').at(-1)?.data;

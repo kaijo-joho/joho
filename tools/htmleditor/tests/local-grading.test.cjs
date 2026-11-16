@@ -117,5 +117,6 @@ test('採点不能時の★を隠し、未提出・受領とは別表示にす�
   const p=G.panel(parent,{document:doc,timers:{setTimeout(fn){queueMicrotask(fn);return 1;},clearTimeout(){}},isCurrent:()=>true,input:{},grader:{grade:async()=>({status:'checked',receipt:{result:{state:'needs_review',rules:[{passed:true,label:'見出し',points:10,earned:10}]}}})}});
   await p.completed;
   const text=n=>n.textContent+n.children.map(text).join('');const display=text(parent);
-  assert.ok(display.includes('この表示だけでは提出完了になりません'));assert.ok(display.includes('確認待ち：見出し'));assert.doesNotMatch(display,/★|10|100/);p.dispose();
+  assert.ok(display.includes('この表示だけでは提出完了になりません'));assert.ok(display.includes('見出し確認待ち'));assert.doesNotMatch(display,/★|☆|10|100/);
+  assert.equal(p.hasCompleteResult(),false);assert.equal(p.hasPresentedResult(),true);p.dispose();
 });

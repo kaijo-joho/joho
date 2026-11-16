@@ -39,9 +39,9 @@ function setup(kind, options = {}) {
   const savedFile = {fileName:targetId+'.html',text:'<html><body>保存済みの合成実習ファイル</body></html>'};
   const original = JSON.stringify(savedFile);
   let panel,finishLocal,localDisposed=false;
-  if(options.local)ctx.HtmlEditorLocalGrading={create:()=>({}),panel(host){
-    host.append(new Element('section'));
-    return {completed:new Promise(resolve=>{finishLocal=resolve;}),hasCompleteResult:()=>options.local==='complete',dispose(){localDisposed=true;}};
+  if(options.local)ctx.HtmlEditorLocalGrading={create:()=>({}),panel(host,{input}){
+    const section=new Element('section'),manual=!input.source;section.textContent=manual?'確認待ち':'合成の採点結果';host.append(section);
+    return {completed:manual?Promise.resolve():new Promise(resolve=>{finishLocal=resolve;}),hasCompleteResult:()=>!manual&&options.local==='complete',dispose(){localDisposed=true;section.remove();}};
   }};
   if (kind === 'download') {
     panel = ctx.HtmlEditorDownload.create({container,dialog,lesson:{title:'合成課題',files:[{id:targetId,fileName:targetId+'.html',title:'合成課題'}]},
@@ -183,17 +183,31 @@ test('submission: 待機中に閉じた/内容が変わった場合は遅い採�
     assert.equal(h.sent.length,0);assert.equal(h.localDisposed,mode==='dispose');
   }
 });
-test('submission: 信頼済みフォームの手動選択だけが旧ファイルのローカル結果を隠す',async()=>{
+test('submission: 信頼済みフォームの手動選択だけが旧結果を確認待ちへ置き換える',async()=>{
   const h=setup('submission',{local:'complete'}),child=h.connect();h.finishLocal();await Promise.resolve();
   const bad=h.event(child,{type:'file-mode',mode:'manual'});bad.data.bridge='bad';h.message(bad);assert.equal(h.localHost.hidden,false);
-  h.message(h.event(child,{type:'file-mode',mode:'manual'}));assert.equal(h.localHost.hidden,true);
+  h.message(h.event(child,{type:'file-mode',mode:'manual'}));assert.equal(h.localHost.hidden,false);assert(h.find('確認待ち'));
   const count=h.sent.length;h.message(h.event(child,{type:'file-request',requestId:'a'.repeat(32),transferId:1}));assert.equal(h.sent.length,count);
+});
+test('submission: 新しい受領情報表示指定は採点完了とは別に送り、受領後は上の表も隠す',async()=>{
+  for(const local of ['complete','pending']){
+    const h=setup('submission',{local}),child=h.connect();
+    assert.equal(h.sent.find(m=>m.data.type==='connect').data.receiptDisplay,'receipt-only-v1');
+    h.finishLocal();await Promise.resolve();assert.equal(h.localHost.hidden,false);
+    h.message(h.event(child,{type:'layout',layout:'integrated-v1'}));
+    assert.equal(h.sent.at(-1).data.localFeedback,local==='complete'?'complete-v1':'');
+    h.state(child,'received');assert.equal(h.localHost.hidden,true);
+  }
+});
+test('submission: 端末内採点の部品が読めない場合にも、提出前の確認待ち表を残す',async()=>{
+  const h=setup('submission');await Promise.resolve();
+  assert(h.find('確認待ち'));assert.equal(h.formStage.hidden,false);assert.equal(h.localHost.hidden,false);
 });
 test('submission: 手動選択の通知が採点完了より先でも、後から表示済みへ戻さない',async()=>{
   const h=setup('submission',{local:'complete'}),child=h.connect();
   h.message(h.event(child,{type:'layout',layout:'integrated-v1'}));
   h.message(h.event(child,{type:'file-mode',mode:'manual'}));const count=h.sent.length;
-  h.finishLocal();await Promise.resolve();assert.equal(h.localHost.hidden,true);assert.equal(h.formStage.hidden,false);
+  h.finishLocal();await Promise.resolve();assert.equal(h.localHost.hidden,false);assert(h.find('確認待ち'));assert.equal(h.formStage.hidden,false);
   assert.equal(h.sent.length,count);
 });
 test('submission: 専用通知のない旧フォームでも選択済みから未選択へ戻れば旧結果を隠す',async()=>{
@@ -201,5 +215,5 @@ test('submission: 専用通知のない旧フォームでも選択済みから�
   h.message(h.event(child,{type:'layout',layout:'integrated-v1'}));h.finishLocal();await Promise.resolve();
   h.state(child,'ready');assert.equal(h.localHost.hidden,false,'最初の準備では隠さない');
   h.state(child,'loading');h.state(child,'selected');assert.equal(h.localHost.hidden,false);
-  h.state(child,'ready');assert.equal(h.localHost.hidden,true);assert.equal(h.sent.at(-1).data.localFeedback,'');
+  h.state(child,'ready');assert.equal(h.localHost.hidden,false);assert(h.find('確認待ち'));assert.equal(h.sent.at(-1).data.localFeedback,'');
 });

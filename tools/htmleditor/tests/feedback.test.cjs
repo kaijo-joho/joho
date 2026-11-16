@@ -15,6 +15,33 @@ function grade(id, source) {
 }
 const full = fs.readFileSync(path.join(root,'html/answer1-4.html'),'utf8');
 const marks = view => view.groups.flatMap(g=>g.rows.map(r=>r.checks.map(c=>c.passed?'★':'☆').join('')));
+test('HTML15〜17の確認待ちは同じ対象配置の表にし、不確定の判定を★や☆へ変換しない',()=>{
+  for(const [id,suffix]of Object.entries({'html15-01':'1-5_1','html15-02':'1-5_2','html16-01':'1-6','html17-01':'1-7'})){
+    const source=fs.readFileSync(path.join(root,'html','answer'+suffix+'.html'),'utf8');
+    const result=grade(id,source.replace('</head>','<style>body{color:blue}</style></head>')),before=JSON.stringify(result);
+    assert.equal(result.state,'needs_review');
+    const pending=F.pending(result,id),normal=F.build(grade(id,source));
+    assert.deepEqual(pending.groups.map(g=>g.rows.map(r=>r.label)),normal.groups.map(g=>g.rows.map(r=>r.label)));
+    assert(pending.groups.every(g=>g.rows.every(r=>r.checks.every(c=>c.passed===null))));
+    assert.equal(F.publicView(pending,id),null,'表示専用の未確定表を受領用の表示要約へ混ぜない');
+    assert.equal(JSON.stringify(result),before);
+  }
+});
+test('詳細のない確認待ちとHTML11も表で示し、既存の受領用形式は拡張しない',()=>{
+  for(const id of ['html11-01','html15-01']){
+    const view=F.pending(null,id);assert.equal(view.groups[0].rows[0].checks[0].passed,null);
+    const rendered=F.render(view,documentMock());
+    const table=rendered.children[0].children[0],button=table.children[1].children[0].children[1].children[0];
+    assert.equal(button.textContent,'確認待ち');assert.match(button.attributes['aria-label'],/確認待ち/);F.dispose(rendered);
+  }
+  const unsafe=F.pending(null,'html15-01');unsafe.groups[0].rows[0].checks[0].passed='unknown';assert.equal(F.render(unsafe,documentMock()),null);
+});
+test('従来の項目単位の結果も同じ2列表へまとめる',()=>{
+  const result=grade('html12-01',fs.readFileSync(path.join(root,'html','sample1-2.html'),'utf8'));
+  const view=F.summary(result,'html12-01',false);assert.equal(view.groups[0].rows.length,result.rules.length);
+  assert.deepEqual(view.groups[0].rows.map(r=>r.checks[0].passed),result.rules.map(r=>r.passed));
+  assert.equal(F.summary({...result,state:'needs_review'},'html12-01',false),null);
+});
 function fixture(id, rules) {
   return {state:'graded',engineVersion:catalog.bindings.find(b=>b.targetId==='html14-01').engineVersion,rubricVersion:'2026-09-normal-gss-draft-1',rubricId:id,
     rules:Object.entries(rules).map(([ruleId,values])=>({ruleId,points:60,checks:values.map(v=>typeof v==='boolean'?{passed:v}:v)}))};

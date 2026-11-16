@@ -120,22 +120,53 @@ var HtmlGradingFeedback = (function () {
     return {schema:VERSION,targetId:id,groups:groups};
   }
   // 記録済みの表示要約を厳密に許可リスト化。点数・位置・ソース・本人情報は返さない。
-  function publicView(view, targetId) {
+  function normalizeView(view, targetId, schema, allowPending) {
     try {
-      need(view && view.schema === VERSION && view.targetId === targetId && /^html(?:14|15|16|17|22|23|24)-0[12]$/.test(targetId));
+      need(view && view.schema === schema && view.targetId === targetId &&
+        (allowPending ? /^html\d{2}-\d{2}$/ : /^html(?:14|15|16|17|22|23|24)-0[12]$/).test(targetId));
       function text(v) { need(typeof v === 'string' && v.length <= 160); return v; }
       need(Array.isArray(view.groups) && view.groups.length > 0 && view.groups.length <= 8);
-      return {schema:VERSION,targetId:targetId,groups:view.groups.map(function (g) {
+      return {schema:schema,targetId:targetId,groups:view.groups.map(function (g) {
         need(Array.isArray(g.legend) && g.legend.length <= 8 && Array.isArray(g.rows) && g.rows.length > 0 && g.rows.length <= 40);
         return {title:text(g.title),legend:g.legend.map(text),rows:g.rows.map(function (r) {
           need(Array.isArray(r.checks) && r.checks.length > 0 && r.checks.length <= 8);
-          return {label:text(r.label),checks:r.checks.map(function (c) { need(c && typeof c.passed === 'boolean'); return {label:text(c.label),passed:c.passed}; })};
+          return {label:text(r.label),checks:r.checks.map(function (c) {
+            need(c && (typeof c.passed === 'boolean' || allowPending && c.passed === null));
+            return {label:text(c.label),passed:c.passed};
+          })};
         })};
       })};
     } catch (_) { return null; }
   }
+  function publicView(view, targetId) { return normalizeView(view,targetId,VERSION,false); }
+  // この形式は提出前の表示専用。受領用データ・採点結果の保存形式には使わない。
+  function displayView(view) { return normalizeView(view,view && view.targetId,'html-checkpoints-display-1',true); }
+  function summary(result, targetId, pending) {
+    var rules=result && Array.isArray(result.rules) ? result.rules : [];
+    var known=result && result.state === 'graded' && result.engineVersion === ENGINE &&
+      ['2026-09-normal-gss-draft-1','2026-10-inquiry-1'].indexOf(result.rubricVersion)>=0;
+    if(!pending && !known)return null;
+    var rows=rules.map(function (r) {
+      return row(String(r.label || r.message || r.ruleId || '確認項目'),[{label:'確認結果',passed:pending || typeof r.passed !== 'boolean' ? null : r.passed}]);
+    });
+    if(!rows.length)rows=[row(targetId === 'html11-01' ? '提出の受領' : 'この実習ファイル',[{label:'確認結果',passed:null}])];
+    return displayView({schema:'html-checkpoints-display-1',targetId:targetId,groups:[group('',rows)]});
+  }
+  function pending(result, targetId) {
+    // 詳細があるときは通常の表と同じ配置を作り、判定は必ず未確定へ戻す。
+    // 元のresultには一切書き込まない。曖昧なchecksを★/☆として流用しない。
+    var skeleton=result && Array.isArray(result.rules) && build({...result,state:'graded',rules:result.rules.map(function (r) {
+      return {...r,passed:false,earned:0,checks:Array.isArray(r.checks) ? r.checks.map(function (c) { return {...c,passed:false}; }) : r.checks};
+    })});
+    if(skeleton){
+      skeleton.schema='html-checkpoints-display-1';
+      skeleton.groups.forEach(function (g) { g.rows.forEach(function (r) { r.checks.forEach(function (c) { c.passed=null; }); }); });
+      return displayView(skeleton);
+    }
+    return summary(result,targetId,true);
+  }
   function render(view, document) {
-    view = publicView(view,view && view.targetId); if (!view) return null;
+    view = publicView(view,view && view.targetId) || displayView(view); if (!view) return null;
     var root = document.createElement('div'); root.className = 'html-grade-feedback';
     var tip = document.createElement('div'); tip.className = 'html-grade-tooltip'; tip.hidden = true;
     tip.id = 'html-grade-tooltip-'+(++serial); tip.setAttribute('role','tooltip');
@@ -207,9 +238,10 @@ var HtmlGradingFeedback = (function () {
         var line = document.createElement('tr'), name = document.createElement('th'), cell = document.createElement('td');
         name.setAttribute('scope','row'); name.textContent = r.label; line.append(name,cell);
         r.checks.forEach(function (c) {
-          var button = document.createElement('button'), label = r.label+'：'+c.label+'：'+(c.passed?'達成':'要確認');
-          button.type = 'button'; button.className = 'html-grade-check'+(c.passed?' correct':'');
-          button.textContent = c.passed?'★':'☆'; button.setAttribute('aria-label',label);
+          var waiting=c.passed === null;
+          var button = document.createElement('button'), label = r.label+'：'+c.label+'：'+(waiting?'確認待ち':c.passed?'達成':'要確認');
+          button.type = 'button'; button.className = 'html-grade-check'+(waiting?' pending':c.passed?' correct':'');
+          button.textContent = waiting?'確認待ち':c.passed?'★':'☆'; button.setAttribute('aria-label',label);
           function open() { show(button,label); }
           // スクロールで星が静止中のカーソル下へ来ても、キーボードの説明を奪わない。
           button.addEventListener('pointermove',open); button.addEventListener('focus',open); button.addEventListener('click',open);
@@ -232,6 +264,6 @@ var HtmlGradingFeedback = (function () {
     if (hide) { hide(); dismissals.delete(container); }
     if (container.querySelectorAll) Array.from(container.querySelectorAll('.html-grade-feedback')).forEach(dispose);
   }
-  return Object.freeze({build:build,publicView:publicView,render:render,dispose:dispose});
+  return Object.freeze({build:build,publicView:publicView,summary:summary,pending:pending,render:render,dispose:dispose});
 })();
 if (typeof module === 'object' && module.exports) module.exports = HtmlGradingFeedback;

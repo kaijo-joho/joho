@@ -103,7 +103,7 @@
     return Object.freeze({grade});
   }
   function panel(container, {grader,input,isCurrent,document = globalThis.document,timers = globalThis}) {
-    const controller = new AbortController(); let disposed = false, finishDelay, gradingReady = false, displayedTable = null, completeResult = false;
+    const controller = new AbortController(); let disposed = false, finishDelay, gradingReady = false, displayedTable = null, completeResult = false, presentedResult = false;
     // 採点・GASフォームの準備はすぐ始め、結果の表示だけを最低5秒待つ。
     const delay = new Promise(resolve => { finishDelay = resolve; });
     const section = document.createElement('section'); section.className = 'local-grade-feedback';
@@ -127,34 +127,58 @@
     const note = document.createElement('p'); note.className = 'note';
     note.textContent = 'この表示だけでは提出完了になりません。提出の完了はフォーム内の受領表示で確認してください。';
     section.append(heading,status,note); container.append(section);
+    const targetId=input?.proof?.assignmentId || String(input?.fileName || '').replace(/\.html$/,'');
+    function showTable(view, result, waiting) {
+      let table=view && feedback?.render(view,document);
+      if(!table) {
+        // 任意の表部品が使えなくても、旧リストへ戻さず最小限の表を残す。
+        table=document.createElement('table'); table.className='html-grade-table';
+        table.setAttribute('aria-label','提出前の採点結果');
+        const head=document.createElement('thead'), tr=document.createElement('tr');
+        for(const text of ['対象','採点結果']) { const cell=document.createElement('th'); cell.setAttribute('scope','col'); cell.textContent=text; tr.append(cell); }
+        head.append(tr);table.append(head);
+        const body=document.createElement('tbody'), rows=Array.isArray(result?.rules) && result.rules.length ? result.rules.slice(0,40) : [{label:'この実習ファイル'}];
+        for(const rule of rows) {
+          const row=document.createElement('tr'), name=document.createElement('th'), cell=document.createElement('td');
+          name.setAttribute('scope','row');name.textContent=String(rule.label || '確認項目').slice(0,160);
+          const known=!waiting && typeof rule.passed === 'boolean';
+          cell.textContent=known ? rule.passed ? '★' : '☆' : '確認待ち';
+          if(known && rule.passed)cell.className='local-grade-star correct';
+          row.append(name,cell);body.append(row);
+        }
+        table.append(body);
+      }
+      section.insertBefore(table,note);displayedTable=table;presentedResult=true;
+    }
     const completed = Promise.resolve().then(() => grader.grade({...input,signal:controller.signal})).then(async value => {
       gradingReady = true;
+      if(value.status === 'unavailable')finishDelay();
       await delay;
       if (disposed) return null;
       if (!isCurrent()) { status.textContent = '内容が変わりました。保存して提出を準備し直してください。'; return null; }
-      if (value.status === 'receipt-only') { status.textContent = 'この課題は提出を受け付けた後に★がつきます。'; return value; }
+      if (value.status === 'receipt-only' || value.status === 'unavailable') {
+        showTable(feedback?.pending(null,targetId),null,true);
+        status.textContent = value.status === 'receipt-only' ? '提出の受領は、受付が完了したときに確認されます。' : '提出フォームで選ぶファイルは、この画面では確認待ちとして表示します。';
+        return value;
+      }
       const result = value.receipt.result;
-      const view = feedback?.publicView(value.feedback,value.receipt.targetId) || feedback?.build(result), table = view && feedback.render(view,document);
-      displayedTable = table;
-      status.textContent = table || result.state === 'graded' ? '保存した内容の確認が終わりました。' : '一部は自動確認できません。フォーム内の結果も確認してください。';
-      const list = document.createElement('ul'); list.className = 'local-grade-rules';
-      if (!table) result.rules.forEach(rule => {
-        const li = document.createElement('li'), star = document.createElement('span');
-        const graded = result.state === 'graded';
-        star.className = graded && rule.passed ? 'local-grade-star correct' : 'local-grade-star';
-        star.textContent = graded ? rule.passed ? '★ ' : '☆ ' : '';
-        li.append(star, document.createTextNode((!graded ? '確認待ち：' : rule.passed ? '' : '要確認：') + rule.label)); list.append(li);
-      });
-      section.insertBefore(table || list,note); completeResult = Boolean(table || result.state === 'graded'); return value;
+      const checked = feedback?.publicView(value.feedback,value.receipt.targetId) || feedback?.build(result) || feedback?.summary(result,targetId,false);
+      const waiting=!checked && result.state !== 'graded';
+      showTable(checked || feedback?.pending(result,targetId),result,waiting);
+      status.textContent = waiting ? '自動確認できない項目は確認待ちとして表示しています。このまま提出できます。' : '保存した内容の確認が終わりました。';
+      completeResult = !waiting; return value;
     }).catch(() => {
       completeResult = false;
-      if (!disposed) status.textContent = '端末内での確認を利用できません。下の提出フォームはそのまま使えます。';
+      if (!disposed && isCurrent()) {
+        status.textContent = '端末内での確認を利用できません。確認待ちのまま、下の提出フォームはそのまま使えます。';
+        try { showTable(feedback?.pending(null,targetId),null,true); } catch { /* 表示の失敗で提出フォームを止めない。 */ }
+      }
       return null;
     }).finally(() => {
       timers.clearTimeout(timer); finishDelay();
       if (!disposed) section.setAttribute('aria-busy','false');
     });
-    return {completed,hasCompleteResult() { return !disposed && completeResult; },dispose() { disposed = true; timers.clearTimeout(timer); finishDelay(); controller.abort(); feedback?.dispose(displayedTable); section.remove(); }};
+    return {completed,hasCompleteResult() { return !disposed && completeResult; },hasPresentedResult() { return !disposed && presentedResult; },dispose() { disposed = true; timers.clearTimeout(timer); finishDelay(); controller.abort(); feedback?.dispose(displayedTable); section.remove(); }};
   }
   return Object.freeze({create,panel,select,canonical,hash,MAX_BYTES});
 });

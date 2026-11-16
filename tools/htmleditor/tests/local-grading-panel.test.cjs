@@ -44,7 +44,8 @@ test('採点は即時に始め、最低5秒は％なしの進捗バーを表示�
   await h.advance(4999); assert.doesNotMatch(h.parent.textContent, /★|確認が終わりました|10/);
   await h.advance(1); assert.equal(await h.panel.completed, result);
   assert.equal(section.attributes['aria-busy'], 'false');
-  assert.match(h.parent.textContent, /確認が終わりました/); assert.match(h.parent.textContent, /★ 見出し/);
+  assert.match(h.parent.textContent, /確認が終わりました/); assert.match(h.parent.textContent, /見出し★/);
+  assert.equal(h.parent.children[0].children[2].className,'html-grade-table');
   assert.equal(h.panel.hasCompleteResult(),true);
   assert.equal(status.children.length, 0); assert.equal(h.pending.size, 0);
 });
@@ -55,7 +56,7 @@ test('採点に5秒以上かかった場合は、完了後にさらに5秒待た
   assert.equal(h.parent.children[0].attributes['aria-busy'],'true');
   assert.equal(h.parent.children[0].children[1].children[1].attributes.role,'progressbar');
   finish(result); await flush(); assert.equal(await h.panel.completed, result);
-  assert.match(h.parent.textContent, /★ 見出し/);
+  assert.match(h.parent.textContent, /見出し★/);
 });
 test('モーダルを閉じると待機を解除し、遅い結果を表示しない', async () => {
   const h = setup(); await flush(); h.panel.dispose();
@@ -79,7 +80,8 @@ test('採点失敗は待機せず案内し、旧GASフォームの利用を妨�
 });
 test('HTML11では5秒後にも未受領の★を付けない', async () => {
   const h = setup(async () => ({status:'receipt-only'})); await flush(); await h.advance(5000);
-  await h.panel.completed; assert.match(h.parent.textContent, /受け付けた後に★がつきます/);
+  await h.panel.completed; assert.match(h.parent.textContent, /受付が完了したときに確認/);
+  assert.match(h.parent.textContent,/確認待ち/);assert.doesNotMatch(h.parent.textContent,/★|☆/);
   assert.equal(h.panel.hasCompleteResult(),false);
   assert.equal(h.parent.children[0].children.some(node => node.className === 'local-grade-rules'), false);
 });
@@ -95,11 +97,13 @@ test('HTML14の独立チェック表を5秒後に表示し、旧採点の確認�
   assert.doesNotMatch(h.parent.textContent,/確認待ち|自動確認できません/);
   assert.match(h.parent.textContent,/この表示だけでは提出完了になりません/);
 });
-test('確認待ちの項目が残る従来表示では、GAS側の採点結果を省略しない',async()=>{
+test('確認待ちは表に表示し、採点完了とは区別する',async()=>{
   const h=setup(async()=>({status:'checked',receipt:{result:{state:'needs_review',rules:[{label:'画像',passed:false}]}}}));
   await flush();await h.advance(5000);await h.panel.completed;
   assert.equal(h.panel.hasCompleteResult(),false);
-  assert.match(h.parent.textContent,/フォーム内の結果も確認/);
+  assert.equal(h.panel.hasPresentedResult(),true);
+  assert.match(h.parent.textContent,/確認待ち/);assert.doesNotMatch(h.parent.textContent,/★|☆/);
+  assert.equal(h.parent.children[0].children[2].className,'html-grade-table');
 });
 test('結果の表示に失敗した場合も、表示済み扱いにせずGASの結果を残す',async()=>{
   const h=setup();h.parent.children[0].insertBefore=()=>{throw Error('synthetic DOM failure');};

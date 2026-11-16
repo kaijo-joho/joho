@@ -48,15 +48,34 @@
     }
     dialog.classList.add('download-open','submission-open'); container.replaceChildren();
     // ローカル結果を先に示すが、受領状態・再送判断は従来フォームだけが確定する。
-    let localFeedback = null, localHost = null;
-    if (file && proof && root.HtmlEditorLocalGrading) {
+    let localFeedback = null, localHost = null, localEpoch = 0;
+    function prepareLocal(manual = false) {
+      const epoch=++localEpoch;
+      localFeedback?.dispose();
+      if(!localHost)localHost=node(container, '', 'div', 'submission-local-results');
+      localHost.replaceChildren();
       try {
+        if(!root.HtmlEditorLocalGrading || !proof)throw Error('local_display_unavailable');
         localGrader ||= root.HtmlEditorLocalGrading.create();
-        localHost = node(container, '', 'div', 'submission-local-results');
-        localFeedback = root.HtmlEditorLocalGrading.panel(localHost, {grader:localGrader,
-          input:{source:file.text,fileName:file.fileName,proof},isCurrent});
-      } catch { localHost?.remove(); /* 任意の端末内確認が使えなくても既存の提出を妨げない。 */ }
+        localFeedback = root.HtmlEditorLocalGrading.panel(localHost, {grader:file && !manual ? localGrader : {grade:async()=>({status:'unavailable'})},
+          input:{source:file && !manual ? file.text : null,fileName:targetId+'.html',proof},isCurrent});
+      } catch {
+        // 任意機能が読めない場合も、表示形式と未確定の意味を維持する。
+        const table=node(localHost,'','table','html-grade-table'), head=node(table,'','thead'), headings=node(head,'','tr');
+        for(const label of ['対象','採点結果']) { const cell=node(headings,label,'th'); cell.setAttribute('scope','col'); }
+        const body=node(table,'','tbody'), row=node(body,'','tr'), name=node(row,targetId+'.html','th');name.setAttribute('scope','row');
+        node(row,'確認待ち','td');
+        node(localHost,'この画面では内容を自動確認できません。確認待ちのまま提出できます。','p','note');
+        localFeedback={completed:Promise.resolve(),hasCompleteResult:()=>false,dispose(){localHost.replaceChildren();}};
+      }
+      localFeedback.completed.then(() => {
+        if(disposed || localEpoch!==epoch || !isCurrent())return;
+        localComplete=Boolean(localFeedback.hasCompleteResult?.());
+        localHost.hidden=protectedResult==='receipt' || phase==='previous-received';
+        sendFeedbackState();formStage.hidden=false;
+      });
     }
+    prepareLocal();
     const formStage = node(container, '', 'div', 'submission-form-stage');
     formStage.hidden = Boolean(localFeedback);
     const help = root.HtmlEditorDownload.loginHelp(formStage, () => {
@@ -89,6 +108,7 @@
         transfer = Boolean(file && data.fileTransfer === TRANSFER);
         source.postMessage({channel:CHANNEL,type:'connect',bridge,targetId,
           layout:'integrated-v1',fileTransfer:transfer ? TRANSFER : '',
+          receiptDisplay:'receipt-only-v1',
           localFeedback:localComplete ? 'complete-v1' : '',
           ...root.HtmlEditorDownload.legacyAppearance(document)}, event.origin);
         return;
@@ -108,7 +128,7 @@
       if (data.type === 'file-mode' && data.mode === 'manual') {
         // 選び直した別ファイルに、上の固定ファイルの結果を流用しない。
         transfer = false; localComplete = false;
-        if (localHost) localHost.hidden = true;
+        prepareLocal(true);
         return;
       }
       if (data.type === 'height' && Number.isInteger(data.height) && data.height >= 0 && data.height <= 20000) {
@@ -120,12 +140,13 @@
       if (!Object.prototype.hasOwnProperty.call(MESSAGES, data.phase)) return;
       // 旧フォームは手動選択の専用通知を持たない。選択済み→未選択なら旧結果を使わない。
       if (phase === 'selected' && data.phase === 'ready') {
-        localComplete = false; if (localHost) localHost.hidden = true; sendFeedbackState();
+        localComplete = false; sendFeedbackState(); transfer=false; prepareLocal(true);
       }
       phase = data.phase; clearTimeout(slowTimer);
       if (['sending','uncertain','checking'].includes(phase)) protectedResult = 'pending';
       else if (['received','grading','downloading'].includes(phase)) protectedResult = 'receipt';
       else if (phase === 'previous-received') protectedResult = '';
+      if(localHost)localHost.hidden=protectedResult==='receipt' || phase==='previous-received';
       label.textContent = MESSAGES[phase]; spinner.hidden = !['loading','sending','checking','grading','downloading'].includes(phase);
     };
     function clearFrame() {
@@ -155,12 +176,6 @@
       frame.src = embedded.href; formStage.append(frame);
     }
     startFrame();
-    if (localFeedback) localFeedback.completed.then(() => {
-      if (disposed || !isCurrent()) return;
-      localComplete = !localHost.hidden && Boolean(localFeedback.hasCompleteResult?.());
-      sendFeedbackState(); formStage.hidden = false;
-    });
-    else status.focus();
     return {canClose, needsAttention, dispose() {
       disposed = true; localFeedback?.dispose(); clearFrame(); dialog.classList.remove('download-open','submission-open');
     }};
