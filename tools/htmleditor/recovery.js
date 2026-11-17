@@ -13,7 +13,7 @@
   const MAX_METADATA_BYTES = 2 * 1024 * 1024;
   const MAX_RECORD_BYTES = 6 * MAX_TEXT_BYTES + MAX_METADATA_BYTES;
   const LESSON_RE = /^html(?:1[1-8]|2[1-5])$/;
-  const MODES = new Set(['lesson', 'free']);
+  const MODES = new Set(['lesson', 'free', 'final']);
   const KINDS = new Set(['auto', 'manual']);
   const DESTINATIONS = new Set(['browser', 'file']);
 
@@ -52,7 +52,7 @@
     if (!keys || keys.length !== expectedKeys.length || keys.some((key, index) => key !== expectedKeys[index])) throw new Error('復元データの項目が不足または過剰です');
     if (value.schemaVersion !== 1 || !validTimestamp(value.savedAt) ||
         (!allowLegacy && !validDocId(value.docId)) || (allowLegacy && value.docId !== 'legacy-v1') ||
-        !validFileName(value.fileName) || typeof value.lessonId !== 'string' || !LESSON_RE.test(value.lessonId) ||
+        !validFileName(value.fileName) || typeof value.lessonId !== 'string' || !(LESSON_RE.test(value.lessonId) || value.mode !== 'lesson' && value.lessonId === '') ||
         !MODES.has(value.mode) || !KINDS.has(value.kind) || !DESTINATIONS.has(value.destination) ||
         typeof value.content !== 'string' || byteLength(value.content) > MAX_TEXT_BYTES ||
         byteLength(JSON.stringify({ ...value, content: '' })) > MAX_METADATA_BYTES) {

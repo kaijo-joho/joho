@@ -9,11 +9,14 @@
   const HintUsage = window.HtmlEditorHintUsage || {missing:status => ({v:1,status}),create() { throw Error('ヒント記録を利用できません。'); }};
   const catalog = Practice.lessons(window.HtmlLessons.LESSONS);
   let cm, fs, preview, recovery, doc, selectedLesson, navigation, busy = false, replacing = false;
-  let autoTimer, toastTimer, issuedMarker = null, submissionPanel = null;
+  let autoTimer, toastTimer, pendingDialogFocus = null, issuedMarker = null, submissionPanel = null;
   let folderMemory = null, rememberedFolder = null, folderMemoryIssue = '';
   let localDownloads=null, updateFileIdentity=()=>{}, paneLayout=null;
   let diagnostics = null, hintUsage = null;
   let expandedLesson = null;
+  const Modes = window.HtmlEditorModes;
+  const finalEnabled = window.HTML_FINAL_PROJECT_CONFIG?.enabled === true;
+  let editorMode = 'free', treeSignature = '';
   const editable = path => /\.(html?|css)$/i.test(path);
   const content = () => cm.getValue();
   const dirty = () => doc && content() !== doc.savedContent;
@@ -70,12 +73,57 @@
       '前回の「' + rememberedFolder.name + '」を使うには、再接続ボタンで利用許可を確認してください。別のフォルダは「設定」から選べます。' : fs.isSupported() ?
       '上書き保存や画像・リンクの確認には、実習フォルダを接続してください。' :
       'このブラウザでは上書き保存できません。「保存」からコピーをダウンロードできます。画像の確認にはフォルダ全体を読み込みます。';
+    const project = editorMode !== 'lesson', final = editorMode === 'final';
+    $('editorModeLabel').textContent = Modes.labels[editorMode];
+    $('editorModeLabel').dataset.tip = '現在のモード：' + Modes.labels[editorMode] + '。別のモードは別タブで開きます。';
+    $('finalModeLink').hidden = !finalEnabled || final;
+    $('freeModeLink').hidden = editorMode === 'free';
+    $('lessonModeLink').hidden = !project;
+    $('leftPane').setAttribute('aria-label',project ? 'ファイル一覧' : '教材');
+    $('splitLeft').setAttribute('aria-label',(project ? 'ファイル一覧' : '解説') + 'を折りたたむ。左右矢印キーで幅を調整');
+    const leftTab = document.querySelector('#paneNav button[data-pane="left"]');
+    if (leftTab) leftTab.textContent = project ? 'ファイル' : '解説';
+    $('openFilesBtn').dataset.tip = final ? '作品フォルダの一覧からHTML・CSSを開きます（⌘O）。' : 'OSのファイル選択でHTML・CSSを開きます（⌘O）。';
+    $('finalProjectPanel').hidden = !project;
+    $('leftPaneContent').hidden = project;
+    $('practiceBar').hidden = project;
+    $('lessonOnlyLink').hidden = project;
+    $('taskDownloadBtn').hidden = project;
+    $('assignmentDocBtn').hidden = !final;
+    $('assignmentDocMenuBtn').hidden = !final;
+    $('stepsModeLink').hidden = !project;
+    $('assignmentDocBtn').disabled = busy;
+    $('lessonPickerBtn').hidden = !final;
+    $('lessonPickerBtn').disabled = busy;
+    $('useFinalChildBtn').hidden = !final;
+    $('useFinalChildBtn').disabled = busy;
+    $('newProjectFileBtn').disabled = busy;
+    $('projectRefreshBtn').disabled = busy;
+    $('finalModeStatus').hidden = !final;
+    $('finalModeStatus').textContent = '最終課題 — ' + (fs.getDirectoryName() || '作品フォルダ未接続') + ' ／ 提出機能は準備中';
+    $('emptyStateMessage').textContent = final ? '作品フォルダを接続し、HTML・CSSを開くか、新しいファイルを作成します。' : project ? 'HTML・CSSファイルを開くか、左の一覧から新しいファイルを作成します。' : '';
+    $('emptyStateMessage').hidden = !project;
+    $('practiceOpenBtn').textContent = final ? '作品フォルダを開く…' : project ? 'HTML・CSSファイルを開く…' : '保存済みの実習ファイルを開く…';
+    if (project) {
+      $('projectPanelTitle').textContent = final ? '作品フォルダ' : 'ファイル';
+      $('projectPanelIntro').textContent = final ? 'Finderで「書類」に「HTML最終課題」を作って接続します。写真は自分で images に移動します。' : 'HTML・CSS・画像をまとめたフォルダを接続すると、一覧やプレビューで使えます。';
+      $('finalFolderLabel').textContent = fs.getDirectoryName() || 'フォルダ未接続';
+      if (!rememberedFolder) $('folderAlertMessage').textContent = final ? 'Finderで作成した「HTML最終課題」を接続します。' : '上書き保存や画像の表示には、作業するフォルダを接続します。';
+      $('saveBtn').dataset.tip = '開いているHTML・CSSに上書き保存し、プレビューを更新します（⌘S）。';
+      $('findErrorsBtn').dataset.tip = '自分で見直しても見つからないときに、該当する行番号からヒントを確認できます。';
+      $('toggleLessonBtn').textContent = 'ファイル一覧を開閉';
+      document.querySelector('#viewMenu > summary').dataset.tip = 'ファイル一覧・プレビューを開閉し、列配置を初期値に戻します。';
+      $('toggleLessonBtn').textContent = 'ファイル一覧を開閉';
+      document.querySelector('#viewMenu > summary').dataset.tip = 'ファイル一覧・プレビューを開閉し、列配置を初期値に戻します。';
+      renderFinalTree();
+    }
     updateSubmission();
     updateFileIdentity();
     paneLayout?.refresh();
   }
   const catalogState = () => window.HtmlEditorStartup.catalogState();
   function preparationState() {
+    if (editorMode !== 'lesson') return {active:false};
     return Onboarding.assess({doc, source:doc ? content() : '', connected:fs.isConnected(), directory:fs.dirHandle,
       directoryName:fs.getDirectoryName(), files:fs.getFileList(), lessonId:selectedLesson?.id});
   }
@@ -86,6 +134,17 @@
       {ready:false, message:'配付された実習ファイルを開くと、提出条件を確認できます。'};
   }
   function updateSubmission() {
+    if (editorMode !== 'lesson') {
+      $('onboardingStatus').hidden = true;
+      $('submitBtn').hidden = editorMode === 'free';
+      $('submitBtn').disabled = true;
+      $('submitLabel').textContent = '提出（準備中）';
+      $('submitBtn').dataset.tip = '最終課題の提出機能は準備中です。現在は編集とMacへの保存を行えます。';
+      $('submissionState').textContent = '';
+      $('submitBtn').classList.remove('success');
+      return;
+    }
+    $('submitBtn').hidden = false;
     const preparation = preparationState();
     $('onboardingStatus').hidden = !preparation.active;
     $('onboardingSteps').replaceChildren();
@@ -102,7 +161,7 @@
   }
   function snapshot(kind, destination = 'browser') {
     return {docId:doc.docId, fileName:doc.fileName, lessonId:doc.lessonId,
-      mode:'lesson', kind, destination, content:content()};
+      mode:editorMode, kind, destination, content:content()};
   }
   function recoverySaved(message) {
     $('recoveryState').textContent = message;
@@ -135,8 +194,8 @@
     clearTimeout(autoTimer);
     clearDiagnostics(); hintUsage = null;
     replacing = true; issuedMarker = null;
-    const task = Practice.taskForFile(fileName);
-    doc = {docId:crypto.randomUUID(), fileName, lessonId:task ? task.slice(0,6) : options.lessonId || selectedLesson.id,
+    const task = editorMode === 'lesson' ? Practice.taskForFile(fileName) : '';
+    doc = {docId:crypto.randomUUID(), fileName, lessonId:editorMode === 'lesson' ? task ? task.slice(0,6) : options.lessonId || selectedLesson.id : '',
       binding:options.binding || null, openedFrom:options.openedFrom || null, verifiedSave:null, diskContent:options.diskContent ?? text,
       savedContent:options.restored ? null : text, hasWork:Boolean(options.hasWork),
       saveMessage:options.message || 'ファイルを開きました。'};
@@ -145,11 +204,13 @@
     try {
       const proof = Practice.inspect(content());
       if (proof) {
+        if (editorMode === 'lesson') {
         try {
           let storage = null; try { storage = localStorage; } catch { /* 任意記録だけ利用不可 */ }
           hintUsage = HintUsage.create(storage, {fileKey:proof.localFileId || proof.issueId,
             targetId:proof.assignmentId, fileName:proof.fileName, validatorVersion:Diagnostics.VERSION});
         } catch { /* 記録の失敗で編集・提出を止めない。 */ }
+        }
         protectIssuance(proof.marker, content().indexOf(proof.marker));
       }
     } catch { /* 不正な配付情報でも本文は保持。提出時に案内する。 */ }
@@ -174,7 +235,9 @@
     catch (error) { if (error.name !== 'AbortError') notify(errorMessage(error), 'error'); }
     finally {
       busy = false; cm.setOption('readOnly', doc ? false : 'nocursor'); $('app').removeAttribute('aria-busy'); displayState();
-      if (!$('actionDialog').open && document.activeElement === document.body && opener?.isConnected && !opener.disabled) opener.focus();
+      const focusTarget = pendingDialogFocus; pendingDialogFocus = null;
+      if (!$('actionDialog').open && focusTarget?.isConnected && !focusTarget.disabled) focusTarget.focus();
+      else if (!$('actionDialog').open && document.activeElement === document.body && opener?.isConnected && !opener.disabled) opener.focus();
     }
   }
   function textNode(parent, text, tag = 'p') {
@@ -191,7 +254,7 @@
         if (settled) return;
         if (options.canClose && !options.canClose()) return;
         settled = true; dialog.close(); dialog.removeEventListener('cancel', cancel);
-        if (opener?.isConnected) opener.focus(); resolve(value);
+        if (opener?.isConnected) { if (busy) pendingDialogFocus = opener; else opener.focus(); } resolve(value);
       }
       function cancel(event) { event.preventDefault(); finish(null); }
       function button(label, value, callback) {
@@ -240,7 +303,7 @@
     }) === 'confirmed';
   }
   function setLesson(id, taskId = '', hash = '') {
-    navigation.navigate({lessonId:id, taskId, hash});
+    if (editorMode === 'lesson') navigation.navigate({lessonId:id, taskId, hash});
   }
   async function beforeLessonVisit() {
     if (busy || $('actionDialog').open) return false;
@@ -274,12 +337,14 @@
     // 教材の選択は文書名、保存先、Undo、配付情報を変更しない。
   }
   function updateDistribution() {
+    if (editorMode !== 'lesson') return;
     const state = Workflow.distribution(window.pages, $('taskSelect').value, window.htmlPracticeLinks, catalogState());
     $('distributionState').textContent = state.message;
     $('distributionState').dataset.state = state.kind;
     updateSubmission();
   }
   function distributionDialog(selectedImage = null) {
+    if (editorMode !== 'lesson') return;
     return exclusive(async () => {
       let panel, images;
       try {
@@ -308,7 +373,7 @@
         '：今回は html11-01.html を開くだけで、コードの編集は不要です。そのまま次の保存へ進みます。' :
         '：コードを編集し、このアイコン（⌘Enter）で表示を確認します。更新と保存は別の操作です。');
       step('saveBtn', '保存', '：コード欄のファイル名の横にあります（⌘S）。上書き保存して「Macのファイルに保存しました」を確認します。' + (selectedLesson.id === 'html11' ? '準備確認の3項目が確認済みになることも確かめます。' : ''));
-      step('submitBtn', '提出', '：保存済みファイルを準備し、フォームの「提出する」を押します。受領と★を確認してください。別タブ・ダウンロード保存ではファイルを選びます。');
+      step('submitBtn', '提出', '：保存済みファイルを準備し、フォームの「提出する」を押します。送信前の表と、送信後の受領を確認してください。別タブ・ダウンロード保存ではファイルを選びます。');
       textNode(body, 'プレビュー更新とファイル保存は別の操作です。直接保存できない場合はダウンロード先・内容・ファイル名をFinderで確認してください。');
       if (selectedLesson.id === 'html11') textNode(body, '導入課題の準備確認には、フォルダへ上書き保存できるGoogle Chromeを使います。フォルダ名とファイルの読み書きを確認しますが、書類フォルダ内かどうかや新しく作ったかどうかは確認できません。準備確認はこの画面内だけの案内で、提出物の採点結果とは別です。');
       textNode(body, '本人用の配付情報は削除・変更しないでください。受付期間内は何回でも再提出できますが、同じ課題の新しい提出は60秒以上あけます。');
@@ -384,10 +449,10 @@
     return diagnostics && doc?.docId === diagnostics.docId && content() === diagnostics.source;
   }
   async function hintConsent() {
-    if (doc.hintConsent || hintUsage?.hasConsent()) return true;
+    if (editorMode === 'free' || doc.hintConsent || hintUsage?.hasConsent()) return true;
     const result = await modal('ヒントを使う前に', (body, button) => {
       textNode(body, 'まずは自分でコードを見直してみましょう。');
-      textNode(body, 'ヒントを使うと、その利用履歴が提出時に授業担当者へ送られます。');
+      textNode(body, editorMode === 'final' ? 'ヒントを参考に、修正方法は自分で考えてみましょう。' : 'ヒントを使うと、その利用履歴が提出時に授業担当者へ送られます。');
       button('ヒントを使う', 'use').style.marginRight = 'auto';
       const reviewButton = button('自分で見直す', 'cancel');
       reviewButton.classList.add('primary'); reviewButton.autofocus = true;
@@ -396,6 +461,11 @@
     doc.hintConsent = true; hintUsage?.consent(); return true;
   }
   function recordHint(kind, diagnostic) {
+    if (editorMode !== 'lesson') {
+      $('hintNotice').textContent = 'ヒントを表示しました。修正方法は自分で考えてみましょう。';
+      $('hintNotice').hidden = false;
+      return;
+    }
     try { hintUsage?.record(kind, diagnostic); } catch { /* 任意記録だけ失敗。 */ }
     $('hintNotice').textContent = 'ヒントの利用記録は、保存確認済みファイルをここから提出したときに授業担当者へ送られます。まずは自分で見直しましょう。' +
       (!hintUsage || hintUsage.isPartial() ? ' この環境では記録の全部または一部を保存できません。編集・提出は続けられます。' : '');
@@ -415,13 +485,13 @@
         marker.type = 'button'; marker.className = 'error-hint-marker'; marker.textContent = String(line);
         marker.setAttribute('cm-ignore-events', 'true');
         marker.setAttribute('aria-label', line + '行目のエラーのヒントを表示');
-        marker.dataset.tip = 'ヒントを表示します。利用記録は提出時に授業担当者へ送られます。';
+        marker.dataset.tip = editorMode === 'lesson' ? 'ヒントを表示します。利用記録は提出時に授業担当者へ送られます。' : 'この行のヒントを表示します。修正方法は自分で考えてみましょう。';
         marker.addEventListener('click', () => exclusive(async () => {
           if (!currentDiagnostics()) return;
           marker.focus();
           await modal(line + '行目のヒント', (body, button) => {
             errors.forEach(error => textNode(body, error.message));
-            textNode(body, 'この表示の利用記録も提出時に授業担当者へ送られます。修正方法は自分で考えてみましょう。');
+            textNode(body, editorMode === 'lesson' ? 'この表示の利用記録も提出時に授業担当者へ送られます。修正方法は自分で考えてみましょう。' : '修正方法は自分で考えてみましょう。');
             button('閉じる', 'close');
             // 表示した内容のみ記録し、プレビュー更新やキャンセルは数えない。
             recordHint('detail', errors[0]);
@@ -444,10 +514,14 @@
     autoSave();
     replaceDocument(value, path, {binding:fs.isConnected() ? fs.dirHandle : null,
       openedFrom:fs.isConnected() ? fs.dirHandle : null, diskContent:value, hasWork:true, fragment});
-    if (Practice.taskForFile(path)) setLesson(doc.lessonId, Practice.taskForFile(path));
+    if (editorMode === 'lesson' && Practice.taskForFile(path)) setLesson(doc.lessonId, Practice.taskForFile(path));
     setPane('center');
   }
   async function fileList() {
+    if (editorMode !== 'lesson') {
+      setPane('left'); renderFinalTree();
+      return;
+    }
     const files = fs.getFileList();
     const selected = await modal(fs.isConnected() ? '実習フォルダ内のファイル' : '読み込んだファイル', (body, button, finish) => {
       textNode(body, fs.isConnected() ? fs.getDirectoryName() + '：開くファイルを選んでください。' : '読み込んだファイルから選んでください。');
@@ -462,7 +536,105 @@
     });
     if (selected && selected !== 'cancel') await loadFile(selected);
   }
+  function renderFinalTree() {
+    const root = $('finalFileTree'), signature = JSON.stringify([editorMode,fs.getDirectoryName(),fs.getFileList()]);
+    root.querySelectorAll('button').forEach(node => { node.disabled = busy; });
+    if (signature === treeSignature) return;
+    treeSignature = signature; root.replaceChildren();
+    if (!fs.getFileList().length) textNode(root,'このフォルダにはファイルがありません。新しいHTML・CSSを作成するか、Finderでファイルを用意してください。');
+    const folders = new Map([['',root]]);
+    for (const path of fs.getFileList()) {
+      const parts = path.split('/');
+      let parent = root, prefix = '';
+      for (const part of parts.slice(0,-1)) {
+        prefix += (prefix ? '/' : '') + part;
+        if (!folders.has(prefix)) {
+          const container = parent.tagName === 'UL' ? textNode(parent,'','li') : parent;
+          const group = textNode(container,'','details');
+          textNode(group,'📁 ' + part,'summary'); group.open = true;
+          const list = textNode(group,'','ul'); list.className = 'project-tree';
+          folders.set(prefix,list);
+        }
+        parent = folders.get(prefix);
+      }
+      const item = textNode(parent,'',parent.tagName === 'UL' ? 'li' : 'div');
+      const label = textNode(item,parts.at(-1),editable(path) ? 'button' : 'span');
+      if (editable(path)) {
+        label.type = 'button'; label.className = 'btn';
+        label.disabled = busy;
+        label.addEventListener('click', () => exclusive(() => loadFile(path)));
+      }
+    }
+  }
+  function lessonPicker(event) {
+    event?.currentTarget?.focus();
+    return exclusive(() => modal('実習を選んで開く', (body,button) => {
+      textNode(body,'教材と実習用のエディタを別タブで開きます。このタブの編集内容はそのままです。');
+      const routes = window.HtmlEditorRouting.create(Modes.link(location.href,'free'));
+      for (const lesson of catalog) {
+        const link = textNode(body,lesson.title,'a');
+        link.className = 'btn file-entry'; link.href = routes.editorUrl({lessonId:lesson.id});
+        link.target = '_blank'; link.rel = 'noopener noreferrer';
+      }
+      button('閉じる','close');
+    }));
+  }
+  function assignmentDocument(event) {
+    event?.currentTarget?.focus();
+    if (editorMode !== 'final') return;
+    return exclusive(() => modal('最終課題の要項', (body,button) => {
+      const urls = Modes.documentUrls(window.HTML_FINAL_PROJECT_CONFIG?.documentUrl);
+      if (!urls) { textNode(body,'要項のリンクを準備しています。授業担当者の案内を確認してください。'); button('閉じる','close'); return; }
+      const link = textNode(body,'別タブで開く','a'); link.className = 'btn';
+      link.href = urls.open; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      textNode(body,'表示やログインがうまくいかない場合は「別タブで開く」を使ってください。');
+      const frame = textNode(body,'','iframe'); frame.title = '最終課題の要項（Googleドキュメント）';
+      frame.className = 'assignment-document'; frame.referrerPolicy = 'no-referrer';
+      frame.src = urls.frame;
+      button('閉じる','close');
+    }));
+  }
+  function newProjectFile(event) {
+    event?.currentTarget?.focus();
+    if (editorMode === 'lesson') return;
+    return exclusive(async () => {
+      let name;
+      const choice = await modal('新しいHTML・CSSを作成', (body,button) => {
+        const label = textNode(body,'ファイル名','label'), input = document.createElement('input');
+        input.id = 'newFileName'; input.type = 'text'; input.value = fs.getFileList().includes('index.html') ? '' : 'index.html';
+        input.autocomplete = 'off'; input.spellcheck = false; label.htmlFor = input.id; body.append(input);
+        textNode(body,'.html または .css の名前を付けます。新しいフォルダはFinderで作成してください。作成後に「保存」でMacへ保存します。');
+        button('作成する','create', async () => {
+          name = Modes.fileName(input.value);
+          if (!name) throw Error('HTML・CSSの相対ファイル名を確認してください。');
+          if (fs.getFileList().includes(name)) throw Error('同名のファイルがあります。一覧から開いてください。');
+        });
+        button('キャンセル','cancel');
+      });
+      if (choice !== 'create' || !await allowReplace()) return;
+      autoSave();
+      replaceDocument(Modes.initialSource(name),name,{restored:true,hasWork:true,message:'新しいファイルを作成しました。「保存」でMacへ保存してください。'});
+      setPane('center');
+    });
+  }
+  async function useFinalChildFolder() {
+    if (editorMode !== 'final') return;
+    return exclusive(async () => {
+      if (!fs.isSupported()) throw Error('この操作にはフォルダ接続に対応したChromeを使ってください。');
+      if (!await allowReplace()) return;
+      const memory = window.HtmlEditorFolderMemory.create(indexedDB,{mode:'lesson'});
+      const parent = await memory.load();
+      if (!parent) throw Error('実習フォルダの接続先が記憶されていません。「フォルダを接続」から作品フォルダを選んでください。');
+      if (!await fs.reconnectDirectory(parent,{requestPermission:true,childName:'HTML最終課題'})) throw Error('作品フォルダの利用許可を確認してください。');
+      rememberedFolder = fs.dirHandle;
+      try { await folderMemory?.save(rememberedFolder); folderMemoryIssue = ''; }
+      catch { folderMemoryIssue = '今回は接続できましたが、記憶できませんでした。'; }
+      if (doc) { doc.binding = null; doc.openedFrom = null; doc.verifiedSave = null; }
+      displayState(); runPreview(); notify('実習フォルダ内の「HTML最終課題」を接続しました。','success');
+    });
+  }
   async function connectDirectory() {
+      if (editorMode === 'final' && !await allowReplace()) return;
       await fs.openDirectory();
       rememberedFolder = fs.dirHandle;
       try {
@@ -485,6 +657,7 @@
   }
   function openSavedFile() {
     if (busy || $('actionDialog').open) return;
+    if (editorMode === 'final') { if (fs.getFileList().length) { setPane('left'); return; } return openFolder(); }
     if (!fs.isConnected() || typeof window.showOpenFilePicker !== 'function') {
       $('fileInput').click(); return;
     }
@@ -533,7 +706,7 @@
     const files = [...input.files]; input.value = '';
     if (!files.length) return;
     await exclusive(async () => {
-      const staged = new window.HtmlFileSystem();
+      const staged = new window.HtmlFileSystem({includeHidden:editorMode === 'final'});
       try {
         await staged.importFiles(files, {directory});
         const editingFiles = staged.getFileList().filter(editable);
@@ -542,7 +715,7 @@
           if (!await allowReplace()) { staged.disconnect(); return; }
           autoSave(); fs.disconnect(); fs = staged; preview.fs = fs;
           replaceDocument(value, path, {hasWork:true, message:'読み取り専用で開きました。Macへの保存はダウンロードを使います。'});
-          if (Practice.taskForFile(path)) setLesson(doc.lessonId, Practice.taskForFile(path));
+          if (editorMode === 'lesson' && Practice.taskForFile(path)) setLesson(doc.lessonId, Practice.taskForFile(path));
           setPane('center');
         } else {
           fs.disconnect(); fs = staged; preview.fs = fs;
@@ -578,11 +751,12 @@
         if (await fs.readFile(saved.fileName, {activate:false}) !== saved.diskContent) {
           throw Error('Mac上のファイルが別の操作で変更されています。上書きせず、編集中の内容をダウンロードして比較してください。');
         }
-      } else if (await fs.hasFile(saved.fileName, saved.binding)) {
+      } else if (await fs.hasFile(saved.fileName, saved.binding, {nested:editorMode !== 'lesson'}) && !fs.hasNewFileAttempt?.(saved.fileName,saved.content,saved.binding)) {
         throw Error('保存の確認後に同名ファイルが作成されました。上書きせず、「開く」から確認してください。');
       }
       if (!current()) throw Error('内容または保存先が変わりました。もう一度保存してください。');
-      await fs.writeFile(saved.fileName, saved.content);
+      if (!saved.bound && !exists) await fs.writeNewFile(saved.fileName,saved.content,saved.binding,{nested:editorMode !== 'lesson',locked:true});
+      else await fs.writeFile(saved.fileName, saved.content, {createParents:editorMode === 'lesson'});
       if (!current()) throw Error('内容または保存先が変わりました。保存内容を確認してください。');
       doc.binding = saved.binding; doc.diskContent = saved.content; doc.savedContent = saved.content; doc.hasWork = true;
       doc.verifiedSave = {directory:saved.binding, content:saved.content}; // close後の読戻しまでロック内で確認済み。
@@ -601,7 +775,7 @@
       if (!doc) return;
       if (fs.isConnected()) await saveToFile(doc.binding !== fs.dirHandle);
       else await modal('上書き保存できません', (body, button) => {
-        textNode(body, 'フォルダ未接続、または読み取り専用で開いています。上書き保存するには「設定」で実習フォルダを接続してください。編集中の内容は保持しています。');
+        textNode(body, 'フォルダ未接続、または読み取り専用で開いています。上書き保存するには「設定」で保存先フォルダを接続してください。編集中の内容は保持しています。');
         textNode(body, 'このままコピーをダウンロードすることもできます。元のファイルへの上書き保存ではないため、Finderで保存先・ファイル名・内容を確認してください。');
         button('コピーをダウンロード', 'download', () => { download(); });
         button('閉じる', 'close');
@@ -622,6 +796,7 @@
     try {
       if (!recovery) throw Error('ブラウザの保存領域を利用できません。');
       result = recovery.list();
+      result = {...result,items:result.items.filter(item=>item.mode === editorMode)};
     } catch (error) { $('recoveryState').textContent = errorMessage(error); notify(errorMessage(error), 'error'); return; }
     const choice = await modal('復旧候補', (body, button, finish) => {
       textNode(body, '日時とファイル名を確認して選んでください。選ぶと編集画面に取り出しますが、Macのファイルは上書きしません。選ばなかった控えも削除しません。');
@@ -643,9 +818,11 @@
     autoSave();
     replaceDocument(choice.content, choice.fileName, {lessonId:choice.lessonId, restored:true, hasWork:true,
       message:'控えから復旧しました。Macの保存先は再確認してください。'});
-    setLesson(doc.lessonId, Practice.taskForFile(choice.fileName) || ''); setPane('center'); notify('控えを復旧しました。Macのファイルは変更していません。');
+    if (editorMode === 'lesson') setLesson(doc.lessonId, Practice.taskForFile(choice.fileName) || '');
+    setPane('center'); notify('控えを復旧しました。Macのファイルは変更していません。');
   }
   async function submit() {
+    if (editorMode !== 'lesson') return;
     await exclusive(async () => {
       const state = submissionState();
       if (!state.ready) { notify(state.message, 'warning'); return; }
@@ -676,7 +853,7 @@
         // 接続先へ書込・読戻し確認済み。ダウンロード用の自己確認は重ねない。
         if (savedToFile) { openForm(); return; }
         textNode(body, receipt.fileName);
-        textNode(body, 'まだ提出は完了していません。提出フォームでこの実習ファイルを選択して送信し、受領と★を確認してください。');
+        textNode(body, 'まだ提出は完了していません。提出フォームでこの実習ファイルを選択して送信し、送信前の表と、送信後の受領を確認してください。');
         let downloaded = false;
         const down = textNode(body, '実習ファイルを保存する', 'button'); down.type = 'button'; down.className = 'btn'; down.id = 'submitDownload';
         if (!savedToFile) textNode(body, '通常は「ダウンロード」に保存されます。Finderで「書類／HTML実習」へ移動してください。同名の編集中ファイルを上書きせず、提出する最新版の名前と内容を確認します。');
@@ -721,7 +898,8 @@
   function initSplitters() {
     let storage = null;
     try { storage = window.localStorage; } catch { /* 記憶できなくても列の操作は利用できる。 */ }
-    paneLayout = window.HtmlEditorLayout.mount({document, window, storage,
+    const layoutStorage = storage && editorMode !== 'lesson' ? {getItem:key=>storage.getItem(key+'.'+editorMode),setItem:(key,value)=>storage.setItem(key+'.'+editorMode,value),removeItem:key=>storage.removeItem(key+'.'+editorMode)} : storage;
+    paneLayout = window.HtmlEditorLayout.mount({document, window, storage:layoutStorage,
       onChange:() => { cm.refresh(); positionNotice(); },
       onStorageError:() => notify('列配置を記憶できませんでした。今回の表示・編集・保存は続けられます。', 'warning')});
   }
@@ -833,9 +1011,15 @@
     }
   }
   function init() {
-    fs = new window.HtmlFileSystem();
+    editorMode = Modes.resolve(location.href);
+    if (editorMode === 'lesson' && Modes.lessonLocation(location.href) !== location.href) history.replaceState(history.state,'',Modes.lessonLocation(location.href));
+    if (editorMode === 'final' && !finalEnabled) throw Error('最終課題モードは準備中です。');
+    selectedLesson = catalog.find(row=>row.id==='html12') || catalog[0];
+    document.body.classList.remove('mode-lesson','mode-final','mode-free');
+    document.body.classList.add('mode-' + editorMode);
+    fs = new window.HtmlFileSystem({includeHidden:editorMode === 'final'});
     try { recovery = window.HtmlEditorRecovery.create(localStorage); } catch { recovery = null; }
-    try { folderMemory = window.HtmlEditorFolderMemory.create(indexedDB); } catch { folderMemoryIssue = 'この環境ではフォルダを記憶できません。接続は今回のみ有効です。'; }
+    try { folderMemory = window.HtmlEditorFolderMemory.create(indexedDB,{mode:editorMode}); } catch { folderMemoryIssue = 'この環境ではフォルダを記憶できません。接続は今回のみ有効です。'; }
     preview = new window.HtmlPreview({iframe:$('previewIframe'), fs, onDiagnostics:receiveDiagnostics,
       onTitle:title => {
         const label = $('previewTitle');
@@ -854,10 +1038,23 @@
     });
     window.HtmlEditorClipboard.install(cm, () => issuedMarker, notify);
     setupPaneHeaders();
+    $('finalModeLink').href = Modes.link(location.href,'final');
+    $('freeModeLink').href = Modes.link(location.href,'free');
+    $('lessonModeLink').addEventListener('click',event=>{ closeMenus(event.currentTarget); lessonPicker(); });
+    $('lessonPickerBtn').addEventListener('click',lessonPicker);
+    $('assignmentDocBtn').addEventListener('click',assignmentDocument);
+    $('assignmentDocMenuBtn').addEventListener('click',event=>{ closeMenus(event.currentTarget); assignmentDocument(); });
+    $('stepsModeLink').addEventListener('click',event=>{ closeMenus(event.currentTarget); $('practiceStepsBtn').click(); });
+    $('newProjectFileBtn').addEventListener('click',newProjectFile);
+    $('useFinalChildBtn').addEventListener('click',event=>{ closeMenus(event.currentTarget); useFinalChildFolder(); });
+    $('projectRefreshBtn').addEventListener('click', () => exclusive(async () => {
+      if (fs.isConnected()) await fs.scanDirectory();
+      renderFinalTree(); runPreview();
+    }));
     for (const lesson of catalog) {
       const option = document.createElement('option'); option.value = lesson.id; option.textContent = lesson.title; $('lessonSelect').append(option);
     }
-    navigation = window.HtmlEditorNavigationMount({iframe:$('lessonIframe'), onSelect:renderLesson, onError:message => notify(message, 'error'),
+    if (editorMode === 'lesson') navigation = window.HtmlEditorNavigationMount({iframe:$('lessonIframe'), onSelect:renderLesson, onError:message => notify(message, 'error'),
       beforeVisit:beforeLessonVisit, hasUnsaved:dirty, openExternal:externalLessonVisit, onImage:asset => distributionDialog(asset), onExampleExpanded:showLessonExample});
     // 起動時は空のまま。ローカルファイルも復旧候補も自動では開かない。
     displayState();
@@ -879,7 +1076,17 @@
       await navigation.request({...navigation.selection, taskId:value});
     });
     $('taskDownloadBtn').addEventListener('click', event => { event.currentTarget.focus(); distributionDialog(); });
-    $('practiceStepsBtn').addEventListener('click', event => { event.currentTarget.focus(); practiceSteps(); });
+    $('practiceStepsBtn').addEventListener('click', event => {
+      event.currentTarget.focus();
+      if (editorMode === 'lesson') { practiceSteps(); return; }
+      exclusive(() => modal(editorMode === 'final' ? '最終課題の手順' : '編集の手順', (body,button) => {
+        textNode(body,editorMode === 'final' ? 'Finderで「書類／HTML最終課題」を作って接続します。index.html やCSSは「新しいファイル」で作成できます。写真は自分で images へ移動します。' : 'HTML・CSSを開くか、左のファイル一覧で新しいファイルを作成します。フォルダを接続するとMacへ上書き保存できます。');
+        textNode(body,'作品フォルダを接続し、階層一覧からHTML・CSSを開いて編集・保存します。Finderで素材を変更したら、一覧やプレビューを更新します。');
+        textNode(body,'保存は⌘S、プレビュー更新は⌘Enterです。ページやリンク、写真の見え方は自分でも確認します。');
+        if (editorMode === 'final') textNode(body,'要項は上部の「課題を確認」で開けます。「実習を開く」から説明を別タブで確認できます。作品の提出機能は準備中です。');
+        button('閉じる','close');
+      }));
+    });
     document.addEventListener('pages:ready', updateDistribution);
     document.addEventListener('html-editor:catalog-change', updateDistribution);
     for (const id of ['openFilesBtn','practiceOpenBtn']) $(id).addEventListener('click', event => { closeMenus(event.currentTarget); openSavedFile(); });
@@ -924,8 +1131,21 @@
     } catch {
       $('themeSelect').disabled = true; $('sizeSelect').disabled = true; $('displayNotice').hidden = false;
     }
+    if (editorMode !== 'lesson') {
+      document.querySelectorAll('[data-lesson-help]').forEach(node=>node.remove());
+      for (const topic of ['intro','layout','preview','about']) {
+        const section = document.querySelector('[data-help-topic="'+topic+'"]');
+        for (const paragraph of section?.querySelectorAll('p') || []) if (/実習|学校アカウント|提出記録/.test(paragraph.textContent)) paragraph.remove();
+      }
+      const hintHelp = document.querySelector('[data-hint-help]');
+      if (hintHelp) hintHelp.textContent = 'まずは自分で見直してください。必要なときだけ「エラーを探す」を使い、黄色い枠の行番号からヒントを確認できます。編集すると通常の行番号に戻ります。';
+      const panel = document.querySelector('[data-help-topic="intro"]');
+      const note = document.createElement('p');
+      note.textContent = editorMode === 'final' ? '最終課題では作品フォルダ全体を扱います。要項は「課題を確認」、実習の参照は「実習を開く」から別タブで行えます。提出機能は準備中です。' : '自由編集では授業の解説・課題取得・提出を使いません。ファイル一覧の「新しいファイル」からHTML・CSSを作成できます。';
+      panel?.append(note);
+    }
     setupHelp();
-    if(window.HTML_LOCAL_V3_CONFIG?.enabled===true) {
+    if(editorMode === 'lesson' && window.HTML_LOCAL_V3_CONFIG?.enabled===true) {
       const config=window.HTML_LOCAL_V3_CONFIG,box=document.createElement('section');box.setAttribute('aria-label','HTML実習の本人確認');
       box.className='identity-toolbar';$('toolbar').append(box);
       const status=textNode(box,'学校アカウントの確認状態を読み込んでいます…');status.setAttribute('role','status');status.className='identity-status';

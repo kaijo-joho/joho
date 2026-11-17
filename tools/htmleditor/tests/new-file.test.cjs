@@ -134,3 +134,43 @@ test('複数タブの新規保存は同じWeb Lockで直列化し、後続は同
   assert.equal(h.files.get('html13-01.html').text,'先のひな形');assert.equal(h.state.writes,1);
  } finally {if(original)Object.defineProperty(globalThis,'navigator',original);else delete globalThis.navigator;}
 });
+
+test('作品の既存子フォルダへ新規HTMLを保存でき、実習の直下制限は保持する',async()=>{
+ const root=fixture(),child=fixture();
+ root.directory.getDirectoryHandle=async(name,options)=>{assert.equal(name,'pages');assert.equal(options.create,false);return child.directory;};
+ await assert.rejects(root.fs.hasFile('pages/new.html'),/直下/);
+ assert.equal(await root.fs.hasFile('pages/new.html',root.directory,{nested:true}),false);
+ await root.fs.writeFile('pages/new.html','<html><body>新しいページ</body></html>',{createParents:false});
+ assert.equal(child.files.get('new.html').text,'<html><body>新しいページ</body></html>');
+ assert.equal(root.fs.fileEntries.has('pages/new.html'),true);
+ assert.equal(await root.fs.hasFile('pages/new.html',root.directory,{nested:true}),true);
+});
+test('子フォルダの不在・保存直前の削除では自動作成せず、書込を行わない',async()=>{
+ const root=fixture(),child=fixture();let removed=false;
+ root.directory.getDirectoryHandle=async(_name,options)=>{assert.equal(options.create,false);if(removed)throw exception('NotFoundError');return child.directory;};
+ assert.equal(await root.fs.hasFile('pages/new.html',root.directory,{nested:true}),false);removed=true;
+ await assert.rejects(root.fs.hasFile('pages/new.html',root.directory,{nested:true}),/Finder/);
+ await assert.rejects(root.fs.writeFile('pages/new.html','内容を保持',{createParents:false}),{name:'NotFoundError'});
+ assert.equal(child.state.writes,0);assert.equal(root.fs.fileEntries.has('pages/new.html'),false);
+});
+
+test('作品の新規保存は既存の作成・再試行保護を使い、ロックの二重取得を避ける',async()=>{
+ const root=fixture(),child=fixture();root.directory.getDirectoryHandle=async()=>child.directory;
+ const original=Object.getOwnPropertyDescriptor(globalThis,'navigator'),locks={count:0,async request(_name,action){this.count++;return action();}};
+ Object.defineProperty(global,'navigator',{value:{locks},configurable:true});
+ try {
+  await root.fs.withWriteLock(()=>root.fs.writeNewFile('pages/new.html','内容',root.directory,{nested:true,locked:true}));
+  assert.equal(locks.count,1);assert.equal(child.files.get('new.html').text,'内容');
+ } finally {if(original)Object.defineProperty(globalThis,'navigator',original);else delete globalThis.navigator;}
+});
+test('新規ハンドル取得直前の同名の非空ファイルを上書きせず、再試行でも保護する',async()=>{
+ const h=fixture(),original=h.directory.getFileHandle.bind(h.directory);let injected=false;
+ h.directory.getFileHandle=async(name,options)=>{
+  if(options.create&&!injected){injected=true;h.fileHandle(name,'別の操作で保存された内容');}
+  return original(name,options);
+ };
+ await assert.rejects(h.fs.writeNewFile('new.html','編集内容'),{name:'FileExistsError'});
+ assert.equal(h.files.get('new.html').text,'別の操作で保存された内容');assert.equal(h.state.writes,0);
+ assert.equal(h.fs.hasNewFileAttempt('new.html','編集内容'),false);
+ await assert.rejects(h.fs.writeNewFile('new.html','編集内容'),{name:'FileExistsError'});
+});

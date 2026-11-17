@@ -90,7 +90,8 @@
     } catch { return null; }
   }
   class HtmlFileSystem{
-    constructor({directoryTimeoutMs=15000}={}){
+    constructor({directoryTimeoutMs=15000,includeHidden=false}={}){
+      this.includeHidden=includeHidden===true;
       if(!Number.isFinite(directoryTimeoutMs)||directoryTimeoutMs<=0)throw new Error('フォルダ確認の待機時間を確認してください。');
       this.directoryTimeoutMs=directoryTimeoutMs;this._pendingDirectoryOperation=null;
       this.dirHandle=null;this.dirName='';this.readOnly=false;this.fileEntries=new Map();this.blobUrlMap=new Map();this.currentFilePath='';this.listeners=new Set();this.newFileAttempts=new Map();
@@ -128,8 +129,9 @@
         this._notify('directory-opened',{dirName:this.dirName});return this.dirName;
       },{picker:true});
     }
-    async reconnectDirectory(handle,{requestPermission=false}={}){
+    async reconnectDirectory(handle,{requestPermission=false,childName=''}={}){
       if(!handle||handle.kind!=='directory'||typeof handle.name!=='string'||!handle.name||typeof handle.entries!=='function'||typeof handle.queryPermission!=='function')throw new Error('保存されたフォルダーハンドルを利用できません。フォルダーを選び直してください。');
+      if(typeof childName!=='string'||childName&&(!/^[^/\\\u0000-\u001f]+$/.test(childName)||childName==='.'||childName==='..'))throw new Error('接続する子フォルダを確認してください。');
       return this._directoryOperation(async signal=>{
         let permission;
         try{permission=await readOperation(()=>handle.queryPermission({mode:'readwrite'}),signal)}catch(error){aborted(signal);throw new Error(`フォルダーの利用許可を確認できません: ${error.message||error}`)}
@@ -138,6 +140,7 @@
           try{permission=await readOperation(()=>handle.requestPermission({mode:'readwrite'}),signal)}catch(error){aborted(signal);throw new Error(`フォルダーの利用許可を再確認できません: ${error.message||error}`)}
         }
         if(permission!=='granted')return false;
+        if(childName)handle=await readOperation(()=>handle.getDirectoryHandle(childName,{create:false}),signal);
         const s=await this._stageDirectory(handle,signal);
         this._checkDirectoryStage(s,signal);
         this._replace(s,handle,handle.name,false);
@@ -174,7 +177,7 @@
       const walk = async (dir, prefix, depth) => {
         if (depth > MAX_DEPTH) throw new Error('フォルダの深さが上限を超えています。');
         for await(const [name,entry] of directoryEntries(dir,signal)) {
-          if (name.startsWith('.') || name === 'node_modules') continue;
+          if (!this.includeHidden && (name.startsWith('.') || name === 'node_modules')) continue;
           const relative = prefix ? `${prefix}/${name}` : name;
           safePath(relative);
           if (entry.kind === 'directory') { await walk(entry, relative, depth + 1); continue; }
@@ -217,7 +220,7 @@
             if (!relative.startsWith(prefix)) throw new Error('複数のフォルダを同時に読み込めません。');
             relative = relative.slice(prefix.length);
           }
-          if (excluded(relative)) continue;
+          if (!this.includeHidden && excluded(relative)) continue;
           if (relative.split('/').length > MAX_DEPTH + 1) throw new Error('フォルダの深さが上限を超えています。');
           relative = safePath(relative);
           if (entries.has(relative)) throw new Error(`同名ファイルが重複しています: ${relative}`);
@@ -277,12 +280,12 @@
       if (typeof locks?.request !== 'function') throw new Error('タブ間の保存競合を確認できません。Google Chromeで開き直すか、「設定」の保存の補助操作からコピーをダウンロードしてください。');
       return locks.request(FILE_WRITE_LOCK, action);
     }
-    async writeFile(path, content) {
+    async writeFile(path, content, {createParents=true}={}) {
       if (!this.isConnected()) throw new Error('書込可能なフォルダが接続されていません。');
       const rel = textPath(path || this.currentFilePath);
       if (typeof content !== 'string' || bytes(content).byteLength > MAX_TEXT_BYTES) throw new Error('保存するファイルが大きすぎます。');
       const entry = this.fileEntries.get(rel);
-      const handle = entry && entry.handle ? entry.handle : await this._getOrCreateFileHandle(rel);
+      const handle = entry && entry.handle ? entry.handle : await this._getOrCreateFileHandle(rel,{createParents});
       const writable = await handle.createWritable();
       let closed = false;
       try { await writable.write(content); await writable.close(); closed = true; }
@@ -311,16 +314,33 @@
       if (this.dirHandle !== directory) throw new Error('接続先が変わりました。もう一度操作してください。');
       return directory;
     }
-    async hasFile(path, directory = this.dirHandle) {
+    async hasFile(path, directory = this.dirHandle, {nested=false}={}) {
       const rel = textPath(path);
-      if (rel.includes('/') || !directory) throw new Error('実習ファイルは接続フォルダの直下へ保存してください。');
-      try { await directory.getFileHandle(rel, {create:false}); return true; }
+      if (!directory || rel.includes('/') && !nested) throw new Error('実習ファイルは接続フォルダの直下へ保存してください。');
+      const parts=rel.split('/');
+      for(const name of parts.slice(0,-1)) {
+        try { directory=await directory.getDirectoryHandle(name,{create:false}); }
+        catch(error) { if(error.name==='NotFoundError')throw new Error('保存先の子フォルダがありません。Finderでフォルダを作成してから保存してください。');throw error; }
+      }
+      try { await directory.getFileHandle(parts.at(-1), {create:false}); return true; }
       catch (error) { if (error.name === 'NotFoundError') return false; if (error.name === 'TypeMismatchError') return true; throw error; }
     }
-    async writeNewFile(path, content, directory = this.dirHandle) {
+    hasNewFileAttempt(path,content,directory=this.dirHandle) {
+      const attempt=this.newFileAttempts.get(textPath(path));
+      return Boolean(attempt && attempt.directory===directory && attempt.content===content);
+    }
+    async writeNewFile(path, content, directory = this.dirHandle, {nested=false,locked=false}={}) {
       const rel = textPath(path);
-      if (rel.includes('/') || typeof content !== 'string' || bytes(content).byteLength > MAX_TEXT_BYTES) throw new Error('新しい実習ファイルの名前または容量を確認してください。');
-      return this._writeNewContent(rel, content, directory, directory, rel, handle=>this._verifyWrittenFile(handle,content));
+      if (rel.includes('/') && !nested || typeof content !== 'string' || bytes(content).byteLength > MAX_TEXT_BYTES) throw new Error('新しい実習ファイルの名前または容量を確認してください。');
+      const parts=rel.split('/');let destination=directory;
+      for(const name of parts.slice(0,-1))destination=await destination.getDirectoryHandle(name,{create:false});
+      const validateDestination=async()=>{
+        if(parts.length===1)return;
+        let current=directory;
+        for(const name of parts.slice(0,-1))current=await current.getDirectoryHandle(name,{create:false});
+        if(!await sameEntry(current,destination))throw new Error('保存先の子フォルダが変わりました。内容を保持して保存先を確認してください。');
+      };
+      return this._writeNewContent(rel, content, directory, destination, parts.at(-1), handle=>this._verifyWrittenFile(handle,content),{locked,kind:'text',validateDestination});
     }
     async getImagesDirectory(directory = this.dirHandle, expected = null) {
       if (!this.isConnected() || this.dirHandle !== directory) throw new Error('接続先が変わりました。保存先を確認してもう一度操作してください。');
@@ -353,12 +373,13 @@
         return file;
       });
     }
-    async _writeNewContent(rel, content, directory, destination, name, verify) {
-      const image=rel.startsWith('images/');
+    async _writeNewContent(rel, content, directory, destination, name, verify,{locked=false,kind='auto',validateDestination=null}={}) {
+      const image=kind==='auto'&&rel.startsWith('images/');
       const existsError = () => { const error = new Error(image ? '同名の画像があります。上書きせず、保存済みの画像を使ってください。' : '同名ファイルがあります。上書きせず、上部の「開く」から保存済みファイルを開いてください。'); error.name = 'FileExistsError'; return error; };
       const connected = async () => {
         if (!this.isConnected() || this.dirHandle !== directory) throw new Error('接続先が変わりました。保存先を確認してもう一度操作してください。');
         if(image)await this.getImagesDirectory(directory,destination);
+        if(validateDestination)await validateDestination();
       };
       const accept = file => {
         putFile(this.fileEntries, this.blobUrlMap, rel, handle, file, CSS_RE.test(rel) ? content : undefined);
@@ -400,9 +421,10 @@
       };
       // 同一サイトの複数タブからの新規保存も、存在確認と書込を直列化する。
       const locks = typeof navigator === 'undefined' ? null : navigator.locks;
+      if(locked)return write(); // 呼出元が既存の保存ロックを保持している場合だけ使用する。
       return locks?.request ? locks.request(FILE_WRITE_LOCK, write) : write();
     }
-    async _getOrCreateFileHandle(path){const parts=path.split('/');let d=this.dirHandle;for(let i=0;i<parts.length-1;i++)d=await d.getDirectoryHandle(parts[i],{create:true});return d.getFileHandle(parts[parts.length-1],{create:true})}
+    async _getOrCreateFileHandle(path,{createParents=true}={}){const parts=path.split('/');let d=this.dirHandle;for(let i=0;i<parts.length-1;i++)d=await d.getDirectoryHandle(parts[i],{create:createParents});return d.getFileHandle(parts[parts.length-1],{create:true})}
     disconnect(){this._pendingDirectoryOperation?.abort();this._clearBlobUrls();this.dirHandle=null;this.dirName='';this.readOnly=false;this.fileEntries.clear();this.newFileAttempts.clear();this.currentFilePath='';this._notify('disconnected')}
     saveDraft(content,meta={}){try{localStorage.setItem(DRAFT_STORAGE_KEY,JSON.stringify({content,meta,updatedAt:Date.now()}))}catch(e){console.warn('一時保存に失敗しました:',e)}}
     loadDraft(){try{const raw=localStorage.getItem(DRAFT_STORAGE_KEY);return raw?JSON.parse(raw):null}catch(_){return null}}

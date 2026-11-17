@@ -82,6 +82,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     async readFile(path) { if(failReadAfterWrite&&calls.writes)throw Error('synthetic read failure');return this.imported ? Buffer.from(await this.imported.arrayBuffer()).toString('utf8') : disk.get(path); }
     async withWriteLock(action) { return action(); }
     async hasFile(path) { return disk.has(path); }
+    async writeNewFile(path,value) { return this.writeFile(path,value); }
     async writeFile(path,value) { if(failWrite)throw Error('synthetic write failure');disk.set(path,value);calls.writes++; }
     disconnect() { calls.disconnect++; this.dirHandle = null; this.files = []; this.readOnly = false; }
     onChange() { return () => {}; }
@@ -98,7 +99,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     return timer;
   };
   const context = {
-    window:null, document, console, confirm:()=>true, setTimeout:testTimeout, clearTimeout, requestAnimationFrame:fn => fn(),
+    window:null, document, console, location:{href:'https://joho.kaijo.ed.jp/tools/htmleditor/index.html?lesson=html11'}, HtmlEditorModes:require('../modes.js'), confirm:()=>true, setTimeout:testTimeout, clearTimeout, requestAnimationFrame:fn => fn(),
     crypto:{randomUUID:() => 'test-document'}, indexedDB:{}, localStorage:hintStorage || {}, Blob:class {}, URL:{createObjectURL() { calls.downloads++; return 'blob:test'; }, revokeObjectURL() {}},
     CodeMirror:{fromTextArea:(node, options) => { calls.cmOptions = options; return cm; }}, HtmlFileSystem:FakeFs,
     HtmlEditorFolderMemory:{create:() => { if (memoryFails) throw Error('IndexedDB unavailable'); return memory; }},
@@ -107,7 +108,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
       return {save() {
         calls.recoverySaves = (calls.recoverySaves || 0) + 1;
         if (recoveryFaults.fail) throw Object.assign(Error('synthetic quota exceeded'), {name:'QuotaExceededError'});
-      }, list:() => ({items:recoveryItems, errors:[]})};
+      }, list:() => ({items:recoveryItems.map(item=>({mode:'lesson',...item})), errors:[]})};
     }},
     HtmlPreview:class extends require('../preview.js') {
       constructor(options) { super(options); calls.preview = this; calls.previewOptions = options; calls.previewUpdates = []; this.transform = value => value; }

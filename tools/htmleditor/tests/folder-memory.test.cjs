@@ -172,3 +172,24 @@ test('grantedは自動再接続でき、deniedとscan失敗は既存状態を変
   assert.equal(fs.dirHandle, previous);
   assert.deepEqual(fs.getFileList(), ['index.html']);
 });
+
+test('実習・最終課題・自由編集の接続先を別記憶し、一つを解除しても他を消さない',async()=>{
+  const db=new FakeDatabase(), idb=new FakeIndexedDB(db);
+  const lesson=FolderMemory.create(idb),final=FolderMemory.create(idb,{mode:'final'}),free=FolderMemory.create(idb,{mode:'free'});
+  const targets=[handle('HTML実習'),handle('HTML最終課題'),handle('任意の作品')];
+  await lesson.save(targets[0]);await final.save(targets[1]);await free.save(targets[2]);
+  assert.equal(await lesson.load(),targets[0]);assert.equal(await final.load(),targets[1]);assert.equal(await free.load(),targets[2]);
+  await free.forget();assert.equal(await free.load(),null);assert.equal(await final.load(),targets[1]);assert.equal(await lesson.load(),targets[0]);
+});
+
+test('明示した既存子フォルダだけを接続し、子フォルダ読取の無応答でも以前の接続を保つ',async()=>{
+  const child=handle('HTML最終課題'),parent=handle('HTML実習'),options=[];
+  parent.getDirectoryHandle=async(name,option)=>{options.push([name,option]);return child;};
+  const fs=new HtmlFileSystem({directoryTimeoutMs:20});
+  assert.equal(await fs.reconnectDirectory(parent,{childName:'HTML最終課題'}),true);
+  assert.deepEqual(options,[['HTML最終課題',{create:false}]]);assert.equal(fs.dirHandle,child);
+  parent.getDirectoryHandle=()=>new Promise(()=>{});
+  await assert.rejects(fs.reconnectDirectory(parent,{childName:'HTML最終課題'}),{name:'TimeoutError'});
+  assert.equal(fs.dirHandle,child);
+  await assert.rejects(fs.reconnectDirectory(parent,{childName:'../HTML最終課題'}));
+});

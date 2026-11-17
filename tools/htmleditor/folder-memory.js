@@ -18,7 +18,9 @@
     }
   }
 
-  function create(indexedDB) {
+  function create(indexedDB, {mode = 'lesson'} = {}) {
+    if (!['lesson', 'final', 'free'].includes(mode)) throw new Error('フォルダの用途を確認してください。');
+    const handleKey = mode === 'lesson' ? HANDLE_KEY : mode + '-directory';
     if (!indexedDB || typeof indexedDB.open !== 'function') {
       throw new Error('このブラウザーではフォルダー接続を記憶できません。');
     }
@@ -104,17 +106,17 @@
 
     return {
       async load() {
-        const handle = await transact('readonly', store => store.get(HANDLE_KEY), true);
+        const handle = await transact('readonly', store => store.get(handleKey), true);
         if (handle === undefined) return null;
         validateHandle(handle);
         return handle;
       },
       async save(handle) {
         validateHandle(handle);
-        await transact('readwrite', store => store.put(handle, HANDLE_KEY), false);
+        await transact('readwrite', store => store.put(handle, handleKey), false);
       },
       async forget() {
-        await transact('readwrite', store => store.delete(HANDLE_KEY), false);
+        await transact('readwrite', store => store.delete(handleKey), false);
       }
     };
   }
