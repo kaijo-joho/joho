@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-project-header-20261117-r1">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-toolbar-20261117-r1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-v3-20261002-enabled" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
   <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-v3-20261002-enabled" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
   <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
-  <link rel="stylesheet" href="editor.css?v=html-project-header-20261117-r1" data-editor-required integrity="sha384-hZW6Qsamn+LGXdJRyk61qmLQsQm6IdmcWdANtBCa1r/45/6vDTheiOVqheKePHnb" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-toolbar-20261117-r1" data-editor-required integrity="sha384-+cPngeb25OnfehKkdfhXukNw6e2/a6UD9zypmLdlyz/sziEJXS6G3fufJlYFmpu/" crossorigin="anonymous">
   <link rel="stylesheet" href="feedback.css?v=html-feedback-table-20261116-r1" integrity="sha384-EgFWYy2fGQkznLgFSwOHV+bSWwENqf2AesFXVbHteHekU5nqbw7ZRX05uLsqTCTT" crossorigin="anonymous">
   <link rel="stylesheet" href="../../css/display-settings.css?v=display-settings-20261026-r1" integrity="sha384-IrW1qsVKYNqen4SeokdHLEIkHSyuGXASeEhOiQ7Ye5uMRD7celjRy4PTw15Prp2w" crossorigin="anonymous">
 </head>
@@ -64,16 +64,6 @@
   <div id="editorHeader">
   <header id="toolbar" aria-label="エディタの操作">
     <a class="brand" href="../index.html" aria-label="ツール一覧へ戻る"><img class="brand-icon" src="icon.svg" alt=""><span>HTMLエディタ</span></a>
-    <details class="menu-wrap" id="editorModeControl">
-      <summary class="btn editor-mode-label" id="editorModeLabel" aria-label="編集モード">自由編集</summary>
-      <div class="menu-dropdown">
-        <button class="menu-item compact-mode-item" id="assignmentDocMenuBtn" type="button" hidden>課題を確認</button>
-        <button class="menu-item compact-mode-item" id="stepsModeLink" type="button">手順を確認</button>
-        <button class="menu-item" id="lessonModeLink" type="button">実習を選んで開く…</button>
-        <a class="menu-item" id="finalModeLink" target="_blank" rel="noopener noreferrer">最終課題を開く（別タブ）</a>
-        <a class="menu-item" id="freeModeLink" target="_blank" rel="noopener noreferrer">自由編集を開く（別タブ）</a>
-      </div>
-    </details>
     <div class="practice-actions" role="group" aria-label="ファイルの操作">
     <button class="btn" id="assignmentDocBtn" type="button" data-tip="最終課題の要項をGoogleドキュメントで確認します。" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="file"><use href="../shared/ui-icons.svg?v=20261113#file"/></svg><span>課題を確認</span></button>
     <button class="btn" id="lessonPickerBtn" type="button" data-tip="実習を選び、別タブで教材と実習モードを開きます。" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-joho-icon="open"><use href="../shared/ui-icons.svg?v=20261113#open"/></svg><span>実習を開く</span></button>
@@ -103,6 +93,17 @@
             <label>文字サイズ<select id="sizeSelect"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label>
           </div>
           <p id="displayNotice" hidden>表示設定を読み込めませんでした。編集と保存は続けられます。</p>
+          <section class="settings-section compact-project-actions" aria-label="この画面の操作">
+            <p>この画面の操作</p>
+            <button class="menu-item" id="assignmentDocMenuBtn" type="button" hidden>課題を確認</button>
+            <button class="menu-item" id="stepsModeLink" type="button">手順を確認</button>
+          </section>
+          <section class="settings-section" aria-label="別タブで開く">
+            <p>別タブで開く</p>
+            <button class="menu-item" id="lessonModeLink" type="button">実習を選んで開く…</button>
+            <a class="menu-item" id="finalModeLink" target="_blank" rel="noopener noreferrer">最終課題を開く（別タブ）</a>
+            <a class="menu-item" id="freeModeLink" target="_blank" rel="noopener noreferrer">自由編集を開く（別タブ）</a>
+          </section>
           <details id="practiceBar" class="settings-section"><summary>教材と課題</summary>
             <label>教材<select id="lessonSelect" aria-label="教材"></select></label>
             <label>学校の課題<select id="taskSelect" aria-label="学校の課題"></select></label>
@@ -255,7 +256,7 @@
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.11.2（2026年11月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>HTMLエディタ 0.11.3（2026年11月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
     <p>通常の編集はこの端末とブラウザで処理します。「提出」を押すと、保存確認済みの内容をモーダル内の学校アカウント用フォームへ渡します。提出記録の作成は、フォーム内の「提出する」を押したときだけです。ログインや表示がうまくいかない場合は「表示・ログインで困ったとき」から「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
@@ -304,6 +305,6 @@
 <script src="../../js/display_settings_ui.js?v=display-settings-20261026-r1" integrity="sha384-029272WHNXJuqSrj5agqjjZseUCfJCU6a3fm4BZjN5XxnTN6yYLGL6c8oVNWZsOc" crossorigin="anonymous"></script>
 <script src="final-config.js?v=html-project-header-20261117-r1" integrity="sha384-x5cnaAbV6Hudj+yaPFhtQFQ3QI7qm8M9IAdOkfJetP3vHm1dtadUakxAIeqzH1Yp" crossorigin="anonymous"></script>
 <script src="modes.js?v=html-project-header-20261117-r1" data-editor-required integrity="sha384-EXPlyvXq0deOazn/cRtcvaL0/ilQk3k04LvpKd8rP71jNXILUuZWk96ar6+Me73h" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-project-header-20261117-r1" data-editor-required integrity="sha384-csQZxfaKj3t2JW0g6VwfgTsvARs5sWaJ0EhR+cLOXc0WEpGX+HkMQpwK4aFW7vcq" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-toolbar-20261117-r1" data-editor-required integrity="sha384-IzBpyL3Q7hX+Y+yph2m3zVNXfFiKU11+Uu6yioIe1Y3bLckXrdUfn/298nfjuaTS" crossorigin="anonymous"></script>
 </body>
 </html>

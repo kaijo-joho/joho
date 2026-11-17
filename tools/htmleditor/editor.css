@@ -27,10 +27,7 @@
   --ui-size: 14px;
 }
 
-.editor-mode-label { padding: .25rem .5rem; border: 1px solid var(--line); border-radius: .3rem; font-size: .85em; white-space: nowrap; }
-#editorModeControl { flex-shrink: 0; }
-#editorModeControl > summary { min-height: 44px; }
-.mode-final .editor-mode-label, .final-mode-status { color: var(--accent); background: var(--accent-soft); }
+.final-mode-status { color: var(--accent); background: var(--accent-soft); }
 .final-mode-status { margin: 0; padding: .5rem .75rem; overflow-wrap: anywhere; }
 #finalProjectPanel { height: 100%; box-sizing: border-box; padding: 1rem; overflow: auto; font-size: var(--ui-size); }
 #finalProjectPanel h2 { font-size: 1.15em; }
@@ -914,8 +911,8 @@ body.lesson-example-expanded #toast { display: none !important; }
 @media(prefers-reduced-motion:reduce) { .local-download-file p[aria-busy="true"]::before { animation:none; } }
 @media(max-width:600px) { #toolbar .identity-toolbar { flex:1 1 180px; } .identity-status { flex:1; } .local-download-file { flex-basis:100%; } }
 
-/* 小さな作業領域では補助操作をモードメニューへまとめ、編集の高さを確保する。 */
-.compact-mode-item { display: none; }
+/* 小さな作業領域では補助操作を設定へまとめ、編集の高さを確保する。 */
+.compact-project-actions { display: none; }
 @container (max-width: 800px) {
   :is(.mode-final,.mode-free) #toolbar { flex-wrap: nowrap; align-items: center; }
   :is(.mode-final,.mode-free) #toolbar .brand,
@@ -925,7 +922,7 @@ body.lesson-example-expanded #toast { display: none !important; }
   .mode-final #submitBtn { display: none; }
   :is(.mode-final,.mode-free) #toolbar .practice-actions { flex-wrap: nowrap; }
   :is(.mode-final,.mode-free) #toolbar .practice-support-actions { margin: 0; padding: 0; border: 0; }
-  :is(.mode-final,.mode-free) .compact-mode-item { display: flex; }
+  :is(.mode-final,.mode-free) .compact-project-actions { display: block; }
 }
 @media (max-width: 600px) {
   :is(.mode-final,.mode-free) #viewMenu { display: none; }

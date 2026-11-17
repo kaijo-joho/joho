@@ -42,6 +42,7 @@ if(engine==='chromium')await context.addInitScript(()=>{
 const idle=async page=>{await page.waitForSelector('html[data-editor-ready="true"]');await page.waitForFunction(()=>!document.querySelector('#app').hasAttribute('aria-busy'));};
 const current=page=>page.evaluate(()=>document.querySelector('.CodeMirror')?.CodeMirror.getValue());
 const setCode=(page,value)=>page.evaluate(value=>document.querySelector('.CodeMirror').CodeMirror.setValue(value),value);
+const currentMode=async page=>{assert.equal(await page.locator('#editorModeControl,#editorModeLabel').count(),0);return page.evaluate(()=>document.body.className.match(/\bmode-(lesson|final|free)\b/)?.[1]);};
 const ok=name=>{report.checks.push(name);console.log(name);};
 async function projectHeader(page){
  const boxes=await page.evaluate(()=>{
@@ -56,7 +57,7 @@ async function projectHeader(page){
 const pages=[];
 try{
  const free=await context.newPage();pages.push(free);await free.goto(base);await idle(free);
- assert.equal(await free.locator('#editorModeLabel').innerText(),'自由編集');
+ assert.equal(await currentMode(free),'free');
  assert.equal(await free.locator('#submitBtn').isVisible(),false);assert.equal(await free.locator('#taskDownloadBtn').isVisible(),false);
  assert.equal(await free.locator('.identity-alert:visible').count(),0);assert.equal(await free.locator('.identity-toolbar').count(),0);
  assert.equal(await free.locator('#lessonIframe').getAttribute('src'),null);assert.equal(await current(free),'');
@@ -64,14 +65,14 @@ try{
  ok('通常URLは学校連携なしの空の自由編集で起動');
  for (const id of ['html11','html16']) {
   const entry=await context.newPage();pages.push(entry);await entry.goto(origin+'/'+id+'.html');await idle(entry);
-  assert.equal(await entry.locator('#editorModeLabel').innerText(),'実習');assert.match(entry.url(),new RegExp('lesson='+id));
+  assert.equal(await currentMode(entry),'lesson');assert.match(entry.url(),new RegExp('lesson='+id));
   const boxes=await entry.evaluate(()=>['toolbar','leftPane','workspace'].map(id=>{const {x,y,width}=document.getElementById(id).getBoundingClientRect();return {x,y,width};}));
   assert(boxes[0].x>=boxes[1].x+boxes[1].width,'実習の解説パネルはヘッダーから独立');
   assert(Math.abs(boxes[0].x-boxes[2].x)<1);
  }
  ok('教材HTML11・16からの既存入口は実習モードで起動');
  const final=await context.newPage();pages.push(final);await final.goto(base+'?mode=final');await idle(final);
- assert.equal(await final.locator('#editorModeLabel').innerText(),'最終課題');assert(await final.locator('#submitBtn').isDisabled());
+ assert.equal(await currentMode(final),'final');assert(await final.locator('#submitBtn').isDisabled());
  assert.equal(await final.locator('.identity-toolbar').count(),0);assert.equal(await final.locator('#lessonIframe').getAttribute('src'),null);
  const headerBefore=await projectHeader(final);
  await final.locator('#splitLeft').focus();await final.keyboard.press('Enter');assert(await final.locator('body').evaluate(n=>n.classList.contains('left-collapsed')));
@@ -101,12 +102,13 @@ try{
  const edited=home.replace('</body>','<p>未保存の編集</p></body>');await setCode(final,edited);await final.waitForTimeout(650);
  await final.locator('#lessonPickerBtn').click();
  const [lesson]=await Promise.all([context.waitForEvent('page'),final.locator('#actionBody a').filter({hasText:'1-6.'}).click()]);pages.push(lesson);await idle(lesson);
- assert.equal(await lesson.locator('#editorModeLabel').innerText(),'実習');assert.match(await lesson.locator('#lessonIframe').getAttribute('src'),/html16\.html/);
+ assert.equal(await currentMode(lesson),'lesson');assert.match(await lesson.locator('#lessonIframe').getAttribute('src'),/html16\.html/);
  assert.equal(await current(lesson),'');assert.equal(await current(final),edited);assert(await final.locator('#dirtyMark').isVisible());
  await final.locator('[data-choice="close"]').click();await idle(final);
  ok('最終課題から実習は別タブ、元の未保存内容・作品フォルダを維持');
- await lesson.locator('#editorModeLabel').click();const [otherFinal]=await Promise.all([context.waitForEvent('page'),lesson.locator('#finalModeLink').click()]);pages.push(otherFinal);await idle(otherFinal);
- assert.equal(await otherFinal.locator('#editorModeLabel').innerText(),'最終課題');assert.equal(await current(otherFinal),'');assert.match(lesson.url(),/lesson=html16/);
+ await lesson.locator('#displayMenuWrap > summary').click();const [otherFinal]=await Promise.all([context.waitForEvent('page'),lesson.locator('#finalModeLink').click()]);pages.push(otherFinal);await idle(otherFinal);
+ assert.equal(await currentMode(otherFinal),'final');assert.equal(await current(otherFinal),'');assert.match(lesson.url(),/lesson=html16/);
+ assert.equal(await lesson.locator('#displayMenuWrap').evaluate(n=>n.open),false);
  ok('実習から最終課題も別タブで開き、ファイルは自動で開かない');
  async function createFinalFile(name){
   await final.locator('#newProjectFileBtn').click();await final.locator('#newFileName').fill(name);await final.locator('[data-choice="create"]').click();
@@ -148,7 +150,7 @@ try{
  }
  // 同名の実習ファイルを自由編集で開いても教材・本人確認を勝手に起動しない。
  await free.locator('#fileInput').setInputFiles(join(fixture,'html16-01.html'));await idle(free);
- assert.equal(await free.locator('#editorModeLabel').innerText(),'自由編集');assert.equal(await free.locator('#lessonIframe').getAttribute('src'),null);assert.equal(await free.locator('.identity-toolbar').count(),0);
+ assert.equal(await currentMode(free),'free');assert.equal(await free.locator('#lessonIframe').getAttribute('src'),null);assert.equal(await free.locator('.identity-toolbar').count(),0);
  await setCode(free,home+'<!-- free recovery -->');await free.waitForTimeout(650);
  await final.locator('#displayMenuWrap > summary').click();await final.locator('#restoreBtn').click();await final.locator('#actionTitle').filter({hasText:'復旧候補'}).waitFor();
  assert.doesNotMatch(await final.locator('#actionBody').innerText(),/html16-01\.html/);await final.locator('[data-choice="cancel"]').click();await idle(final);
@@ -165,13 +167,19 @@ try{
      await projectHeader(page);
      if(width===390){
       await page.locator('#paneNav button[data-pane="left"]').click();assert(await page.locator('#toolbar').isVisible());await projectHeader(page);
-      await page.locator('#displayMenuWrap > summary').click();assert(await page.locator('#editorDisplaySettings').isVisible());await page.keyboard.press('Escape');
+      await page.locator('#displayMenuWrap > summary').click();assert(await page.locator('#editorDisplaySettings').isVisible());
+      await page.locator('#stepsModeLink').click();await page.locator('#actionDialog[open]').waitFor();assert.match(await page.locator('#actionTitle').innerText(),/手順/);
+      await page.locator('[data-choice="close"]').click();await idle(page);assert(await page.locator('#displayMenuWrap > summary').evaluate(n=>n===document.activeElement));
+      if(page===final){
+       await page.locator('#displayMenuWrap > summary').click();await page.locator('#assignmentDocMenuBtn').click();await page.frameLocator('.assignment-document').locator('h1').waitFor();
+       await page.locator('[data-choice="close"]').click();await idle(page);
+      }
       await page.locator('#paneNav button[data-pane="center"]').click();
      }
     }
    }
   }
-  await page.screenshot({path:join(evidence,(await page.locator('#editorModeLabel').innerText())+'.png'),fullPage:true});
+  await page.screenshot({path:join(evidence,(await currentMode(page))+'.png'),fullPage:true});
  }
  ok('3モードのライト・ダーク・拡大文字と390pxで横はみ出しなし');
  const invalid=await context.newPage();pages.push(invalid);await invalid.goto(base+'?mode=final&lesson=html16');

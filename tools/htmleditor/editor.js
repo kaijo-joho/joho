@@ -74,8 +74,6 @@
       '上書き保存や画像・リンクの確認には、実習フォルダを接続してください。' :
       'このブラウザでは上書き保存できません。「保存」からコピーをダウンロードできます。画像の確認にはフォルダ全体を読み込みます。';
     const project = editorMode !== 'lesson', final = editorMode === 'final';
-    $('editorModeLabel').textContent = Modes.labels[editorMode];
-    $('editorModeLabel').dataset.tip = '現在のモード：' + Modes.labels[editorMode] + '。別のモードは別タブで開きます。';
     $('finalModeLink').hidden = !finalEnabled || final;
     $('freeModeLink').hidden = editorMode === 'free';
     $('lessonModeLink').hidden = !project;
@@ -1041,6 +1039,7 @@
     setupPaneHeaders();
     $('finalModeLink').href = Modes.link(location.href,'final');
     $('freeModeLink').href = Modes.link(location.href,'free');
+    for (const id of ['finalModeLink','freeModeLink']) $(id).addEventListener('click',event=>closeMenus(event.currentTarget));
     $('lessonModeLink').addEventListener('click',event=>{ closeMenus(event.currentTarget); lessonPicker(); });
     $('lessonPickerBtn').addEventListener('click',lessonPicker);
     $('assignmentDocBtn').addEventListener('click',assignmentDocument);
