@@ -1017,6 +1017,7 @@
     selectedLesson = catalog.find(row=>row.id==='html12') || catalog[0];
     document.body.classList.remove('mode-lesson','mode-final','mode-free');
     document.body.classList.add('mode-' + editorMode);
+    if (editorMode !== 'lesson') $('app').prepend($('editorHeader'));
     fs = new window.HtmlFileSystem({includeHidden:editorMode === 'final'});
     try { recovery = window.HtmlEditorRecovery.create(localStorage); } catch { recovery = null; }
     try { folderMemory = window.HtmlEditorFolderMemory.create(indexedDB,{mode:editorMode}); } catch { folderMemoryIssue = 'この環境ではフォルダを記憶できません。接続は今回のみ有効です。'; }

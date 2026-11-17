@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-three-modes-20261117-r1">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-entry-version="1" data-html-editor-build="html-project-header-20261117-r1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-v3-20261002-enabled" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
   <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-v3-20261002-enabled" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
   <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
-  <link rel="stylesheet" href="editor.css?v=html-three-modes-20261117-r1" data-editor-required integrity="sha384-9kHt58XgUW1HeN6Kgks0ZOcO3ljpUFAxZk1k+JmJTET7G74CqeJKVZm/Z8nP4Wl6" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-project-header-20261117-r1" data-editor-required integrity="sha384-hZW6Qsamn+LGXdJRyk61qmLQsQm6IdmcWdANtBCa1r/45/6vDTheiOVqheKePHnb" crossorigin="anonymous">
   <link rel="stylesheet" href="feedback.css?v=html-feedback-table-20261116-r1" integrity="sha384-EgFWYy2fGQkznLgFSwOHV+bSWwENqf2AesFXVbHteHekU5nqbw7ZRX05uLsqTCTT" crossorigin="anonymous">
   <link rel="stylesheet" href="../../css/display-settings.css?v=display-settings-20261026-r1" integrity="sha384-IrW1qsVKYNqen4SeokdHLEIkHSyuGXASeEhOiQ7Ye5uMRD7celjRy4PTw15Prp2w" crossorigin="anonymous">
 </head>
@@ -61,6 +61,7 @@
     </section>
     <div class="splitter" id="splitLeft" role="separator" aria-label="解説を折りたたむ。左右矢印キーで幅を調整" aria-controls="leftPane" aria-orientation="vertical" tabindex="0"><span class="splitter-arrow" aria-hidden="true">‹</span></div>
     <section id="workspace" aria-label="HTML・CSSの編集">
+  <div id="editorHeader">
   <header id="toolbar" aria-label="エディタの操作">
     <a class="brand" href="../index.html" aria-label="ツール一覧へ戻る"><img class="brand-icon" src="icon.svg" alt=""><span>HTMLエディタ</span></a>
     <details class="menu-wrap" id="editorModeControl">
@@ -143,6 +144,7 @@
     <p id="onboardingMessage"></p>
   </section>
   <p id="recoveryWarning" class="recovery-warning" role="alert" hidden></p>
+  </div>
   <div id="editingPanes">
     <div id="emptyState"><p id="emptyStateMessage"></p><button class="btn primary" id="practiceOpenBtn" type="button">保存済みの実習ファイルを開く…</button></div>
     <section class="pane" id="centerPane" aria-label="コード">
@@ -253,7 +255,7 @@
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.11.1（2026年11月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>HTMLエディタ 0.11.2（2026年11月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
     <p>通常の編集はこの端末とブラウザで処理します。「提出」を押すと、保存確認済みの内容をモーダル内の学校アカウント用フォームへ渡します。提出記録の作成は、フォーム内の「提出する」を押したときだけです。ログインや表示がうまくいかない場合は「表示・ログインで困ったとき」から「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
@@ -286,11 +288,11 @@
 <script src="feedback.js?v=html-feedback-table-20261116-r1" integrity="sha384-d7BLsfpdde76AywNQn9iNsz0eGIyLAsJWM8OSCdEzLl26ULoNoW15t16jDeio78i" crossorigin="anonymous"></script>
 <script src="local-grading.js?v=html-feedback-table-20261116-r1" integrity="sha384-HqG5piekKhGzUitm2W2IxMM0909IRjHZQ7QYLmndUwakHy8Ec5eV6tMk39A7QQln" crossorigin="anonymous"></script>
 <script src="submission.js?v=html-feedback-table-20261116-r1" data-editor-required integrity="sha384-+xBdSNaJOGKG6RmJ2QsrnbNEcY/FWow1abxHptmkzTPaZjE9XU7kGiBBhDqJfHdR" crossorigin="anonymous"></script>
-<script src="routing.js?v=html-three-modes-20261117-r1" data-editor-required integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
+<script src="routing.js?v=html-project-header-20261117-r1" data-editor-required integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
 <script src="navigation.js?v=html-editor-layout-20261026-r1" data-editor-required integrity="sha384-SSqeFBXrJRRMxT42MuCTEBdqdMmEK0wJTnin7DDG8RxXLrgcL1uJWTi77sgfn8/d" crossorigin="anonymous"></script>
-<script src="recovery.js?v=html-three-modes-20261117-r1" data-editor-required integrity="sha384-GUtgtJTOLXhP4RmZyMmxZNQozuNZX8V76aHE/JTw3Whdq/qXg/EnMc6g84XeYt50" crossorigin="anonymous"></script>
-<script src="filesystem.js?v=html-three-modes-20261117-r1" data-editor-required integrity="sha384-5hu0Q3eCSYdvAcW5/QbPTvcm+OBhiokF17ZzBQB8f9IiSK0UYiVT87XwV32eCzUv" crossorigin="anonymous"></script>
-<script src="folder-memory.js?v=html-three-modes-20261117-r1" integrity="sha384-SX533VWCGXbmlUlt+o6auWUqzaISTCEQ1zcJbdDMKFyLW6vqKCKrVgEL0zx6cL2+" crossorigin="anonymous"></script>
+<script src="recovery.js?v=html-project-header-20261117-r1" data-editor-required integrity="sha384-GUtgtJTOLXhP4RmZyMmxZNQozuNZX8V76aHE/JTw3Whdq/qXg/EnMc6g84XeYt50" crossorigin="anonymous"></script>
+<script src="filesystem.js?v=html-project-header-20261117-r1" data-editor-required integrity="sha384-5hu0Q3eCSYdvAcW5/QbPTvcm+OBhiokF17ZzBQB8f9IiSK0UYiVT87XwV32eCzUv" crossorigin="anonymous"></script>
+<script src="folder-memory.js?v=html-project-header-20261117-r1" integrity="sha384-SX533VWCGXbmlUlt+o6auWUqzaISTCEQ1zcJbdDMKFyLW6vqKCKrVgEL0zx6cL2+" crossorigin="anonymous"></script>
 <script src="diagnostics.js?v=html-editor-attribute-layout-20261005" data-editor-required integrity="sha384-ArVXRo/o4B+2o0hz+bvR5rrrSaHmmMwrKhoVZp37OVlfV/7RBl6fOrmaSIP8oTWC" crossorigin="anonymous"></script>
 <script src="hint-usage.js?v=html-editor-error-hints-20261005" integrity="sha384-IshffaAoBNtrVXRzCv6fdav0aNzXw/vCGhz5nr4rpbuEs8A7Ug/z2NY/0JyjOMm1" crossorigin="anonymous"></script>
 <script src="preview.js?v=html-editor-project-preview-r1" data-editor-required integrity="sha384-73cdlLf5iQd6OQZgAbp3K8oLzrKzSqQVQA14KvWzQtid7ongFyrYuMhczLgRO5zL" crossorigin="anonymous"></script>
@@ -300,8 +302,8 @@
 <script src="layout.js?v=html-editor-layout-20261026-r1" data-editor-required integrity="sha384-WLQti+W6ngMC1kQJbIWf0Ox83b4aUKSn6vqIY3Xl6EwUFu0rLV4TeE8u6wWQCfTU" crossorigin="anonymous"></script>
 <script src="../../js/display_settings.js?v=display-settings-20261026-r1" integrity="sha384-mjOLf/HR609aWS9h46tGYa59S393hVpH432c5YV8/BhhXQcm1ic9yMwLAmcsLuA/" crossorigin="anonymous"></script>
 <script src="../../js/display_settings_ui.js?v=display-settings-20261026-r1" integrity="sha384-029272WHNXJuqSrj5agqjjZseUCfJCU6a3fm4BZjN5XxnTN6yYLGL6c8oVNWZsOc" crossorigin="anonymous"></script>
-<script src="final-config.js?v=html-three-modes-20261117-r1" integrity="sha384-x5cnaAbV6Hudj+yaPFhtQFQ3QI7qm8M9IAdOkfJetP3vHm1dtadUakxAIeqzH1Yp" crossorigin="anonymous"></script>
-<script src="modes.js?v=html-three-modes-20261117-r1" data-editor-required integrity="sha384-EXPlyvXq0deOazn/cRtcvaL0/ilQk3k04LvpKd8rP71jNXILUuZWk96ar6+Me73h" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-three-modes-20261117-r1" data-editor-required integrity="sha384-dshXsFLqKh0x4TnFECKvxjSGg7BgJ111xokAdwNxFaZ2EmEsGhnqfm7RFJCt9VKS" crossorigin="anonymous"></script>
+<script src="final-config.js?v=html-project-header-20261117-r1" integrity="sha384-x5cnaAbV6Hudj+yaPFhtQFQ3QI7qm8M9IAdOkfJetP3vHm1dtadUakxAIeqzH1Yp" crossorigin="anonymous"></script>
+<script src="modes.js?v=html-project-header-20261117-r1" data-editor-required integrity="sha384-EXPlyvXq0deOazn/cRtcvaL0/ilQk3k04LvpKd8rP71jNXILUuZWk96ar6+Me73h" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-project-header-20261117-r1" data-editor-required integrity="sha384-csQZxfaKj3t2JW0g6VwfgTsvARs5sWaJ0EhR+cLOXc0WEpGX+HkMQpwK4aFW7vcq" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -43,6 +43,16 @@ const idle=async page=>{await page.waitForSelector('html[data-editor-ready="true
 const current=page=>page.evaluate(()=>document.querySelector('.CodeMirror')?.CodeMirror.getValue());
 const setCode=(page,value)=>page.evaluate(value=>document.querySelector('.CodeMirror').CodeMirror.setValue(value),value);
 const ok=name=>{report.checks.push(name);console.log(name);};
+async function projectHeader(page){
+ const boxes=await page.evaluate(()=>{
+  const rect=id=>{const {x,y,width,bottom}=document.getElementById(id).getBoundingClientRect();return {x,y,width,bottom};};
+  return {header:rect('editorHeader'),toolbar:rect('toolbar'),left:rect('leftPane'),main:rect('mainContainer'),viewport:innerWidth};
+ });
+ assert(Math.abs(boxes.toolbar.x)<1 && Math.abs(boxes.toolbar.width-boxes.viewport)<1,'共通ヘッダーは左列を含む全幅');
+ assert(boxes.main.y>=boxes.header.bottom-1,'3列は共通ヘッダーの下');
+ if(await page.locator('#leftPane').isVisible())assert(boxes.left.y>=boxes.header.bottom-1,'ファイル一覧もヘッダーの下');
+ return boxes.toolbar;
+}
 const pages=[];
 try{
  const free=await context.newPage();pages.push(free);await free.goto(base);await idle(free);
@@ -50,15 +60,25 @@ try{
  assert.equal(await free.locator('#submitBtn').isVisible(),false);assert.equal(await free.locator('#taskDownloadBtn').isVisible(),false);
  assert.equal(await free.locator('.identity-alert:visible').count(),0);assert.equal(await free.locator('.identity-toolbar').count(),0);
  assert.equal(await free.locator('#lessonIframe').getAttribute('src'),null);assert.equal(await current(free),'');
+ await projectHeader(free);
  ok('通常URLは学校連携なしの空の自由編集で起動');
  for (const id of ['html11','html16']) {
   const entry=await context.newPage();pages.push(entry);await entry.goto(origin+'/'+id+'.html');await idle(entry);
   assert.equal(await entry.locator('#editorModeLabel').innerText(),'実習');assert.match(entry.url(),new RegExp('lesson='+id));
+  const boxes=await entry.evaluate(()=>['toolbar','leftPane','workspace'].map(id=>{const {x,y,width}=document.getElementById(id).getBoundingClientRect();return {x,y,width};}));
+  assert(boxes[0].x>=boxes[1].x+boxes[1].width,'実習の解説パネルはヘッダーから独立');
+  assert(Math.abs(boxes[0].x-boxes[2].x)<1);
  }
  ok('教材HTML11・16からの既存入口は実習モードで起動');
  const final=await context.newPage();pages.push(final);await final.goto(base+'?mode=final');await idle(final);
  assert.equal(await final.locator('#editorModeLabel').innerText(),'最終課題');assert(await final.locator('#submitBtn').isDisabled());
  assert.equal(await final.locator('.identity-toolbar').count(),0);assert.equal(await final.locator('#lessonIframe').getAttribute('src'),null);
+ const headerBefore=await projectHeader(final);
+ await final.locator('#splitLeft').focus();await final.keyboard.press('Enter');assert(await final.locator('body').evaluate(n=>n.classList.contains('left-collapsed')));
+ assert.deepEqual(await projectHeader(final),headerBefore);
+ await final.keyboard.press('Enter');await final.keyboard.press('ArrowLeft');
+ assert.deepEqual(await projectHeader(final),headerBefore);
+ ok('作品の共通ヘッダーは全幅で、左列の折りたたみ・幅変更でも移動しない');
  await final.locator('#assignmentDocBtn').click();await final.frameLocator('.assignment-document').locator('h1').waitFor();
  assert.match(await final.locator('#actionBody a').getAttribute('href'),/1zUbnH1Li4gzoSCc99tQWuHX2UJVbjM8AGcnZVvQNkUI\/edit\?tab=t.0#heading=/);
  assert.equal(report.documentRequests.length,1);assert.match(report.documentRequests[0],/\/preview\?tab=t.0$/);
@@ -72,6 +92,9 @@ try{
  }
  await connect(final);await final.locator('#finalFileTree button').filter({hasText:/^index\.html$/}).click();await idle(final);
  assert.equal(await current(final),home);await final.frameLocator('#previewIframe').locator('h1').waitFor();
+ const paneTops=await final.evaluate(()=>['leftPane','centerPane','rightPane'].map(id=>document.getElementById(id).getBoundingClientRect().top));
+ assert(paneTops.every(top=>Math.abs(top-paneTops[0])<1),'ヘッダーの下に3列を揃える');
+ await final.screenshot({path:join(evidence,'header-final-desktop.png'),fullPage:true});
  await final.frameLocator('#previewIframe').getByRole('link',{name:'紹介',exact:true}).click();await final.frameLocator('#previewIframe').getByRole('heading',{name:'紹介',exact:true}).waitFor();
  assert.equal(await current(final),home);assert.equal(new URL(final.url()).search,'?mode=final');
  ok('作品の階層HTMLを開き、リンクはプレビュー内だけ移動');
@@ -136,7 +159,17 @@ try{
  for(const page of [free,final,lesson]){
   for(const theme of ['light','dark']){
    await page.evaluate(theme=>window.siteDisplaySettings?.setPreferences({theme,textScale:120}),theme);
-   for(const width of [1440,390]){await page.setViewportSize({width,height:950});await page.waitForTimeout(90);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
+   for(const width of [1440,390]){
+    await page.setViewportSize({width,height:950});await page.waitForTimeout(90);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+    if(page!==lesson){
+     await projectHeader(page);
+     if(width===390){
+      await page.locator('#paneNav button[data-pane="left"]').click();assert(await page.locator('#toolbar').isVisible());await projectHeader(page);
+      await page.locator('#displayMenuWrap > summary').click();assert(await page.locator('#editorDisplaySettings').isVisible());await page.keyboard.press('Escape');
+      await page.locator('#paneNav button[data-pane="center"]').click();
+     }
+    }
+   }
   }
   await page.screenshot({path:join(evidence,(await page.locator('#editorModeLabel').innerText())+'.png'),fullPage:true});
  }
