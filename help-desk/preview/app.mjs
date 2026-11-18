@@ -141,11 +141,15 @@ function publicPage() {
   const picker = el('div', { id: 'target-picker', class: 'target-picker', hidden: !pickerOpen }, pickerOpen
     ? el('div', { class: 'field target-field' }, el('label', { for: 'public-target' }, 'アプリ・教材コース'), select) : null);
   if (!target) return [intro('ヘルプを探す', '何について調べますか？'), picker];
-  const heading = el('div', { class: 'public-heading' }, intro(target.label + 'のヘルプ', '検索するか、質問に答えて確認できます。'),
+  const noGuide = LIVE_DESK && target.kind === 'app' && !draftGuides[target.id];
+  const heading = el('div', { class: 'public-heading' }, intro(target.label + 'のヘルプ', noGuide ? '分かることから相談できます。' : '検索するか、質問に答えて確認できます。'),
     button(state.targetPickerOpen ? '対象の変更を閉じる' : '対象を変更', () => {
       state.targetPickerOpen = !state.targetPickerOpen; render();
       document.querySelector(state.targetPickerOpen ? '#public-target' : '#change-target')?.focus();
     }, false, { id: 'change-target', class: 'quiet-button', 'aria-controls': 'target-picker', 'aria-expanded': String(state.targetPickerOpen) }));
+  if (noGuide) return [heading, picker, card(el('h2', {}, '困っていることを教えてください'),
+    p('学校アカウント専用の相談画面で、内容を入力できます。送信前に確認できます。'),
+    actions(button('文章で説明する', () => prepareConsultation({ kind: 'target', appId: target.id }), true)))];
   const modes = [['search', '検索する'], ['questions', '質問に答える']];
   const tabs = el('div', { class: 'help-tabs', role: 'tablist', 'aria-label': 'ヘルプの探し方' }, modes.map(([mode, label], index) =>
     el('button', { type: 'button', id: 'help-tab-' + mode, role: 'tab', 'aria-controls': 'help-panel-' + mode,
