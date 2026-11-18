@@ -29,11 +29,11 @@
 #site-header .headerbar__brand{grid-area:brand}
 #site-header .headerbar__actions{grid-area:actions}
 #site-header #views{grid-area:views;display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;width:100%;max-width:none;margin:0;padding:0}
-#site-header #views button{flex:1 1 auto;min-height:44px;padding:.5rem .7rem;border-color:transparent;background:transparent;color:#fff;text-align:center;font-size:.9rem}
-#site-header #views button:hover{border-color:#ffffff80;background:#ffffff14}
-#site-header #views button[aria-current="page"]{border-color:#ffffffb3;background:#fff;color:var(--brand);font-weight:650}
-#site-header #views button:focus-visible{outline-color:#fff}
-@media(min-width:1100px){#site-header .headerbar{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"brand views actions"}#site-header #views button{flex:0 1 auto}}
+#site-header #views :is(button,a){display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-family:inherit;box-sizing:border-box;border:1px solid transparent;border-radius:10px;flex:1 1 auto;min-height:44px;padding:.5rem .7rem;border-color:transparent;background:transparent;color:#fff;text-align:center;font-size:.9rem}
+#site-header #views :is(button,a):hover{border-color:#ffffff80;background:#ffffff14}
+#site-header #views :is(button,a)[aria-current="page"]{border-color:#ffffffb3;background:#fff;color:var(--brand);font-weight:650}
+#site-header #views :is(button,a):focus-visible{outline-color:#fff}
+@media(min-width:1100px){#site-header .headerbar{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"brand views actions"}#site-header #views :is(button,a){flex:0 1 auto}}
 @media(max-width:640px){#site-header .header-page-name{display:none}#site-header .headerbar__course{padding:.2rem .45rem}#site-header .preview-status{margin-left:0}#site-header .headerbar__actions{gap:.25rem}}
 #display-settings{position:fixed;inset:auto;top:var(--display-panel-top,5rem);right:var(--display-panel-right,1rem);width:var(--display-panel-width,min(380px,calc(100vw - 16px)));max-height:var(--display-panel-height,calc(100dvh - 7rem));margin:0;padding:0;translate:none;background:var(--panel);color:var(--text);box-shadow:var(--ld-shadow);overflow:auto}
 #display-settings .site-display-settings__panel{width:100%;max-width:none}

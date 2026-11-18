@@ -4,6 +4,7 @@ import { legacyFaq } from './legacy-faq.mjs';
 import { validateGuide, startFlow, choose, returnToQuestion, answeredQuestions, makeHandoff, validateHandoff, findArticles } from './core.mjs?v=question-flow-20261116';
 import { findFaqs, makeFaqHandoff, validateFaqHandoff, courseFilters, makeCourseHandoff, validateCourseHandoff, legacyLocation } from './faq-core.mjs?v=target-tabs-20261116';
 import { mountDisplayControls } from './display-ui.mjs?v=readable-guides-20261116';
+import { LIVE_DESK, deskHandoffUrl, deskCasesUrl } from './handoff.mjs?v=live-handoff-20261118';
 
 validateGuide(sampleGuide);
 Object.values(draftGuides).forEach(validateGuide);
@@ -17,7 +18,7 @@ const publicTargets = [
 const main = document.querySelector('#main');
 const previewComments = [];
 const state = {
-  view: new URL(location.href).searchParams.get('view') || 'public',
+  view: LIVE_DESK ? 'public' : new URL(location.href).searchParams.get('view') || 'public',
   publicTarget: '', targetPickerOpen: false, publicMode: 'search', search: '', searchDraft: '', searchItem: null, selectedApp: null,
   selectedFaq: null, courseFaq: null, courseAnswers: [], courseLimit: 15, faqPage: '', faqUnit: '', faqCategory: '', faqLimit: 15,
   flow: null, inherited: null, portalTab: 'cases', stage: 'edit',
@@ -64,14 +65,16 @@ function render(focus = false) {
   if (state.view === 'public') addPublicRoute(route);
   history.replaceState(null, '', route);
   document.querySelector('#views').replaceChildren(
-    ...[['public', 'ヘルプを探す'], ['student', '自分の相談'], ['admin', '管理画面（試作）']].map(([view, label]) =>
+    ...(LIVE_DESK ? [button('ヘルプを探す', () => showView('public'), false, { 'aria-current': 'page' }),
+      el('a', { href: deskCasesUrl(), class: 'button-link', rel: 'noreferrer', referrerpolicy: 'no-referrer' }, '自分の相談')] :
+    [['public', 'ヘルプを探す'], ['student', '自分の相談'], ['admin', '管理画面（試作）']].map(([view, label]) =>
       button(label, () => { if (view === 'student') state.portalTab = 'cases'; showView(view); }, false,
-        { 'aria-current': state.view === view && (view !== 'student' || state.portalTab === 'cases') ? 'page' : false })),
+        { 'aria-current': state.view === view && (view !== 'student' || state.portalTab === 'cases') ? 'page' : false }))),
   );
   main.replaceChildren(...(state.view === 'public' ? publicPage() : state.view === 'student' ? studentPage() : adminPage()).filter(node => node != null));
   main.setAttribute('data-view', state.view);
   document.querySelector('#preview-comments-body')?.replaceChildren(
-    p('確認用の試作です。相談の入力は外部へ送らず、再読み込みで消えます。実際の相談受付・返信は行いません。表示設定は教材サイトと共通の保存先に記憶します。'),
+    p(LIVE_DESK ? '公開ウェブ版で解決しない場合は、学校アカウント専用の相談画面へ進みます。相談の登録は、その画面で最後に「送信する」を押したときに行います。検索語・自由記述・画像を引継ぎURLへ載せません。' : '確認用の試作です。相談の入力は外部へ送らず、再読み込みで消えます。実際の相談受付・返信は行いません。表示設定は教材サイトと共通の保存先に記憶します。'),
     ...previewComments.map(content => el('div', { class: 'preview-comment__item' }, ...content)));
   if (focus) {
     const panel = main.querySelector('[data-focus-panel]') || main;
@@ -125,7 +128,7 @@ function switchPublicMode(mode) {
 }
 
 function publicPage() {
-  previewComment('対象の利用ガイドと、教材サイト5コースのFAQを確認用に表示します。正式運用と自動回答への採用は未実施です。');
+  previewComment('対象の利用ガイドと、教材サイト5コースのFAQの固定版を表示します。案内で解決しない場合は、学校アカウント専用の相談画面へ進めます。');
   const target = targetDetails();
   const pickerOpen = !target || state.targetPickerOpen;
   const select = el('select', { id: 'public-target', on: { change: event => {
@@ -366,6 +369,20 @@ function faqNode(node) {
 }
 
 function prepareConsultation(context) {
+  if (LIVE_DESK) {
+    let route = { targetId: context.appId };
+    if (context.kind === 'guide') {
+      const guide = draftGuides[context.appId];
+      const opId = context.payload.viewed_item_id;
+      if (guide && Object.hasOwn(guide.operations, opId)) route = { ...route, guideId: context.appId + ':' + opId, guideRevision: guide.guide_revision };
+    } else if (context.kind === 'faq') {
+      const entry = validateFaqHandoff(legacyFaq, context.payload).entry;
+      route = { targetId: 'course:' + entry.course, guideId: 'faq:' + entry.id, guideRevision: entry.updated_at || legacyFaq.source_sha256 };
+    } else if (context.kind === 'course') route = { targetId: 'course:' + context.payload.course };
+    if (!route.targetId || ![...appIds, ...publicTargets.filter(t => t.kind === 'course').map(t => 'course:' + t.id)].includes(route.targetId)) route.targetId = 'class-apps';
+    location.assign(deskHandoffUrl(route));
+    return true;
+  }
   if (state.stage !== 'done' && (state.draft.text || state.draft.image) && !window.confirm('入力中の相談があります。入力を消して、今回の相談に切り替えますか？')) return false;
   if (state.draft.image) URL.revokeObjectURL(state.draft.image.url);
   state.draft = { appId: context.appId, text: '', image: null };
@@ -400,7 +417,7 @@ function guideIndex(appId) {
   if (!draftGuides[appId]) return card(el('h2', {}, appName(appId)), previewComment('この試作では、このアプリの原稿はまだ表示していません。'),
     button('確認のサンプルを試す', () => { state.flow = startFlow(guide, appId); render(true); }));
   const version = guide.version_basis === 'date' ? `${guide.verified_on || '未確認'}確認の原稿` : `対象版 ${guide.app_version || '未確認'}`;
-  return card(previewComment('この原稿は確認用です。正式採用前の内容を表示しています。'), el('h2', {}, guide.app_name), p(`${version} · 改訂 ${guide.guide_revision}`, 'muted'),
+  return card(previewComment('案内の対象版・改訂を確認できます。アプリの現在の状態によっては、詳しい確認が必要な場合があります。'), el('h2', {}, guide.app_name), p(`${version} · 改訂 ${guide.guide_revision}`, 'muted'),
     p('いまの質問', 'step'), el('h3', {}, '困っていることを選んでください'),
     el('div', { class: 'choices' }, Object.entries(guide.nodes).filter(([, node]) => node.entry).map(([id, node]) => button(node.title, () => openArticle(appId, id)))),
     el('details', {}, el('summary', {}, '共通の利用条件'), p(guide.general_conditions, 'prose')), guideReferences(guide));
@@ -577,7 +594,7 @@ function adminPage() {
 
 mountDisplayControls(document, window);
 window.addEventListener('popstate', () => {
-  const view = new URL(location.href).searchParams.get('view'); state.view = ['public', 'student', 'admin'].includes(view) ? view : 'public';
+  const view = new URL(location.href).searchParams.get('view'); state.view = LIVE_DESK ? 'public' : ['public', 'student', 'admin'].includes(view) ? view : 'public';
   if (state.view === 'public') {
     applyPublicLocation(location.href, true);
   }
