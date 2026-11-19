@@ -80,3 +80,5 @@ footer{display:flex;flex:none;justify-content:space-between;gap:12px;padding:5px
 .toolbar>.omr-icon-control{padding-inline:6px}@media(max-width:800px){.toolbar>#undo.omr-icon-control,.toolbar>#redo.omr-icon-control{padding-inline:3px}}
 .joho-tip{position:fixed;z-index:200;left:0;top:0;max-width:min(300px,calc(100vw - 8px));padding:5px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);box-shadow:0 4px 14px #0003;font-size:calc(12px * var(--ui-k));line-height:1.5;overflow-wrap:anywhere;white-space:normal;pointer-events:none;opacity:0;transition:none}.joho-tip.show{opacity:1}
 @media print{.joho-tip{display:none!important}}
+
+.cloud-comparison{width:100%;table-layout:fixed;border-collapse:collapse;font-size:.9em}.cloud-comparison th,.cloud-comparison td{border:1px solid var(--line);padding:7px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.cloud-comparison th:first-child{width:22%}#open-cloud-comparison,#confirm-cloud-bind{min-width:0;white-space:normal;overflow-wrap:anywhere}

@@ -7,7 +7,7 @@
   $('file-menu-button').addEventListener('click',function(){var open=shell.classList.contains('menu-open');closeAll();if(!open){shell.classList.add('menu-open');this.setAttribute('aria-expanded','true');lastTrigger=this;}});
   document.querySelectorAll('.menu-category > button').forEach(function(button){
     button.addEventListener('click',function(){var panel=$(this.getAttribute('aria-controls')),open=panel&&!panel.hidden;closeCategories();if(open){lastTrigger=null;return;}openCategory(this,false);});
-    button.addEventListener('pointerenter',function(event){if(event.pointerType==='mouse'&&window.matchMedia('(hover: hover)').matches)openCategory(this,false);});
+    button.addEventListener('pointerenter',function(event){var focusedPopup=document.activeElement&&document.activeElement.closest('.menu-category .popup-menu');if(event.pointerType==='mouse'&&window.matchMedia('(hover: hover)').matches&&!focusedPopup)openCategory(this,false);});
   });
   document.addEventListener('click',function(event){var item=event.target.closest('.menu-category .popup-menu [role="menuitem"],#tab-menu [role="menuitem"]');if(!item)return;var category=item.closest('.menu-category'),openedForFile=shell.classList.contains('menu-open');actionRestore=item.closest('#tab-menu')?tabAnchor:openedForFile?$('file-menu-button'):category&&category.querySelector(':scope > button');},true);
   document.addEventListener('click',function(event){

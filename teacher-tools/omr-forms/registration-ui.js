@@ -17,7 +17,7 @@
     if(own!==sequence||!u.store.current()||u.store.current().localId!==d.localId)return;p=currentPacket();
     $('register-form').disabled=busy;
     $('register-form').title=!connected?'Googleログイン確認とQR発行の手順を開く':p&&p.status==='registered'?'登録済み版と出力方法を確認する':'保存・QR発行・読み取り設定登録の手順を開く';
-    if($('confirm-registration'))$('confirm-registration').disabled=busy||(flow.active&&u.store.registrationEnabled===false&&!flow.packet);
+    if($('confirm-registration'))$('confirm-registration').disabled=busy||(flow.active&&u.store.registrationEnabled===false&&!flow.packet)||!!(flow.active&&d.pending&&d.pending.rejected);
     if($('qr-flow-close'))$('qr-flow-close').disabled=busy&&flow.stage!=='login';
     if($('qr-flow-back'))$('qr-flow-back').disabled=busy&&flow.stage!=='login';
     $('registration-history').disabled=busy||!connected||!d.sync.formId;
@@ -46,7 +46,7 @@
   function flowStatus(stage,message,state){var el=$('qr-flow-'+stage+'-status');if(el){el.textContent=message||'';el.dataset.state=state||'';}}
   function setFlowStage(stage,message,state){flow.stage=stage;flowStatus(stage,message,state);updateFlowButtons();}
   function packetMatches(packet){return !!(packet&&packet.status==='registered'&&flow.active&&flow.doc&&ui().store.current()===flow.doc&&ui().store.currentId===flow.id&&ui().store.actor===packet.reservation.ownerId&&packet.reservation.documentSha256===flow.hash&&OMRDesigner.canonical(flow.doc.document)===OMRDesigner.canonical(packet.candidate.document));}
-  function updateFlowButtons(){var valid=packetMatches(flow.packet),stopped=flow.active&&flow.doc&&ui().store.registrationEnabled===false&&!valid;if($('qr-flow-print'))$('qr-flow-print').disabled=busy||!valid;if($('qr-flow-pdf'))$('qr-flow-pdf').disabled=busy||!valid;if($('confirm-registration'))$('confirm-registration').disabled=busy||stopped;['qr-flow-close','qr-flow-back'].forEach(function(id){if($(id))$(id).disabled=busy&&flow.stage!=='login';});}
+  function updateFlowButtons(){var recovery=$('qr-flow-recover'),rejected=flow.active&&flow.doc&&flow.doc.pending&&flow.doc.pending.rejected;if(recovery){recovery.hidden=!rejected;recovery.disabled=busy;}var valid=packetMatches(flow.packet),stopped=flow.active&&flow.doc&&ui().store.registrationEnabled===false&&!valid;if($('qr-flow-print'))$('qr-flow-print').disabled=busy||!valid;if($('qr-flow-pdf'))$('qr-flow-pdf').disabled=busy||!valid;if($('confirm-registration'))$('confirm-registration').disabled=busy||stopped||!!rejected;['qr-flow-close','qr-flow-back'].forEach(function(id){if($(id))$(id).disabled=busy&&flow.stage!=='login';});}
   function outputReady(packet){flow.packet=packet;setFlowStage('output','確定版を確認しました。登録済みのPDFと同じQRを印刷または保存できます。','done');}
   function resetFlow(doc){var u=ui(),login=$('qr-flow-login');flow.active=true;flow.attempt++;flow.doc=doc;flow.id=doc.localId;flow.hash='';flow.packet=null;flow.connection=null;flow.origin=document.activeElement;flow.actor=u.store.actor||null;
     ['login','save','output'].forEach(function(stage){flowStatus(stage,'未確認','pending');});
@@ -84,7 +84,7 @@
     return run(async function(){assertFlow(attempt,doc,id);if(u.store.current()!==doc||u.store.currentId!==id)throw Error('選択中の用紙が変わりました。対象を確認してから開き直してください。');if(OMREditorAPI.isComposing())throw Error('日本語入力を確定してください');
       var expected=await OMRDesigner.hash(doc.document);assertFlow(attempt,doc,id);if(flow.hash&&flow.hash!==expected)throw Error('対象の用紙内容が変わりました。閉じて対象を確認し、最初から開き直してください。');if(!flow.hash)flow.hash=expected;OMRDesigner.validate(doc.document.definition);
       var registered=currentPacket();if(registered&&registered.status==='registered'){if(packetMatches(registered)){outputReady(registered);return;}throw Error('登録済み版の内容を照合できません。');}
-      if(u.store.registrationEnabled===false)throw Error('OMR用紙登録は一時停止中です。既登録の版は出力できます。');if(doc.pending&&doc.pending.rejected)throw Error('保存結果を確認できません。保存済みの版を確認してから再開してください。');
+      if(u.store.registrationEnabled===false)throw Error('OMR用紙登録は一時停止中です。既登録の版は出力できます。');if(doc.pending&&doc.pending.rejected)throw Error('保存が拒否されています。「クラウドの最新版と比較して復旧」から保存先を確認してください。現在の下書きは保持しています。');
       setFlowStage('login','Googleログインと用紙管理の接続を確認しています…','busy');
       try{flow.connection=await u.ensureConnected({host:$('qr-flow-frame-host'),onStatus:function(message,state){if(flow.attempt===attempt&&flow.active)flowStatus('login',message,state);}});}finally{flow.connection=null;}
       assertFlow(attempt,doc,id);if(u.store.current()!==doc||u.store.currentId!==id)throw Error('接続中に用紙が切り替わりました。登録を停止しました。');if(!u.store.actor||!u.store.storeConfigured)throw Error('Googleログインを確認できませんでした。ログイン後にこのボタンをもう一度押してください。');if(flow.actor&&u.store.actor!==flow.actor)throw Error('ログインアカウントが変わりました。対象を確認し、この画面を開き直してください。');flow.actor=u.store.actor;$('qr-flow-login-help').hidden=true;
@@ -111,6 +111,7 @@
   $('registration-dialog').addEventListener('close',function(){if(flow.active){flow.active=false;flow.attempt++;if(flow.stage==='login'&&ui().cancelConnectionAttempt)ui().cancelConnectionAttempt();}if(flow.origin&&flow.origin.isConnected)flow.origin.focus();});
   $('qr-flow-login').addEventListener('click',function(){if(busy&&flow.stage==='login')cancelFlow();});
   function exportPdf(){var p=currentPacket();if(!p||p.status!=='registered'){finalizeVersion({exportPdf:true});return;}return run(async function(){var artifact=await controller.pdf(p,function(message){$('registration-status').textContent=message;});download(p.reservation.registrationId+'.pdf',artifact.pdf);tell(artifact.regeneratedFrom?'確定版の定義からPDFを再生成・検査して出力しました。QRと版は同じです。':'確定版PDFのダウンロードを開始しました。');});}
+  if($('qr-flow-recover'))$('qr-flow-recover').addEventListener('click',function(){if(busy)return;if(ui().store.current()!==flow.doc){flowStatus(flow.stage,'対象の用紙が変わりました。閉じて確認し直してください。','error');return;}cancelFlow();$('cloud-bind').click();});
   $('registered-pdf').addEventListener('click',exportPdf);
   if($('proof-print'))$('proof-print').addEventListener('click',function(){if(window.OMREditorAPI)OMREditorAPI.printPreview();});
   $('registered-reader').addEventListener('click',function(){run(async function(){var p=currentPacket();if(!p)throw Error('この編集内容は未登録です');download(p.reservation.registrationId+'-reader.json',new Blob([JSON.stringify(controller.bundle(p),null,2)+'\n'],{type:'application/json'}));});});
