@@ -48,6 +48,7 @@ const backButton = (label, handler) => button([el('span', { class: 'back-arrow',
   handler, false, { class: 'quiet-button back-button' });
 const choiceBubble = (...items) => el('div', { class: 'answer-bubble choice-bubble', role: 'group', 'aria-label': '自分の選択肢' }, items);
 const actions = (...items) => el('div', { class: 'actions' }, items);
+const articleNav = (...items) => el('div', { class: 'actions article-nav' }, items);
 const card = (...items) => el('section', { class: 'card' }, items);
 const pill = text => el('span', { class: 'pill' }, text);
 const summary = rows => el('ul', { class: 'summary' }, rows.map(row => el('li', {}, el('small', {}, row.question), row.answer)));
@@ -271,9 +272,10 @@ function operationPanel(target, item, fromSearch) {
     else { showList(); return; }
     render(true);
   };
-  return focusPanel(card(el('h2', {}, operation.title),
-    actions(fromSearch ? backButton('検索結果に戻る', back) : null,
+  return focusPanel(card(
+    articleNav(fromSearch ? backButton('検索結果に戻る', back) : null,
       backButton('操作の説明一覧に戻る', showList)),
+    el('h2', {}, operation.title),
     operationContent(operation),
     guideReferences(guide),
     solutionActions(back, () => {
@@ -450,8 +452,8 @@ function faqPanel(id) {
     render(true);
   };
   const backLabel = { questions: '質問に戻る', search: '検索結果に戻る', browse: 'よくある質問の一覧に戻る' }[state.publicMode];
-  const panel = card(p(entry.course_label + ' · ' + entry.unit, 'step'), el('h2', { id: entry.id }, entry.question),
-    backButton(backLabel, back),
+  const panel = card(articleNav(backButton(backLabel, back)),
+    p(entry.course_label + ' · ' + entry.unit, 'step'), el('h2', { id: entry.id }, entry.question),
     el('div', { class: 'legacy-body' }, entry.body_nodes.map(faqNode)),
     related.length ? el('details', {}, el('summary', {}, '関連するFAQ'), el('div', { class: 'choices' }, related.map(item => button(item.question, () => openFaq(item.id))))) : null,
     actions(...[['関連する教材を開く', entry.related_page], ['関連するスライドを開く', entry.related_slide]].filter(([, href]) => href).map(([label, href]) => el('a', { href, target: '_blank', rel: 'noopener noreferrer' }, label))),
@@ -498,8 +500,8 @@ function flowPanel() {
   } else if (flow.phase === 'guide') {
     const operation = guide.operations[flow.guideId];
     block.id = flow.guideId || 'inline-guidance';
-    append(block, el('h2', {}, operation?.title || '確認する手順'),
-      backButton('操作の説明一覧に戻る', () => showOperationList(flow.appId, flow.guideId)));
+    append(block, articleNav(backButton('操作の説明一覧に戻る', () => showOperationList(flow.appId, flow.guideId))),
+      el('h2', {}, operation?.title || '確認する手順'));
     if (operation) append(block, operationContent(operation, flow.guidance));
     else append(block, el('section', { class: 'procedure' }, el('h3', {}, '確認すること'), p(flow.guidance, 'prose')));
     append(block, guideReferences(guide));
