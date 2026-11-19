@@ -83,16 +83,21 @@
    });b.dataset.cloudVersion=v.registrationId;body.append(b);
   });
  }
- async function bindRegistered(){
-  var original=store.current(),localId=original.localId,editorFormId=original.document.definition.form_id,body=dialog('保存済みの用紙を指定');body.textContent='同じ用紙の保存先を確認中…';
+ async function loadBindingDialog(title,message,request,show){
+  var body=dialog(title),loading=document.createElement('p');
+  loading.textContent=message;loading.setAttribute('role','status');body.append(loading);
+  // 開き直すたびに要素を交換し、以前の取得結果を新しい画面へ反映させない。
+  function isCurrent(){return $('document-dialog').open&&loading.parentNode===body;}
+  var result;
+  try{result=await request();}
+  catch(error){if(!isCurrent())return;loading.textContent=error.message;throw error;}
+  if(isCurrent())show(body,result);
+ }
+ function bindRegistered(){
+  var original=store.current(),localId=original.localId,editorFormId=original.document.definition.form_id;
   function sameDocument(){if(store.current()!==original||store.currentId!==localId||original.document.definition.form_id!==editorFormId)throw Error('用紙が切り替わりました。保存先を選び直してください');}
-  var candidates=await store.matchRegistered();sameDocument();if(!$('document-dialog').open||body.textContent!=='同じ用紙の保存先を確認中…')return;body.replaceChildren();
-  if(!candidates.length){body.textContent='同じ用紙の保存先は見つかりませんでした。';return;}
-  var note=document.createElement('p');note.textContent='クラウドの内容と現在の下書きを比較して、保存先を確認します。確認だけでは保存・QR発行は行いません。';body.append(note);
-  candidates.forEach(function(candidate){
-   var option=button(candidate.title+'　用紙番号 '+candidate.paperNumber+'　保存更新'+candidate.revision,async function(){
-    sameDocument();var confirmBody=dialog('下書きとクラウドの内容を確認'),loading=document.createElement('p');loading.textContent='クラウドの最新版を読み戻しています…';confirmBody.append(loading);
-    var record=await store.inspectRegistered(candidate.formId);sameDocument();if(!$('document-dialog').open||!loading.isConnected)return;confirmBody.replaceChildren();
+  function showComparison(confirmBody,record){
+    sameDocument();confirmBody.replaceChildren();
     var local=original.document,remote=record.document,description=document.createElement('p');description.textContent='用紙番号 '+record.paperNumber+'・保存更新'+record.revision+'。保存先を更新しても現在の下書き本文は置き換えません。次の版確定で現在の下書きを新しい版として保存し、以前の版も履歴に保持します。';confirmBody.append(description);
     var table=document.createElement('table');table.className='cloud-comparison';var header=table.createTHead().insertRow();['項目','現在の下書き','クラウドの内容'].forEach(function(text){var cell=document.createElement('th');cell.textContent=text;header.append(cell);});var rows=table.createTBody();
     function paper(doc){return doc.definition.paper.size+'・'+(doc.definition.paper.orientation==='portrait'?'縦':'横');}
@@ -101,8 +106,18 @@
     var comparison=document.createElement('p');comparison.textContent=OMRDesigner.canonical(local)===OMRDesigner.canonical(remote)?'下書きとクラウドの本文・設定は一致しています。':'下書きとクラウドの本文または設定が異なります。必要に応じてクラウドの内容を別タブで開き、比較してください。';confirmBody.append(comparison);
     var open=button('比較したクラウドの内容を別タブで開く',function(){sameDocument();capture();store.add(record.document,record);$('document-dialog').close();apply();tell('比較したクラウドの内容を別タブで開きました。元の下書きも保持しています。');});open.id='open-cloud-comparison';
     var cancel=document.createElement('button');cancel.type='button';cancel.id='cancel-cloud-bind';cancel.textContent='キャンセル';cancel.addEventListener('click',function(){$('document-dialog').close();});
-    var confirm=button('下書きを保持して保存先を更新',async function(){sameDocument();var result=await store.bindExisting(candidate.formId,record.versionId,function(){return store.current()===original&&$('document-dialog').open&&confirm.isConnected;});$('document-dialog').close();renderState();tell('用紙番号 '+result.paperNumber+' の保存先を更新しました。現在の下書きは保持しています。「版を確定して保存（クラウド）」で新しい版を作成できます。');});confirm.id='confirm-cloud-bind';confirmBody.append(open,cancel,confirm);
-   });option.dataset.bindForm=candidate.formId;body.append(option);
+    var confirm=button('下書きを保持して保存先を更新',async function(){sameDocument();var result=await store.bindExisting(record.formId,record.versionId,function(){return store.current()===original&&$('document-dialog').open&&confirm.isConnected;});$('document-dialog').close();renderState();tell('用紙番号 '+result.paperNumber+' の保存先を更新しました。現在の下書きは保持しています。「版を確定して保存（クラウド）」で新しい版を作成できます。');});confirm.id='confirm-cloud-bind';confirmBody.append(open,cancel,confirm);
+  }
+  return loadBindingDialog('保存済みの用紙を指定','同じ用紙の保存先を確認中…',function(){return store.matchRegistered();},function(body,candidates){
+   sameDocument();body.replaceChildren();
+   if(!candidates.length){body.textContent='同じ用紙の保存先は見つかりませんでした。';return;}
+   var note=document.createElement('p');note.textContent='クラウドの内容と現在の下書きを比較して、保存先を確認します。確認だけでは保存・QR発行は行いません。';body.append(note);
+   candidates.forEach(function(candidate){
+    var option=button(candidate.title+'　用紙番号 '+candidate.paperNumber+'　保存更新'+candidate.revision,function(){
+     sameDocument();
+     return loadBindingDialog('下書きとクラウドの内容を確認','クラウドの最新版を読み戻しています…',function(){return store.inspectRegistered(candidate.formId);},showComparison);
+    });option.dataset.bindForm=candidate.formId;body.append(option);
+   });
   });
  }
  async function templates(){var body=dialog('新しい用紙のテンプレート');[['generic','汎用'],['camp','参加申込'],['quiz','交換採点用 小テスト']].forEach(function(pair){body.append(button(pair[1],async function(){var r=await fetch('template-'+pair[0]+'.json');if(!r.ok)throw Error('テンプレートを取得できません');var d=await r.json();capture();store.add(documentFrom(freshDefinition(d),pair[0]));$('document-dialog').close();apply();tell('新しい用紙を開きました。');}));});}
