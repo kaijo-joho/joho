@@ -65,7 +65,7 @@ function render(focus = false) {
   if (state.view === 'public') addPublicRoute(route);
   history.replaceState(null, '', route);
   document.querySelector('#views').replaceChildren(
-    ...(LIVE_DESK ? [button('ヘルプを探す', () => showView('public'), false, { 'aria-current': 'page' }),
+    ...(LIVE_DESK ? [el('span', { 'aria-current': 'page' }, 'ヘルプを探す'),
       el('a', { href: deskCasesUrl(), class: 'button-link', rel: 'noreferrer', referrerpolicy: 'no-referrer' }, '自分の相談')] :
     [['public', 'ヘルプを探す'], ['student', '自分の相談'], ['admin', '管理画面（試作）']].map(([view, label]) =>
       button(label, () => { if (view === 'student') state.portalTab = 'cases'; showView(view); }, false,
@@ -103,10 +103,16 @@ function applyPublicLocation(href, preserve = false) {
   const entry = legacyFaq.entries.find(item => item.id === incoming.id);
   const pageCourses = new Set(legacyFaq.entries.filter(item => item.display_pages.includes(incoming.page)).map(item => item.course));
   const course = entry?.course || incoming.course || (pageCourses.size === 1 ? [...pageCourses][0] : '');
-  const app = new URL(href).searchParams.get('app');
+  const params = new URL(href).searchParams;
+  const app = params.get('app');
+  const operation = params.get('operation');
   const key = course ? 'course:' + course : apps.some(item => item.id === app) ? 'app:' + app : '';
   if (!preserve || key !== state.publicTarget) { setPublicTarget(key); state.publicMode = 'search'; }
   state.faqPage = incoming.page;
+  if (key.startsWith('app:') && draftGuides[app] && Object.hasOwn(draftGuides[app].operations, operation)) {
+    state.searchItem = { appId: app, itemId: operation };
+    state.publicMode = 'search';
+  } else if (state.publicMode === 'search') state.searchItem = null;
   if (state.publicMode === 'questions' && course) state.courseFaq = incoming.id;
   else state.selectedFaq = incoming.id;
 }
@@ -114,6 +120,9 @@ function applyPublicLocation(href, preserve = false) {
 function addPublicRoute(url) {
   const target = targetDetails();
   if (target) url.searchParams.set(target.kind === 'course' ? 'course' : 'app', target.id);
+  if (target?.kind === 'app' && state.publicMode === 'search' && state.searchItem?.appId === target.id) {
+    url.searchParams.set('operation', state.searchItem.itemId);
+  }
   if (target?.kind === 'course') {
     const faq = state.publicMode === 'questions' ? state.courseFaq : state.selectedFaq;
     if (faq) url.hash = faq;
@@ -172,7 +181,7 @@ const searchExamples = {
   app: { htmleditor: '画像、プレビュー', pythoneditor: '実行、保存', logic: '配線、部品', graph: '関数、軸',
     illustslide: '文字、保存', flowchart: '図形、接続', 'worksheet-submission': '未反映、写真',
     'google-drive': '開けない、検索', classroom: '提出、クラス', 'class-apps': '開けない、操作' },
-  course: { html: '画像、リンク', py: '変数、実行', ss: '関数、グラフ', il: '文字、色', dr11: '2進数、著作権' },
+  course: { html: '画像、リンク', py: '変数、実行', ss: '関数、グラフ', il: '文字、色', dr: '2進数、著作権' },
 };
 
 function searchPanel(target) {
@@ -191,11 +200,16 @@ function searchPanel(target) {
       : Object.entries(guide?.operations || {}).map(([itemId, item]) => ({ appId: target.id, itemId, kind: 'operation', title: item.title }));
     result = focusPanel(card(el('h2', {}, state.search ? '検索結果' : '操作の説明'), p(matches.length + '件', 'step'),
       el('div', { class: 'choices' }, matches.map(item => button([
-        el('strong', {}, item.title), el('small', { class: 'muted' }, item.kind === 'symptom' ? '質問に答えて確認する' : '操作の説明'),
+        el('strong', {}, item.title), item.kind === 'symptom' ? el('small', { class: 'muted' }, '質問に答えて確認する') : null,
       ], () => openArticle(target.id, item.itemId)))),
-      matches.length ? null : p('該当する説明がありません。検索語を変えるか、「質問に答える」へ切り替えてください。')));
+      matches.length ? null : searchFallback()));
   }
   return el('div', { class: 'stack' }, form, result);
+}
+
+function searchFallback() {
+  return el('div', {}, p('説明が見つかりませんでした。「ファイル 開けない」のように、短い言葉を空白で区切って探せます。'),
+    actions(button('質問に答えて探す', () => switchPublicMode('questions'))));
 }
 
 function operationContent(operation, guidance = '') {
@@ -212,7 +226,8 @@ function operationContent(operation, guidance = '') {
 }
 
 function solutionActions(onSolved, onUnsolved) {
-  return actions(button('解決した', onSolved, true), button('解決しない', onUnsolved));
+  return el('div', {}, actions(button('解決した', onSolved, true), button('解決しない', onUnsolved)),
+    LIVE_DESK ? p('「解決しない」を選ぶと、学校アカウントで開く相談画面に進みます。', 'muted') : null);
 }
 
 function consultAboutGuide(guide, flow, unresolved = false) {
@@ -232,7 +247,9 @@ function answerGuideQuestion(guide, choiceId) {
 function operationSearchPanel(target) {
   const guide = guideFor(target.id);
   const operation = guide.operations[state.searchItem.itemId];
-  return focusPanel(card(el('h2', {}, operation.title), operationContent(operation),
+  return focusPanel(card(el('h2', {}, operation.title),
+    button(state.search ? '検索結果を見る' : '操作の一覧を見る', () => { state.searchItem = null; render(true); }, false, { class: 'quiet-button' }),
+    operationContent(operation),
     guideReferences(guide),
     solutionActions(() => { state.searchItem = null; render(true); }, () => {
         const flow = { ...startFlow(guide, target.id), phase: 'guide', guideId: state.searchItem.itemId };
@@ -311,7 +328,7 @@ function faqIndex(target) {
     el('div', { class: 'choices' }, matches.slice(0, state.faqLimit).map(entry => button([
       el('strong', {}, entry.question), el('small', { class: 'muted' }, entry.unit),
     ], () => openFaq(entry.id)))),
-    matches.length === 0 ? p('該当するFAQがありません。検索語や絞り込みを変えられます。') : null,
+    matches.length === 0 ? searchFallback() : null,
     matches.length > state.faqLimit ? actions(button('さらに15件表示', () => { state.faqLimit += 15; render(); })) : null));
 }
 
@@ -338,8 +355,7 @@ function courseQuestionPanel(target) {
       el('h2', {}, index === 0 ? 'どの単元についてですか？' : 'どんな内容についてですか？'),
       el('div', { class: 'choices' }, [...options, { value: '', label: '分からない・絞り込まずに進む' }].map(item =>
         button(item.label, () => { state.courseAnswers = [...answers, item.value]; state.courseLimit = 15; render(true); }))),
-      actions(button('選択肢にない・文章で説明する', () => beginCourseConsultation(target)),
-        button('今は確認できない', () => beginCourseConsultation(target)))));
+      actions(button('当てはまらないので相談する', () => beginCourseConsultation(target)))));
   } else {
     const matches = findFaqs(legacyFaq, '', { course: target.id, unit: answers[0], category: answers[1] });
     panel = currentQuestion(card(p('いまの質問 · 確認 3', 'step'), el('h2', {}, '近い内容はありますか？'),
@@ -399,6 +415,8 @@ function faqPanel(id = state.selectedFaq) {
   if (!entry) return p('FAQが見つかりません。');
   const related = entry.related_faq.map(id => legacyFaq.entries.find(item => item.id === id)).filter(Boolean);
   const panel = card(p(`${entry.course_label} · ${entry.unit}`, 'step'), el('h2', { id: entry.id }, entry.question),
+    state.publicMode === 'search' ? button(state.search ? '検索結果を見る' : 'FAQの一覧を見る',
+      () => { state.selectedFaq = null; render(true); }, false, { class: 'quiet-button' }) : null,
     el('div', { class: 'legacy-body' }, entry.body_nodes.map(faqNode)),
     related.length ? el('details', {}, el('summary', {}, '関連するFAQ'), el('div', { class: 'choices' }, related.map(item => button(item.question, () => openFaq(item.id))))) : null,
     actions(...[['関連する教材を開く', entry.related_page], ['関連するスライドを開く', entry.related_slide]].filter(([, href]) => href).map(([label, href]) => el('a', { href, target: '_blank', rel: 'noopener noreferrer' }, label))),
@@ -421,10 +439,9 @@ function guideIndex(appId) {
   if (!draftGuides[appId]) return card(el('h2', {}, appName(appId)), previewComment('この試作では、このアプリの原稿はまだ表示していません。'),
     button('確認のサンプルを試す', () => { state.flow = startFlow(guide, appId); render(true); }));
   const version = guide.version_basis === 'date' ? `${guide.verified_on || '未確認'}確認の原稿` : `対象版 ${guide.app_version || '未確認'}`;
-  return card(previewComment('案内の対象版・改訂を確認できます。アプリの現在の状態によっては、詳しい確認が必要な場合があります。'), el('h2', {}, guide.app_name), p(`${version} · 改訂 ${guide.guide_revision}`, 'muted'),
-    p('いまの質問', 'step'), el('h3', {}, '困っていることを選んでください'),
+  return card(previewComment('案内の対象版・改訂を確認できます。アプリの現在の状態によっては、詳しい確認が必要な場合があります。'), el('h2', {}, '困っていることを選んでください'),
     el('div', { class: 'choices' }, Object.entries(guide.nodes).filter(([, node]) => node.entry).map(([id, node]) => button(node.title, () => openArticle(appId, id)))),
-    el('details', {}, el('summary', {}, '共通の利用条件'), p(guide.general_conditions, 'prose')), guideReferences(guide));
+    el('details', {}, el('summary', {}, '共通の利用条件'), p(guide.general_conditions, 'prose'), p(version, 'muted')), guideReferences(guide));
 }
 
 function guideReferences(guide) {
