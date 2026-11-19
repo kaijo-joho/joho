@@ -19,14 +19,15 @@ const main = document.querySelector('#main');
 const previewComments = [];
 const state = {
   view: LIVE_DESK ? 'public' : new URL(location.href).searchParams.get('view') || 'public',
-  publicTarget: '', targetPickerOpen: false, publicMode: 'search', search: '', searchDraft: '', searchItem: null, selectedApp: null,
+  publicTarget: '', targetPickerOpen: false, publicMode: 'browse', browseCategory: '', browseAllOpen: false, browseItem: null, browseFaq: null, schoolUrl: '',
+  search: '', searchDraft: '', searchItem: null, selectedApp: null,
   selectedFaq: null, courseFaq: null, courseAnswers: [], courseLimit: 15, faqPage: '', faqUnit: '', faqCategory: '', faqLimit: 15,
   flow: null, inherited: null, portalTab: 'cases', stage: 'edit',
   draft: { appId: '', text: '', image: null }, error: '',
   cases: structuredClone(sampleCases), selectedCase: 'HD-DEMO-001', replyDrafts: Object.create(null), replyPreview: null,
 };
 if (!['public', 'student', 'admin'].includes(state.view)) state.view = 'public';
-if (state.view === 'public') applyPublicLocation(location.href);
+
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -66,7 +67,12 @@ function render(focus = false) {
   history.replaceState(null, '', route);
   document.querySelector('#views').replaceChildren(
     ...(LIVE_DESK ? [el('span', { 'aria-current': 'page' }, 'ヘルプを探す'),
-      el('a', { href: deskCasesUrl(), class: 'button-link', rel: 'noreferrer', referrerpolicy: 'no-referrer' }, '自分の相談')] :
+      el('a', { href: deskCasesUrl(), class: 'button-link', rel: 'noreferrer', referrerpolicy: 'no-referrer',
+        on: { click: event => {
+          if (isSafari() && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+            event.preventDefault(); openSchoolPage(deskCasesUrl());
+          }
+        } } }, '自分の相談')] :
     [['public', 'ヘルプを探す'], ['student', '自分の相談'], ['admin', '管理画面（試作）']].map(([view, label]) =>
       button(label, () => { if (view === 'student') state.portalTab = 'cases'; showView(view); }, false,
         { 'aria-current': state.view === view && (view !== 'student' || state.portalTab === 'cases') ? 'page' : false }))),
@@ -92,6 +98,7 @@ function setPublicTarget(key) {
   state.targetPickerOpen = false;
   const target = targetDetails();
   state.selectedApp = target?.kind === 'app' ? target.id : null;
+  state.browseCategory = ''; state.browseAllOpen = false; state.browseItem = null; state.browseFaq = null;
   state.search = ''; state.searchDraft = ''; state.searchItem = null; state.selectedFaq = null; state.courseFaq = null;
   state.flow = null; state.courseAnswers = []; state.courseLimit = 15;
   state.faqPage = ''; state.faqUnit = ''; state.faqCategory = ''; state.faqLimit = 15;
@@ -107,37 +114,45 @@ function applyPublicLocation(href, preserve = false) {
   const app = params.get('app');
   const operation = params.get('operation');
   const key = course ? 'course:' + course : apps.some(item => item.id === app) ? 'app:' + app : '';
-  if (!preserve || key !== state.publicTarget) { setPublicTarget(key); state.publicMode = 'search'; }
+  const sameTarget = preserve && key === state.publicTarget;
+  const validOperation = key.startsWith('app:') && draftGuides[app] && Object.hasOwn(draftGuides[app].operations, operation);
+  if (!sameTarget) { setPublicTarget(key); state.publicMode = 'browse'; }
   state.faqPage = incoming.page;
-  if (key.startsWith('app:') && draftGuides[app] && Object.hasOwn(draftGuides[app].operations, operation)) {
-    state.searchItem = { appId: app, itemId: operation };
+  const query = (params.get('q') || '').trim().slice(0, 200);
+  if (!sameTarget && query && !validOperation && !entry) {
+    state.search = state.searchDraft = query;
     state.publicMode = 'search';
-  } else if (state.publicMode === 'search') state.searchItem = null;
-  if (state.publicMode === 'questions' && course) state.courseFaq = incoming.id;
-  else state.selectedFaq = incoming.id;
+  }
+  if (state.publicMode === 'browse') {
+    state.browseItem = validOperation ? { appId: app, itemId: operation } : null;
+    state.browseFaq = incoming.id;
+  } else if (state.publicMode === 'search') {
+    state.searchItem = validOperation ? { appId: app, itemId: operation } : null;
+    state.selectedFaq = incoming.id;
+  } else state.courseFaq = incoming.id;
 }
 
 function addPublicRoute(url) {
   const target = targetDetails();
   if (target) url.searchParams.set(target.kind === 'course' ? 'course' : 'app', target.id);
-  if (target?.kind === 'app' && state.publicMode === 'search' && state.searchItem?.appId === target.id) {
-    url.searchParams.set('operation', state.searchItem.itemId);
-  }
+  const operation = state.publicMode === 'search' ? state.searchItem : state.publicMode === 'browse' ? state.browseItem : null;
+  if (target?.kind === 'app' && operation?.appId === target.id) url.searchParams.set('operation', operation.itemId);
   if (target?.kind === 'course') {
-    const faq = state.publicMode === 'questions' ? state.courseFaq : state.selectedFaq;
+    const faq = { questions: state.courseFaq, search: state.selectedFaq, browse: state.browseFaq }[state.publicMode];
     if (faq) url.hash = faq;
-    if (state.publicMode === 'search' && state.faqPage) url.searchParams.set('page', state.faqPage);
+    if (state.faqPage) url.searchParams.set('page', state.faqPage);
   }
 }
 
 function switchPublicMode(mode) {
-  if (!['search', 'questions'].includes(mode)) return;
+  if (!['browse', 'search', 'questions'].includes(mode)) return;
   state.publicMode = mode; render();
   document.querySelector('#help-tab-' + mode)?.focus();
 }
 
 function publicPage() {
   previewComment('対象の利用ガイドと、教材サイト5コースのFAQの固定版を表示します。案内で解決しない場合は、学校アカウント専用の相談画面へ進めます。');
+  if (state.schoolUrl) return [schoolAccessPanel()];
   const target = targetDetails();
   const pickerOpen = !target || state.targetPickerOpen;
   const select = el('select', { id: 'public-target', on: { change: event => {
@@ -151,7 +166,7 @@ function publicPage() {
     ? el('div', { class: 'field target-field' }, el('label', { for: 'public-target' }, 'アプリ・教材コース'), select) : null);
   if (!target) return [intro('ヘルプを探す', '何について調べますか？'), picker];
   const noGuide = LIVE_DESK && target.kind === 'app' && !draftGuides[target.id];
-  const heading = el('div', { class: 'public-heading' }, intro(target.label + 'のヘルプ', noGuide ? '分かることから相談できます。' : '検索するか、質問に答えて確認できます。'),
+  const heading = el('div', { class: 'public-heading' }, intro(target.label + 'のヘルプ', noGuide ? '分かることから相談できます。' : '一覧・検索・質問から探せます。'),
     button(state.targetPickerOpen ? '対象の変更を閉じる' : '対象を変更', () => {
       state.targetPickerOpen = !state.targetPickerOpen; render();
       document.querySelector(state.targetPickerOpen ? '#public-target' : '#change-target')?.focus();
@@ -159,20 +174,20 @@ function publicPage() {
   if (noGuide) return [heading, picker, card(el('h2', {}, '困っていることを教えてください'),
     p('学校アカウント専用の相談画面で、内容を入力できます。送信前に確認できます。'),
     actions(button('文章で説明する', () => prepareConsultation({ kind: 'target', appId: target.id }), true)))];
-  const modes = [['search', '検索する'], ['questions', '質問に答える']];
+  const modes = [['browse', '操作の説明から選ぶ'], ['search', '検索する'], ['questions', '質問に答える']];
   const tabs = el('div', { class: 'help-tabs', role: 'tablist', 'aria-label': 'ヘルプの探し方' }, modes.map(([mode, label], index) =>
     el('button', { type: 'button', id: 'help-tab-' + mode, role: 'tab', 'aria-controls': 'help-panel-' + mode,
       'aria-selected': String(state.publicMode === mode), tabindex: state.publicMode === mode ? '0' : '-1',
       on: { click: () => switchPublicMode(mode), keydown: event => {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
         event.preventDefault();
-        const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : (index + 1) % 2;
+        const direction = event.key === 'ArrowLeft' ? -1 : 1;
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? modes.length - 1 : (index + direction + modes.length) % modes.length;
         switchPublicMode(modes[next][0]);
       } } }, label)));
   const panels = modes.map(([mode]) => el('div', { id: 'help-panel-' + mode, role: 'tabpanel',
     'aria-labelledby': 'help-tab-' + mode, hidden: state.publicMode !== mode },
-    state.publicMode !== mode ? null : mode === 'search' ? searchPanel(target)
-      : target.kind === 'app' ? guideSessionPage() : courseQuestionPanel(target)));
+    state.publicMode !== mode ? null : { browse: browsePanel, search: searchPanel, questions: target.kind === 'app' ? guideSessionPage : courseQuestionPanel }[mode](target)));
   return [heading, picker, tabs,
     el('div', { class: 'public-content stack' }, panels)];
 }
@@ -192,17 +207,17 @@ function searchPanel(target) {
     event.preventDefault(); state.search = input.value.trim(); state.searchItem = null; state.selectedFaq = null; state.faqLimit = 15; render(true);
   } } }, input, el('button', { type: 'submit' }, '検索')));
   let result;
-  if (target.kind === 'course') result = state.selectedFaq ? faqPanel() : faqIndex(target);
-  else if (state.searchItem) result = operationSearchPanel(target);
-  else {
-    const guide = draftGuides[target.id];
-    const matches = state.search ? findArticles(draftGuides, state.search, target.id)
-      : Object.entries(guide?.operations || {}).map(([itemId, item]) => ({ appId: target.id, itemId, kind: 'operation', title: item.title }));
-    result = focusPanel(card(el('h2', {}, state.search ? '検索結果' : '操作の説明'), p(matches.length + '件', 'step'),
-      el('div', { class: 'choices' }, matches.map(item => button([
-        el('strong', {}, item.title), item.kind === 'symptom' ? el('small', { class: 'muted' }, '質問に答えて確認する') : null,
-      ], () => openArticle(target.id, item.itemId)))),
-      matches.length ? null : searchFallback()));
+  if (state.search) {
+    if (target.kind === 'course') result = state.selectedFaq ? faqPanel(state.selectedFaq) : faqIndex(target, state.search);
+    else if (state.searchItem) result = operationPanel(target, state.searchItem, true);
+    else {
+      const matches = findArticles(draftGuides, state.search, target.id);
+      result = focusPanel(card(el('h2', {}, '検索結果'), p(matches.length + '件', 'step'),
+        el('div', { class: 'choices' }, matches.map(item => button([
+          el('strong', {}, item.title), item.kind === 'symptom' ? el('small', { class: 'muted' }, '質問に答えて確認する') : null,
+        ], () => openArticle(target.id, item.itemId)))),
+        matches.length ? null : searchFallback()));
+    }
   }
   return el('div', { class: 'stack' }, form, result);
 }
@@ -240,21 +255,28 @@ function consultAboutGuide(guide, flow, unresolved = false) {
 function answerGuideQuestion(guide, choiceId) {
   const next = choose(guide, state.flow, choiceId);
   if (next.phase === 'handoff') {
-    if (consultAboutGuide(guide, next)) state.flow = next;
+    if (consultAboutGuide(guide, next) && !state.schoolUrl) state.flow = next;
   } else { state.flow = next; render(true); }
 }
 
-function operationSearchPanel(target) {
+function operationPanel(target, item, fromSearch) {
   const guide = guideFor(target.id);
-  const operation = guide.operations[state.searchItem.itemId];
+  const operation = guide.operations[item.itemId];
+  const showList = () => showOperationList(target.id, item.itemId);
+  const back = () => {
+    if (fromSearch) state.searchItem = null;
+    else { showList(); return; }
+    render(true);
+  };
   return focusPanel(card(el('h2', {}, operation.title),
-    button(state.search ? '検索結果を見る' : '操作の一覧を見る', () => { state.searchItem = null; render(true); }, false, { class: 'quiet-button' }),
+    actions(fromSearch ? button('検索結果に戻る', back, false, { class: 'quiet-button' }) : null,
+      button('操作の説明一覧に戻る', showList, false, { class: 'quiet-button' })),
     operationContent(operation),
     guideReferences(guide),
-    solutionActions(() => { state.searchItem = null; render(true); }, () => {
-        const flow = { ...startFlow(guide, target.id), phase: 'guide', guideId: state.searchItem.itemId };
-        consultAboutGuide(guide, flow, true);
-      })));
+    solutionActions(back, () => {
+      const flow = { ...startFlow(guide, target.id), phase: 'guide', guideId: item.itemId };
+      consultAboutGuide(guide, flow, true);
+    })));
 }
 
 function focusPanel(panel) {
@@ -272,9 +294,10 @@ function guideSessionPage() {
 
 function historyPanel(rows) {
   if (!rows.length) return null;
-  return card(el('h2', {}, 'ここまでの回答'), el('ol', { class: 'answer-history' }, rows.map(row => el('li', {},
-    el('div', {}, el('small', {}, row.question), p(row.answer)),
-    button('変更する', row.change, false, { 'aria-label': row.question + 'の回答を変更する' })))));
+  return el('ol', { class: 'answer-history', 'aria-label': 'ここまでの回答' }, rows.map(row => el('li', {},
+    p(row.question, 'desk-bubble'),
+    el('div', { class: 'answer-bubble' }, p(row.answer),
+      button('変更する', row.change, false, { class: 'quiet-button', 'aria-label': row.question + 'の回答を変更する' })))));
 }
 
 function answerHistoryPanel() {
@@ -294,7 +317,9 @@ function openArticle(appId, itemId) {
   if (itemId.startsWith('tr-')) {
     state.publicMode = 'questions'; state.flow = startFlow(guide, appId, itemId);
   } else {
-    state.publicMode = 'search'; state.searchItem = { appId, itemId };
+    const item = { appId, itemId };
+    if (state.publicMode === 'search') state.searchItem = item;
+    else { state.publicMode = 'browse'; state.browseItem = item; }
   }
   render(true);
 }
@@ -303,14 +328,15 @@ function openFaq(id) {
   const entry = legacyFaq.entries.find(entry => entry.id === id);
   if (!entry) return;
   if (state.publicTarget !== 'course:' + entry.course) {
-    setPublicTarget('course:' + entry.course); state.publicMode = 'search';
+    setPublicTarget('course:' + entry.course); state.publicMode = 'browse';
   }
   if (state.publicMode === 'questions') state.courseFaq = id;
-  else state.selectedFaq = id;
+  else if (state.publicMode === 'search') state.selectedFaq = id;
+  else state.browseFaq = id;
   showView('public');
 }
 
-function faqIndex(target) {
+function faqIndex(target, query = '') {
   const choices = (values, id, label, current, handler) => {
     const select = el('select', { id, on: { change: event => handler(event.target.value) } }, el('option', { value: '' }, 'すべて'),
       values.map(item => el('option', { value: item.value }, item.label)));
@@ -323,12 +349,12 @@ function faqIndex(target) {
     choices(available.categories, 'faq-category', '内容の種類', state.faqCategory, value => { state.faqCategory = value; state.faqLimit = 15; render(); }));
   if (state.faqPage) append(filters, p('教材ページ：' + state.faqPage, 'muted'),
     button('ページの絞り込みを解除', () => { state.faqPage = ''; render(); }));
-  const matches = findFaqs(legacyFaq, state.search, { course: target.id, page: state.faqPage, unit: state.faqUnit, category: state.faqCategory });
-  return focusPanel(card(el('h2', {}, state.search ? '検索結果' : 'FAQの説明'), filters, p(matches.length + '件', 'step'),
+  const matches = findFaqs(legacyFaq, query, { course: target.id, page: state.faqPage, unit: state.faqUnit, category: state.faqCategory });
+  return focusPanel(card(el('h2', {}, query ? '検索結果' : 'よくある質問'), filters, p(matches.length + '件', 'step'),
     el('div', { class: 'choices' }, matches.slice(0, state.faqLimit).map(entry => button([
       el('strong', {}, entry.question), el('small', { class: 'muted' }, entry.unit),
     ], () => openFaq(entry.id)))),
-    matches.length === 0 ? searchFallback() : null,
+    matches.length === 0 ? (query ? searchFallback() : p('この条件の質問はありません。絞り込みを変更してください。')) : null,
     matches.length > state.faqLimit ? actions(button('さらに15件表示', () => { state.faqLimit += 15; render(); })) : null));
 }
 
@@ -352,13 +378,13 @@ function courseQuestionPanel(target) {
     const index = answers.length;
     const options = index === 0 ? available.units : available.categories;
     panel = currentQuestion(card(p('いまの質問 · 確認 ' + (index + 1), 'step'),
-      el('h2', {}, index === 0 ? 'どの単元についてですか？' : 'どんな内容についてですか？'),
+      el('h2', { class: 'desk-bubble' }, index === 0 ? 'どの単元についてですか？' : 'どんな内容についてですか？'),
       el('div', { class: 'choices' }, [...options, { value: '', label: '分からない・絞り込まずに進む' }].map(item =>
         button(item.label, () => { state.courseAnswers = [...answers, item.value]; state.courseLimit = 15; render(true); }))),
       actions(button('当てはまらないので相談する', () => beginCourseConsultation(target)))));
   } else {
     const matches = findFaqs(legacyFaq, '', { course: target.id, unit: answers[0], category: answers[1] });
-    panel = currentQuestion(card(p('いまの質問 · 確認 3', 'step'), el('h2', {}, '近い内容はありますか？'),
+    panel = currentQuestion(card(p('いまの質問 · 確認 3', 'step'), el('h2', { class: 'desk-bubble' }, '近い内容はありますか？'),
       el('div', { class: 'choices' }, matches.slice(0, state.courseLimit).map(entry => button(entry.question, () => openFaq(entry.id)))),
       matches.length > state.courseLimit ? button('さらに15件表示', () => { state.courseLimit += 15; render(); }) : null,
       actions(button('当てはまる説明がない', () => beginCourseConsultation(target), true))));
@@ -400,7 +426,7 @@ function prepareConsultation(context) {
       route = { targetId: 'course:' + entry.course, guideId: 'faq:' + entry.id, guideRevision: entry.updated_at || legacyFaq.source_sha256 };
     } else if (context.kind === 'course') route = { targetId: 'course:' + context.payload.course };
     if (!route.targetId || ![...appIds, ...publicTargets.filter(t => t.kind === 'course').map(t => 'course:' + t.id)].includes(route.targetId)) route.targetId = 'class-apps';
-    location.assign(deskHandoffUrl(route));
+    openSchoolPage(deskHandoffUrl(route));
     return true;
   }
   if (state.stage !== 'done' && (state.draft.text || state.draft.image) && !window.confirm('入力中の相談があります。入力を消して、今回の相談に切り替えますか？')) return false;
@@ -410,21 +436,23 @@ function prepareConsultation(context) {
   return true;
 }
 
-function faqPanel(id = state.selectedFaq) {
+function faqPanel(id) {
   const entry = legacyFaq.entries.find(entry => entry.id === id);
   if (!entry) return p('FAQが見つかりません。');
   const related = entry.related_faq.map(id => legacyFaq.entries.find(item => item.id === id)).filter(Boolean);
-  const panel = card(p(`${entry.course_label} · ${entry.unit}`, 'step'), el('h2', { id: entry.id }, entry.question),
-    state.publicMode === 'search' ? button(state.search ? '検索結果を見る' : 'FAQの一覧を見る',
-      () => { state.selectedFaq = null; render(true); }, false, { class: 'quiet-button' }) : null,
+  const back = () => {
+    if (state.publicMode === 'questions') state.courseFaq = null;
+    else if (state.publicMode === 'search') state.selectedFaq = null;
+    else state.browseFaq = null;
+    render(true);
+  };
+  const backLabel = { questions: '質問に戻る', search: '検索結果に戻る', browse: 'よくある質問の一覧に戻る' }[state.publicMode];
+  const panel = card(p(entry.course_label + ' · ' + entry.unit, 'step'), el('h2', { id: entry.id }, entry.question),
+    button(backLabel, back, false, { class: 'quiet-button' }),
     el('div', { class: 'legacy-body' }, entry.body_nodes.map(faqNode)),
     related.length ? el('details', {}, el('summary', {}, '関連するFAQ'), el('div', { class: 'choices' }, related.map(item => button(item.question, () => openFaq(item.id))))) : null,
     actions(...[['関連する教材を開く', entry.related_page], ['関連するスライドを開く', entry.related_slide]].filter(([, href]) => href).map(([label, href]) => el('a', { href, target: '_blank', rel: 'noopener noreferrer' }, label))),
-    solutionActions(() => {
-      if (state.publicMode === 'questions') state.courseFaq = null;
-      else state.selectedFaq = null;
-      render(true);
-    }, () => {
+    solutionActions(back, () => {
       const payload = makeFaqHandoff(legacyFaq, entry.id);
       const checked = validateFaqHandoff(legacyFaq, payload);
       prepareConsultation({ appId: '', kind: 'faq', payload,
@@ -439,7 +467,7 @@ function guideIndex(appId) {
   if (!draftGuides[appId]) return card(el('h2', {}, appName(appId)), previewComment('この試作では、このアプリの原稿はまだ表示していません。'),
     button('確認のサンプルを試す', () => { state.flow = startFlow(guide, appId); render(true); }));
   const version = guide.version_basis === 'date' ? `${guide.verified_on || '未確認'}確認の原稿` : `対象版 ${guide.app_version || '未確認'}`;
-  return card(previewComment('案内の対象版・改訂を確認できます。アプリの現在の状態によっては、詳しい確認が必要な場合があります。'), el('h2', {}, '困っていることを選んでください'),
+  return card(previewComment('案内の対象版・改訂を確認できます。アプリの現在の状態によっては、詳しい確認が必要な場合があります。'), el('h2', { class: 'desk-bubble' }, '困っていることを選んでください'),
     el('div', { class: 'choices' }, Object.entries(guide.nodes).filter(([, node]) => node.entry).map(([id, node]) => button(node.title, () => openArticle(appId, id)))),
     el('details', {}, el('summary', {}, '共通の利用条件'), p(guide.general_conditions, 'prose'), p(version, 'muted')), guideReferences(guide));
 }
@@ -462,12 +490,13 @@ function flowPanel() {
     block.setAttribute('aria-label', 'いまの質問');
     append(block, p(`いまの質問 · 確認 ${flow.history.length + 1}`, 'step'),
       node.conditions ? p(node.conditions, 'muted') : null, flow.guidance ? p(flow.guidance, 'note') : null,
-      el('h2', { class: 'choice-title' }, node.question),
+      el('h2', { class: 'choice-title desk-bubble' }, node.question),
       el('div', { class: 'choices' }, node.choices.map(choice => button(choice.label, () => answerGuideQuestion(guide, choice.id)))));
   } else if (flow.phase === 'guide') {
     const operation = guide.operations[flow.guideId];
     block.id = flow.guideId || 'inline-guidance';
-    append(block, el('h2', {}, operation?.title || '確認する手順'));
+    append(block, el('h2', {}, operation?.title || '確認する手順'),
+      button('操作の説明一覧に戻る', () => showOperationList(flow.appId, flow.guideId), false, { class: 'quiet-button' }));
     if (operation) append(block, operationContent(operation, flow.guidance));
     else append(block, el('section', { class: 'procedure' }, el('h3', {}, '確認すること'), p(flow.guidance, 'prose')));
     append(block, guideReferences(guide));
@@ -613,10 +642,128 @@ function adminPage() {
         el('table', {}, el('tbody', {}, el('tr', {}, el('th', {}, '資料'), el('td', {}, '確認用原稿とサンプル')), el('tr', {}, el('th', {}, 'Web配信'), el('td', {}, '試作専用ページで確認')), el('tr', {}, el('th', {}, '自動回答'), el('td', {}, '未採用')))))), detail)];
 }
 
+const operationGroups = {
+  htmleditor: [
+    ['実習を始める・接続する', 'start account folder get'],
+    ['ファイルを開く・保存する', 'open save restore'],
+    ['表示・プレビュー・ヒント', 'display preview hints'],
+    ['提出する・受領を確認する', 'submit receipt'],
+  ],
+  pythoneditor: [
+    ['問題を選ぶ・コードを書く', 'select-question edit-code'],
+    ['実行する・エラーを確認する', 'run input stop input-values find-error advice-status'],
+    ['確認問題・表示・ヘルプ', 'confirmation record-answer view help ratings'],
+    ['保存する・続きから始める', 'output-files save-file save-browser restore-browser open-file finish'],
+    ['学校機能・試用提出', 'trial-connect cloud-save cloud-restore cloud-conflict trial-submit trial-result'],
+  ],
+  logic: [
+    ['回路を作る・編集する', 'start parts wires selection template'],
+    ['信号と真理値表を確認する', 'probe diagnostics truth practice'],
+    ['表示・ヘルプ', 'view help'],
+    ['文書を切り替える・保存する', 'tabs rename save-browser save-file autosave open close delete-saved export'],
+  ],
+  graph: [
+    ['グラフや図形を描く', 'start curves points-tangents segments regions curve-regions parameters'],
+    ['見た目・軸・表示を変える', 'format multiple labels axis-format axis-settings view controls'],
+    ['数表・データ分析', 'table column-types calculated-columns regression statistics charts scatter-matrix chart-rows'],
+    ['作品を開く・保存する', 'templates custom-template documents save restore local-autosave import'],
+    ['画像・CSV・印刷', 'export-image export-csv print'],
+  ],
+  illustslide: [
+    ['作品を始める・保存する', 'open-help new-work work-tabs save-browser save-file auto-save-file open-browser open-file'],
+    ['図形・文字・画像を編集する', 'add-shape select-transform path combine arrange style text outline connector image parts'],
+    ['ページ・レイヤー・表示', 'board pages layers display'],
+    ['動き・発表・書き出し', 'animation preview notes-skip present presenter register-asset export'],
+  ],
+  flowchart: [
+    ['図を作る・つなぐ', 'start place text connect route insert flow-branch activity activity-set transitions'],
+    ['形・書式・配置を整える', 'shape format match-size copy-style align stacking edit-history group lock'],
+    ['保存・部品・書き出し', 'save-browser save-file open file-autosave parts parts-manage parts-save export-image print'],
+    ['経路の確認・表示・ヘルプ', 'trace inspect problem display help'],
+  ],
+  'worksheet-submission': [
+    ['提出の準備・提出方法', 'choose-method prepare-photos submit-phone submit-mac submit-pair open-school-account'],
+    ['提出後の確認・困ったとき', 'refresh-status wait-for-record open-details use-existing-request'],
+  ],
+  'google-drive': [['ログイン・ファイルを開く', 'drive-account drive-find drive-open'], ['アップロードする・確認する', 'drive-upload drive-check-upload']],
+  classroom: [['クラス・課題を確認する', 'class-account class-find-class class-find-task'], ['提出する・提出状況を見る', 'class-submit class-check-status class-external']],
+};
+
+function showOperationList(appId, itemId) {
+  if (state.publicMode !== 'browse' || (!state.browseCategory && !state.browseAllOpen)) {
+    const category = (operationGroups[appId] || []).find(([, keys]) => keys.split(' ').includes(itemId?.slice(3)));
+    state.browseCategory = category?.[0] || '';
+    state.browseAllOpen = !category;
+  }
+  state.publicMode = 'browse';
+  state.browseItem = null;
+  render(true);
+}
+
+function browsePanel(target) {
+  if (target.kind === 'course') return state.browseFaq ? faqPanel(state.browseFaq) : faqIndex(target);
+  if (state.browseItem) return operationPanel(target, state.browseItem, false);
+  const operations = draftGuides[target.id]?.operations || {};
+  const groups = (operationGroups[target.id] || []).map(([label, keys]) => ({
+    label, ids: keys.split(' ').map(id => 'op-' + id).filter(id => Object.hasOwn(operations, id)),
+  })).filter(group => group.ids.length);
+  const ids = Object.keys(operations);
+  const other = ids.filter(id => !groups.some(group => group.ids.includes(id)));
+  if (other.length) groups.push({ label: groups.length ? 'その他の操作' : 'すべての操作', ids: other });
+  if (!groups.length) return focusPanel(card(p('この対象の操作説明は準備中です。')));
+  const active = groups.find(group => group.label === state.browseCategory);
+  const list = choices => el('div', { class: 'choices' }, choices.map(id =>
+    button(el('strong', {}, operations[id].title), () => openArticle(target.id, id))));
+  const question = el('h2', { class: 'desk-bubble' }, 'どの操作を確認したいですか？');
+  return focusPanel(card(question, active
+    ? [el('div', { class: 'answer-bubble browse-answer' }, p(active.label),
+        button('変更する', () => { state.browseCategory = ''; render(true); }, false, { class: 'quiet-button', 'aria-label': '操作のカテゴリを変更する' })),
+      el('h3', { class: 'desk-bubble' }, '操作を選んでください'), list(active.ids)]
+    : el('div', { class: 'choices category-choices' }, groups.map(group =>
+      button(group.label, () => { state.browseCategory = group.label; state.browseAllOpen = false; render(true); }))),
+    active ? null : el('details', { class: 'all-operations', open: state.browseAllOpen,
+      on: { toggle: event => { state.browseAllOpen = event.target.open; } } }, el('summary', {}, 'すべての操作を表示'), list(ids))));
+}
+
+function isSafari() {
+  const userAgent = globalThis.navigator?.userAgent || '';
+  return /Version\/[\d.]+.*Safari\//.test(userAgent) && !/(Chrome|Chromium|CriOS|FxiOS|Edg|OPiOS|Android)/.test(userAgent);
+}
+
+function openSchoolPage(url) {
+  if (!isSafari()) { location.assign(url); return; }
+  state.schoolUrl = url;
+  render(true);
+}
+
+function schoolAccessPanel() {
+  const url = state.schoolUrl;
+  const input = el('input', { id: 'school-access-url', type: 'url', readonly: true, value: url });
+  const status = el('p', { class: 'copy-status', role: 'status' });
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      status.textContent = 'URLをコピーしました。Chromeのアドレスバーに貼り付けてください。';
+    } catch {
+      input.focus();
+      input.select();
+      status.textContent = 'URLを選択しました。コピーしてChromeに貼り付けてください。';
+    }
+  };
+  return focusPanel(card(el('h1', {}, '学校用の画面をChromeで開く'),
+    p('URLをコピーしてChromeのアドレスバーに貼り付け、学校アカウントで開いてください。'),
+    el('div', { class: 'field' }, el('label', { for: 'school-access-url' }, '学校用画面のURL'), input),
+    actions(button('URLをコピー', copy, true),
+      button('ヘルプに戻る', () => { state.schoolUrl = ''; render(true); })),
+    status));
+}
+
+if (state.view === 'public') applyPublicLocation(location.href);
 mountDisplayControls(document, window);
 window.addEventListener('popstate', () => {
   const view = new URL(location.href).searchParams.get('view'); state.view = LIVE_DESK ? 'public' : ['public', 'student', 'admin'].includes(view) ? view : 'public';
   if (state.view === 'public') {
+    state.schoolUrl = '';
     applyPublicLocation(location.href, true);
   }
   render(true);
