@@ -16,17 +16,19 @@
   let expandedLesson = null;
   const Modes = window.HtmlEditorModes;
   const finalEnabled = window.HTML_FINAL_PROJECT_CONFIG?.enabled === true;
+  const finalTemplate = window.HTML_FINAL_PROJECT_CONFIG?.templateSource;
   let editorMode = 'free', treeSignature = '';
   const editable = path => /\.(html?|css)$/i.test(path);
   const content = () => cm.getValue();
   const dirty = () => doc && content() !== doc.savedContent;
   function positionNotice() {
     const workspace = $('workspace').getBoundingClientRect(), panes = $('editingPanes').getBoundingClientRect();
+    const area = workspace.width ? workspace : $('mainContainer').getBoundingClientRect();
     const headers = [...document.querySelectorAll('#editingPanes .pane-header')].filter(node => node.getClientRects().length);
-    const top = headers.length ? Math.max(...headers.map(node => node.getBoundingClientRect().bottom)) : panes.top;
+    const top = headers.length ? Math.max(...headers.map(node => node.getBoundingClientRect().bottom)) : panes.top || area.top;
     $('toast').style.top = Math.max(8, top + 8) + 'px';
-    $('toast').style.left = (workspace.left + workspace.width / 2) + 'px';
-    $('toast').style.maxWidth = Math.min(650, Math.max(240, workspace.width - 24)) + 'px';
+    $('toast').style.left = (area.left + area.width / 2) + 'px';
+    $('toast').style.maxWidth = Math.min(650, Math.max(240, area.width - 24)) + 'px';
   }
   function notify(message, kind = 'info') {
     $('toast').textContent = message; $('toast').dataset.kind = kind; $('toast').style.display = 'block';
@@ -88,6 +90,8 @@
     $('lessonOnlyLink').hidden = project;
     $('taskDownloadBtn').hidden = project;
     $('assignmentDocBtn').hidden = !final;
+    $('finalTemplateBtn').hidden = !final || !finalTemplate;
+    $('finalTemplateBtn').disabled = busy;
     $('assignmentDocMenuBtn').hidden = !final;
     $('stepsModeLink').hidden = !project;
     $('assignmentDocBtn').disabled = busy;
@@ -592,6 +596,36 @@
       button('閉じる','close');
     }));
   }
+  function getFinalTemplate(event) {
+    event.currentTarget.focus();
+    if (editorMode !== 'final' || !finalTemplate || busy || $('actionDialog').open) return;
+    const name = 'index.html';
+    if (!fs.isSupported()) {
+      download(finalTemplate, name, 'ダウンロードを開始しました。Finderで index.html を「書類／HTML最終課題」へ移動し、フォルダを読み込み直してください。同名ファイルがある場合は、すでにあるファイルを使ってください。');
+      return;
+    }
+    if (!fs.isConnected()) {
+      $('connectFolderBtn').focus();
+      notify('先に上のボタンから「HTML最終課題」フォルダを接続してください。','warning');
+      return;
+    }
+    return exclusive(async () => {
+      const directory = await fs.requireWritePermission();
+      try {
+        await fs.writeNewFile(name, finalTemplate, directory);
+      } catch (error) {
+        if (error.name !== 'FileExistsError') throw error;
+        if (!fs.getFileList().includes(name)) await fs.scanDirectory();
+        setPane('left');
+        const existing = fs.getFileList().find(path => path.toLowerCase() === name);
+        notify(existing ? '作品フォルダに ' + existing + ' があります。一覧から開いてください。' :
+          '同名の項目があります。Finderで作品フォルダを確認してください。','warning');
+        return;
+      }
+      setPane('left');
+      notify('作品フォルダに index.html を保存しました。一覧から開いてください。','success');
+    });
+  }
   function newProjectFile(event) {
     event?.currentTarget?.focus();
     if (editorMode === 'lesson') return;
@@ -781,13 +815,13 @@
       runPreview();
     });
   }
-  function download(text = content(), name = doc?.fileName) {
+  function download(text = content(), name = doc?.fileName, message = 'ダウンロードを開始しました。保存先とファイル名を確認してください。') {
     if (!name) return;
     const blob = new Blob([text], {type:/\.css$/i.test(name) ? 'text/css;charset=utf-8' : 'text/html;charset=utf-8'});
     const url = URL.createObjectURL(blob), link = document.createElement('a');
     link.href = url; link.download = name.split('/').pop(); document.body.append(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
-    notify('ダウンロードを開始しました。保存先とファイル名を確認してください。');
+    notify(message);
   }
   async function restore() {
     let result;
@@ -1043,6 +1077,7 @@
     $('lessonModeLink').addEventListener('click',event=>{ closeMenus(event.currentTarget); lessonPicker(); });
     $('lessonPickerBtn').addEventListener('click',lessonPicker);
     $('assignmentDocBtn').addEventListener('click',assignmentDocument);
+    $('finalTemplateBtn').addEventListener('click',getFinalTemplate);
     $('assignmentDocMenuBtn').addEventListener('click',event=>{ closeMenus(event.currentTarget); assignmentDocument(); });
     $('stepsModeLink').addEventListener('click',event=>{ closeMenus(event.currentTarget); $('practiceStepsBtn').click(); });
     $('newProjectFileBtn').addEventListener('click',newProjectFile);
@@ -1080,7 +1115,7 @@
       event.currentTarget.focus();
       if (editorMode === 'lesson') { practiceSteps(); return; }
       exclusive(() => modal(editorMode === 'final' ? '最終課題の手順' : '編集の手順', (body,button) => {
-        textNode(body,editorMode === 'final' ? 'Finderで「書類／HTML最終課題」を作って接続します。index.html やCSSは「新しいファイル」で作成できます。写真は自分で images へ移動します。' : 'HTML・CSSを開くか、左のファイル一覧で新しいファイルを作成します。フォルダを接続するとMacへ上書き保存できます。');
+        textNode(body,editorMode === 'final' ? 'Finderで「書類／HTML最終課題」を作って接続します。「テンプレートを取得」で index.html を用意し、一覧から開きます。写真は自分で images へ移動します。' : 'HTML・CSSを開くか、左のファイル一覧で新しいファイルを作成します。フォルダを接続するとMacへ上書き保存できます。');
         textNode(body,'作品フォルダを接続し、階層一覧からHTML・CSSを開いて編集・保存します。Finderで素材を変更したら、一覧やプレビューを更新します。');
         textNode(body,'保存は⌘S、プレビュー更新は⌘Enterです。ページやリンク、写真の見え方は自分でも確認します。');
         if (editorMode === 'final') textNode(body,'要項は上部の「課題を確認」で開けます。「実習を開く」から説明を別タブで確認できます。作品の提出機能は準備中です。');
@@ -1141,7 +1176,7 @@
       if (hintHelp) hintHelp.textContent = 'まずは自分で見直してください。必要なときだけ「エラーを探す」を使い、黄色い枠の行番号からヒントを確認できます。編集すると通常の行番号に戻ります。';
       const panel = document.querySelector('[data-help-topic="intro"]');
       const note = document.createElement('p');
-      note.textContent = editorMode === 'final' ? '最終課題では作品フォルダ全体を扱います。要項は「課題を確認」、実習の参照は「実習を開く」から別タブで行えます。提出機能は準備中です。' : '自由編集では授業の解説・課題取得・提出を使いません。ファイル一覧の「新しいファイル」からHTML・CSSを作成できます。';
+      note.textContent = editorMode === 'final' ? '「テンプレートを取得」で、接続した作品フォルダに index.html を保存し、一覧から開きます。要項は「課題を確認」、実習の参照は「実習を開く」から別タブで行えます。提出機能は準備中です。' : '自由編集では授業の解説・課題取得・提出を使いません。ファイル一覧の「新しいファイル」からHTML・CSSを作成できます。';
       panel?.append(note);
     }
     setupHelp();

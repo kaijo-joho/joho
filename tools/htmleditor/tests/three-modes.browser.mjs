@@ -59,6 +59,7 @@ try{
  const free=await context.newPage();pages.push(free);await free.goto(base);await idle(free);
  assert.equal(await currentMode(free),'free');
  assert.equal(await free.locator('#submitBtn').isVisible(),false);assert.equal(await free.locator('#taskDownloadBtn').isVisible(),false);
+ assert.equal(await free.locator('#finalTemplateBtn').isVisible(),false);
  assert.equal(await free.locator('.identity-alert:visible').count(),0);assert.equal(await free.locator('.identity-toolbar').count(),0);
  assert.equal(await free.locator('#lessonIframe').getAttribute('src'),null);assert.equal(await current(free),'');
  await projectHeader(free);
@@ -66,6 +67,7 @@ try{
  for (const id of ['html11','html16']) {
   const entry=await context.newPage();pages.push(entry);await entry.goto(origin+'/'+id+'.html');await idle(entry);
   assert.equal(await currentMode(entry),'lesson');assert.match(entry.url(),new RegExp('lesson='+id));
+  assert.equal(await entry.locator('#finalTemplateBtn').isVisible(),false);
   const boxes=await entry.evaluate(()=>['toolbar','leftPane','workspace'].map(id=>{const {x,y,width}=document.getElementById(id).getBoundingClientRect();return {x,y,width};}));
   assert(boxes[0].x>=boxes[1].x+boxes[1].width,'実習の解説パネルはヘッダーから独立');
   assert(Math.abs(boxes[0].x-boxes[2].x)<1);
@@ -85,13 +87,65 @@ try{
  assert.equal(report.documentRequests.length,1);assert.match(report.documentRequests[0],/\/preview\?tab=t.0$/);
  await final.locator('[data-choice="close"]').click();await idle(final);assert.equal(await final.locator('#assignmentDocBtn').evaluate(n=>n===document.activeElement),true);
  ok('最終課題は専用URL・要項モーダルと別タブの入口・提出停止');
- async function connect(page){
-  if(engine==='chromium'){
-   await page.evaluate(async rows=>{const dir=await window.showDirectoryPicker();for(const [path,body]of rows){let d=dir;const parts=path.split('/');for(const part of parts.slice(0,-1))d=await d.getDirectoryHandle(part,{create:true});const w=await(await d.getFileHandle(parts.at(-1),{create:true})).createWritable();await w.write(body);await w.close();}},[['index.html',home],['style.css','body{color:navy}'],['pages/about.html',about]]);
-   await page.locator('#connectFolderBtn').click();await idle(page);
-  }else{await page.locator('#directoryInput').setInputFiles(fixture);await idle(page);}
+ const templateButton = final.getByRole('button',{name:'テンプレートを取得',exact:true});
+ const templateSource = await final.evaluate(() => window.HTML_FINAL_PROJECT_CONFIG.templateSource);
+ if (engine === 'chromium') {
+  await templateButton.click();
+  assert.match(await final.locator('#toast').innerText(), /フォルダを接続/);
+  await final.locator('#connectFolderBtn').click();
+  await idle(final);
+  await final.setViewportSize({width:390,height:950});
+  await templateButton.click();
+  await idle(final);
+  const indexEntry = final.locator('#finalFileTree button').filter({hasText:/^index\.html$/});
+  assert(await indexEntry.isVisible());
+  assert.equal(await current(final),'');
+  const notice = await final.locator('#toast').boundingBox();
+  assert(notice.x >= 0 && notice.x + notice.width <= 391);
+  assert.equal(await final.evaluate(async () => {
+   const folder = await window.showDirectoryPicker();
+   return (await (await folder.getFileHandle('index.html')).getFile()).text();
+  }),templateSource);
+  await indexEntry.click();
+  await idle(final);
+  assert.equal(await current(final),templateSource);
+  await setCode(final,templateSource.replace('{観光地の名称}','編集中の作品'));
+  await final.setViewportSize({width:1440,height:950});
+  await final.evaluate(async rows=>{
+   const dir=await window.showDirectoryPicker();
+   for(const [path,body] of rows){
+    let dest=dir;
+    const parts=path.split('/');
+    for(const part of parts.slice(0,-1)) dest=await dest.getDirectoryHandle(part,{create:true});
+    const writable=await(await dest.getFileHandle(parts.at(-1),{create:true})).createWritable();
+    await writable.write(body);
+    await writable.close();
+   }
+  },[['index.html',home],['style.css','body{color:navy}'],['pages/about.html',about]]);
+  await templateButton.click();
+  await idle(final);
+  assert.match(await final.locator('#toast').innerText(), /index\.html があり/);
+  assert.equal(await current(final),templateSource.replace('{観光地の名称}','編集中の作品'));
+  assert.equal(await final.evaluate(async () => {
+   const folder = await window.showDirectoryPicker();
+   return (await (await folder.getFileHandle('index.html')).getFile()).text();
+  }),home);
+  await final.locator('#projectRefreshBtn').click();
+  await idle(final);
+  await indexEntry.click();
+  await final.locator('[data-choice="discard"]').click();
+  await idle(final);
+  ok('最終課題のテンプレートを接続先に保存し、作業中の内容と同名ファイルを保護');
+ } else {
+  const [downloaded] = await Promise.all([final.waitForEvent('download'),templateButton.click()]);
+  assert.equal(downloaded.suggestedFilename(),'index.html');
+  assert.equal(await readFile(await downloaded.path(),'utf8'),templateSource);
+  await final.locator('#directoryInput').setInputFiles(fixture);
+  await idle(final);
+  await final.locator('#finalFileTree button').filter({hasText:/^index\.html$/}).click();
+  await idle(final);
+  ok('直接保存に未対応のブラウザでは index.html をダウンロード');
  }
- await connect(final);await final.locator('#finalFileTree button').filter({hasText:/^index\.html$/}).click();await idle(final);
  assert.equal(await current(final),home);await final.frameLocator('#previewIframe').locator('h1').waitFor();
  const paneTops=await final.evaluate(()=>['leftPane','centerPane','rightPane'].map(id=>document.getElementById(id).getBoundingClientRect().top));
  assert(paneTops.every(top=>Math.abs(top-paneTops[0])<1),'ヘッダーの下に3列を揃える');
