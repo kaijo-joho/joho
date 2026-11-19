@@ -44,6 +44,9 @@ function append(node, ...children) {
 }
 const p = (text, className = '') => el('p', { class: className }, text);
 const button = (text, handler, primary = false, attrs = {}) => el('button', { type: 'button', class: primary ? 'primary' : '', ...attrs, on: { click: handler } }, text);
+const backButton = (label, handler) => button([el('span', { class: 'back-arrow', 'aria-hidden': 'true' }, '←'), label],
+  handler, false, { class: 'quiet-button back-button' });
+const choiceBubble = (...items) => el('div', { class: 'answer-bubble choice-bubble', role: 'group', 'aria-label': '自分の選択肢' }, items);
 const actions = (...items) => el('div', { class: 'actions' }, items);
 const card = (...items) => el('section', { class: 'card' }, items);
 const pill = text => el('span', { class: 'pill' }, text);
@@ -241,7 +244,7 @@ function operationContent(operation, guidance = '') {
 }
 
 function solutionActions(onSolved, onUnsolved) {
-  return el('div', {}, actions(button('解決した', onSolved, true), button('解決しない', onUnsolved)),
+  return el('div', {}, choiceBubble(actions(button('解決した', onSolved, true), button('解決しない', onUnsolved))),
     LIVE_DESK ? p('「解決しない」を選ぶと、学校アカウントで開く相談画面に進みます。', 'muted') : null);
 }
 
@@ -269,8 +272,8 @@ function operationPanel(target, item, fromSearch) {
     render(true);
   };
   return focusPanel(card(el('h2', {}, operation.title),
-    actions(fromSearch ? button('検索結果に戻る', back, false, { class: 'quiet-button' }) : null,
-      button('操作の説明一覧に戻る', showList, false, { class: 'quiet-button' })),
+    actions(fromSearch ? backButton('検索結果に戻る', back) : null,
+      backButton('操作の説明一覧に戻る', showList)),
     operationContent(operation),
     guideReferences(guide),
     solutionActions(back, () => {
@@ -379,15 +382,15 @@ function courseQuestionPanel(target) {
     const options = index === 0 ? available.units : available.categories;
     panel = currentQuestion(card(p('いまの質問 · 確認 ' + (index + 1), 'step'),
       el('h2', { class: 'desk-bubble' }, index === 0 ? 'どの単元についてですか？' : 'どんな内容についてですか？'),
-      el('div', { class: 'choices' }, [...options, { value: '', label: '分からない・絞り込まずに進む' }].map(item =>
+      choiceBubble(el('div', { class: 'choices' }, [...options, { value: '', label: '分からない・絞り込まずに進む' }].map(item =>
         button(item.label, () => { state.courseAnswers = [...answers, item.value]; state.courseLimit = 15; render(true); }))),
-      actions(button('当てはまらないので相談する', () => beginCourseConsultation(target)))));
+      actions(button('当てはまらないので相談する', () => beginCourseConsultation(target))))));
   } else {
     const matches = findFaqs(legacyFaq, '', { course: target.id, unit: answers[0], category: answers[1] });
     panel = currentQuestion(card(p('いまの質問 · 確認 3', 'step'), el('h2', { class: 'desk-bubble' }, '近い内容はありますか？'),
-      el('div', { class: 'choices' }, matches.slice(0, state.courseLimit).map(entry => button(entry.question, () => openFaq(entry.id)))),
-      matches.length > state.courseLimit ? button('さらに15件表示', () => { state.courseLimit += 15; render(); }) : null,
-      actions(button('当てはまる説明がない', () => beginCourseConsultation(target), true))));
+      choiceBubble(el('div', { class: 'choices' }, matches.slice(0, state.courseLimit).map(entry => button(entry.question, () => openFaq(entry.id)))),
+        matches.length > state.courseLimit ? actions(button('さらに15件表示', () => { state.courseLimit += 15; render(); })) : null,
+        actions(button('当てはまる説明がない', () => beginCourseConsultation(target), true)))));
   }
   return el('div', { class: 'stack' }, historyPanel(rows), panel);
 }
@@ -448,7 +451,7 @@ function faqPanel(id) {
   };
   const backLabel = { questions: '質問に戻る', search: '検索結果に戻る', browse: 'よくある質問の一覧に戻る' }[state.publicMode];
   const panel = card(p(entry.course_label + ' · ' + entry.unit, 'step'), el('h2', { id: entry.id }, entry.question),
-    button(backLabel, back, false, { class: 'quiet-button' }),
+    backButton(backLabel, back),
     el('div', { class: 'legacy-body' }, entry.body_nodes.map(faqNode)),
     related.length ? el('details', {}, el('summary', {}, '関連するFAQ'), el('div', { class: 'choices' }, related.map(item => button(item.question, () => openFaq(item.id))))) : null,
     actions(...[['関連する教材を開く', entry.related_page], ['関連するスライドを開く', entry.related_slide]].filter(([, href]) => href).map(([label, href]) => el('a', { href, target: '_blank', rel: 'noopener noreferrer' }, label))),
@@ -468,7 +471,7 @@ function guideIndex(appId) {
     button('確認のサンプルを試す', () => { state.flow = startFlow(guide, appId); render(true); }));
   const version = guide.version_basis === 'date' ? `${guide.verified_on || '未確認'}確認の原稿` : `対象版 ${guide.app_version || '未確認'}`;
   return card(previewComment('案内の対象版・改訂を確認できます。アプリの現在の状態によっては、詳しい確認が必要な場合があります。'), el('h2', { class: 'desk-bubble' }, '困っていることを選んでください'),
-    el('div', { class: 'choices' }, Object.entries(guide.nodes).filter(([, node]) => node.entry).map(([id, node]) => button(node.title, () => openArticle(appId, id)))),
+    choiceBubble(el('div', { class: 'choices' }, Object.entries(guide.nodes).filter(([, node]) => node.entry).map(([id, node]) => button(node.title, () => openArticle(appId, id))))),
     el('details', {}, el('summary', {}, '共通の利用条件'), p(guide.general_conditions, 'prose'), p(version, 'muted')), guideReferences(guide));
 }
 
@@ -491,12 +494,12 @@ function flowPanel() {
     append(block, p(`いまの質問 · 確認 ${flow.history.length + 1}`, 'step'),
       node.conditions ? p(node.conditions, 'muted') : null, flow.guidance ? p(flow.guidance, 'note') : null,
       el('h2', { class: 'choice-title desk-bubble' }, node.question),
-      el('div', { class: 'choices' }, node.choices.map(choice => button(choice.label, () => answerGuideQuestion(guide, choice.id)))));
+      choiceBubble(el('div', { class: 'choices' }, node.choices.map(choice => button(choice.label, () => answerGuideQuestion(guide, choice.id))))));
   } else if (flow.phase === 'guide') {
     const operation = guide.operations[flow.guideId];
     block.id = flow.guideId || 'inline-guidance';
     append(block, el('h2', {}, operation?.title || '確認する手順'),
-      button('操作の説明一覧に戻る', () => showOperationList(flow.appId, flow.guideId), false, { class: 'quiet-button' }));
+      backButton('操作の説明一覧に戻る', () => showOperationList(flow.appId, flow.guideId)));
     if (operation) append(block, operationContent(operation, flow.guidance));
     else append(block, el('section', { class: 'procedure' }, el('h3', {}, '確認すること'), p(flow.guidance, 'prose')));
     append(block, guideReferences(guide));
@@ -718,11 +721,11 @@ function browsePanel(target) {
   return focusPanel(card(question, active
     ? [el('div', { class: 'answer-bubble browse-answer' }, p(active.label),
         button('変更する', () => { state.browseCategory = ''; render(true); }, false, { class: 'quiet-button', 'aria-label': '操作のカテゴリを変更する' })),
-      el('h3', { class: 'desk-bubble' }, '操作を選んでください'), list(active.ids)]
-    : el('div', { class: 'choices category-choices' }, groups.map(group =>
+      el('h3', { class: 'desk-bubble' }, '操作を選んでください'), choiceBubble(list(active.ids))]
+    : choiceBubble(el('div', { class: 'choices category-choices' }, groups.map(group =>
       button(group.label, () => { state.browseCategory = group.label; state.browseAllOpen = false; render(true); }))),
-    active ? null : el('details', { class: 'all-operations', open: state.browseAllOpen,
-      on: { toggle: event => { state.browseAllOpen = event.target.open; } } }, el('summary', {}, 'すべての操作を表示'), list(ids))));
+    el('details', { class: 'all-operations', open: state.browseAllOpen,
+      on: { toggle: event => { state.browseAllOpen = event.target.open; } } }, el('summary', {}, 'すべての操作を表示'), list(ids)))));
 }
 
 function isSafari() {

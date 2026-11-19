@@ -19,6 +19,14 @@
 .answer-bubble p{margin:0;font-weight:650}
 .answer-bubble button{display:block;margin-inline-start:auto}
 .browse-answer{margin-block:.7rem 1rem}
+.choice-bubble{width:min(100%,34rem);margin-block-start:.8rem}
+.choice-bubble>:is(.choices,.actions):first-child{margin-top:0}
+.choice-bubble .actions{justify-content:flex-end}
+.choice-bubble .actions>button{margin-inline-start:0}
+.choice-bubble .all-operations:last-child{margin-top:.7rem;padding-top:.35rem}
+.back-button{display:inline-flex;align-items:center;gap:.45em}
+.back-arrow{font-size:1.15em;line-height:1;flex:none}
+
 .category-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
 .copy-status:not(:empty){margin-top:1rem;color:var(--muted)}
 .current-question .desk-bubble{background:var(--soft)}
