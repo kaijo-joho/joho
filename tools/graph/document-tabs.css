@@ -15,6 +15,9 @@
 .graph-document-tabs__close{display:inline-flex;align-items:center;justify-content:center;padding:3px 1px}
 .graph-document-tabs__close svg{width:22px;height:22px;pointer-events:none}
 .graph-document-tabs__close:hover{background:var(--accent-soft)}
+.graph-document-tabs__strip .graph-document-tabs__rename{display:flex;align-items:center;justify-content:center;width:25px;min-height:30px;flex:none;padding:3px 1px;border:0;border-radius:0;background:transparent}
+.graph-document-tabs__rename svg{width:22px;height:22px;flex:none}
+.graph-document-tabs__strip .graph-document-tabs__rename:hover{background:var(--accent-soft)}
 .graph-document-tabs__menu{position:relative;flex:none}
 .graph-document-tabs__menu>summary{display:flex;align-items:center;justify-content:center;width:26px;min-height:30px;padding:2px;border:1px solid var(--line);border-radius:7px;background:var(--panel);list-style:none}
 .graph-document-tabs__menu>summary::-webkit-details-marker{display:none}
@@ -23,6 +26,7 @@
 .graph-document-tabs__menu-panel button{display:block;width:100%;min-height:44px;border:0;background:transparent;text-align:left;overflow-wrap:anywhere;white-space:normal}
 .graph-document-tabs__menu-panel button[aria-checked="true"]{color:var(--accent);background:var(--accent-soft)}
 .graph-document-tabs__menu-panel button:hover{background:var(--accent-soft)}
+.graph-document-tabs__menu-panel .graph-document-tabs__rename{display:flex;align-items:center;gap:8px}
 
 #app{grid-template-columns:240px minmax(0,1fr) auto var(--graph-side-tab-width)}
 .side-tabs{width:var(--graph-side-tab-width)}
@@ -35,3 +39,4 @@
 @media(max-width:520px){#app{grid-template-columns:0 minmax(0,1fr) 0 var(--graph-side-tab-width)}}
 @media(pointer:coarse){:root,:root[data-text-size]{--graph-side-tab-width:44px}.graph-document-tabs__tab,.graph-document-tabs__close,.graph-document-tabs__menu>summary{min-width:44px;min-height:44px}.graph-document-tabs__close{width:44px}.graph-document-tabs__menu>summary{width:44px}.side-tabs button{width:44px;min-width:44px;padding-inline:4px}.side-tabs button>svg{width:22px;height:22px}}
 @media(max-width:590px){.top .brand span{display:none}.graph-document-tabs__tab{max-width:34vw}}
+@media(pointer:coarse){.graph-document-tabs__strip .graph-document-tabs__rename{min-width:44px;min-height:44px}}

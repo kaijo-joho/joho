@@ -8,6 +8,8 @@
 .top .brand small{font-size:9px;line-height:16px;padding:0 3px}
 .top .toolbar-control{display:inline-flex;align-items:center;justify-content:center;flex:none;width:var(--graph-toolbar-icon);min-height:var(--graph-toolbar-button);height:var(--graph-toolbar-button);border-radius:7px;padding:2px;font-size:inherit;line-height:1.2}
 .top .toolbar-control svg{width:calc(22px * var(--ui-k));height:calc(22px * var(--ui-k));flex:none;margin:0}
+.top .joho-file-menu>summary{width:auto;min-width:var(--graph-toolbar-icon);padding-inline:3px}
+.top .joho-file-menu__items{position:fixed;font-size:1rem;z-index:35;--hover:var(--accent-soft)}
 .top .compact-only{display:none}
 .top #help-button{font-size:calc(17px * var(--ui-k))}
 .top .sep{flex:none;width:1px;height:calc(20px * var(--ui-k));margin-inline:2px;background:var(--line)}

@@ -42,8 +42,8 @@ let browser;
   const url = `http://127.0.0.1:${server.address().port}/tools/graph/index.html`;
   await page.goto(url); await page.waitForFunction(() => window.GraphEditor && !GraphEditor.getState().drawing);
   const documentBefore = await page.evaluate(() => GraphEditor.getDocument());
-  await page.locator('#file-menu summary').click(); await page.locator('#start-local-auto').click();
-  await page.waitForFunction(() => window.__graphFakeFS.state.auto.text.length > 0 && document.querySelector('#stop-local-auto').disabled === false);
+  await page.locator('#file-menu summary').click(); await page.locator('#file-autosave').click();
+  await page.waitForFunction(() => window.__graphFakeFS.state.auto.text.length > 0 && GraphEditor.getState().localAutosave);
   const initial = await page.evaluate(() => JSON.parse(__graphFakeFS.state.auto.text));
   assert.equal(initial.format, 'kaijo-graph'); assert.deepStrictEqual(initial, documentBefore, 'initial auto-save writes the current graph JSON');
 
@@ -59,7 +59,7 @@ let browser;
 
   await page.evaluate(() => __graphFakeFS.externalChange());
   await seriesAdd(); await page.locator('#add-function').click(); await expression.fill('y = cos(x)'); await page.locator('#dialog-submit').click();
-  await page.waitForFunction(() => document.querySelector('#stop-local-auto').disabled && document.querySelector('#save-status').textContent.includes('外部で変更'));
+  await page.waitForFunction(() => !GraphEditor.getState().localAutosave && document.querySelector('#save-status').textContent.includes('外部で変更'));
   const afterExternal = await page.evaluate(() => GraphEditor.getDocument());
   assert(afterExternal.series.some(s => s.expression === 'y = cos(x)'), 'external change stops only local saving, not editing');
   await page.waitForTimeout(350);

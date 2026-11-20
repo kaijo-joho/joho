@@ -8,7 +8,7 @@
     const states = new Map([...top.querySelectorAll('details.menu')].map(menu => [menu, {pinned: false, timer: null}]));
     let condensed = false, frame;
     const summary = menu => menu.querySelector(':scope > summary');
-    const panel = menu => menu.querySelector(':scope > .menu-panel');
+    const panel = menu => menu.querySelector(':scope > .menu-panel, :scope > .joho-file-menu__items');
     const visible = el => !!el.getClientRects().length;
     function close(menu, restore = false) {
       for (const [child, state] of states) if (child === menu || menu.contains(child)) {
@@ -52,6 +52,14 @@
     for (const [menu, state] of states) {
       const trigger = summary(menu), contents = panel(menu);
       trigger.setAttribute('aria-controls', contents.id); trigger.setAttribute('aria-expanded', String(menu.open));
+      // 共通ファイルメニュー自身がクリック・ホバー・キー操作を管理する。
+      if(menu.classList.contains('joho-file-menu')){
+        menu.addEventListener('toggle',()=>{
+          trigger.setAttribute('aria-expanded',String(menu.open));
+          if(menu.open){options.onOpen?.();for(const other of states.keys())if(other!==menu)close(other);queuePosition();}
+        });
+        continue;
+      }
       trigger.addEventListener('pointerenter', event => { if (event.pointerType === 'mouse') open(menu); });
       trigger.addEventListener('click', event => {
         event.preventDefault();

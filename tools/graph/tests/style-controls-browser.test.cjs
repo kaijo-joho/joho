@@ -25,6 +25,10 @@ let browser,page;
   // The actual native color input is the palette control, without an intervening dialog.
   await control('custom-color').fill('#123456');await settle();
   assert(!await dialog.isVisible());assert.equal((await doc()).series[0].style.color,'#123456');
+  assert.equal(await control('custom-color-hex').inputValue(),'#123456');
+  await control('custom-color-hex').fill('#AB09EF');await control('custom-color-hex').press('Enter');await settle();assert.equal((await doc()).series[0].style.color,'#ab09ef');
+  await control('custom-color-hex').fill('oops');await control('custom-color-hex').press('Enter');assert.equal((await doc()).series[0].style.color,'#ab09ef');assert.equal(await control('custom-color-hex').getAttribute('aria-invalid'),'true');
+  await control('custom-color-hex').press('Escape');assert.equal(await control('custom-color-hex').inputValue(),'#ab09ef');
   const before=await doc();
   await control('width-slider').evaluate(el=>{el.value='7';el.dispatchEvent(new Event('input',{bubbles:true}));});await settle();
   assert.equal(await control('width').inputValue(),'7');assert.equal((await doc()).series[0].style.width,before.series[0].style.width,'preview does not change saved data');

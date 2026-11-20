@@ -19,3 +19,8 @@
 .add-menu-panel .full-button[data-icon],.add-menu-panel .add-grid>button{display:flex;align-items:center;justify-content:center;gap:6px;white-space:normal}
 .add-menu-panel .analysis-add-grid>button{justify-content:flex-start}
 .add-menu-panel .full-button[data-icon]>svg,.add-menu-panel .add-grid>button>svg{flex:none;width:22px;height:22px;margin:0}
+/* 色ピッカーの数値欄と重複させず、色コードを直接受け渡せる入口。 */
+.direct-color-control{display:contents}
+.quick-palette .style-hex{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-basis:100%;min-width:0;font-size:.85rem;margin-top:2px}
+.style-hex input{min-width:0;width:8em;max-width:50%;font-family:ui-monospace,monospace}
+.style-hex input[aria-invalid=true]{border-color:var(--danger)}

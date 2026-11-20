@@ -1,6 +1,7 @@
 const assert = require('assert');
 const Core = require('../core.js');
 const { Store, PREFIX } = require('../document-store.js');
+const { RESUME_KEY } = require('../document-store.js');
 
 class MemoryStorage {
   constructor() { this.values = new Map(); this.failSet = false; }
@@ -16,6 +17,26 @@ const store = new Store(storage);
 const first = Core.createDocument(); first.name = '一つ目';
 const second = Core.createDocument(); second.name = '二つ目';
 const editRanges = { equalScale: false, axes: { x: { min: -3, max: 3 }, y: { min: -4, max: 4 }, z: { min: -5, max: 5 } } };
+
+const resumeStorage = new MemoryStorage(), resumeStore = new Store(resumeStorage);
+assert.equal(resumeStore.loadResume(),null);
+const resume={version:1,id:'resume-document',document:first,editRanges,savedKey:null,saveTarget:'local',workspaceView:'not-a-chart',plotViews:{main:{'xaxis.range':[-1,1],unsafe:'ignored'}}};
+resumeStore.save('resume-document','saved',second);
+const beforeResume=resumeStore.load('resume-document','saved');
+resumeStore.saveResume(resume);
+assert.equal(resumeStore.loadResume().document.name,first.name);
+assert.equal(resumeStore.loadResume().workspaceView,'main');
+assert.deepEqual(resumeStore.loadResume().plotViews,{main:{'xaxis.range':[-1,1]}});
+assert.deepEqual(resumeStore.load('resume-document','saved'),beforeResume,'再開で明示保存は変わらない');
+assert.equal(resumeStore.list().entries.length,1,'再開記録を保存候補に混ぜない');
+resumeStorage.failSet=true;
+assert.throws(()=>resumeStore.saveResume({...resume,document:second}),/quota/);
+assert.equal(resumeStore.loadResume().document.name,first.name,'保存失敗時は前の再開記録を保持');
+resumeStorage.failSet=false;resumeStorage.setItem(RESUME_KEY,'{broken');
+assert.throws(()=>resumeStore.loadResume(),/ブラウザから開く/);
+assert.deepEqual(resumeStore.load('resume-document','saved'),beforeResume);
+assert.throws(()=>resumeStore.saveResume({...resume,document:{}}));
+assert.throws(()=>resumeStore.saveResume({...resume,saveTarget:'other'}));
 
 for (const [id, doc] of [['doc-one', first], ['doc-two', second]]) {
   store.save(id, 'auto', doc);

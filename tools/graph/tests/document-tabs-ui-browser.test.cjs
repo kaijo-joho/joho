@@ -24,7 +24,7 @@ let browser, page;
   await page.evaluate(() => {
     window.events = []; window.tabList = [{ id: 'a', name: '最初のグラフは長い名前です', dirty: true }, { id: 'b', name: '比較用グラフも長い名前です', busy: true }, { id: 'c', name: '最後のグラフも長い名前です' }];
     window.tabs = GraphDocumentTabs.create(document.querySelector('#document-tabs'), {
-      onSelect: id => { events.push(['select', id]); tabs.render(tabList, id); }, onClose: id => events.push(['close', id]), onMenuOpen: () => events.push(['menu'])
+      onSelect: id => { events.push(['select', id]); tabs.render(tabList, id); }, onClose: id => events.push(['close', id]), onRename: (id,origin) => events.push(['rename',id,origin]), onMenuOpen: () => events.push(['menu'])
     });
     tabs.render(tabList, 'a');
   });
@@ -38,7 +38,7 @@ let browser, page;
   await page.locator('.graph-document-tabs__menu > summary').click(); assert.equal(await page.locator('.graph-document-tabs__menu').evaluate(menu => menu.open), true);
   await page.keyboard.press('ArrowDown'); assert.equal(await page.evaluate(() => document.activeElement.dataset.documentTabId), 'a');
   await page.keyboard.press('ArrowDown'); assert.equal(await page.evaluate(() => document.activeElement.dataset.documentTabId), 'b');
-  await page.keyboard.press('End'); assert.equal(await page.evaluate(() => document.activeElement.dataset.documentTabId), 'c');
+  await page.keyboard.press('End'); assert.equal(await page.evaluate(() => document.activeElement.dataset.documentTabRename), 'c');
   await page.keyboard.press('Home'); assert.equal(await page.evaluate(() => document.activeElement.dataset.documentTabId), 'a');
   await page.keyboard.press('Escape'); assert.equal(await page.locator('.graph-document-tabs__menu').evaluate(menu => menu.open), false);
   await page.locator('.graph-document-tabs__menu > summary').click(); await page.locator('#outside').click(); assert.equal(await page.locator('.graph-document-tabs__menu').evaluate(menu => menu.open), false, '外側クリックで一覧を閉じる');
@@ -51,5 +51,7 @@ let browser, page;
   assert.equal(visible.id, 'a'); assert(visible.visible && visible.starts, '一覧から先頭タブへ戻すと名前の先頭を表示する');
   await page.locator('.top').evaluate(el => { el.style.width = '160px'; }); await page.waitForTimeout(50);
   assert.equal(await page.locator('[role="tab"][aria-selected="true"]').getAttribute('data-document-tab-id'), 'a');
+  await page.locator('.graph-document-tabs__strip [data-document-tab-rename="a"]').tap();
+  assert.deepEqual(await page.evaluate(()=>events.at(-1)),['rename','a','rename']);
   console.log('document-tabs-ui-browser.test.cjs: ok');
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(async () => { if (browser) await browser.close(); await new Promise(resolve => server.close(resolve)); });

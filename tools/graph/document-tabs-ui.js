@@ -54,7 +54,11 @@
     }
 
     function onTabKeydown(event) {
+      if(event.isComposing||event.keyCode===229)return;
       const id = event.currentTarget.dataset.documentTabId;
+      if(event.key==='F2'){
+        event.preventDefault();event.stopPropagation();close();options.onRename?.(id,'tab');return;
+      }
       const direction = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : event.key === 'Home' ? 'first' : event.key === 'End' ? 'last' : null;
       if (direction !== null) {
         event.preventDefault();
@@ -69,7 +73,7 @@
     }
 
     function menuChoices(panel) {
-      return [...panel.querySelectorAll('[role="menuitemradio"]:not(:disabled)')];
+      return [...panel.querySelectorAll('button:not(:disabled)')];
     }
 
     function onMenuKeydown(event, panel) {
@@ -89,6 +93,7 @@
       button.setAttribute('aria-selected', String(tab.id === active));
       button.setAttribute('aria-label', tab.name + (tab.dirty ? '（未保存）' : '') + (tab.busy ? '（処理中）' : ''));
       button.title = tab.name + (tab.dirty ? '（未保存）' : '');
+      button.dataset.tip = button.title;
       if (tab.busy) button.setAttribute('aria-busy', 'true');
       button.tabIndex = tab.id === active ? 0 : -1;
       const name = document.createElement('span');
@@ -103,6 +108,7 @@
         button.append(dirty);
       }
       button.addEventListener('click', () => select(tab.id));
+      button.addEventListener('dblclick', () => { close(); options.onRename?.(tab.id,'tab'); });
       button.addEventListener('keydown', onTabKeydown);
       return button;
     }
@@ -114,12 +120,23 @@
       button.dataset.documentTabClose = tab.id;
       button.setAttribute('aria-label', tab.name + 'を閉じる');
       button.title = tab.name + 'を閉じる';
+      button.dataset.tip = button.title;
       button.append(GraphIcons.create('close', button.ownerDocument));
       button.disabled = !!tab.busy;
       button.addEventListener('click', event => { event.stopPropagation(); close(); emit('close', tab.id); });
       button.addEventListener('keydown', event => {
         if (event.key === 'Delete' || event.key === 'Backspace') { event.preventDefault(); event.stopPropagation(); }
       });
+      return button;
+    }
+
+    function renameButton(tab, menuItem = false) {
+      const button=document.createElement('button');button.type='button';
+      button.className='graph-document-tabs__rename';button.dataset.documentTabRename=tab.id;
+      button.setAttribute('aria-label','名前を変更…');button.dataset.tip='名前を変更…';
+      button.append(GraphIcons.create('rename',button.ownerDocument));
+      if(menuItem){button.role='menuitem';button.append(document.createTextNode('名前を変更…'));}
+      button.addEventListener('click',()=>{close();options.onRename?.(tab.id,menuItem?'menu':'rename');});
       return button;
     }
 
@@ -130,6 +147,7 @@
       summary.setAttribute('aria-label', '開いているグラフの一覧');
       summary.setAttribute('aria-expanded', 'false');
       summary.title = '開いているグラフの一覧';
+      summary.dataset.tip = summary.title;
       summary.textContent = '▾';
       const panel = document.createElement('div');
       panel.className = 'graph-document-tabs__menu-panel';
@@ -145,6 +163,8 @@
         item.addEventListener('click', () => select(tab.id));
         panel.append(item);
       }
+      const current=tabById(active);
+      if(current){panel.append(document.createElement('hr'),renameButton(current,true));}
       details.append(summary, panel);
       const open = pinned => {
         clearTimeout(menuTimer);
@@ -180,8 +200,9 @@
 
     function render(tabs, activeId) {
       const focused = document.activeElement;
-      const focusId = focused?.dataset?.documentTabId || focused?.dataset?.documentTabClose;
+      const focusId = focused?.dataset?.documentTabId || focused?.dataset?.documentTabClose || focused?.dataset?.documentTabRename;
       const focusClose = !!focused?.dataset?.documentTabClose;
+      const focusRename = !!focused?.dataset?.documentTabRename;
       latestTabs = Array.isArray(tabs) ? tabs.map(tab => ({ id: String(tab.id), name: String(tab.name || '無題のグラフ'), dirty: !!tab.dirty, busy: !!tab.busy })) : [];
       active = latestTabs.some(tab => tab.id === String(activeId)) ? String(activeId) : latestTabs[0]?.id || null;
       root.classList.add('graph-document-tabs');
@@ -193,11 +214,13 @@
       for (const tab of latestTabs) {
         const item = document.createElement('div');
         item.className = 'graph-document-tabs__item';
-        item.append(documentTab(tab), closeButton(tab));
+        item.append(documentTab(tab));
+        if(tab.id===active)item.append(renameButton(tab));
+        item.append(closeButton(tab));
         strip.append(item);
       }
       root.append(strip, menu(latestTabs));
-      const restore = focusId && latestTabs.some(tab => tab.id === focusId) ? root.querySelector(focusClose ? '[data-document-tab-close="' + CSS.escape(focusId) + '"]' : '[role="tab"][data-document-tab-id="' + CSS.escape(focusId) + '"]') : null;
+      const restore = focusId && latestTabs.some(tab => tab.id === focusId) ? root.querySelector(focusClose ? '[data-document-tab-close="' + CSS.escape(focusId) + '"]' : focusRename ? '.graph-document-tabs__strip [data-document-tab-rename="' + CSS.escape(focusId) + '"]' : '[role="tab"][data-document-tab-id="' + CSS.escape(focusId) + '"]') : null;
       if (restore) restore.focus({ preventScroll: true });
       const activeButton = root.querySelector('[role="tab"][aria-selected="true"]');
       if (activeButton) keepInView(strip, activeButton);
@@ -222,7 +245,18 @@
       root.querySelector('.graph-document-tabs__menu > summary')?.focus({ preventScroll: true });
     }, true);
 
-    return { render, close, refresh };
+    function restoreFocus(id, origin) {
+      if(origin==='menu'){
+        const details=root.querySelector('details'),item=details.querySelector('[data-document-tab-id="'+CSS.escape(active)+'"]');
+        if(item){options.onMenuOpen?.();details.open=true;menuPinned=true;item.focus();return;}
+      }
+      if(origin==='rename'){
+        const button=root.querySelector('.graph-document-tabs__strip [data-document-tab-rename="'+CSS.escape(id)+'"]');
+        if(button){button.focus();return;}
+      }
+      focusTab(id);
+    }
+    return { render, close, refresh, restoreFocus };
   }
 
   window.GraphDocumentTabs = { create };

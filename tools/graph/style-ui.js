@@ -29,10 +29,17 @@
     controls.set(group,{sync});sync(value);return group;
   }
   function color(value,onChange,{key='custom-color',label='自由な色（RGB）',document:doc=root.document}={}){
+    const group=node(doc,'div',null,{class:'direct-color-control'});
     const wrap=node(doc,'label',null,{class:'quick-color custom-color direct-color','data-tip':'自由な色・RGBで指定'}),input=node(doc,'input',null,{type:'color','aria-label':label,'data-quick-control':key});
     const swatch=node(doc,'span',null,{'aria-hidden':'true'});wrap.append(swatch,input);
-    function sync(next){input.value=next||'#2563eb';wrap.style.setProperty('--swatch-color',next||'#64748b');}
-    input.addEventListener('change',()=>{onChange(input.value);sync(input.value);});controls.set(input,{sync});sync(value);return wrap;
+    const hexLabel=label.replace('（RGB）','')+'（16進数）',heading=node(doc,'label',hexLabel,{class:'style-hex'});
+    const hex=node(doc,'input',null,{type:'text',maxlength:7,spellcheck:'false','aria-label':hexLabel,'data-quick-control':key+'-hex'});heading.append(hex);group.append(wrap,heading);let committed=value;
+    function sync(next){committed=next;input.value=next||'#2563eb';hex.value=next||'';hex.placeholder=next?'#rrggbb':'混在';hex.setCustomValidity('');hex.removeAttribute('aria-invalid');wrap.style.setProperty('--swatch-color',next||'#64748b');}
+    function commitHex(){const next=hex.value.trim();if(!/^#[0-9a-f]{6}$/i.test(next)){hex.setAttribute('aria-invalid','true');hex.setCustomValidity('「#」と6桁の16進数で入力してください。例：#2563eb');hex.reportValidity();return;}onChange(next.toLowerCase());sync(next.toLowerCase());}
+    hex.addEventListener('input',()=>{hex.setCustomValidity('');hex.removeAttribute('aria-invalid');});
+    hex.addEventListener('change',event=>{if(!event.isComposing)commitHex();});
+    hex.addEventListener('keydown',event=>{if(event.isComposing||event.keyCode===229)return;if(event.key==='Escape'){event.preventDefault();event.stopPropagation();sync(committed);}if(event.key==='Enter'){event.preventDefault();commitHex();}});
+    input.addEventListener('change',()=>{onChange(input.value);sync(input.value);});controls.set(input,{sync});controls.set(hex,{sync});sync(value);return group;
   }
   function sync(element,value){if(controls.has(element)){controls.get(element).sync(value);return true;}return false;}
   root.GraphStyleUI=Object.freeze({range,dash,color,sync});

@@ -10,6 +10,7 @@
 
   const PREFIX = 'kaijo-graph:documents:';
   const LEGACY_PREFIX = 'kaijo-graph:';
+  const RESUME_KEY = LEGACY_PREFIX + 'resume';
   const KINDS = ['auto', 'saved'];
   const ID_PATTERN = /^[A-Za-z0-9_/-]{1,100}$/;
   const object = value => value && typeof value === 'object' && !Array.isArray(value);
@@ -73,6 +74,30 @@
     });
   }
 
+  // 再開情報は自動／明示保存と独立させる。ファイル権限・ハンドルは保持しない。
+  function resumeRecord(value) {
+    if (!object(value) || value.version !== 1 || !['browser', 'local', null].includes(value.saveTarget)
+      || !(value.savedKey === null || typeof value.savedKey === 'string')) fail('再開用の記録が不正です。');
+    const document = Core.validateDocument(value.document), editRanges = sanitizeEditRanges(value.editRanges);
+    if (!editRanges) fail('再開用の表示範囲が不正です。');
+    const workspaceView = value.workspaceView === 'comparison' || document.charts.some(chart => chart.id === value.workspaceView) ? value.workspaceView : 'main';
+    const record = { version: 1, id: checkId(value.id), document, editRanges, savedKey: value.savedKey,
+      saveTarget: value.saveTarget, workspaceView, camera: null, plotViews: {} };
+    const camera = value.camera;
+    if (object(camera) && ['eye', 'center', 'up'].every(key => object(camera[key]) && ['x','y','z'].every(axis => Number.isFinite(camera[key][axis])))) {
+      record.camera = Object.fromEntries(['eye', 'center', 'up'].map(key => [key, Object.fromEntries(['x','y','z'].map(axis => [axis, camera[key][axis]]))]));
+      if (['orthographic', 'perspective'].includes(camera.projection?.type)) record.camera.projection = { type: camera.projection.type };
+    }
+    // 分析・比較の2D表示範囲。任意のレイアウト属性は復元しない。
+    if (object(value.plotViews)) for (const [view, ranges] of Object.entries(value.plotViews)) {
+      if (!(view === 'main' || /^(chart|comparison):[A-Za-z0-9_-]+$/.test(view)) || !object(ranges)) continue;
+      const clean = Object.fromEntries(Object.entries(ranges).filter(([key, range]) => /^[xy]axis\d*\.range$/.test(key)
+        && Array.isArray(range) && range.length === 2 && range.every(Number.isFinite) && range[0] !== range[1]));
+      if (Object.keys(clean).length) record.plotViews[view] = clean;
+    }
+    return record;
+  }
+
   class Store {
     constructor(storage) {
       if (!storage || typeof storage.getItem !== 'function' || typeof storage.setItem !== 'function') {
@@ -83,6 +108,19 @@
 
     _read(key) {
       return this.storage.getItem(key);
+    }
+
+    saveResume(value) {
+      const record = resumeRecord(value);
+      this.storage.setItem(RESUME_KEY, JSON.stringify(record));
+      return record;
+    }
+
+    loadResume() {
+      const raw = this._read(RESUME_KEY);
+      if (raw === null || raw === undefined) return null;
+      try { return resumeRecord(JSON.parse(raw)); }
+      catch (cause) { throw new Error('直前のグラフを再開できません。「ブラウザから開く…」で保存内容を選んでください。', { cause }); }
     }
 
     save(id, kind, doc, options = {}) {
@@ -171,5 +209,5 @@
     }
   }
 
-  return Object.freeze({ Store, PREFIX });
+  return Object.freeze({ Store, PREFIX, RESUME_KEY });
 });

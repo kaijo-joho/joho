@@ -28,13 +28,13 @@ let browser;
   const settle = () => page.waitForFunction(() => window.GraphEditor && !GraphEditor.getState().drawing);
   await page.goto(url); await settle();
   const assets = await page.locator('script[src],link[rel="stylesheet"]').evaluateAll(nodes => nodes.map(node => new URL(node.src || node.href)) .map(url => ({name: url.pathname.split('/').pop(), version: url.searchParams.get('v')})));
-  for (const name of ['icons.js', 'editor.js', 'document-tabs-ui.js', 'data-import-ui.js', 'editor.css', 'document-tabs.css']) assert.equal(assets.find(asset => asset.name === name)?.version, '0.23.1', name + ' cache version');
+  for (const name of ['icons.js', 'editor.js', 'document-tabs-ui.js', 'data-import-ui.js', 'editor.css', 'document-tabs.css']) assert.equal(assets.find(asset => asset.name === name)?.version, '0.24.0', name + ' cache version');
   assert.equal(assets.find(asset => asset.name === 'ui-icons.js')?.version, '20261113');
   const original = await page.evaluate(() => GraphEditor.getDocument());
   const mapping = {
     '#file-menu > summary': 'file', '#new-document': 'new', '#save-current': 'save',
     '#save-browser': 'save', '#save-local': 'save', '#open-saved': 'open', '#open-local': 'open',
-    '#start-local-auto': 'refresh', '#stop-local-auto': 'stop', '#undo': 'undo', '#redo': 'redo',
+    '#file-autosave': 'refresh', '#undo': 'undo', '#redo': 'redo',
     '#display-menu > summary': 'view', '#view-menu > summary': 'settings', '#help-button': 'help',
     '#toolbar-more > summary': 'more', '#zoom-toggle': 'zoom-in', '#fit-button': 'fit',
     '[data-theme-value="auto"]': 'theme-auto', '[data-theme-value="light"]': 'theme-light', '[data-theme-value="dark"]': 'theme-dark',
@@ -53,7 +53,7 @@ let browser;
   assert.equal(await page.locator('#add-parameter svg').getAttribute('data-joho-icon'), null);
   assert.equal(await page.locator('#undo').isDisabled(), true);
   assert.equal(await page.locator('#redo').isDisabled(), true);
-  assert.equal(await page.locator('#stop-local-auto').isDisabled(), true);
+  assert.equal(await page.locator('#file-autosave').isDisabled(), false);
   for (const [theme, osTheme] of [['light', 'light'], ['dark', 'light'], ['auto', 'light'], ['auto', 'dark']]) {
     await page.emulateMedia({colorScheme: osTheme});
     await Toolbar.setAppearance(page, {theme}); await settle();
