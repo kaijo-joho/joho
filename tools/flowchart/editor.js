@@ -69,7 +69,8 @@
   const objects = () => [...selectedNodes(), ...selectedEdges()];
   const content = () => doc.nodes.length || doc.edges.length;
   const dirty = () => JSON.stringify(doc, null, 2) !== saved;
-  const isInput = target => target instanceof Element && (!!target.closest('input,textarea,select,details.menu,[contenteditable=true]') || !!ui?.contains(target));
+  const isInput = target => target instanceof Element && (!!target.closest('input,textarea,select,[contenteditable=true]') || !!ui?.contains(target));
+  const isMenu = target => target instanceof Element && !!target.closest('details.menu');
   const isDialog = () => !!document.querySelector('dialog[open]');
   const snapped = n => $('snap').checked ? Math.round(n / 10) * 10 : n;
   const studentMode = () => !!doc.lesson?.studentMode;
@@ -1256,10 +1257,10 @@
   $('ungroup-button').onclick = () => { if (selectionEditable()) change(() => C.ungroupSelection(doc, [...selected])); };
   $('lock-button').onclick = () => { if (!selected.size || studentMode()) return; const locked = !objects().every(o => o.locked); change(() => C.setLocked(doc, [...selected], locked), { allowLockChange: true }); };
   $('lock-lane').onclick = () => { if (!lane() || studentMode()) return; change(() => C.setLocked(doc, [laneId], !lane().locked), { allowLockChange: true }); };
-  document.addEventListener('copy', event => { if (isInput(event.target) || isDialog() || !selected.size) return; const value = copy(); event.clipboardData.setData('text/plain', value); event.preventDefault(); });
-  document.addEventListener('cut', event => { if (isInput(event.target) || isDialog() || !selected.size) return; event.clipboardData.setData('text/plain', copy()); event.preventDefault(); remove(); });
+  document.addEventListener('copy', event => { if (isInput(event.target) || isMenu(event.target) || isDialog() || !selected.size) return; const value = copy(); event.clipboardData.setData('text/plain', value); event.preventDefault(); });
+  document.addEventListener('cut', event => { if (isInput(event.target) || isMenu(event.target) || isDialog() || !selected.size) return; event.clipboardData.setData('text/plain', copy()); event.preventDefault(); remove(); });
   document.addEventListener('paste', event => {
-    if (isInput(event.target) || isDialog()) return;
+    if (isInput(event.target) || isMenu(event.target) || isDialog()) return;
     const text = event.clipboardData?.getData('text/plain');
     if (!text) return;
     try { const data = JSON.parse(text); if (!Array.isArray(data.nodes) || !Array.isArray(data.edges)) return; clipboard = data; if (text !== lastCopied) pastedCount = 0; paste(data); event.preventDefault(); } catch { /* Ordinary pasted text is left to the browser. */ }
@@ -2071,6 +2072,7 @@
     if (event.key === 'Escape' && toolbar.dataset.compact === 'true' && toolbarOptions.classList.contains('is-open')) { event.preventDefault(); setToolbarOpen(false, true); return; }
     if (isInput(event.target)) return;
     const key = event.key.toLowerCase(), command = event.metaKey || event.ctrlKey;
+    if (isMenu(event.target) && !command) return;
     if (event.key === '?' && !command && !drag && !connection) { event.preventDefault(); $('help-button').click(); return; }
     if (event.key === 'Alt' && drag?.type === 'move') { event.preventDefault(); updateMove(true); return; }
     if (trace && event.key === 'Escape') { event.preventDefault(); stopTrace(); return; }

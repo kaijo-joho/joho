@@ -56,6 +56,10 @@ async function main() {
     assert.equal(await page.locator('#document-title').inputValue(),'確定前の名前','Rendering while the confirm button is focused preserves the rename draft');
     await page.keyboard.press('Escape'); await page.locator('#rename-dialog').waitFor({state:'hidden'});
     assert.deepEqual(await docOf(page),renamed);
+    assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('#file-menu>summary')),true);
+    await page.keyboard.press(command+'+s');
+    await page.waitForFunction(()=>JSON.parse(localStorage.getItem('kaijo.diagram.saved.v1'))?.document.title==='変更した図');
+    assert.notEqual((await snapshots(page))[1],saved[1],'The save shortcut works after rename returns focus to a closed file menu');
     await page.evaluate(()=>DiagramEditor.select(['common_a']));
     const beforeMenu=await snapshots(page);
     if (!await page.locator('#file-menu').evaluate(el=>el.open)) await page.locator('#file-menu>summary').click();
@@ -65,7 +69,6 @@ async function main() {
     assert.deepEqual(await snapshots(page),beforeMenu);
     await page.locator('#file-menu>summary').press('Escape');
     const beforeOpen=await snapshots(page);
-    await page.locator('#canvas').focus();
     const chooserPromise=page.waitForEvent('filechooser'); await page.keyboard.press(command+'+o');
     const chooser=await chooserPromise; await chooser.setFiles({name:'別の図.diagram.json',mimeType:'application/json',buffer:Buffer.from(Core.serializeDocument(fixture('別の図')))});
     await page.locator('#storage-open-dialog').waitFor({state:'visible'});
