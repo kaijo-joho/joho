@@ -50,6 +50,20 @@ async function main() {
     await page.locator('#rename-dialog').getByRole('button',{name:'キャンセル',exact:true}).click();
     assert.deepEqual(await docOf(page),renamed,'Blank names and cancellation preserve the diagram');
     assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('#file-menu>summary')),true);
+    await action(page,'rename'); await page.locator('#document-title').fill('確定前の名前');
+    await page.locator('#rename-form button[type=submit]').focus();
+    await page.evaluate(()=>DiagramEditor.select([]));
+    assert.equal(await page.locator('#document-title').inputValue(),'確定前の名前','Rendering while the confirm button is focused preserves the rename draft');
+    await page.keyboard.press('Escape'); await page.locator('#rename-dialog').waitFor({state:'hidden'});
+    assert.deepEqual(await docOf(page),renamed);
+    await page.evaluate(()=>DiagramEditor.select(['common_a']));
+    const beforeMenu=await snapshots(page);
+    if (!await page.locator('#file-menu').evaluate(el=>el.open)) await page.locator('#file-menu>summary').click();
+    await page.locator('[data-file-action=new]').focus();
+    for (const key of ['Backspace','Delete','t']) await page.keyboard.press(key);
+    assert.deepEqual(await docOf(page),renamed,'Keys within a file menu do not edit the selected diagram');
+    assert.deepEqual(await snapshots(page),beforeMenu);
+    await page.locator('#file-menu>summary').press('Escape');
     const beforeOpen=await snapshots(page);
     await page.locator('#canvas').focus();
     const chooserPromise=page.waitForEvent('filechooser'); await page.keyboard.press(command+'+o');
@@ -127,7 +141,24 @@ async function main() {
       assert.equal(await p.locator('#operation-help:visible,#help-dialog:visible').count(),1,missing+' retains help');
       await c.close();
     }
-    console.log(JSON.stringify({ok:true,coverage:['file menu','rename/cancel','file shortcut/cancel','snapshot preservation','file roundtrip','nonmodal help and keyboard isolation','27 display conditions','touch','optional resource failures','no external requests'],artifacts},null,2));
+    const partial=await browser.newContext();
+    await partial.route('**/ui-icons.js*',async route=>{
+      const response=await route.fetch();
+      await route.fulfill({response,body:await response.text()+`\n{const original=window.JohoIcons;window.JohoIcons={...original,create(id,...args){if(id==='theme-auto')throw new Error('simulated theme initialization failure');return original.create(id,...args)}}}`});
+    });
+    const p=await partial.newPage(), partialErrors=[]; p.on('pageerror',e=>partialErrors.push(e.message));
+    await p.goto(hosting.url); await p.waitForFunction(()=>!!window.DiagramEditor);
+    await load(p,fixture('補助UI初期化の失敗'));
+    await p.evaluate(()=>DiagramEditor.select(['common_a']));
+    const beforePartial=await docOf(p), partialSnapshots=await snapshots(p);
+    await p.locator('#help-button').click(); await p.locator('#operation-help .tool-help__move').focus();
+    await p.keyboard.press('Delete');
+    assert.deepEqual(await docOf(p),beforePartial,'A theme initialization failure does not remove help keyboard isolation');
+    assert.deepEqual(await snapshots(p),partialSnapshots); assert.deepEqual(partialErrors,[]);
+    await p.locator('#operation-help [data-help-close]').click();
+    await p.locator('#settings-menu>summary').click(); assert.equal(await p.locator('#theme').isVisible(),true,'The theme select remains available as fallback');
+    await partial.close();
+    console.log(JSON.stringify({ok:true,coverage:['file menu and keyboard isolation','rename/cancel/rerender','file shortcut/cancel','snapshot preservation','file roundtrip','nonmodal help and keyboard isolation','27 display conditions','touch','optional resource and partial initialization failures','no external requests'],artifacts},null,2));
   } finally {await browser.close();await hosting.close();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

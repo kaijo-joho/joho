@@ -175,7 +175,7 @@
       paletteButton.dataset.tip = paletteButton.getAttribute('aria-label');
       options.layout(); help?.refresh();
     };
-    if (window.JohoIcons) {
+    try { if (window.JohoIcons) {
       const select = $('theme'), label = select.closest('label'), group = document.createElement('div');
       group.className = 'theme-options'; group.setAttribute('role','group'); group.setAttribute('aria-label','テーマ');
       for (const [value, name] of [['auto','自動'],['light','ライト'],['dark','ダーク']]) {
@@ -186,16 +186,19 @@
         group.append(button);
       }
       label.append(group); select.hidden = true;
+    } } catch {
+      $('theme').closest('label').querySelector('.theme-options')?.remove();
+      $('theme').hidden = false;
     }
     try { tooltip = window.JohoUI?.tooltip({ keyboard:true }); } catch { /* 保存や編集とは独立。 */ }
     document.querySelectorAll('button[aria-label],summary[aria-label]').forEach(button => {
       if (!button.dataset.tip && !button.title) button.dataset.tip = button.getAttribute('aria-label');
     });
     const update = ({ blocked = false, autosaving = false } = {}) => {
-      menu?.update({ autosaving });
+      try { menu?.update({ autosaving }); } catch { /* 補助描画の失敗で編集を止めない。 */ }
       for (const id of ['new-file','rename-file','open-file','open-local-file','autosave-settings']) if ($(id)) $(id).disabled = blocked;
       document.querySelectorAll('[data-theme-choice]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.themeChoice === $('theme').value)));
-      applyIcons();
+      try { applyIcons(); } catch { /* 元の図柄と操作名を残す。 */ }
     };
     update();
     return Object.freeze({

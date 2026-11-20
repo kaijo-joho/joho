@@ -69,7 +69,7 @@
   const objects = () => [...selectedNodes(), ...selectedEdges()];
   const content = () => doc.nodes.length || doc.edges.length;
   const dirty = () => JSON.stringify(doc, null, 2) !== saved;
-  const isInput = target => target instanceof Element && (!!target.closest('input,textarea,select,[contenteditable=true]') || !!ui?.contains(target));
+  const isInput = target => target instanceof Element && (!!target.closest('input,textarea,select,details.menu,[contenteditable=true]') || !!ui?.contains(target));
   const isDialog = () => !!document.querySelector('dialog[open]');
   const snapped = n => $('snap').checked ? Math.round(n / 10) * 10 : n;
   const studentMode = () => !!doc.lesson?.studentMode;
@@ -650,7 +650,8 @@
     if (layer === 'lanes' || trace || tool === 'part') $$('[data-node],[data-edge]').forEach(el => el.setAttribute('tabindex', '-1'));
     if (layer === 'diagram' || trace) $$('[data-lane]').forEach(el => el.setAttribute('tabindex', '-1'));
     renderFormat(); updateView();
-    setField('diagram-type', doc.diagramType); setField('document-title', doc.title);
+    setField('diagram-type', doc.diagramType);
+    if (!$('rename-dialog')?.open) setField('document-title', doc.title);
     $('layer-menu').hidden = !!trace || doc.diagramType !== 'activity'; $('create-lanes').hidden = doc.lanes.length > 0;
     if ($('layer-menu').hidden) $('layer-menu').open = false;
     $('add-lane').disabled = !!trace || doc.lanes.length >= 50; $('add-lane').title = doc.lanes.length >= 50 ? '担当領域は50個までです' : '右端に空の担当領域を追加します';
