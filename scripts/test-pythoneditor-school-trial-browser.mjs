@@ -51,12 +51,13 @@ async function remoteJournal(account) {
 }
 async function context(account, mode = 'school-trial') {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true }); contexts.push(ctx);
-  const fault = { loseSubmit: false, offline: false, denied: false };
+  const fault = { loseSubmit: false, offline: false, denied: false, holdSession: null };
   await ctx.exposeBinding('__schoolTrialRPC', async (_source, kind, action, input, key, requestOrigin) => {
     let raw;
     if (kind === 'trial') { raw = action; ({ action, input, expectedActorKey: key, origin: requestOrigin } = JSON.parse(raw)); }
     const envelope = value => kind === 'trial' ? JSON.stringify(value) : value;
     calls.push({ account, kind, action, input: structuredClone(input) });
+    if (kind === 'trial' && action === 'session' && fault.holdSession) await fault.holdSession;
     if (fault.offline) return envelope({ ok: false, error: { code: 'transport_failed', message: '合成の通信断です。送信控えは保持しています。' } });
     fixture.select(fault.denied ? FOURTH : account);
     const result = kind === 'preview' ? plain(fixture.context.teacherPythonPreviewRpc(action, input, key, requestOrigin)) : fixture.context.schoolPythonTrialJsonRpc(raw);
@@ -92,6 +93,28 @@ async function context(account, mode = 'school-trial') {
 }
 let currentPage;
 const expected = new Map();
+async function openLoginGuide(page) {
+  await page.locator('#settings-menu > summary').click();
+  await page.locator('#school-login-help').click();
+  assert.equal(await page.locator('#school-login-troubleshooting').evaluate(node => node.open), true);
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'school-login-troubleshooting-title');
+  assert.match(await page.locator('#school-login-intro').textContent(), /学校用のChromeプロファイル/);
+  assert.match(await page.locator('#school-login-guide').textContent(), /すべてのアカウントからログアウトする/);
+  assert.match(await page.locator('#school-login-guide').textContent(), /Gmail/);
+}
+async function reopenLogin(page, ctx) {
+  const before = await page.evaluate(() => ({ url: location.href, local: { ...localStorage }, code: document.querySelector('.CodeMirror')?.CodeMirror.getValue() }));
+  const count = calls.length;
+  const popupEvent = ctx.waitForEvent('page');
+  await page.locator('#cloud-login').click();
+  const popup = await popupEvent;
+  await popup.waitForURL('https://script.google.com/**');
+  const link = new URL(popup.url());
+  assert.deepEqual([...link.searchParams.keys()].sort(), ['channel', 'kind', 'origin']);
+  await popup.close();
+  assert.deepEqual(await page.evaluate(() => ({ url: location.href, local: { ...localStorage }, code: document.querySelector('.CodeMirror')?.CodeMirror.getValue() })), before);
+  assert.ok(calls.slice(count).every(call => call.action === 'session'), 'opening login cannot save, submit or clear a pending request');
+}
 try {
   for (const [account, role] of [[OWNER, '教員試用'], [SECOND, '教員試用'], [DEMO, '生徒権限試用']]) {
     const { ctx, fault } = await context(account), page = currentPage = await ctx.newPage();
@@ -100,6 +123,24 @@ try {
     const code = `${fullCode}\n# ${role} 保存fixture\n`; expected.set(account, code); const before = calls.filter(c => c.account === account && c.action === 'store' && c.input.action === 'saveDraft').length;
     await edit(page, code); await page.waitForTimeout(250);
     assert.equal(calls.filter(c => c.account === account && c.action === 'store' && c.input.action === 'saveDraft').length, before, 'ordinary typing must not cause short-period cloud saves');
+    if (account === OWNER) {
+      await openLoginGuide(page); await reopenLogin(page, ctx);
+      assert.equal(await getCode(page), code);
+      check('school profile and sign-in guidance reopens only the configured login tab without changing code or browser drafts');
+      let release;
+      fault.holdSession = new Promise(resolve => { release = resolve; });
+      await page.locator('#cloud-connect').click();
+      await page.waitForFunction(() => document.querySelector('#cloud-connect').disabled);
+      await page.waitForFunction(() => document.querySelector('#cloud-login').getAttribute('aria-disabled') === 'true');
+      const pages = ctx.pages().length;
+      await page.locator('#cloud-login').evaluate(link => link.click());
+      assert.equal(ctx.pages().length, pages);
+      assert.match(await page.locator('#school-login-action-status').textContent(), /処理中/);
+      assert.equal(await getCode(page), code);
+      release(); await waitIdle(page); fault.holdSession = null;
+      assert.equal(await getCode(page), code);
+      check('reopening login is blocked while a school request is processing and reconnect preserves edited code');
+    }
     await menu(page, 'save-cloud'); await saved(page);
     assert.equal(storeCall(account, 'getDraft', { tool: 'python', questionId: source.questionId, version: source.version }).draft.code, code);
     check(`${role}: authenticated actor stores code through actual school-trial/store GAS; typing alone does not send`);
@@ -129,6 +170,11 @@ try {
     await page.locator('#formal-submit').click(); await page.waitForSelector('#submit-dialog[open]'); await page.locator('#submit-confirm').click(); await waitIdle(page);
     await page.waitForFunction(() => document.querySelector('#formal-status').textContent.includes('完了未確認'));
     const pending = calls.filter(c => c.account === account && c.action === 'submit').at(-1).input;
+    if (account === OWNER) {
+      await openLoginGuide(page); await reopenLogin(page, ctx);
+      assert.equal(calls.filter(c => c.account === account && c.action === 'submit' && c.input.requestId === pending.requestId).length, 1);
+      check('a lost submission response keeps its exact pending journal while the login tab is reopened');
+    }
     if (!await page.locator('#status-menu').evaluate(element => element.open)) await page.locator('#status-menu > summary').click();
     await page.locator('#formal-query').click(); await waitIdle(page); await page.waitForFunction(() => document.querySelector('#formal-status').textContent === '試用提出済み');
     assert.equal(calls.filter(c => c.account === account && c.action === 'submit' && c.input.requestId === pending.requestId).length, 1);
@@ -150,7 +196,26 @@ try {
   assert.ok(await page.evaluate(() => Object.keys(localStorage).some(key => key.includes('archive.'))));
   check('fresh loan browser restores exact code/version, trial journal, accepted trial stars and submission history while preserving its old local code');
   await page.setViewportSize({ width: 390, height: 844 }); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true); await page.screenshot({ path: `${evidence}/${engine}-mobile.png` });
-  check('trial labels and stored-state controls fit a 390px viewport'); await loan.ctx.close();
+  check('trial labels and stored-state controls fit a 390px viewport');
+  const originalCode = await getCode(page);
+  for (const theme of ['auto', 'light', 'dark']) {
+    for (const size of await page.locator('#text-size option').evaluateAll(nodes => nodes.map(node => node.value))) {
+      await page.locator('#settings-menu > summary').click();
+      await page.locator('#theme').selectOption(theme); await page.locator('#text-size').selectOption(size);
+      await page.locator('#school-login-help').click();
+      await page.locator('#school-login-profile').evaluate(node => { node.open = true; });
+      const layout = await page.evaluate(() => {
+        const menu = document.querySelector('#status-menu .menu-body').getBoundingClientRect();
+        const summary = document.querySelector('#school-login-troubleshooting-title').getBoundingClientRect();
+        return { fits: document.documentElement.scrollWidth <= innerWidth && menu.left >= 0 && menu.right <= innerWidth && menu.bottom <= innerHeight,
+          touch: summary.height >= 44, focused: document.activeElement.id };
+      });
+      assert.equal(layout.fits, true); assert.equal(layout.touch, true); assert.equal(layout.focused, 'school-login-troubleshooting-title');
+      assert.equal(await getCode(page), originalCode);
+    }
+  }
+  await page.screenshot({ path: `${evidence}/${engine}-school-login-mobile.png` });
+  check('school login guidance fits 390px with all three themes and text sizes, keyboard focus and 44px disclosure controls'); await loan.ctx.close();
 
   const denied = await context(FOURTH), deniedPage = currentPage = await denied.ctx.newPage(); const flushes = fixture.state.flushes;
   await deniedPage.goto(url('school-trial')); await deniedPage.waitForSelector('#question-list button'); await deniedPage.locator('#cloud-connect').click();
@@ -159,6 +224,8 @@ try {
 
   const normal = await context(OWNER, 'normal'), normalPage = currentPage = await normal.ctx.newPage(); await normalPage.goto(url()); await normalPage.waitForSelector('#question-list button');
   assert.equal(await normalPage.locator('#cloud-connect').isDisabled(), true); assert.equal(await normalPage.locator('#trial-mode-note').isVisible(), false);
+  assert.equal(await normalPage.locator('#school-login-guide').evaluate(node => node.hidden), true);
+  assert.equal(await normalPage.locator('#school-login-help').evaluate(node => node.hidden), true);
   assert.equal(requests.filter(request => request.mode === 'normal' && /trial-ui|local-assessment/.test(request.url)).length, 0); check('normal editor retains disabled production connections and does not load trial evaluator'); await normal.ctx.close();
 
   const preview = await context(OWNER, 'teacher-preview'), previewPage = currentPage = await preview.ctx.newPage(); const priorCalls = calls.length;
@@ -166,6 +233,8 @@ try {
   await previewPage.waitForFunction(() => document.querySelector('#cloud-account').textContent.includes('配布検証') && !document.querySelector('#cloud-connect').disabled);
   for (const id of ['save-cloud', 'open-cloud', 'formal-submit']) assert.equal(await previewPage.locator('#' + id).isDisabled(), true);
   assert.ok(calls.slice(priorCalls).every(call => call.kind === 'preview' && call.action === 'session')); assert.equal(await previewPage.locator('#trial-mode-note').isVisible(), false);
+  await openLoginGuide(previewPage); await reopenLogin(previewPage, preview.ctx);
+  assert.ok(calls.slice(priorCalls).every(call => call.kind === 'preview' && call.action === 'session'));
   assert.equal(requests.filter(request => request.mode === 'teacher-preview' && /trial-ui|local-assessment/.test(request.url)).length, 0);
   check('teacher-preview remains problem-distribution-only through the real preview service and bridge'); await preview.ctx.close();
   assert.equal(fixture.state.evaluationCalls, 0); assert.equal(fixture.state.oldGraderCalls, 0); assert.equal(fixture.central.sheet.getLastRow(), 1);

@@ -47,6 +47,7 @@
 .status-body .formal-state .cell-heading{display:block}
 .status-body .cell-heading h3{margin-bottom:6px}
 .status-body .cloud-controls span,.status-body p{overflow-wrap:anywhere}
+.school-login-guide{border-top:1px solid var(--line);padding-top:10px;margin-top:10px;font-size:.9em}.school-login-guide details{margin-top:8px}.school-login-guide summary{min-height:44px;padding-block:8px;white-space:normal;font-weight:600}.school-login-guide ol{padding-left:1.5em;margin:.6em 0}.school-login-guide li+li{margin-top:.5em}.school-login-guide p{margin-top:.5em}.cloud-controls a[aria-disabled="true"]{opacity:.6;cursor:default}
 #status-menu.has-alert>summary{color:var(--danger);border-color:var(--danger)}
 #settings-menu .menu-body{max-height:calc(100dvh - 70px);overflow:auto}
 .output-transcript{max-height:480px;overflow:auto;padding:0;line-height:1.7;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}

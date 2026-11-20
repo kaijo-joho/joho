@@ -52,6 +52,31 @@ function closeMenus(restoreFocus=false) {
   for (const id of ['file-menu', 'status-menu', 'settings-menu']) $(id).open = false;
   if(restoreFocus && focused) focused.querySelector('summary').focus();
 }
+function setupSchoolLoginGuide() {
+  const login = $('cloud-login'), connect = $('cloud-connect'), guide = $('school-login-guide'), opener = $('school-login-help');
+  // 案内の有効範囲は、既存モードが設定したログイン用リンクに合わせる。
+  const available = !login.hidden && login.hasAttribute('href');
+  guide.hidden = opener.hidden = !available;
+  if (!available) return;
+  connect.setAttribute('aria-describedby', 'school-login-intro');
+  const update = () => login.setAttribute('aria-disabled', String(connect.disabled));
+  const observer = new MutationObserver(update);
+  observer.observe(connect, { attributes: true, attributeFilter: ['disabled'] }); update();
+  addEventListener('pagehide', () => observer.disconnect(), { once: true });
+  login.addEventListener('click', event => {
+    if (connect.disabled) {
+      event.preventDefault();
+      $('school-login-action-status').textContent = '学校連携の処理中です。保存・提出の結果を確認してから開き直してください。コードと送信控えは保持しています。';
+      return;
+    }
+    $('school-login-action-status').textContent = '別タブでログインを確認した後、エディタへ戻って上部のアカウント接続ボタンで再接続してください。';
+  });
+  opener.addEventListener('click', () => {
+    closeMenus(); $('status-menu').open = true;
+    $('school-login-troubleshooting').open = true;
+    $('school-login-troubleshooting-title').focus();
+  });
+}
 function currentEntry(q = question) {
   const key = questionKey(q);
   if (!entries.has(key)) {
@@ -620,6 +645,7 @@ async function init() {
   let help;
   $('help-button').addEventListener('click', () => closeMenus());
   try { help = JohoToolHelp.create({root:$('operation-help'),opener:$('help-button'),title:'Pythonエディタの使い方',storageKey:'joho.pythoneditor.help.v1',returnToEditor:()=>cm ? cm.focus() : $('code').focus(),bounds:()=>({top:$('topbar')?.getBoundingClientRect().bottom || 50,bottom:innerHeight-10})}); } catch { $('help-button').disabled = true; }
+  setupSchoolLoginGuide();
   const interactive = typeof WebAssembly.Suspending === 'function' || (crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined');
   $('input-mode').textContent = interactive ? '空欄のまま実行すると、出力欄からその都度入力できます。まとめて渡す場合は1回分ずつ改行してください。' : 'このブラウザでは、値を1回分ずつ改行して指定してください。出力欄での逐次入力にはGoogle Chromeを使用できます。';
   $('run').addEventListener('click', () => runner.active ? runner.stop() : run());
