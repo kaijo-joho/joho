@@ -1,6 +1,47 @@
 const idPattern = /^(?:op|tr)-[a-z][a-z0-9-]*$/;
 const fail = message => { throw new Error(message); };
 
+function conditionRow(line = '') {
+  const row = /^\|((?:\\.|[^|\\])*)\|((?:\\.|[^|\\])*)\|$/.exec(line.trim());
+  return row && row.slice(1).map(cell => cell.trim().replace(/\\([|\\])/g, '$1'));
+}
+
+// 書式2の利用条件にある2列の表を、前後の説明と同じ順序で返す。
+export function guideConditionBlocks(source) {
+  const lines = (source || '').split(/\r?\n/);
+  const isSeparator = index => conditionRow(lines[index])?.every(cell => /^:?-{3,}:?$/.test(cell));
+  const blocks = [];
+  let prose = [];
+  function addProse() {
+    const text = prose.join('\n').trim();
+    if (text) blocks.push({ text });
+    prose = [];
+  }
+  for (let index = 0; index < lines.length;) {
+    if (!conditionRow(lines[index])?.every(Boolean) || !isSeparator(index + 1)) {
+      prose.push(lines[index++]);
+      continue;
+    }
+    const entries = [];
+    let next = index + 2;
+    while (!isSeparator(next + 1)) {
+      const row = conditionRow(lines[next]);
+      if (!row) break;
+      entries.push(row);
+      next++;
+    }
+    if (!entries.length) {
+      prose.push(lines[index++]);
+      continue;
+    }
+    addProse();
+    blocks.push({ entries });
+    index = next;
+  }
+  addProse();
+  return blocks;
+}
+
 export function validateGuide(guide) {
   if (guide.format_version !== 2 || !Number.isInteger(guide.guide_revision) || guide.guide_revision < 1) fail('文書の版が不正です。');
   for (const [id, operation] of Object.entries(guide.operations)) {

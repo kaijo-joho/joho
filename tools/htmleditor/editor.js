@@ -956,17 +956,49 @@
     });
   }
   function setupHelp() {
+    const root = $('helpWindow'), opener = $('helpBtn');
+    const helpOptions = {
+      title:'HTMLエディタの使い方', root, opener, isBusy:() => busy,
+      returnToEditor:() => doc ? cm.focus() : $('practiceOpenBtn').focus(),
+      bounds:() => ({top:$('toolbar').getBoundingClientRect().bottom + 8, bottom:innerHeight - 8})
+    };
+    if (editorMode === 'lesson' && location.origin === 'https://joho.kaijo.ed.jp' && window.top === window &&
+        $('helpDeskPracticeStyle')?.sheet && window.JohoToolHelpDesk?.create) {
+      const about = root.querySelector('[data-help-topic="about"]');
+      try {
+        window.JohoToolHelpDesk.create({...helpOptions, appId:'htmleditor', mode:'practice',
+          appVersion:'0.11.4', guideRevision:3, storageKey:'joho.htmleditor.help.practice.v1',
+          about, fallback:root.querySelector('[data-help-topic="save"]'),
+          createConsultation:window.HtmlEditorHelpConsultation?.create,
+          bounds:() => document.documentElement.clientWidth <= 850
+            ? {top:8, bottom:innerHeight - 8} : helpOptions.bounds(),
+          returnToEditor:() => { setPane('center'); helpOptions.returnToEditor(); }});
+        const credits = textNode(about, '使用ライブラリ：');
+        for (const [label, href] of [['CodeMirror（MITライセンス）', 'vendor/LICENSE'], ['採点ライブラリのライセンス', 'grading/LICENSES.txt']]) {
+          const link = textNode(credits, label, 'a');
+          link.href = href; link.target = '_blank'; link.rel = 'noopener noreferrer';
+          credits.append(document.createTextNode(' '));
+        }
+        document.addEventListener('keydown', event => {
+          if (event.key !== '?' || event.defaultPrevented || event.isComposing || event.repeat ||
+              event.metaKey || event.ctrlKey || event.altKey ||
+              event.target.closest?.('input, textarea, select, [contenteditable], [role="textbox"]') ||
+              busy || $('actionDialog').open) return;
+          event.preventDefault();
+          opener.click();
+        });
+        return;
+      } catch { /* 埋め込みを準備できない場合は同梱ヘルプを使う。 */ }
+    }
     try {
       if (!window.JohoToolHelp?.create) throw Error('help unavailable');
-      window.JohoToolHelp.create({title:'HTMLエディタの使い方', storageKey:'joho.htmleditor.help.v1',
-        opener:$('helpBtn'), root:$('helpWindow'), isBusy:() => busy, returnToEditor:() => doc ? cm.focus() : $('practiceOpenBtn').focus(),
-        bounds:() => ({top:$('toolbar').getBoundingClientRect().bottom + 8, bottom:innerHeight - 8})});
+      window.JohoToolHelp.create({...helpOptions, storageKey:'joho.htmleditor.help.v1'});
     } catch {
       // 小窓の共通部品を取得できなくても、保存・復元の説明は読めるようにする。
-      $('helpBtn').addEventListener('click', event => {
+      opener.addEventListener('click', event => {
         event.currentTarget.focus();
         exclusive(() => modal('HTMLエディタの使い方', (body, button) => {
-          for (const section of document.querySelectorAll('#helpWindow [data-help-topic]')) {
+          for (const section of root.querySelectorAll('[data-help-topic]')) {
             const copy = section.cloneNode(true); copy.hidden = false; body.append(copy);
           }
           button('閉じる', 'close');

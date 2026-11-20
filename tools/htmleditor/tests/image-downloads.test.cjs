@@ -24,11 +24,13 @@ test('エディタと作品プレビューのSRIが資産の実内容と一致�
   assert.match(html,/<script src="\.\.\/\.\.\/js\/display_settings\.js[^>]+integrity="sha384-[^"]+"/);
   assert.match(html,/<script src="\.\.\/\.\.\/js\/display_settings_ui\.js[^>]+integrity="sha384-[^"]+"/);
   assert.match(html,/<link[^>]+href="\.\.\/\.\.\/css\/display-settings\.css[^>]+integrity="sha384-[^"]+"/);
-  for(const file of ['editor.css','editor.js','download.js','local-downloads.js','download-availability.js','submission.js'])assert(html.includes(file+'?v=html-school-login-20261120-r1'));
+  for(const file of ['editor.css','download.js','local-downloads.js','download-availability.js','submission.js'])assert(html.includes(file+'?v=html-school-login-20261120-r1'));
+  for(const file of ['editor.js','help-consultation.js','../shared/help-panel-resizable.js',
+    '../shared/help-panel-embed.js','../shared/help-panel-embed.css'])assert(html.includes(file+'?v=html-lesson-help-20261120-r1'));
   for(const file of ['feedback.css','feedback.js','local-grading.js'])assert(html.includes(file+'?v=html-feedback-table-20261116-r1'));
   for(const file of ['navigation.js','layout.js'])assert(html.includes(file+'?v=html-editor-layout-20261026-r1'),'unchanged asset keeps its current cached URL: '+file);
   const viewer=fs.readFileSync(path.join(root,'tools/htmleditor/project-preview.html'),'utf8');
-  for(const [shell,expected] of [[html,50],[viewer,4]]) {
+  for(const [shell,expected] of [[html,54],[viewer,4]]) {
     let count=0;
     for(const tag of shell.matchAll(/<(?:script|link)\b[^>]+>/g)){
       const integrity=/integrity="([^"]+)"/.exec(tag[0]),source=/(?:src|href)="([^"?]+)(?:\?[^"]*)?"/.exec(tag[0]);

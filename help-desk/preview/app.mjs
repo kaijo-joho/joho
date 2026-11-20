@@ -1,13 +1,25 @@
 import { apps, guide as sampleGuide, sampleCases } from './data.mjs?v=worksheet-20261116';
-import { draftGuides } from './draft-guides.mjs?v=readable-guides-20261116';
+import { draftGuides as publicGuides } from './draft-guides.mjs?v=readable-guides-20261116';
 import { legacyFaq } from './legacy-faq.mjs';
-import { validateGuide, startFlow, choose, returnToQuestion, answeredQuestions, makeHandoff, validateHandoff, findArticles } from './core.mjs?v=question-flow-20261116';
+import { validateGuide, startFlow, choose, returnToQuestion, answeredQuestions, makeHandoff, validateHandoff, findArticles, guideConditionBlocks } from './core.mjs?v=html-lesson-help-20261120-r1';
 import { findFaqs, makeFaqHandoff, validateFaqHandoff, courseFilters, makeCourseHandoff, validateCourseHandoff, legacyLocation } from './faq-core.mjs?v=target-tabs-20261116';
 import { mountDisplayControls } from './display-ui.mjs?v=readable-guides-20261116';
 import { LIVE_DESK, deskHandoffUrl, deskCasesUrl } from './handoff.mjs?v=live-handoff-20261118';
+import { readEmbedRequest, embedGuide, connectEmbed } from './embed-bridge.mjs?v=html-lesson-help-20261120-r1';
 
-validateGuide(sampleGuide);
-Object.values(draftGuides).forEach(validateGuide);
+const embedded = document.body?.hasAttribute('data-help-embed') === true;
+const request = embedded ? readEmbedRequest(new URL(location.href)) : null;
+const embeddedGuide = request && LIVE_DESK && window.parent !== window && window.origin === 'null' &&
+  new URL(location.href).origin === 'https://joho.kaijo.ed.jp'
+  ? await import('./html-practice-guide.mjs?v=html-lesson-help-20261120-r1').then(module => module.htmlPracticeGuide, () => null)
+  : null;
+const embedding = embedGuide(request, embeddedGuide);
+const draftGuides = embedding ? {htmleditor: embeddedGuide} : publicGuides;
+if (embedding) validateGuide(embeddedGuide);
+if (!embedded) {
+  validateGuide(sampleGuide);
+  Object.values(draftGuides).forEach(validateGuide);
+}
 const appIds = apps.map(app => app.id);
 const appName = id => apps.find(app => app.id === id)?.name || '分からない・その他';
 const guideFor = id => draftGuides[id] || sampleGuide;
@@ -17,6 +29,7 @@ const publicTargets = [
 ];
 const main = document.querySelector('#main');
 const previewComments = [];
+let embedConnection;
 const state = {
   view: LIVE_DESK ? 'public' : new URL(location.href).searchParams.get('view') || 'public',
   publicTarget: '', targetPickerOpen: false, publicMode: 'browse', browseCategory: '', browseAllOpen: false, browseItem: null, browseFaq: null, schoolUrl: '',
@@ -65,6 +78,16 @@ function showView(view) {
 }
 function render(focus = false) {
   previewComments.length = 0;
+  if (embedded) {
+    if (!embedding) return;
+    const subject = targetDetails();
+    const [tabs, panels] = publicTabs(subject);
+    main.replaceChildren(el('div', { class: 'embed-header' },
+      el('h1', {}, subject.label + 'のヘルプ（' + embedding.modeLabel + '）'), tabs), panels);
+    main.setAttribute('data-view', 'public');
+    if (focus) (main.querySelector('[data-focus-panel]') || main).focus();
+    return;
+  }
   const route = new URL(location.pathname, location.origin);
   route.searchParams.set('view', state.view);
   if (state.view === 'public') addPublicRoute(route);
@@ -150,6 +173,7 @@ function addPublicRoute(url) {
 
 function switchPublicMode(mode) {
   if (!['browse', 'search', 'questions'].includes(mode)) return;
+  if (embedded) state.schoolUrl = '';
   state.publicMode = mode; render();
   document.querySelector('#help-tab-' + mode)?.focus();
 }
@@ -178,6 +202,10 @@ function publicPage() {
   if (noGuide) return [heading, picker, card(el('h2', {}, '困っていることを教えてください'),
     p('学校アカウント専用の相談画面で、内容を入力できます。送信前に確認できます。'),
     actions(button('文章で説明する', () => prepareConsultation({ kind: 'target', appId: target.id }), true)))];
+  return [heading, picker, ...publicTabs(target)];
+}
+
+function publicTabs(target) {
   const modes = [['browse', '操作の説明から選ぶ'], ['search', '検索する'], ['questions', '質問に答える']];
   const tabs = el('div', { class: 'help-tabs', role: 'tablist', 'aria-label': 'ヘルプの探し方' }, modes.map(([mode, label], index) =>
     el('button', { type: 'button', id: 'help-tab-' + mode, role: 'tab', 'aria-controls': 'help-panel-' + mode,
@@ -189,11 +217,12 @@ function publicPage() {
         const next = event.key === 'Home' ? 0 : event.key === 'End' ? modes.length - 1 : (index + direction + modes.length) % modes.length;
         switchPublicMode(modes[next][0]);
       } } }, label)));
+  const activePanel = embedded && state.schoolUrl ? schoolAccessPanel() :
+    { browse: browsePanel, search: searchPanel, questions: target.kind === 'app' ? guideSessionPage : courseQuestionPanel }[state.publicMode](target);
   const panels = modes.map(([mode]) => el('div', { id: 'help-panel-' + mode, role: 'tabpanel',
     'aria-labelledby': 'help-tab-' + mode, hidden: state.publicMode !== mode },
-    state.publicMode !== mode ? null : { browse: browsePanel, search: searchPanel, questions: target.kind === 'app' ? guideSessionPage : courseQuestionPanel }[mode](target)));
-  return [heading, picker, tabs,
-    el('div', { class: 'public-content stack' }, panels)];
+    state.publicMode === mode ? activePanel : null));
+  return [tabs, el('div', { class: 'public-content stack' }, panels)];
 }
 
 const searchExamples = {
@@ -207,15 +236,30 @@ function searchPanel(target) {
   const input = el('input', { id: 'search', type: 'search', maxlength: '200', value: state.searchDraft,
     placeholder: '例：' + (searchExamples[target.kind]?.[target.id] || '操作、困っていること'), 'aria-label': target.label + 'のヘルプを検索',
     on: { input: event => { state.searchDraft = event.target.value; } } });
-  const form = card(el('form', { class: 'search', on: { submit: event => {
-    event.preventDefault(); state.search = input.value.trim(); state.searchItem = null; state.selectedFaq = null; state.faqLimit = 15; render(true);
-  } } }, input, el('button', { type: 'submit' }, '検索')));
+  function search() {
+    state.search = input.value.trim();
+    state.searchItem = null;
+    state.selectedFaq = null;
+    state.faqLimit = 15;
+    render(true);
+  }
+  const form = embedded
+    ? card(el('div', { class: 'search', role: 'search', on: { keydown: event => {
+        if (event.target !== input || event.key !== 'Enter' || event.isComposing || event.keyCode === 229) return;
+        event.preventDefault();
+        search();
+      } } }, input, button('検索', search)))
+    : card(el('form', { class: 'search', on: { submit: event => {
+        event.preventDefault();
+        search();
+      } } }, input, el('button', { type: 'submit' }, '検索')));
   let result;
   if (state.search) {
     if (target.kind === 'course') result = state.selectedFaq ? faqPanel(state.selectedFaq) : faqIndex(target, state.search);
     else if (state.searchItem) result = operationPanel(target, state.searchItem, true);
     else {
-      const matches = findArticles(draftGuides, state.search, target.id);
+      const matches = findArticles(draftGuides, state.search, target.id).filter(item => !embedding ||
+        (item.kind === 'symptom' ? guideFor(target.id).nodes[item.itemId]?.entry : embedding.operationIds.has(item.itemId)));
       result = focusPanel(card(el('h2', {}, '検索結果'), p(matches.length + '件', 'step'),
         el('div', { class: 'choices' }, matches.map(item => button([
           el('strong', {}, item.title), item.kind === 'symptom' ? el('small', { class: 'muted' }, '質問に答えて確認する') : null,
@@ -246,14 +290,15 @@ function operationContent(operation, guidance = '') {
 
 function solutionActions(onSolved, onUnsolved) {
   return el('div', {}, choiceBubble(actions(button('解決した', onSolved, true), button('解決しない', onUnsolved))),
-    LIVE_DESK ? p('「解決しない」を選ぶと、学校アカウントで開く相談画面に進みます。', 'muted') : null);
+    LIVE_DESK ? p(embedded ? '「解決しない」を選ぶと、相談への案内を表示します。' :
+      '「解決しない」を選ぶと、学校アカウントで開く相談画面に進みます。', 'muted') : null);
 }
 
-function consultAboutGuide(guide, flow, unresolved = false) {
+function consultAboutGuide(guide, flow, unresolved = false, showSchoolPage) {
   const payload = makeHandoff(guide, flow, appIds);
   const checked = validateHandoff(payload, guide, appIds);
   const rows = unresolved ? [...checked.summary, { question: '案内の結果', answer: '解決しなかった' }] : checked.summary;
-  return prepareConsultation({ appId: flow.appId, kind: 'guide', payload, summary: rows });
+  return prepareConsultation({ appId: flow.appId, kind: 'guide', payload, summary: rows }, showSchoolPage);
 }
 
 function answerGuideQuestion(guide, choiceId) {
@@ -297,6 +342,11 @@ function guideSessionPage() {
   return el('div', { class: 'stack' }, answerHistoryPanel(), currentPanel);
 }
 
+function resetGuideSession() {
+  state.flow = null;
+  render(true);
+}
+
 function historyPanel(rows) {
   if (!rows.length) return null;
   return el('ol', { class: 'answer-history', 'aria-label': 'ここまでの回答' }, rows.map(row => el('li', {},
@@ -309,7 +359,7 @@ function answerHistoryPanel() {
   if (!state.flow) return null;
   const flow = state.flow, guide = guideFor(flow.appId);
   const rows = [{ question: '困っていること', answer: guide.nodes[flow.rootId].title || guide.nodes[flow.rootId].question,
-    change: () => { state.flow = null; render(true); } }];
+    change: resetGuideSession }];
   answeredQuestions(guide, flow).forEach((row, index) => rows.push({ ...row, change: () => {
     state.flow = returnToQuestion(guide, flow, index); render(true);
   } }));
@@ -419,7 +469,7 @@ function faqNode(node) {
   return el(node.tag, {}, children);
 }
 
-function prepareConsultation(context) {
+function prepareConsultation(context, showSchoolPage = openSchoolPage) {
   if (LIVE_DESK) {
     let route = { targetId: context.appId };
     if (context.kind === 'guide') {
@@ -431,7 +481,7 @@ function prepareConsultation(context) {
       route = { targetId: 'course:' + entry.course, guideId: 'faq:' + entry.id, guideRevision: entry.updated_at || legacyFaq.source_sha256 };
     } else if (context.kind === 'course') route = { targetId: 'course:' + context.payload.course };
     if (!route.targetId || ![...appIds, ...publicTargets.filter(t => t.kind === 'course').map(t => 'course:' + t.id)].includes(route.targetId)) route.targetId = 'class-apps';
-    openSchoolPage(deskHandoffUrl(route));
+    showSchoolPage(deskHandoffUrl(route));
     return true;
   }
   if (state.stage !== 'done' && (state.draft.text || state.draft.image) && !window.confirm('入力中の相談があります。入力を消して、今回の相談に切り替えますか？')) return false;
@@ -467,14 +517,28 @@ function faqPanel(id) {
   return panel;
 }
 
+function guideVersionText(guide) {
+  return guide.version_basis === 'date' ? `${guide.verified_on || '未確認'}確認の原稿` : `対象版 ${guide.app_version || '未確認'}`;
+}
+
+function practicePrerequisites(guide) {
+  const blocks = guideConditionBlocks(guide?.general_conditions);
+  if (!blocks.length) return null;
+  return el('details', { class: 'guide-prerequisites' }, el('summary', {}, '利用環境・事前準備'),
+    blocks.map(block => block.entries
+      ? el('dl', {}, block.entries.map(([term, description]) => [el('dt', {}, term), el('dd', {}, description)]))
+      : p(block.text, 'prose')),
+    p(guideVersionText(guide), 'muted'));
+}
+
 function guideIndex(appId) {
   const guide = guideFor(appId);
   if (!draftGuides[appId]) return card(el('h2', {}, appName(appId)), previewComment('この試作では、このアプリの原稿はまだ表示していません。'),
     button('確認のサンプルを試す', () => { state.flow = startFlow(guide, appId); render(true); }));
-  const version = guide.version_basis === 'date' ? `${guide.verified_on || '未確認'}確認の原稿` : `対象版 ${guide.app_version || '未確認'}`;
   return card(previewComment('案内の対象版・改訂を確認できます。アプリの現在の状態によっては、詳しい確認が必要な場合があります。'), el('h2', { class: 'desk-bubble' }, '困っていることを選んでください'),
     choiceBubble(el('div', { class: 'choices' }, Object.entries(guide.nodes).filter(([, node]) => node.entry).map(([id, node]) => button(node.title, () => openArticle(appId, id))))),
-    el('details', {}, el('summary', {}, '共通の利用条件'), p(guide.general_conditions, 'prose'), p(version, 'muted')), guideReferences(guide));
+    embedding ? null : el('details', {}, el('summary', {}, '共通の利用条件'), p(guide.general_conditions, 'prose'), p(guideVersionText(guide), 'muted')),
+    guideReferences(guide));
 }
 
 function guideReferences(guide) {
@@ -484,15 +548,29 @@ function guideReferences(guide) {
     el('ul', {}, guide.references.map(source => el('li', {}, el('a', { href: source.url, target: '_blank', rel: 'noopener noreferrer' }, source.title)))));
 }
 
+function guideOutcome(guide, flow) {
+  if (embedding && flow.consultationUrl) return schoolAccessPanel(flow.consultationUrl, true);
+  function showInConversation(url) {
+    state.flow = { ...flow, consultationUrl: url };
+    const panel = schoolAccessPanel(url, true);
+    choices.replaceWith(panel);
+    panel.focus();
+  }
+  const choices = solutionActions(
+    () => { state.flow = { ...flow, phase: 'solved' }; render(true); },
+    () => consultAboutGuide(guide, flow, true, embedding ? showInConversation : undefined));
+  return choices;
+}
+
 function flowPanel() {
   const flow = state.flow;
   const guide = guideFor(flow.appId);
-  const block = card();
-  block.tabIndex = -1; block.setAttribute('data-focus-panel', '');
-  if (flow.phase === 'question') {
+  const asking = flow.phase === 'question';
+  const block = asking
+    ? currentQuestion(embedding ? el('section') : card())
+    : focusPanel(card());
+  if (asking) {
     const node = guide.nodes[flow.nodeId];
-    block.classList.add('current-question');
-    block.setAttribute('aria-label', 'いまの質問');
     append(block, p(`いまの質問 · 確認 ${flow.history.length + 1}`, 'step'),
       node.conditions ? p(node.conditions, 'muted') : null, flow.guidance ? p(flow.guidance, 'note') : null,
       el('h2', { class: 'choice-title desk-bubble' }, node.question),
@@ -500,15 +578,14 @@ function flowPanel() {
   } else if (flow.phase === 'guide') {
     const operation = guide.operations[flow.guideId];
     block.id = flow.guideId || 'inline-guidance';
-    append(block, articleNav(backButton('操作の説明一覧に戻る', () => showOperationList(flow.appId, flow.guideId))),
+    append(block, embedding ? null : articleNav(backButton('操作の説明一覧に戻る', () => showOperationList(flow.appId, flow.guideId))),
       el('h2', {}, operation?.title || '確認する手順'));
     if (operation) append(block, operationContent(operation, flow.guidance));
     else append(block, el('section', { class: 'procedure' }, el('h3', {}, '確認すること'), p(flow.guidance, 'prose')));
-    append(block, guideReferences(guide));
-    append(block,
-      solutionActions(() => { state.flow = { ...flow, phase: 'solved' }; render(true); }, () => consultAboutGuide(guide, flow, true)));
+    append(block, guideReferences(guide), guideOutcome(guide, flow));
   } else if (flow.phase === 'solved') {
-    append(block, el('h2', {}, '元の作業を続けてください。'), p('この確認だけでは相談の送信や通知は行いません。'));
+    append(block, el('h2', {}, '元の作業を続けてください。'), p('この確認だけでは相談の送信や通知は行いません。'),
+      embedding ? actions(button('最初の質問一覧に戻る', resetGuideSession, true)) : null);
   } else {
     append(block, el('h2', {}, '相談の入力画面を開きました。'),
       p('入力中の内容は、上の「自分の相談」から再開できます。'));
@@ -708,7 +785,10 @@ function showOperationList(appId, itemId) {
 function browsePanel(target) {
   if (target.kind === 'course') return state.browseFaq ? faqPanel(state.browseFaq) : faqIndex(target);
   if (state.browseItem) return operationPanel(target, state.browseItem, false);
-  const operations = draftGuides[target.id]?.operations || {};
+  const guideOperations = draftGuides[target.id]?.operations || {};
+  const operations = embedding
+    ? Object.fromEntries([...embedding.operationIds].map(id => [id, guideOperations[id]]))
+    : guideOperations;
   const groups = (operationGroups[target.id] || []).map(([label, keys]) => ({
     label, ids: keys.split(' ').map(id => 'op-' + id).filter(id => Object.hasOwn(operations, id)),
   })).filter(group => group.ids.length);
@@ -727,7 +807,8 @@ function browsePanel(target) {
     : choiceBubble(el('div', { class: 'choices category-choices' }, groups.map(group =>
       button(group.label, () => { state.browseCategory = group.label; state.browseAllOpen = false; render(true); }))),
     el('details', { class: 'all-operations', open: state.browseAllOpen,
-      on: { toggle: event => { state.browseAllOpen = event.target.open; } } }, el('summary', {}, 'すべての操作を表示'), list(ids)))));
+      on: { toggle: event => { state.browseAllOpen = event.target.open; } } }, el('summary', {}, 'すべての操作を表示'), list(ids))),
+    embedding && !active ? practicePrerequisites(guideFor(target.id)) : null));
 }
 
 function isSafari() {
@@ -736,13 +817,33 @@ function isSafari() {
 }
 
 function openSchoolPage(url) {
-  if (!isSafari()) { location.assign(url); return; }
+  if (!embedded && !isSafari()) { location.assign(url); return; }
   state.schoolUrl = url;
   render(true);
 }
 
-function schoolAccessPanel() {
-  const url = state.schoolUrl;
+function schoolConsultationLink(url) {
+  return el('a', { href: url, target: '_blank', rel: 'noopener noreferrer', class: 'school-link',
+    on: { click: event => {
+      if (!event.isTrusted || event.defaultPrevented || event.button !== 0 ||
+          event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+      if (embedConnection?.openConsultation(url, event.currentTarget)) event.preventDefault();
+    } } }, '相談へ進む');
+}
+
+function schoolAccessPanel(url = state.schoolUrl, inConversation = false) {
+  const panel = focusPanel(inConversation
+    ? el('section', { class: 'guide-consultation', 'aria-label': '相談の案内' })
+    : card());
+  const heading = inConversation ? 'h3' : embedded ? 'h2' : 'h1';
+  const back = inConversation ? null : button('ヘルプに戻る', () => { state.schoolUrl = ''; render(true); });
+  const consultationAvailable = embedConnection?.consultationAvailable;
+  if (embedded && !isSafari()) {
+    append(panel, el(heading, {}, '学校用の相談画面を開く'),
+      p(consultationAvailable ? '学校アカウントで相談フォームを開きます。' : '学校アカウントで相談画面を別タブに開きます。'),
+      actions(schoolConsultationLink(url), back));
+    return panel;
+  }
   const input = el('input', { id: 'school-access-url', type: 'url', readonly: true, value: url });
   const status = el('p', { class: 'copy-status', role: 'status' });
   const copy = async () => {
@@ -755,22 +856,35 @@ function schoolAccessPanel() {
       status.textContent = 'URLを選択しました。コピーしてChromeに貼り付けてください。';
     }
   };
-  return focusPanel(card(el('h1', {}, '学校用の画面をChromeで開く'),
+  const copyControls = [
     p('URLをコピーしてChromeのアドレスバーに貼り付け、学校アカウントで開いてください。'),
     el('div', { class: 'field' }, el('label', { for: 'school-access-url' }, '学校用画面のURL'), input),
-    actions(button('URLをコピー', copy, true),
-      button('ヘルプに戻る', () => { state.schoolUrl = ''; render(true); })),
-    status));
+    actions(button('URLをコピー', copy, true), consultationAvailable ? null : back), status];
+  if (consultationAvailable) {
+    append(panel, el(heading, {}, '学校用の相談画面を開く'), actions(schoolConsultationLink(url), back),
+      el('details', { class: 'operation-notes' }, el('summary', {}, '学校用の画面をChromeで開く'), copyControls));
+  } else append(panel, el(heading, {}, '学校用の画面をChromeで開く'), copyControls);
+  return panel;
 }
 
-if (state.view === 'public') applyPublicLocation(location.href);
-mountDisplayControls(document, window);
-window.addEventListener('popstate', () => {
-  const view = new URL(location.href).searchParams.get('view'); state.view = LIVE_DESK ? 'public' : ['public', 'student', 'admin'].includes(view) ? view : 'public';
-  if (state.view === 'public') {
-    state.schoolUrl = '';
-    applyPublicLocation(location.href, true);
+if (embedded) {
+  if (embedding) {
+    setPublicTarget('app:' + request.appId);
+    state.publicMode = 'questions';
+    render();
   }
-  render(true);
-});
-render();
+  embedConnection = connectEmbed(request, Boolean(embedding));
+} else {
+  if (state.view === 'public') applyPublicLocation(location.href);
+  mountDisplayControls(document, window);
+  window.addEventListener('popstate', () => {
+    const view = new URL(location.href).searchParams.get('view');
+    state.view = LIVE_DESK ? 'public' : ['public', 'student', 'admin'].includes(view) ? view : 'public';
+    if (state.view === 'public') {
+      state.schoolUrl = '';
+      applyPublicLocation(location.href, true);
+    }
+    render(true);
+  });
+  render();
+}

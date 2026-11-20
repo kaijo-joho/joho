@@ -1,0 +1,161 @@
+.tool-help--desk {
+  --help-frame-size: 8px;
+  padding: var(--help-frame-size);
+  grid-template-rows: auto minmax(0, 1fr);
+  font-size: calc(12px * var(--tool-help-text-scale, 1));
+}
+.tool-help--desk[data-minimized="true"] {
+  /* 展開時の枠の高さが残っている間も、見出し行は内容の高さに収める。 */
+  grid-template-rows: max-content;
+}
+.tool-help--desk .tool-help__header {
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 0 0 6px;
+}
+.tool-help--desk .tool-help__heading { flex: 1 0 48px; font-size: 1em; }
+.tool-help--desk .tool-help__move { padding-inline: 3px; }
+.tool-help--desk .tool-help__icon { width: 100%; }
+.tool-help--desk .tool-help__header-controls {
+  flex: 0 1 308px;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) repeat(2, minmax(0, 1fr));
+}
+.tool-help--desk[data-minimized="true"] .tool-help__header-controls {
+  flex-basis: 88px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.tool-help-desk__actions {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.tool-help--desk .tool-help-desk__action {
+  display: inline-grid;
+  place-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--help-line);
+  border-radius: 7px;
+  background: var(--help-panel);
+  color: inherit;
+  text-decoration: none;
+}
+.tool-help--desk .tool-help-desk__action:is(:hover, :focus-within, [aria-expanded="true"]) {
+  background: var(--hover, #f4f6f9);
+}
+.tool-help--desk .tool-help-desk__size { position: relative; }
+.tool-help-desk__size select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+.tool-help-desk__size:has(select:focus-visible) {
+  outline: 3px solid var(--help-accent);
+  outline-offset: -3px;
+}
+.tool-help--desk .tool-help__header svg {
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+.tool-help--desk .tool-help-desk__action svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tool-help--desk .tool-help__main { grid-template-rows: minmax(0, 1fr); }
+.tool-help--desk .tool-help__content {
+  padding: 0;
+  overflow: hidden;
+  scrollbar-gutter: auto;
+  line-height: 1.55;
+}
+.tool-help--desk .tool-help__content > section,
+.tool-help-desk__view,
+.tool-help-desk__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+}
+.tool-help-desk__notice, .tool-help-desk__about {
+  height: 100%;
+  padding: 10px 14px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.tool-help-desk__view[data-consultation-open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+}
+.tool-help-consultation__controls {
+  grid-row: 1;
+  padding: .45em .25em;
+}
+.tool-help-consultation__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35em;
+}
+.tool-help-consultation__actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 9px;
+  border: 1px solid var(--help-line);
+  border-radius: 7px;
+  color: inherit;
+}
+.tool-help__content .tool-help-consultation__status {
+  display: flex;
+  align-items: center;
+  gap: .55em;
+  margin: .45em 0;
+}
+.tool-help-consultation__frame {
+  grid-row: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+}
+
+.tool-help--frame-resize .tool-help__resize {
+  inset: auto;
+  width: var(--help-frame-size);
+  height: var(--help-frame-size);
+  min-height: 0;
+}
+.tool-help--frame-resize .tool-help__resize:is(:hover, :focus-visible) {
+  background: var(--accent-soft, #e3ecff);
+}
+.tool-help--frame-resize :is(.tool-help__resize--n, .tool-help__resize--nw, .tool-help__resize--ne) { top: 0; }
+.tool-help--frame-resize :is(.tool-help__resize--s, .tool-help__resize--sw, .tool-help__resize--se) { bottom: 0; }
+.tool-help--frame-resize :is(.tool-help__resize--w, .tool-help__resize--nw, .tool-help__resize--sw) { left: 0; }
+.tool-help--frame-resize :is(.tool-help__resize--e, .tool-help__resize--ne, .tool-help__resize--se) { right: 0; }
+.tool-help--frame-resize :is(.tool-help__resize--n, .tool-help__resize--s) {
+  inset-inline: var(--help-frame-size);
+  width: auto;
+  cursor: ns-resize;
+}
+.tool-help--frame-resize :is(.tool-help__resize--w, .tool-help__resize--e) {
+  inset-block: var(--help-frame-size);
+  height: auto;
+  cursor: ew-resize;
+}
+.tool-help--frame-resize :is(.tool-help__resize--nw, .tool-help__resize--se) { cursor: nwse-resize; }
+.tool-help--frame-resize :is(.tool-help__resize--ne, .tool-help__resize--sw) { cursor: nesw-resize; }
+
+/* 枠を操作している間は、iframeをまたいでも親文書でポインターを追えるようにする。 */
+body:has(.tool-help--frame-resize.tool-help--dragging) iframe { pointer-events: none; }
