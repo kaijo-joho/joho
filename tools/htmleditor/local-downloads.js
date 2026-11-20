@@ -23,12 +23,12 @@ function confirmationBridge({container,dialog,url,ticket,oldToken='',signal}){
      if(settled)return;
      if(source){help.say('本人確認画面に接続済みです。画面内の確認ボタンを使い、処理中はそのままお待ちください。');return;}
      startFrame();help.say('本人確認画面だけを開き直しました。編集内容はそのままです。');
-   },{identity:true});
+   },'identity');
    function appearance(type='appearance') { if(source)source.postMessage({channel:CHANNEL,bridge,type,nonce:ticket.nonce,
      ...root.HtmlEditorDownload.legacyAppearance(document),...(type==='connect'?{oldToken,layout:'integrated-v1',profile:'display-name-v1'}:{})},sourceOrigin); }
    const observer=typeof root.MutationObserver==='function'?new root.MutationObserver(()=>appearance()):null;
    observer?.observe(document.documentElement,{attributes:true,attributeFilter:['data-resolved-theme','data-theme','data-text-size']});
-   function finish(error,response){if(settled)return;settled=true;clearTimeout(timer);clearTimeout(slowTimer);observer?.disconnect();root.removeEventListener('message',receive);if(signal)signal.removeEventListener('abort',cancel);frame?.remove();progress.remove();help.element.remove();dialog?.classList.remove('identity-open','identity-integrated');error?reject(error):resolve(response);}
+   function finish(error,response){if(settled)return;settled=true;clearTimeout(timer);clearTimeout(slowTimer);observer?.disconnect();root.removeEventListener('message',receive);if(signal)signal.removeEventListener('abort',cancel);frame?.remove();progress.remove();help.panel.remove();dialog?.classList.remove('identity-open','identity-integrated');error?reject(error):resolve(response);}
    function cancel(){finish(Error('identity_confirmation_canceled'));}
    function receive(event){const data=event.data;
     if(settled || !frame?.isConnected || !root.HtmlEditorDownload.gasOrigin(event.origin) || !root.HtmlEditorDownload.withinFrame(event.source,frame.contentWindow) || !data || data.channel!==CHANNEL || data.bridge!==bridge)return;
@@ -75,6 +75,7 @@ function create(options){
    const direct=Boolean(fileSystem?.isSupported());
    node(container,direct ? '「新しくダウンロード」を押すと、接続したフォルダへ実習ファイルを直接保存します。取得後は、この画面を閉じて上部の「開く」から選びます。編集中のファイルは差し替えません。' :
      '「新しくダウンロード」を押すと、公開中の最新版を取得して保存を開始します。編集中のファイルは差し替えません。');
+   const entryHelp=root.HtmlEditorDownload.loginHelp(container);
    const destination=direct ? node(container,'') : null;
    const connect=direct ? node(container,'HTML実習フォルダを接続…','button') : null;
    if(connect){connect.type='button';connect.className='btn';}
@@ -110,9 +111,11 @@ function create(options){
       const directory=direct ? await fileSystem.requireWritePermission() : null;
       if(disposed)return;
       if(direct&&!entry.result&&await fileSystem.hasFile(task.fileName,directory)){const e=Error('同名ファイルがあります。上書きせず、上部の「開く」から保存済みファイルを開いてください。');e.name='FileExistsError';throw e;}
-      const result=entry.result || await provider.generateFresh(task.id,cache,controller?.signal,request=>{
+      const result=entry.result || await provider.generateFresh(task.id,cache,controller?.signal,async request=>{
        if(typeof root.HtmlDownloadGate?.bridge!=='function')throw Error('availability_unavailable');
-       return root.HtmlDownloadGate.bridge({container:availability,url:options.availabilityUrl,request,signal:controller?.signal});
+       entryHelp.panel.hidden=true;
+       try{return await root.HtmlDownloadGate.bridge({container:availability,url:options.availabilityUrl,request,signal:controller?.signal});}
+       finally{if(!disposed)entryHelp.panel.hidden=false;}
       });if(disposed)return;
       if(result.fileName!==task.fileName)throw Error('file_name_mismatch');
       if(direct){

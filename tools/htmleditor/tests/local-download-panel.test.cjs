@@ -20,7 +20,10 @@ function setup(panelOptions = {}) {
  const prompts=[], context = {document, Blob, TextEncoder, confirm:text=>{prompts.push(text);return false;}, URL: {
   createObjectURL: blob => { const url = 'blob:' + (++sequence); blobs.set(url, blob); return url; }, revokeObjectURL: u => revoked.push(u)
  }, HtmlLocalProtocol: {}, HtmlConfirmationCoordinator: {create: () => ({})}, crypto: require('node:crypto').webcrypto};
- vm.createContext(context); vm.runInContext(fs.readFileSync(require.resolve('../local-downloads.js'), 'utf8'), context);
+ vm.createContext(context);
+ for (const file of ['download', 'local-downloads']) {
+  vm.runInContext(fs.readFileSync(require.resolve('../' + file + '.js'), 'utf8'), context);
+ }
  const container = new Element('div', document), cache = {};
  const provider = {generateFresh(id) {
   calls.push(id);
@@ -132,7 +135,7 @@ test('未接続では取得できず、同じモーダルから接続後に取�
  const h = setup({fileSystem, async connectFolder(){ connections++;state.connected=true; }});
  assert.equal(h.buttons[0].disabled, true);
  await h.buttons[0].events.click(); assert.equal(h.calls.length, 0);
- const connect = h.walk(h.container).find(n=>n.tag==='button' && !h.buttons.includes(n));
+ const connect = h.walk(h.container).find(n=>n.tag==='button' && n.textContent==='HTML実習フォルダを接続…');
  await connect.events.click(); assert.equal(connections, 1); assert.equal(connect.hidden, true);
  assert.equal(h.buttons[0].disabled, false);
  const pending = h.buttons[0].events.click(); await waitForRequest(h);h.finish();await pending;

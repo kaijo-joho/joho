@@ -83,7 +83,7 @@ try{
  assert.deepEqual(await projectHeader(final),headerBefore);
  ok('作品の共通ヘッダーは全幅で、左列の折りたたみ・幅変更でも移動しない');
  await final.locator('#assignmentDocBtn').click();await final.frameLocator('.assignment-document').locator('h1').waitFor();
- assert.match(await final.locator('#actionBody a').getAttribute('href'),/1zUbnH1Li4gzoSCc99tQWuHX2UJVbjM8AGcnZVvQNkUI\/edit\?tab=t.0#heading=/);
+ assert.match(await final.locator('#actionBody').getByRole('link',{name:'別タブで開く',exact:true}).getAttribute('href'),/1zUbnH1Li4gzoSCc99tQWuHX2UJVbjM8AGcnZVvQNkUI\/edit\?tab=t.0#heading=/);
  assert.equal(report.documentRequests.length,1);assert.match(report.documentRequests[0],/\/preview\?tab=t.0$/);
  await final.locator('[data-choice="close"]').click();await idle(final);assert.equal(await final.locator('#assignmentDocBtn').evaluate(n=>n===document.activeElement),true);
  ok('最終課題は専用URL・要項モーダルと別タブの入口・提出停止');

@@ -366,7 +366,7 @@
       textNode(body, '初回はFinderで「書類」に「HTML実習」フォルダを作ります。次回からは同じフォルダを使います。');
       const list = document.createElement('ol'); body.append(list);
       function step(id, label, text) { const li = document.createElement('li'); list.append(li); menuHint(li, id, label); li.append(document.createTextNode(text)); }
-      if (localDownloads) textNode(list, '学校アカウント：赤い案内が出ている場合は、先に「学校アカウントを確認する」を押します。ログイン画面が表示できない場合は「表示・ログインで困ったとき」から別タブでログインし、本人確認画面だけを開き直します。', 'li');
+      if (localDownloads) textNode(list, '学校用のChromeプロファイルで、学校のGoogleアカウントにログインします。赤い案内が出ている場合は「学校アカウントを確認する」を押します。作り方と開き直しの手順は、本人確認画面の「表示・ログインで困ったとき」で確認できます。', 'li');
       step('displayMenuWrap', '設定', '：初回は「フォルダを接続・変更…」で「HTML実習」を選びます。フォルダ選択中にHTMLがグレー表示でも正常です。次回は許可が続いていれば自動接続し、許可の確認が必要な場合は「前回のフォルダへ再接続」を押します。');
       step('taskDownloadBtn', 'ダウンロード', '：新しい課題の実習ファイルを、接続した「HTML実習」へ直接保存します。「保存しました」と保存先・ファイル名を確認してください。同名ファイルがある場合は上書きしません。非対応環境の通常ダウンロードでは、Finderで保存先を確認して移動します。');
       if (window.HtmlEditorImageDownloads?.forLesson(selectedLesson.id).length) step('taskDownloadBtn','教材の画像','：Finderで「HTML実習」の中に「images」を作り、ダウンロード画面の「imagesへ保存」を押します。解説内の画像リンクからも同じ画面を開けます。直接保存した画像はプレビューへ反映します。');
@@ -589,10 +589,15 @@
       if (!urls) { textNode(body,'要項のリンクを準備しています。授業担当者の案内を確認してください。'); button('閉じる','close'); return; }
       const link = textNode(body,'別タブで開く','a'); link.className = 'btn';
       link.href = urls.open; link.target = '_blank'; link.rel = 'noopener noreferrer';
-      textNode(body,'表示やログインがうまくいかない場合は「別タブで開く」を使ってください。');
-      const frame = textNode(body,'','iframe'); frame.title = '最終課題の要項（Googleドキュメント）';
+      const frame = document.createElement('iframe'); frame.title = '最終課題の要項（Googleドキュメント）';
       frame.className = 'assignment-document'; frame.referrerPolicy = 'no-referrer';
+      const help = window.HtmlEditorDownload.loginHelp(body, () => {
+        frame.src = urls.frame;
+        help.say('要項だけを開き直しました。編集内容はそのままです。');
+      }, 'assignment');
+      textNode(body,'表示がうまくいかない場合は「別タブで開く」を使ってください。');
       frame.src = urls.frame;
+      body.append(frame);
       button('閉じる','close');
     }));
   }

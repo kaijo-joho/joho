@@ -27,28 +27,82 @@
   function nonce() {
     return Array.from(root.crypto.getRandomValues(new Uint8Array(24)), n => n.toString(16).padStart(2, '0')).join('');
   }
-  // 配付・提出で共通の案内。Googleの認証操作は別タブで本人が行う。
-  function loginHelp(container, retry, {identity = false, availability = false} = {}) {
+  const loginScreens = {
+    submission: {
+      reopen: 'フォームだけを開き直す',
+      note: '提出中や受領結果が分からないときは、先にフォーム内の「受領状況を再確認」を使ってください。'
+    },
+    download: {
+      reopen: 'フォームだけを開き直す',
+      note: '発行中や結果が分からないときは、先に配付ページ内で結果を確認します。発行した実習ファイルはその画面で保存してください。'
+    },
+    identity: {
+      reopen: '本人確認画面だけを開き直す',
+      note: '本人確認のボタンが表示されたら、その画面内で操作してください。確認処理中はそのままお待ちください。'
+    },
+    availability: {
+      reopen: '配付確認画面だけを開き直す',
+      note: '配付の可否を確認しています。確認が始まったらそのままお待ちください。'
+    },
+    assignment: {reopen: '要項だけを開き直す'}
+  };
+  const schoolChromeAdvice = 'Chromeで学校のGoogleアカウントにログインしてください。学校用のChromeプロファイルでの利用がおすすめです。';
+  // Googleの認証操作は別タブで本人が行う。
+  function loginHelp(container, retry, screen = 'download') {
     const node = (parent, text, tag = 'p', className = '') => {
       const element = document.createElement(tag); element.textContent = text;
       if (className) element.className = className;
       parent.append(element); return element;
     };
-    const element = node(container, '', 'details', 'submission-help');
+    const panel = node(container, '', 'div', 'school-login-guide');
+    node(panel, schoolChromeAdvice);
+    const profileButton = node(panel, '学校用プロファイルの作り方', 'button', 'btn');
+    profileButton.type = 'button';
+    profileButton.setAttribute('aria-expanded', 'false');
+    const element = node(panel, '', 'details', 'submission-help');
     node(element, '表示・ログインで困ったとき', 'summary');
     const body = node(element, '', 'div', 'form-login-help');
-    node(body, '学校のGoogleアカウント（@gfe.kaijo.ed.jp）でログインしてください。ログイン後は、この画面に戻ってフォームだけを開き直せます。編集中の内容はそのまま残ります。');
+    const {reopen, note} = loginScreens[screen];
+    if (retry && note) node(body, note);
     const actions = node(body, '', 'div', 'download-controls');
     const login = node(actions, 'Googleにログイン', 'a', 'btn');
     login.href = 'https://accounts.google.com/'; login.target = '_blank'; login.rel = 'noopener noreferrer';
-    const retryButton = node(actions, availability ? '配付確認画面だけを開き直す' : identity ? '本人確認画面だけを開き直す' : 'フォームだけを開き直す', 'button', 'btn'); retryButton.type = 'button';
-    retryButton.addEventListener('click', retry);
-    node(body, '複数のアカウントでログインしていると開けない場合があります。すべてのGoogleアカウントからログアウトし、学校アカウントだけでログインし直してください。');
-    node(body, '同じChromeプロファイルで使っているGmailやGoogleドライブなど、他のGoogleサービスもログアウトされます。ログアウトは必要な場合だけ自分で行ってください。');
-    node(body, '複数アカウントの利用時に、この操作で開けた事例があります。表示できない原因が必ず同じとは限りません。');
-    node(body, availability ? 'この画面では配付の可否だけを確認します。ファイルの発行・提出は行いません。確認中はそのままお待ちください。' : identity ? '本人確認のボタンが表示された後は、その画面内で操作してください。確認処理中は画面を開き直しません。' : '発行・提出中、結果不明、発行結果が未保存のときは開き直さず、フォーム内の同じボタンや受領状況の再確認を使ってください。');
+    const retryButton = retry ? node(actions, reopen, 'button', 'btn') : null;
+    if (retryButton) {
+      retryButton.type = 'button';
+      retryButton.addEventListener('click', retry);
+    }
     const notice = node(body, '', 'p', 'form-retry-notice'); notice.setAttribute('role', 'status');
-    return {element, body, retryButton, say(message) { element.open = true; notice.textContent = message; }};
+    const profile = node(body, '', 'details', 'school-profile-help');
+    const profileSummary = node(profile, '学校用プロファイルの作り方', 'summary');
+    const syncProfile = () => profileButton.setAttribute('aria-expanded', String(element.open && profile.open));
+    profile.addEventListener('toggle', syncProfile);
+    element.addEventListener('toggle', syncProfile);
+    profileButton.addEventListener('click', () => {
+      element.open = profile.open = true;
+      syncProfile();
+      profileSummary.focus();
+    });
+    node(profile, 'すでに学校用があれば、そのChromeウィンドウでエディタを開きます。作業途中で切り替える場合は、元のウィンドウで「保存」を押し、Macに保存できたことを確認してください。');
+    const setup = node(profile, '', 'ol');
+    node(setup, 'Chrome右上のプロファイルアイコンから「Chrome プロファイルを追加」を選び、「学校用」などの名前で作成します。', 'li');
+    node(setup, '学校用のウィンドウでGoogleドライブやClassroomを開き、学校のGoogleアカウントだけでログインします。', 'li');
+    node(setup, '学校用ウィンドウでエディタを開きます。作業を再開する場合は「開く」からMacに保存したファイルを選びます。', 'li');
+    node(profile, 'ブラウザの復旧候補は、保存したプロファイルで開けます。プロファイルを追加できない端末では、現在のプロファイルで学校アカウントだけにログインしてください。ログインしたGoogleのタブは閉じても構いません。');
+    const chromeHelp = node(profile, 'Chrome公式のプロファイル管理', 'a');
+    chromeHelp.href = 'https://support.google.com/chrome/answer/2364824?hl=ja';
+    chromeHelp.target = '_blank'; chromeHelp.rel = 'noopener noreferrer';
+    node(body, 'アクセス権限について案内が出ている場合は、その内容を確認してください。複数のGoogleアカウントでログインしていると、学校アカウントでも連携画面を開けない場合があります。');
+    const relogin = node(body, '', 'ol');
+    node(relogin, 'エディタのタブを開いたまま、同じChromeプロファイルの別タブでGoogleドライブやClassroomを開きます。', 'li');
+    node(relogin, 'Googleのページ右上にあるアカウントアイコンから「すべてのアカウントからログアウトする」を選びます。同じChromeプロファイルのGmailなどからもログアウトされます。', 'li');
+    node(relogin, '学校のGoogleアカウントだけでログインし直します。', 'li');
+    node(relogin, retry ? 'このタブに戻り「' + reopen + '」を押します。編集中の内容はそのまま残ります。' :
+      'このタブに戻り、実習ファイルの取得を続けます。', 'li');
+    const accountHelp = node(body, 'Google公式のログアウト手順', 'a');
+    accountHelp.href = 'https://support.google.com/accounts/answer/1721977?hl=ja';
+    accountHelp.target = '_blank'; accountHelp.rel = 'noopener noreferrer';
+    return {panel, element, body, retryButton, say(message) { element.open = true; notice.textContent = message; }};
   }
   function create({container, dialog, lesson, stateFor, requestClose}) {
     let disposeFrame = () => {}, phase = '', protectedResult = '', disposed = false, frameOpen = false, selectedTask = '';
@@ -71,6 +125,7 @@
       clearFrame(); container.replaceChildren();
       node(container, lesson.title);
       node(container, '対象ファイルを選ぶと、この画面内に配付ページを表示します。学校アカウント・対象学年・課題設定を確認して、実習ファイルを発行します。');
+      if (lesson.files.length) loginHelp(container);
       if (!lesson.files.length) node(container, 'この教材には配付するHTML課題はありません。');
       for (const task of lesson.files) {
         const state = stateFor(task.id);

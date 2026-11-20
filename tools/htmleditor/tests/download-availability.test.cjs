@@ -11,7 +11,7 @@ function setup(){
   addEventListener:(k,f)=>events.set(k,f),removeEventListener:k=>events.delete(k),
   MutationObserver:class{constructor(f){observe=f;}observe(){}disconnect(){disconnected=true;}},
   HtmlEditorDownload:{legacyAppearance:require('../download.js').legacyAppearance,gasOrigin:o=>o==='https://script.googleusercontent.com',withinFrame:(s,w)=>s===w,
-   loginHelp:(host,fn)=>{host.append(help);reload=fn;return {element:help,say:t=>helpText=t};}}};root.top=root;
+   loginHelp:(host,fn)=>{host.append(help);reload=fn;return {panel:help,element:help,say:t=>helpText=t};}}};root.top=root;
  vm.createContext(root);vm.runInContext(sourceText,root);
  const controller=new AbortController(),request={targetId:'html14-01',identity:'synthetic-identity-not-in-url'};
  const result=root.HtmlDownloadGate.bridge({container,url:'https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/SYNTHETIC/exec',request,signal:controller.signal});

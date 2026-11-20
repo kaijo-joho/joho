@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const {TextEncoder} = require('node:util');
 const targetId = 'html12-01';
-const accountAdvice = '複数のアカウントでログインしていると開けない場合があります。すべてのGoogleアカウントからログアウトし、学校アカウントだけでログインし直してください。';
+const schoolAdvice = 'Chromeで学校のGoogleアカウントにログインしてください。学校用のChromeプロファイルでの利用がおすすめです。';
 function setup(kind, options = {}) {
   const listeners = new Set(), timers = new Map(), sent = [], confirmations = [];
   let nonce = 0, timerId = 0, closed = 0, current = true, allowed = false, reloaded = 0;
@@ -77,9 +77,22 @@ for (const kind of ['download','submission']) {
   test(kind + ': 公式ログインリンク・学校案内・対処の注意。自動ログアウトなし',()=>{
     const h=setup(kind), login=h.find('Googleにログイン');
     assert.equal(login.href,'https://accounts.google.com/'); assert.equal(login.target,'_blank'); assert.equal(login.rel,'noopener noreferrer');
-    assert.equal(login.events.click,undefined); assert.ok(h.find(accountAdvice));
-    assert.ok(h.help.children[1].children.some(n=>n.textContent.includes('他のGoogleサービスもログアウト')));
-    assert.ok(h.help.children[1].children.some(n=>n.textContent.includes('原因が必ず同じとは限りません')));
+    assert.equal(login.events.click,undefined); assert.ok(h.find(schoolAdvice));
+    assert.equal(h.find('Google公式のログアウト手順').href,'https://support.google.com/accounts/answer/1721977?hl=ja');
+    const steps=h.help.children[1].children.find(n=>n.tag==='ol').children.map(n=>n.textContent);
+    assert.equal(steps.length,4);
+    assert.match(steps[0],/エディタのタブを開いたまま/);
+    assert.match(steps[1],/Gmailなどからもログアウト/);
+    assert.match(steps[2],/学校のGoogleアカウントだけ/);
+    assert.match(steps[3],/フォームだけを開き直す/);
+    const profileButton=h.find('学校用プロファイルの作り方');
+    assert.equal(profileButton.attributes['aria-expanded'],'false');
+    profileButton.events.click();
+    assert.equal(profileButton.attributes['aria-expanded'],'true');
+    assert.equal(h.help.open,true);
+    assert.equal(h.ctx.document.activeElement.tag,'summary');
+    assert.equal(h.ctx.document.activeElement.textContent,profileButton.textContent);
+    assert.equal(h.find('Chrome公式のプロファイル管理').href,'https://support.google.com/chrome/answer/2364824?hl=ja');
     assert.equal(h.closed(),0); assert.equal(h.reloaded(),0);
   });
   test(kind + ': 開き直しは新bridge。古いiframe・source・応答・タイマーを破棄',()=>{

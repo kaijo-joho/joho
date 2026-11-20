@@ -33,10 +33,11 @@ function bridge({container,url,request,signal}){
    if(settled)return;
    if(source){help.say('最新の配付設定を確認しています。確認中はこのままお待ちください。');return;}
    start();
-  },{availability:true});
+   help.say('配付確認画面だけを開き直しました。編集内容はそのままです。');
+  },'availability');
   function finish(error,value){
    if(settled)return;settled=true;clearTimeout(timer);clearTimeout(slowTimer);observer?.disconnect();
-   root.removeEventListener('message',receive);signal?.removeEventListener('abort',cancel);frame?.remove();help.element.remove();
+   root.removeEventListener('message',receive);signal?.removeEventListener('abort',cancel);frame?.remove();help.panel.remove();
    error?reject(error):resolve(value);
   }
   function cancel(){const error=Error('download_canceled');error.name='AbortError';finish(error);}

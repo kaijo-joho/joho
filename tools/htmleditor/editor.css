@@ -803,12 +803,17 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
 :is(.submission-open,.distribution-integrated) .download-frame { border: 0; border-radius: 0; }
 :is(.submission-open,.distribution-open) #actionButtons { flex: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .distribution-open .download-controls { flex: none; margin-bottom: 4px; }
+.school-login-guide { flex: none; }
+.school-login-guide > p { margin: 4px 0 0; color: var(--muted); }
+.school-login-guide > .btn { color: var(--accent); }
 .submission-help { flex: none; color: var(--muted); margin-bottom: 8px; }
-.submission-help summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 6px; }
-.submission-help summary::before { content: '▸'; }
-.submission-help[open] summary::before { content: '▾'; }
+:is(.submission-help,.school-profile-help) > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 6px; }
+:is(.submission-help,.school-profile-help) > summary::before { content: '▸'; }
+:is(.submission-help,.school-profile-help)[open] > summary::before { content: '▾'; }
 .submission-help .btn { margin-bottom: 8px; }
 .form-login-help { max-height: min(320px, 35dvh); overflow-y: auto; padding-inline: 2px; }
+.form-login-help ol { padding-inline-start: 1.5em; }
+#actionBody .form-login-help li { margin-block: 6px; }
 .form-login-help .download-controls { margin-bottom: 4px; }
 .form-retry-notice:not(:empty) { color: var(--text); font-weight: 700; }
 .download-spinner { width: 1.2em; height: 1.2em; flex-shrink: 0; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: download-spin 1s linear infinite; }

@@ -85,7 +85,7 @@
       if (!isCurrent() || !canClose() || !isCurrent()) return;
       startFrame();
       help.say('フォームだけを開き直しました。ファイルは自動送信されません。フォーム内の案内を確認してください。');
-    });
+    }, 'submission');
     node(help.body, '別タブでは、Macに保存した実習ファイルを選び直してください。');
     const external = node(help.body, '別タブで開く', 'a', 'btn');
     external.href = url; external.target = '_blank'; external.rel = 'noopener noreferrer';
