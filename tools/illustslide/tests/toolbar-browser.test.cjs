@@ -86,7 +86,16 @@ function fixture() {
     const fileActions = await page.locator('#command-menu [data-action]').evaluateAll(nodes => nodes.map(node => node.dataset.action));
     assert.deepEqual(fileActions.filter(action => action !== 'auto-start' && action !== 'auto-stop').sort(), ['new','open-file','recovery','rename','save','save-browser','save-local'], 'ファイル操作は1つのメニューへ集約');
     assert(fileActions.some(action => ['auto-start', 'auto-stop'].includes(action)), 'ローカル自動保存の開始・停止をファイルメニューに置く');
+    assert.deepEqual(await page.locator('#command-menu [data-file-action]>span').allTextContents(), ['新規作成','名前を変更…','保存','ブラウザに保存','ファイルに保存…','ブラウザから開く…','ファイルから開く…','ファイルへの自動保存を開始…']);
+    assert.match(await page.locator('#command-menu [data-action="save"] kbd').innerText(), /^(⌘|Ctrl\+)S$/);
+    assert.match(await page.locator('#command-menu [data-action="open-file"] kbd').innerText(), /^(⌘|Ctrl\+)O$/);
+    assert.equal(await page.locator('#command-menu [data-action="recovery"] kbd').innerText(), '');
     await page.keyboard.press('Escape');
+    await page.locator('#canvas').focus();
+    const chooserEvent=page.waitForEvent('filechooser');await page.keyboard.press('Meta+o');
+    const chooser=await chooserEvent;await chooser.setFiles([]);
+    assert.equal(await page.locator('#dialog').evaluate(el=>el.open),false,'⌘Oはブラウザ保存候補ではなくファイル選択を開く');
+    assert.deepEqual(await read(page),doc,'ファイル選択を取り消しても作品を保つ');
     const beforeFileHover = await read(page);
     await page.locator('#canvas').focus(); await page.locator('#canvas').hover(); await page.locator('#file-button').hover();
     await page.locator('#command-menu').waitFor();
@@ -107,6 +116,12 @@ function fixture() {
       return current && new IlapoDocumentStore(localStorage).list().some(entry => entry.storageId === current.storageId && entry.kind === 'saved');
     });
     assert.equal((await read(page)).id, 'toolbar-fixture', 'ブラウザ保存は作品を保つ');
+    const savedBeforeHelp=await page.evaluate(()=>JSON.stringify(new IlapoDocumentStore(localStorage).list().filter(entry=>entry.kind==='saved')));
+    await page.locator('#help-button').click();await page.locator('#operation-help select').focus();
+    await page.keyboard.press('Meta+s');
+    assert.equal(await page.evaluate(()=>JSON.stringify(new IlapoDocumentStore(localStorage).list().filter(entry=>entry.kind==='saved'))),savedBeforeHelp,'ヘルプ内の⌘Sで明示保存を更新しない');
+    assert.equal(await page.locator('#operation-help [data-help-topic]:visible > ol>li').count(),3,'操作ヘルプは短い手順を最初に示す');
+    await page.keyboard.press('Escape');
 
     await openMenu(page, '#selection-method-button');
     assert.deepEqual(await page.locator('#command-menu [data-tool]').evaluateAll(nodes => nodes.map(node => node.dataset.tool)), ['select','pan']);
@@ -208,10 +223,26 @@ function fixture() {
     assert(await touch.locator('#command-menu').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight;}));
     await touch.screenshot({path:'/private/tmp/illustslide-toolbar-settings-touch.png'});
     await touch.keyboard.press('Escape');
+    await touch.locator('#file-button').tap();
+    assert(await touch.locator('#command-menu').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight&&el.scrollWidth<=el.clientWidth+1;}),'390px・特大文字でもファイルメニューを横にはみ出させない');
+    await touch.screenshot({path:'/private/tmp/illustslide-common-filemenu-390.png'});
+    await touch.keyboard.press('Escape');
     await touch.locator('#palette-toggle').tap(); await touch.locator('#shape-tools [data-tool="rect"]').tap();
     await touch.locator('#canvas').tap({position:{x:160,y:300}}); await settle(touch);
     assert.equal((await read(touch)).pages[0].objects.length,1,'タップで追加ツールを選び作図できる');
     await touch.close(); assert.deepEqual(errors,[]);
+    const fallback=await browser.newPage();
+    await fallback.route('**/shared/file-menu.js*',route=>route.abort());
+    await fallback.goto(url);await fallback.waitForFunction(()=>!!window.IlapoEditor);
+    await openMenu(fallback,'#file-button');await fallback.locator('#command-menu [data-action="save-browser"]').click();
+    assert(await fallback.evaluate(()=>new IlapoDocumentStore(localStorage).list().some(entry=>entry.kind==='saved')),'共通ファイルメニューJSの取得失敗時も従来の保存を使える');
+    await fallback.close();
+    const windows=await browser.newPage();await windows.addInitScript(()=>Object.defineProperty(navigator,'platform',{get:()=> 'Win32'}));
+    await windows.goto(url);await windows.waitForFunction(()=>!!window.IlapoEditor);await openMenu(windows,'#file-button');
+    assert.equal(await windows.locator('#command-menu [data-action="open-file"] kbd').innerText(),'Ctrl+O');
+    await windows.keyboard.press('Escape');await windows.locator('#canvas').focus();
+    const windowsChooser=windows.waitForEvent('filechooser');await windows.keyboard.press('Control+o');await (await windowsChooser).setFiles([]);
+    assert.equal(await windows.locator('#dialog').evaluate(el=>el.open),false,'Ctrl+Oもファイル選択に接続する');await windows.close();
     console.log('illustSlide toolbar browser tests passed');
   } finally { await browser.close(); if(!supplied) server.close(); }
 })().catch(error=>{console.error(error);process.exitCode=1;server.close();});

@@ -474,6 +474,15 @@
     const signature=JSON.stringify([activeSession.id,page().id,selected]);
     if(signature!==arrangeSelectionKey){arrangeKey=null;arrangeSelectionKey=signature;}
   }
+  // 共通部品の定義を既存popoverへ接続し、保存処理とキーボード操作は維持する。
+  const fileActionIds={new:'new',rename:'rename',save:'save',browserSave:'save-browser',fileSave:'save-local',browserOpen:'recovery',fileOpen:'open-file',auto:'auto-start'};
+  function sharedFileButton(item,{separator=true,action}={}){
+    const [id,name,glyph,key,separated]=item,stopping=id==='auto'&&activeSession.localAuto.active;
+    const label=stopping?name.replace('開始…','停止'):name;
+    const disabled=['save','browserSave','fileSave'].includes(id)?activeSession.saving:id==='auto'&&activeSession.autoStarting;
+    const modifier=/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl+';
+    return (separator&&separated?'<hr role="separator">':'')+`<button type="button" role="menuitem" data-file-action="${id}" data-action="${action||(stopping?'auto-stop':fileActionIds[id])}" ${disabled?'disabled':''}>${window.JohoFileMenu.icon(stopping?'stop':glyph).outerHTML}<span>${esc(label)}</span><kbd>${key?modifier+key.toUpperCase():''}</kbd></button>`;
+  }
   function arrangeContext(){
     syncArrangeSelection();
     const p=page(),units=Arrange.collect(p,selected,bounds);
@@ -525,9 +534,11 @@
       file:()=>{
         const historyMenu=!document.querySelector('.top [data-action="undo"]').getClientRects().length?'<hr>'+menuButton('元に戻す','undo',!history.canUndo)+menuButton('やり直し','redo',!history.canRedo):'';
         const compact=!$('present-button').getClientRects().length?'<hr>'+menuButton('選択方法','compact-select')+menuButton('先頭から発表','present-start')+menuButton('このページから発表','present-current')+menuButton('発表者ビューで開始','presenter-start')+menuButton('発表者ビューでこのページから','presenter-current'):'';
-        return menuButton('新しい作品','new')+menuButton('作品名を変更…','rename')+'<hr>'+menuButton('保存 ⌘S','save',activeSession.saving)+menuButton('ブラウザに保存','save-browser',activeSession.saving)+menuButton('ローカルファイルに保存…','save-local',activeSession.saving)+'<hr>'+menuButton('ブラウザから開く…','recovery')+menuButton('ファイルを開く…','open-file')+'<hr>'+menuButton(activeSession.localAuto.active?'ローカル自動保存を停止':'ローカル自動保存を開始…',activeSession.localAuto.active?'auto-stop':'auto-start',activeSession.autoStarting)+historyMenu+compact;
+        // 共通JSが取得できない場合も、従来の保存・読み込みの入口を残す。
+        const basic=window.JohoFileMenu?window.JohoFileMenu.items.map(item=>sharedFileButton(item)).join(''):menuButton('新しい作品','new')+menuButton('作品名を変更…','rename')+'<hr>'+menuButton('保存','save',activeSession.saving)+menuButton('ブラウザに保存','save-browser',activeSession.saving)+menuButton('ローカルファイルに保存…','save-local',activeSession.saving)+'<hr>'+menuButton('ブラウザから開く…','recovery')+menuButton('ファイルを開く…','open-file')+'<hr>'+menuButton(activeSession.localAuto.active?'ローカル自動保存を停止':'ローカル自動保存を開始…',activeSession.localAuto.active?'auto-stop':'auto-start',activeSession.autoStarting);
+        return basic+historyMenu+compact;
       },
-      documents:()=>workspace.sessions.map(session=>`<button data-document-pick="${esc(session.id)}" aria-current="${session===activeSession}">${icon('file')}<span>${esc(session.history.document.name)}${workspace.dirty(session)?' •':''}${session.saving?'（保存中）':''}</span></button>`).join('')+'<hr>'+menuButton('新しい作品','new'),
+      documents:()=>workspace.sessions.map(session=>`<button data-document-pick="${esc(session.id)}" aria-current="${session===activeSession}">${icon('file')}<span>${esc(session.history.document.name)}${workspace.dirty(session)?' •':''}${session.saving?'（保存中）':''}</span></button>`).join('')+'<hr>'+(window.JohoFileMenu?['rename','new'].map(id=>sharedFileButton(window.JohoFileMenu.items.find(item=>item[0]===id),{separator:false,action:id==='rename'?'document-rename':'new'})).join(''):menuButton('作品名を変更…','document-rename')+menuButton('新しい作品','new')),
       select:()=>['select','pan'].map(key=>`<button data-tool="${key}" aria-pressed="${key==='select'?selecting():tool===key}">${icon(key)}<span>${key==='select'?'選択（内側は全体・頂点は点）':'表示を移動'}</span></button>`).join('')+'<hr>'+menuButton('すべて選択','select-all',!page().objects.length),
       settings:()=>`<div class="appearance-settings"><h3>テーマ</h3><div class="appearance-choices" role="group" aria-label="テーマ">${[['auto','自動'],['light','ライト'],['dark','ダーク']].map(([value,label])=>`<button type="button" data-theme-choice="${value}" aria-label="${label}" aria-pressed="${settings.theme===value}" data-tip="${value==='auto'?'端末の設定に合わせる':label+'モード'}">${icon('theme-'+value)}<span>${label}</span></button>`).join('')}</div><h3>操作部の文字サイズ</h3><div class="appearance-choices" role="group" aria-label="操作部の文字サイズ">${[['standard','標準'],['large','大'],['xlarge','特大']].map(([value,label])=>`<button type="button" data-ui-size="${value}" aria-pressed="${settings.size===value}"><span>${label}</span></button>`).join('')}</div></div>`,
       present:()=>menuButton('先頭から発表','present-start')+menuButton('このページから発表','present-current')+'<hr>'+menuButton('発表者ビューで開始','presenter-start')+menuButton('発表者ビューでこのページから','presenter-current'),
@@ -562,7 +573,7 @@
     const was=$('command-menu').matches(':popover-open')&&menuOpener===opener&&menuKind===kind;
     if(was&&(options.hover||hoverMenu)){clearTimeout(menuCloseTimer);if(!options.hover){hoverMenu=false;menuItems($('command-menu'))[0]?.focus();}return;}
     hideMenu();if(was)return;menuOpener=opener;menuKind=kind;hoverMenu=!!options.hover;$('tooltip').hidden=true;
-    $('command-menu').dataset.menuKind=kind;$('command-menu').setAttribute('aria-label',menuTitle(kind));$('command-menu').innerHTML=`<div class="menu-content">${buildMenu(kind)}</div>`;$('command-menu').showPopover();opener.setAttribute('aria-expanded','true');
+    $('command-menu').dataset.menuKind=kind;$('command-menu').setAttribute('aria-label',menuTitle(kind));$('command-menu').innerHTML=`<div class="menu-content${window.JohoFileMenu&&['file','documents'].includes(kind)?' joho-file-menu joho-file-menu__items':''}">${buildMenu(kind)}</div>`;$('command-menu').showPopover();opener.setAttribute('aria-expanded','true');
     positionMenu();renderArrangeReference();if(!options.hover)menuItems($('command-menu'))[0]?.focus();
   }
   function openSubmenu(opener,options={}){
@@ -683,7 +694,18 @@
     }
     ({outline:()=>outlineUI.open(),text:()=>textUI.open(one),style:styleDialog,transform:transformDialog,board:boardDialog,view:viewDialog,image:imageDialog,connection:()=>connectionUI.dialog(),anchor:()=>pathUI.commands['anchor-position'](),animation:()=>animationUI.list(),pages:()=>pagesUI.open(),objects:()=>objectsUI.open(),assets:()=>assetsUI.open()})[section]?.();
   }
-  function renameDialog(){showDialog('作品名',`<label>名前<input id="name-input" value="${esc(doc().name)}" maxlength="120" required></label>`,'変更',()=>{const name=$('name-input').value.trim();if(!name)throw Error('名前を入力してください。');change(d=>d.name=name);});}
+  function renameDialog(fromList=false){
+    const session=activeSession;
+    showDialog('作品名',`<label>名前<input id="name-input" value="${esc(doc().name)}" maxlength="120" required></label>`,'変更',()=>{const name=$('name-input').value.trim();if(!name)throw Error('名前を入力してください。');if(activeSession!==session)throw Error('名前を変更する作品を選び直してください。');change(d=>d.name=name);});
+    if(fromList){
+      dialogOpener=$('document-list-button');const generation=dialogGeneration;
+      $('dialog').addEventListener('close',()=>setTimeout(()=>{
+        if($('dialog').open||dialogGeneration!==generation+1||session.closed||activeSession!==session)return;
+        openMenu('documents',$('document-list-button'));
+        [...$('command-menu').querySelectorAll('[data-document-pick]')].find(button=>button.dataset.documentPick===session.id)?.focus();
+      },0),{once:true});
+    }
+  }
   let switchGeneration=0;
   async function finishTextInput(){
     if(document.querySelector('[data-rich-composing="true"]')){toast('日本語の変換を確定してから作品を切り替えてください。');return false;}
@@ -992,7 +1014,7 @@
     assets:()=>openInspectorSection('assets'),'component-save':()=>assetsUI.focusRegistration(),'import-image':()=>$('image-input').click(),'image-options':()=>openInspectorSection('image'),
     'connection-tool':()=>setTool('connector'),'connection-orthogonal-tool':()=>setTool('connector-orthogonal'),'connection-options':()=>openInspectorSection('connection'),'connection-between':()=>connectionUI.addBetween(),'connection-convert':()=>connectionUI.convert(),
     'present-start':()=>present(true),'present-current':()=>present(false),'presenter-start':()=>present(true,true),'presenter-current':()=>present(false,true),
-    rename:renameDialog,artboard:()=>openInspectorSection('board'),pages:()=>openInspectorSection('pages'),objects:()=>openInspectorSection('objects'),transform:()=>openInspectorSection('transform'),style:()=>openInspectorSection('style'),'view-dialog':()=>openInspectorSection('view'),
+    rename:renameDialog,'document-rename':()=>renameDialog(true),artboard:()=>openInspectorSection('board'),pages:()=>openInspectorSection('pages'),objects:()=>openInspectorSection('objects'),transform:()=>openInspectorSection('transform'),style:()=>openInspectorSection('style'),'view-dialog':()=>openInspectorSection('view'),
     save:saveDocument,'save-browser':saveBrowser,'save-local':saveLocal,recovery:recoveryDialog,'open-file':()=>chooseFile(),'import-svg':()=>chooseFile(true),
     new:newDocument,'compact-select':()=>openMenu('select',$('file-button')),
     'auto-start':()=>workspace.startAutosave(activeSession),'auto-stop':()=>{activeSession.localAuto.stop();render();},
@@ -1020,14 +1042,14 @@
     }else if(action.startsWith('order-')){if(editable())changePage(p=>C.reorderObjects(p,selected,action.slice(6)));}else if(pathUI.commands[action])pathUI.commands[action]();else {const result=commands[action]?.();if(result?.catch)result.catch(error=>toast(errorMessage(error)));}}catch(error){toast(errorMessage(error));}}
   document.addEventListener('click',event=>{const button=event.target.closest('button');if(!button||button.disabled)return;if(button.dataset.documentPick){hideMenu();selectDocument(button.dataset.documentPick);}else if(button.dataset.inspectorSection)openInspectorSection(button.dataset.inspectorSection);else if(button.dataset.tool)setTool(button.dataset.tool);else if(button.dataset.menu)openMenu(button.dataset.menu,button);else if(button.dataset.submenu)openSubmenu(button);else if(button.dataset.action)execute(button.dataset.action);});
   document.addEventListener('keydown',event=>{
-    if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'&&!event.isComposing&&!$('dialog').open&&!event.target.closest('.ilapo-present-dialog,.ilapo-presenter-dialog')){event.preventDefault();event.stopImmediatePropagation();saveDocument();}
+    if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'&&!event.isComposing&&!$('dialog').open&&!event.target.closest('.ilapo-present-dialog,.ilapo-presenter-dialog')){event.preventDefault();event.stopImmediatePropagation();if(!help?.root.contains(event.target))saveDocument();}
   },true);
   document.addEventListener('keydown',event=>{
     if(inspector?.root.contains(event.target)||help?.root.contains(event.target)||event.isComposing||event.target.closest('input,textarea,select,[contenteditable=true],.ilapo-present-dialog,.ilapo-presenter-dialog')||$('dialog').open)return;
     if(['Alt','Shift'].includes(event.key)&&drag?.lastPoint){updateSelectionDrag(drag.lastPoint,event);render();}
     if(event.key==='Escape'){if(drag)cancelDrag();else if($('command-menu').matches(':popover-open')){hideMenu();menuOpener?.focus();}else if(!connectionUI.keyboard(event)&&!pathUI.keyboard(event)){clearSelection();}space=false;render();return;}
     const mod=event.metaKey||event.ctrlKey,key=event.key.toLowerCase();
-    if(mod){const map={s:'save',o:'recovery',z:event.shiftKey?'redo':'undo',a:'select-all',c:'copy',v:'paste',d:'duplicate'};if(map[key]){event.preventDefault();execute(map[key]);}return;}
+    if(mod){const map={s:'save',o:'open-file',z:event.shiftKey?'redo':'undo',a:'select-all',c:'copy',v:'paste',d:'duplicate'};if(map[key]){event.preventDefault();execute(map[key]);}return;}
     if(event.target.closest('#document-tabs')||event.target.closest('button')&&[' ','Enter'].includes(event.key))return;
     if(event.key===' '){event.preventDefault();space=true;render();return;}
     if(connectionUI.keyboard(event)||pathUI.keyboard(event)){event.preventDefault();return;}
