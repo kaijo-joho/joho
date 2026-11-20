@@ -15,6 +15,7 @@
   let workspaceView = 'main', templateLibrary, observedSelection = null;
   let history, store, localAuto, help, tooltip, toolbar, fileMenu, tabUI, activeTab, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey, dialogListDetail, dialogReturnFocus;
   let resumeEnabled = true;
+  let pageHidden = false;
   const sessions = [], Sessions = window.GraphDocumentSessions;
   let switching = 0, documentLoading = false, transition = Promise.resolve(), restoreViews = false;
   let drawPending = false, drawing = false, drawTask = Promise.resolve(), exportBusy = false, fileBusy = false, toastTimer, saveTimer;
@@ -35,8 +36,19 @@
   function current() { return history.document; }
   function updateTabs() { tabUI?.render(sessions.map(Sessions.describe),activeTab?.id);fileMenu?.update({autosaving:!!activeTab?.localAuto?.active,disabled:!!activeTab?.busy}); }
   function tabStatus(tab,text) { tab.status=text;if(tab===activeTab)status(text); }
+  function claimDocumentId(id) {
+    if(!navigator.locks?.request)return Promise.resolve(null);
+    return new Promise(resolve=>{
+      navigator.locks.request('kaijo-graph:document:'+id,{ifAvailable:true},lock=>{
+        if(!lock){resolve(null);return;}
+        return new Promise(release=>resolve(release));
+      }).catch(()=>resolve(null));
+    });
+  }
   function createTab(doc,options={}) {
     const tab=Sessions.create(doc,options);sessions.push(tab);
+    if(options.resumeId&&options.releaseLock){tab.id=options.resumeId;tab.releaseLock=options.releaseLock;}
+    else claimDocumentId(tab.id).then(release=>{if(tab.closed||pageHidden)release?.();else tab.releaseLock=release;});
     try{tab.localAuto=new IlapoLocalAutosave({encode:value=>new Blob([encode(value)],{type:'application/json'}),onStatus:result=>{
       if(tab.closed)return;if(!tab.localAuto?.active)tab.autoHandle=null;tabStatus(tab,result.message);if(tab===activeTab)fileMenu?.update({autosaving:!!tab.localAuto.active,disabled:!!tab.busy});
       if(result.state==='error')notify(tab.history.document.name+'：'+result.message);
@@ -93,7 +105,7 @@
         const next=available.find(item=>sessions.indexOf(item)>index)||available.at(-1)||createTab(C.createDocument());
         await activateTab(next);
       }
-      tab.closed=true;tab.localAuto?.stop(false);sessions.splice(sessions.indexOf(tab),1);
+      tab.closed=true;tab.localAuto?.stop(false);tab.releaseLock?.();tab.releaseLock=null;sessions.splice(sessions.indexOf(tab),1);
     }finally{tab.busy=false;tab.closing=false;updateTabs();}
   }
   function requestCloseTab(id) {
@@ -1509,14 +1521,14 @@
   async function loadDocument(doc,options={}) {
     const valid=C.validateDocument(doc),tab=createTab(valid,options);await activateTab(tab);persistSoon();return tab;
   }
-  function restoreLastDocument() {
+  async function restoreLastDocument() {
     try {
       if(!store)throw new Error('ブラウザ保存を利用できません。「ファイルから開く…」をご利用ください。');
       const resume=store.loadResume();
       if(resume){
-        activeTab=createTab(resume.document,{editRanges:resume.editRanges});
-        // 別のブラウザタブから再開したコピーで、元のタブの保存を上書きしない。
-        try{if(sessionStorage.getItem('kaijo-graph:active-document')===resume.id)activeTab.id=resume.id;}catch(_){}
+        // sessionStorageごと複製されても、稼働中の文書IDは共有しない。
+        let releaseLock=null;try{if(sessionStorage.getItem('kaijo-graph:active-document')===resume.id)releaseLock=await claimDocumentId(resume.id);}catch(_){}
+        activeTab=createTab(resume.document,{editRanges:resume.editRanges,resumeId:resume.id,releaseLock});
         activeTab.savedKey=resume.savedKey;activeTab.saveTarget=resume.saveTarget;
         activeTab.plotViews=resume.plotViews;workspaceView=resume.workspaceView;camera=resume.camera||undefined;restoreViews=true;
         activeTab.status=resume.saveTarget==='local'?'前回のグラフを再開しました。ファイル保存時に保存先を選び直してください。':'前回のグラフを再開しました。';
@@ -1662,11 +1674,11 @@
     catch(error){outputStatus(error.message,true);throw error;}
     finally{setOutputBusy(false);}
   }
-  function startup() {
+  async function startup() {
     if(!C||!P||!S)throw new Error('アプリの読み込みに失敗しました。ページを再読み込みしてください。');
     try{settings=JSON.parse(localStorage.getItem('kaijo-graph:settings')||'{}');if(!settings||typeof settings!=='object')settings={};store=new GraphDocumentStore.Store(localStorage);templateLibrary=new GraphTemplateLibrary.Library(localStorage);}catch(_){settings={};}
     if(!['auto','light','dark'].includes(settings.theme))settings.theme='auto';if(!['standard','large','largest'].includes(settings.textSize))settings.textSize='standard';
-    restoreLastDocument();
+    await restoreLastDocument();
     if(!activeTab){const initial=C.createDocument();initial.name='はじめてのグラフ';Object.assign(initial.axes.x,{min:-5,max:5});Object.assign(initial.axes.y,{min:-2,max:10});const f=C.createSeries('function');f.expression='x^2';f.name='y = x²';f.domain.x=[-5,5];initial.series.push(f);activeTab=createTab(initial);}
     history=activeTab.history;localAuto=activeTab.localAuto;
 
@@ -1770,10 +1782,25 @@
     try{help=JohoToolHelp.create({root:$('operation-help'),opener:$('help-button'),title:'グラフエディタの使い方',storageKey:'kaijo-graph:help',bounds:()=>({top:document.querySelector('.top').getBoundingClientRect().bottom+6,bottom:$('stage').getBoundingClientRect().bottom-52}),isBusy:()=>!!parameterPreview||!!gesture,returnToEditor:()=>$('stage').focus()});}catch(_){$('help-button').disabled=true;}
     let resizeTimer;new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(requestDraw,100);}).observe($('stage'));
     matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{if(settings.theme==='auto')requestDraw();});
-    addEventListener('pagehide',()=>{if(saveTimer)persist();else rememberResumeSafely();for(const tab of sessions)tab.localAuto?.stop(false);});
+    addEventListener('pagehide',()=>{pageHidden=true;if(saveTimer)persist();else rememberResumeSafely();for(const tab of sessions){tab.localAuto?.stop(false);tab.releaseLock?.();tab.releaseLock=null;}});
+    addEventListener('pageshow',event=>{
+      if(!event.persisted)return;
+      pageHidden=false;switching++;
+      run(async()=>{
+        try{
+          // 履歴から復帰したページも、すでに他のタブが使うIDならコピーとして扱う。
+          for(const tab of sessions){
+            if(tab.closed)continue;let release=await claimDocumentId(tab.id);
+            if(!release){tab.id=Sessions.createId();release=await claimDocumentId(tab.id);}
+            if(tab.closed||pageHidden)release?.();else tab.releaseLock=release;
+          }
+          updateTabs();rememberResumeSafely();
+        }finally{switching--;}
+      });
+    });
     applySettings();updateHeader();updateList();updateToolbar();templateList();if(['format','templates','export'].includes(settings.side))setSide(settings.side,true);
     status(activeTab.status);rememberResumeSafely();
     window.GraphEditor=Object.freeze({getDocument:()=>C.clone(current()),getState:()=>({selected:C.clone(selected),selection:C.clone(selectionRefs),multipleMode,observedSelection:C.clone(observedSelection),drawing:drawing||!!switching||documentLoading,tabId:activeTab.id,tabs:sessions.map(tab=>({...Sessions.describe(tab),saveTarget:tab.saveTarget})),dragging:!!gesture,side,workspaceView,localAutosave:!!localAuto?.active}),getTemplates:()=>C.clone(templates)});
   }
-  try{startup();}catch(error){$('plot-error').textContent=error.message;$('plot-error').hidden=false;}
+  startup().catch(error=>{$('plot-error').textContent=error.message;$('plot-error').hidden=false;});
 }());

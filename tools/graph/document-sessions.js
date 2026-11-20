@@ -7,6 +7,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (C) {
   'use strict';
   let serial = 0;
+  const createId = () => 'doc-' + Date.now().toString(36) + '-' + (++serial).toString(36) + '-' + Math.random().toString(36).slice(2, 10);
   function ranges(doc) {return {equalScale:doc.equalScale,axes:Object.fromEntries(Object.entries(doc.axes).map(([key,axis])=>[key,{min:axis.min,max:axis.max}]))};}
   function copyRanges(value, fallback) {
     if(value&&typeof value==='object'&&!Array.isArray(value)&&typeof value.equalScale==='boolean'&&value.axes&&typeof value.axes==='object'&&!Array.isArray(value.axes)){
@@ -50,7 +51,7 @@
     const baselineRanges=options.savedDocument
       ? copyRanges(options.savedEditRanges,ranges(baseline))
       : C.clone(history.editRanges);
-    return {id: 'doc-' + Date.now().toString(36) + '-' + (++serial).toString(36) + '-' + Math.random().toString(36).slice(2, 10), history,
+    return {id: createId(), history,
       savedKey: options.dirty ? null : contentKey(baseline)+JSON.stringify(baselineRanges), saveTarget: null,
       fileHandle: null, autoHandle: null, localAuto: null, busy: false, status: '', view: null, plotViews: {}, closed: false};
   }
@@ -59,5 +60,5 @@
   function dirty(tab) { return tab.savedKey !== key(tab); }
   function saved(tab, snapshot, target) { tab.savedKey = snapshot.key; tab.saveTarget = target; }
   function describe(tab) { return {id: tab.id, name: tab.history.document.name || '無題のグラフ', dirty: dirty(tab), busy: tab.busy}; }
-  return {create, dirty, saved, describe, contentKey, checkpoint};
+  return {create, createId, dirty, saved, describe, contentKey, checkpoint};
 }));

@@ -68,8 +68,15 @@ let browser;
   assert.match(await page.locator('#toast').textContent(),/ブラウザから開く/);
   assert.equal(await page.evaluate(id=>new GraphDocumentStore.Store(localStorage).load(id,'saved').document.name,a),'A saved');
   await file('open-saved');await page.locator(`.saved-option[data-saved-id="${a}"][data-save-kind="saved"]`).click();await settle();assert.equal((await doc()).name,'A saved');
+  await rename('複製元');await page.waitForTimeout(300);const sourceId=(await state()).tabId;
+  const [duplicate]=await Promise.all([context.waitForEvent('page'),page.evaluate(()=>{window.open(location.href,'_blank');})]);
+  await duplicate.waitForFunction(()=>window.GraphEditor&&!GraphEditor.getState().drawing);
+  assert.notEqual(await duplicate.evaluate(()=>GraphEditor.getState().tabId),sourceId,'sessionStorageごと複製された場合も保存IDを共有しない');
+  await duplicate.locator('.graph-document-tabs__strip [data-document-tab-rename]').click();await duplicate.getByLabel('グラフ名',{exact:true}).fill('複製先');await duplicate.locator('#dialog-submit').click();
+  await duplicate.waitForFunction(()=>!GraphEditor.getState().drawing);await duplicate.waitForTimeout(300);
+  assert.equal(await page.evaluate(id=>new GraphDocumentStore.Store(localStorage).load(id,'auto').document.name,sourceId),'複製元');
   const another=await context.newPage();await another.goto(url);await another.waitForFunction(()=>window.GraphEditor&&!GraphEditor.getState().drawing);
-  assert.notEqual(await another.evaluate(()=>GraphEditor.getState().tabId),(await state()).tabId,'別ブラウザタブからの再開は元の保存IDを共有しない');
+  assert.notEqual(await another.evaluate(()=>GraphEditor.getState().tabId),await duplicate.evaluate(()=>GraphEditor.getState().tabId),'別ブラウザタブからの再開は元の保存IDを共有しない');
   // 旧版（再開記録なし）は最新の有効な保存から移行し、未保存の状態を保つ。
   await page.evaluate(d=>{localStorage.clear();localStorage.setItem('kaijo-graph:auto',JSON.stringify({document:d,at:'2026-11-20T00:00:00Z'}));},fixture('旧版の自動保存'));
   // pagehideが移行用データを上書きしないよう、新しいページで起動する。
