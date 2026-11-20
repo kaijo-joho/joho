@@ -59,6 +59,7 @@
     let document;
     try { document = Core.validateDocument(value.document); } catch (cause) { throw cause; }
     const entry = { id: legacy ? 'legacy' : expectedId, kind: expectedKind, at: value.at, document };
+    if (typeof value.revision === 'string') entry.revision = value.revision;
     if (hasOwn(value, 'editRanges')) {
       const editRanges = sanitizeEditRanges(value.editRanges);
       if (editRanges) entry.editRanges = editRanges;
@@ -82,7 +83,8 @@
     if (!editRanges) fail('再開用の表示範囲が不正です。');
     const workspaceView = value.workspaceView === 'comparison' || document.charts.some(chart => chart.id === value.workspaceView) ? value.workspaceView : 'main';
     const record = { version: 1, id: checkId(value.id), document, editRanges, savedKey: value.savedKey,
-      saveTarget: value.saveTarget, workspaceView, camera: null, plotViews: {} };
+      saveTarget: value.saveTarget, workspaceView, camera: null, plotViews: {}, sourceRevisions: {} };
+    for (const kind of KINDS) record.sourceRevisions[kind] = typeof value.sourceRevisions?.[kind] === 'string' ? value.sourceRevisions[kind] : null;
     const camera = value.camera;
     if (object(camera) && ['eye', 'center', 'up'].every(key => object(camera[key]) && ['x','y','z'].every(axis => Number.isFinite(camera[key][axis])))) {
       record.camera = Object.fromEntries(['eye', 'center', 'up'].map(key => [key, Object.fromEntries(['x','y','z'].map(axis => [axis, camera[key][axis]]))]));
@@ -112,6 +114,10 @@
 
     saveResume(value) {
       const record = resumeRecord(value);
+      for (const kind of KINDS) {
+        const entry = this.load(record.id, kind);
+        record.sourceRevisions[kind] = entry ? entry.revision || entry.at : null;
+      }
       this.storage.setItem(RESUME_KEY, JSON.stringify(record));
       return record;
     }
@@ -123,11 +129,18 @@
       catch (cause) { throw new Error('直前のグラフを再開できません。「ブラウザから開く…」で保存内容を選んでください。', { cause }); }
     }
 
+    recoveryEntries(record) {
+      // 自動保存だけ成功して再開記録の更新に失敗した場合は、古いスナップショットで
+      // 新しい下書きを上書きさせない。時計の前後だけでは変更の有無を判定しない。
+      return sortEntries(KINDS.map(kind => this.load(record.id, kind)).filter(entry => entry
+        && (entry.revision || entry.at) !== record.sourceRevisions[entry.kind]));
+    }
+
     save(id, kind, doc, options = {}) {
       checkId(id); checkKind(kind);
       if (!object(options)) fail('保存オプションが不正です。');
       const document = Core.validateDocument(doc);
-      const entry = { id, kind, at: new Date().toISOString(), document };
+      const entry = { id, kind, at: new Date().toISOString(), revision: Date.now().toString(36)+'-'+Math.random().toString(36).slice(2), document };
       if (hasOwn(options, 'editRanges')) {
         const editRanges = sanitizeEditRanges(options.editRanges);
         if (!editRanges) fail('保存範囲メタデータが不正です。');

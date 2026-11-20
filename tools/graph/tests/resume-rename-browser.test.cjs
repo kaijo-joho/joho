@@ -59,7 +59,11 @@ let browser;
   await page.evaluate(()=>{window.originalSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='kaijo-graph:resume')throw new DOMException('quota','QuotaExceededError');return originalSetItem.call(this,key,value);};});
   await rename('再開記録の容量不足');await page.waitForFunction(()=>document.querySelector('#save-status').textContent.includes('失敗'));
   assert.equal((await doc()).name,'再開記録の容量不足');assert((await state()).tabs[0].dirty);assert.equal(await page.evaluate(()=>localStorage.getItem('kaijo-graph:resume')),previousResume);
-  await page.evaluate(()=>{Storage.prototype.setItem=originalSetItem;});
+  const staleId=(await state()).tabId;
+  await page.reload();await settle();assert.equal((await doc()).name,'再開記録の容量不足','再開情報だけが古くても成功していた自動保存から復元');
+  assert.notEqual((await state()).tabId,staleId,'新しい保存を古い再開スナップショットで上書きしない');
+  const recoveredId=(await state()).tabId;await file('new-document');await settle();await page.locator(`[role="tab"][data-document-tab-id="${recoveredId}"]`).click();await settle();
+  assert.equal(await page.evaluate(id=>new GraphDocumentStore.Store(localStorage).load(id,'auto').document.name,staleId),'再開記録の容量不足');
   await file('new-document');await settle();const blankId=(await state()).tabId;await page.reload();await settle();
   assert.equal((await state()).tabId,blankId);assert.equal((await doc()).series.length,0,'空の新規文書も再開対象になる');
   // 再開記録が壊れても、元の自動／明示保存は残り、起動だけで書き換えない。
