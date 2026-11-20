@@ -129,11 +129,19 @@
       catch (cause) { throw new Error('直前のグラフを再開できません。「ブラウザから開く…」で保存内容を選んでください。', { cause }); }
     }
 
-    recoveryEntries(record) {
+    inspectResumeSources(record) {
       // 自動保存だけ成功して再開記録の更新に失敗した場合は、古いスナップショットで
       // 新しい下書きを上書きさせない。時計の前後だけでは変更の有無を判定しない。
-      return sortEntries(KINDS.map(kind => this.load(record.id, kind)).filter(entry => entry
-        && (entry.revision || entry.at) !== record.sourceRevisions[entry.kind]));
+      const entries = [], errors = [];
+      let saved = null;
+      for (const kind of KINDS) {
+        try {
+          const entry = this.load(record.id, kind);
+          if (kind === 'saved') saved = entry;
+          if (entry && (entry.revision || entry.at) !== record.sourceRevisions[kind]) entries.push(entry);
+        } catch (cause) { errors.push((kind === 'auto' ? '自動保存' : '明示保存') + ': ' + message(cause)); }
+      }
+      return { entries: sortEntries(entries), saved, errors };
     }
 
     save(id, kind, doc, options = {}) {

@@ -29,9 +29,9 @@ assert.equal(resumeStore.loadResume().workspaceView,'main');
 assert.deepEqual(resumeStore.loadResume().plotViews,{main:{'xaxis.range':[-1,1]}});
 assert.deepEqual(resumeStore.load('resume-document','saved'),beforeResume,'再開で明示保存は変わらない');
 assert.equal(resumeStore.list().entries.length,1,'再開記録を保存候補に混ぜない');
-assert.equal(resumeStore.recoveryEntries(resumeStore.loadResume()).length,0);
+assert.equal(resumeStore.inspectResumeSources(resumeStore.loadResume()).entries.length,0);
 resumeStore.save('resume-document','auto',second);
-assert.equal(resumeStore.recoveryEntries(resumeStore.loadResume())[0].document.name,second.name,'再開情報の更新前に成功した保存を検出');
+assert.equal(resumeStore.inspectResumeSources(resumeStore.loadResume()).entries[0].document.name,second.name,'再開情報の更新前に成功した保存を検出');
 resumeStorage.failSet=true;
 assert.throws(()=>resumeStore.saveResume({...resume,document:second}),/quota/);
 assert.equal(resumeStore.loadResume().document.name,first.name,'保存失敗時は前の再開記録を保持');
@@ -40,6 +40,17 @@ assert.throws(()=>resumeStore.loadResume(),/ブラウザから開く/);
 assert.deepEqual(resumeStore.load('resume-document','saved'),beforeResume);
 assert.throws(()=>resumeStore.saveResume({...resume,document:{}}));
 assert.throws(()=>resumeStore.saveResume({...resume,saveTarget:'other'}));
+
+for (const kind of ['auto','saved']) {
+  const isolatedStorage=new MemoryStorage(),isolatedStore=new Store(isolatedStorage);
+  isolatedStore.save(resume.id,'auto',first);isolatedStore.save(resume.id,'saved',second);isolatedStore.saveResume(resume);
+  isolatedStorage.setItem(PREFIX+resume.id+':'+kind,'{broken');
+  const sources=isolatedStore.inspectResumeSources(isolatedStore.loadResume());
+  assert.equal(sources.errors.length,1,'破損した保存候補を個別に報告する');
+  assert.equal(sources.entries.length,0,'更新されていない候補を回復対象にしない');
+  assert.equal(isolatedStore.loadResume().document.name,first.name,'一件の破損で有効な再開記録を失わない');
+  assert.equal(isolatedStorage.getItem(PREFIX+resume.id+':'+kind),'{broken','破損した原本も保持する');
+}
 
 for (const [id, doc] of [['doc-one', first], ['doc-two', second]]) {
   store.save(id, 'auto', doc);

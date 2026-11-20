@@ -1526,16 +1526,16 @@
       if(!store)throw new Error('ブラウザ保存を利用できません。「ファイルから開く…」をご利用ください。');
       const resume=store.loadResume();
       if(resume){
-        const recovery=store.recoveryEntries(resume)[0];
-        const saved=recovery?store.load(resume.id,'saved'):null;
+        const sources=store.inspectResumeSources(resume),recovery=sources.entries[0],saved=sources.saved;
         // sessionStorageごと複製されても、稼働中の文書IDは共有しない。
-        let releaseLock=null;try{if(!recovery&&sessionStorage.getItem('kaijo-graph:active-document')===resume.id)releaseLock=await claimDocumentId(resume.id);}catch(_){}
+        let releaseLock=null;try{if(!recovery&&!sources.errors.length&&sessionStorage.getItem('kaijo-graph:active-document')===resume.id)releaseLock=await claimDocumentId(resume.id);}catch(_){}
         activeTab=createTab(recovery?.document||resume.document,{editRanges:recovery?.editRanges||resume.editRanges,resumeId:resume.id,releaseLock,
           dirty:!!recovery&&recovery.kind==='auto'&&!saved,savedDocument:saved?.document,savedEditRanges:saved?.editRanges});
         if(!recovery)activeTab.savedKey=resume.savedKey;
         activeTab.saveTarget=recovery?.kind==='saved'?'browser':resume.saveTarget;
         activeTab.plotViews=recovery?{}:resume.plotViews;workspaceView=resume.workspaceView;camera=recovery?undefined:resume.camera||undefined;restoreViews=true;
         activeTab.status=recovery?'再開記録より新しい保存から復元しました。元の保存候補は保持しています。':resume.saveTarget==='local'?'前回のグラフを再開しました。ファイル保存時に保存先を選び直してください。':'前回のグラフを再開しました。';
+        if(sources.errors.length){activeTab.status='一部の保存内容を読み取れなかったため、有効な記録から再開しました。「ブラウザから開く…」で確認できます。';notify(activeTab.status);}
       }else{
         const result=store.list(),entry=result.entries[0];
         if(entry){

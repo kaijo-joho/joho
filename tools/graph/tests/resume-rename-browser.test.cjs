@@ -64,6 +64,14 @@ let browser;
   assert.notEqual((await state()).tabId,staleId,'新しい保存を古い再開スナップショットで上書きしない');
   const recoveredId=(await state()).tabId;await file('new-document');await settle();await page.locator(`[role="tab"][data-document-tab-id="${recoveredId}"]`).click();await settle();
   assert.equal(await page.evaluate(id=>new GraphDocumentStore.Store(localStorage).load(id,'auto').document.name,staleId),'再開記録の容量不足');
+  // 保存候補一件の破損では、有効な再開記録を別IDで開いて元の候補を守る。
+  for(const kind of ['auto','saved']){
+    const damagedId=await load(fixture('破損確認 '+kind));await file('save-browser');await rename('残す下書き '+kind);await page.waitForTimeout(300);
+    const originalCopies=await page.evaluate(({id,kind})=>{localStorage.setItem('kaijo-graph:documents:'+id+':'+kind,'{broken');return ['auto','saved'].map(k=>localStorage.getItem('kaijo-graph:documents:'+id+':'+k));},{id:damagedId,kind});
+    await page.reload();await settle();assert.equal((await doc()).name,'残す下書き '+kind);assert((await state()).tabs[0].dirty);assert.notEqual((await state()).tabId,damagedId);
+    await rename('復元後の編集 '+kind);await page.waitForTimeout(300);
+    assert.deepEqual(await page.evaluate(id=>['auto','saved'].map(k=>localStorage.getItem('kaijo-graph:documents:'+id+':'+k)),damagedId),originalCopies,'復元後に編集しても元の候補を変更しない');
+  }
   await file('new-document');await settle();const blankId=(await state()).tabId;await page.reload();await settle();
   assert.equal((await state()).tabId,blankId);assert.equal((await doc()).series.length,0,'空の新規文書も再開対象になる');
   // 再開記録が壊れても、元の自動／明示保存は残り、起動だけで書き換えない。
