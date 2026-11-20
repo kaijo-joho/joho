@@ -18,6 +18,12 @@ UIの版は `2026.11.20`。上部バー・ファイルメニュー・操作ア�
 - §4.2の直前文書の自動再開と§4.5の複数文書タブは未実装。現在は起動時の保存候補選択と1文書の編集を維持する。対応には文書ごとの保存・履歴・表示位置と、非同期保存の対象固定、既存の各1件のブラウザ保存からの移行が必要になる。次の実装範囲として扱い、今回の共通UI対応で完了とはしない。
 - §2.10の相談ヘルプデスク埋め込みは限定試用の対象外。今回の小窓は同梱済みの説明で、`help/USER_GUIDE.md`の公開や相談への採用とは別である。
 
+### 公開前の独立監査（2026-11-20）
+
+UI版2026.11.20の監査で、メニュー内の削除キー、改名確定前の再描画、テーマアイコン生成の途中失敗、閉じたメニューへ戻った直後の保存・読み込みショートカットの4件を修正した。監査担当がChromeで同じ条件を再実行し、4件すべての解消を確認した。⌘とCtrlの両方、図・入力内容・自動保存と明示保存の保持を確認している。
+
+軽微な指摘の「印刷…」への矢印キー移動、アダプター未読込時のパレット開閉ボタン、改名ダイアログの読み上げ名も対応した。この3点は担当側の共通UIブラウザ検証で確認した。印刷はTabだけでなくEnd・上下矢印でも移動でき、パレットボタンは操作を準備した後に表示し、改名ダイアログは見出しで名前を付ける。
+
 ## 実行
 
 静的ファイルだけで動作する。ビルド、外部CDN、ログイン、サーバーへのデータ保存は不要。同じサイトの `tools/shared/` にあるアイコン・ファイルメニュー・ツールチップ・ヘルプの共通部品を読み込む。
@@ -154,7 +160,7 @@ python3 -m http.server 8000
 
 右の「授業」で問題文を入力して保存し、編集させない図形・線・担当領域を固定する。「生徒の画面で確認」では元の文書・編集履歴を退避したコピーを操作する。「確認を終了」で確認中の変更を破棄して元に戻す。確認中にページを閉じても、自動復元には元のひな形を残す。
 
-「配付用ひな形を保存」は、生徒向けの編集画面で開く `.diagram.json` を書き出す。生徒は「ファイルを開く」から読み込み、問題文を確認して、固定されていない部品や新しく追加した部品を編集できる。完成した図は通常の「再編集ファイルを保存」で保存する。ひな形の作成者側の文書と保存状態は配付用の書き出しで置き換えない。
+「配付用ひな形を保存」は、生徒向けの編集画面で開く `.diagram.json` を書き出す。生徒は「ファイルから開く…」から読み込み、問題文を確認して、固定されていない部品や新しく追加した部品を編集できる。完成した図は通常の「ファイルに保存…」で保存する。ひな形の作成者側の文書と保存状態は配付用の書き出しで置き換えない。
 
 配付されたファイルも「ひな形を編集」で問題文や固定を変更できる。固定は授業中の誤操作を防ぐための仕組みで、認証・権限管理・解答の秘匿を行うものではない。問題文は文字データとして保存し、HTMLとして実行しない。
 
@@ -217,6 +223,7 @@ node --check tools/flowchart/layout.js
 node --check tools/flowchart/transitions.js
 node --check tools/flowchart/storage.js
 node --check tools/flowchart/local-autosave.js
+node --check tools/flowchart/ui-adapter.js
 node tools/flowchart/tests/core.test.cjs
 node tools/flowchart/tests/render.test.cjs
 node tools/flowchart/tests/text-layout.test.cjs
@@ -241,6 +248,7 @@ node tools/flowchart/tests/local-autosave.test.cjs
 node tools/flowchart/tests/storage-browser.test.cjs --chrome-only
 node tools/flowchart/tests/storage-integrity-browser.test.cjs --chrome-only
 node tools/flowchart/tests/browser.test.cjs --chrome-only
+node tools/flowchart/tests/common-ui-browser.test.cjs
 git diff --check
 ```
 

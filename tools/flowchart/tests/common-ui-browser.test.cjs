@@ -37,9 +37,19 @@ async function main() {
     assert.equal(await page.locator('#file-menu').evaluate(el=>el.classList.contains('joho-file-menu')),true);
     assert.equal(await page.locator('.top').evaluate(el=>el.getBoundingClientRect().height),41);
     assert.equal(await page.locator('.brand a').getAttribute('href'),'../');
+    await page.locator('#file-menu>summary').focus(); await page.keyboard.press('End');
+    const focusedAction=()=>page.evaluate(()=>document.activeElement.id);
+    assert.equal(await focusedAction(),'print-button');
+    await page.keyboard.press('ArrowUp'); assert.equal(await focusedAction(),'autosave-settings');
+    await page.keyboard.press('ArrowDown'); assert.equal(await focusedAction(),'print-button');
+    await page.keyboard.press('ArrowDown'); assert.equal(await focusedAction(),'new-file');
+    await page.keyboard.press('ArrowUp'); assert.equal(await focusedAction(),'print-button');
+    await page.keyboard.press('Home'); assert.equal(await focusedAction(),'new-file');
+    await page.keyboard.press('Escape');
     const first=fixture(); await load(page,first); await action(page,'browserSave');
     const saved=await snapshots(page);
     await action(page,'rename'); await page.locator('#document-title').fill('変更した図');
+    assert.equal(await page.getByRole('dialog',{name:'名前を変更',exact:true}).isVisible(),true);
     await page.locator('#rename-form button[type=submit]').click();
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem('kaijo.diagram.recovery.v1'))?.document.title==='変更した図');
     const renamed=await docOf(page);
@@ -137,6 +147,7 @@ async function main() {
     for (const missing of ['ui-adapter.js','file-menu.js','help-panel.js','ui-icons.js']) {
       const c=await browser.newContext(); await c.route('**/'+missing+'*',route=>route.abort());
       const p=await c.newPage(); await p.goto(hosting.url); await p.waitForFunction(()=>!!window.DiagramEditor);
+      assert.equal(await p.locator('#palette-toggle').isVisible(),missing!=='ui-adapter.js','The palette button appears only after its handler is ready');
       await load(p,fixture('読み込み失敗時の図'));
       if (!await p.locator('#file-menu').evaluate(el=>el.open)) await p.locator('#file-menu>summary').click();
       await p.locator('#save-browser').click(); assert.ok((await snapshots(p))[1],missing+' retains saving');

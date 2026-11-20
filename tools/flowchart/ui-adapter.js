@@ -138,10 +138,22 @@
         for (const [action, id] of Object.entries(ids)) host.querySelector('[data-file-action="' + action + '"]').id = id;
         menu.summary.dataset.tip = 'ファイル・保存と読み込み';
         const panel = host.querySelector('.joho-file-menu__items');
+        print.setAttribute('role', 'menuitem');
         const hr = document.createElement('hr'); panel.append(hr, print, note);
+        // 共通8項目のキー操作へ、アプリ固有の印刷項目の境界だけを接続する。
+        host.addEventListener('keydown', event => {
+          const items = [...panel.querySelectorAll('button[role=menuitem]')].filter(button => !button.disabled);
+          const first = items[0], previous = items.at(-2);
+          let target = null;
+          if (event.key === 'End' || event.key === 'ArrowUp' && event.target === first || event.key === 'ArrowDown' && event.target === previous) target = print;
+          else if (event.target === print && event.key === 'ArrowUp') target = previous;
+          else if (event.target === print && event.key === 'ArrowDown') target = first;
+          if (!target) return;
+          event.preventDefault(); event.stopImmediatePropagation(); host.open = true; target.focus();
+        }, true);
         const dialog = document.createElement('dialog'); dialog.id = 'rename-dialog'; dialog.className = 'format-dialog';
         const form = document.createElement('form'); form.id = 'rename-form';
-        const h = document.createElement('h2'); h.textContent = '名前を変更';
+        const h = document.createElement('h2'); h.id = 'rename-title'; h.textContent = '名前を変更'; dialog.setAttribute('aria-labelledby', h.id);
         const label = document.createElement('label'); label.className = 'stack'; label.append(document.createTextNode('図の名前'), titleInput);
         titleInput.onchange = null; titleInput.required = true;
         titleInput.addEventListener('input', () => titleInput.setCustomValidity(''));
@@ -175,6 +187,7 @@
       paletteButton.dataset.tip = paletteButton.getAttribute('aria-label');
       options.layout(); help?.refresh();
     };
+    paletteButton.hidden = false;
     try { if (window.JohoIcons) {
       const select = $('theme'), label = select.closest('label'), group = document.createElement('div');
       group.className = 'theme-options'; group.setAttribute('role','group'); group.setAttribute('aria-label','テーマ');
