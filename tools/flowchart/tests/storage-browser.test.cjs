@@ -6,12 +6,7 @@ const os = require('node:os');
 const Core = require('../core.js');
 let pw; try { pw = require('playwright'); } catch { pw = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')); }
 
-async function serve() {
-  const root = path.resolve(__dirname, '..'), allowed = new Set(['index.html','output.js','parts.js','layout.js','transitions.js','core.js','render.js','editor.js','editor.css','storage.js','local-autosave.js','icon.svg']);
-  const types = { '.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml' };
-  const server = http.createServer(async (req,res) => { const file = new URL(req.url,'http://localhost').pathname.slice(1)||'index.html'; if (!allowed.has(file)) return res.writeHead(404).end(); try { res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'}); res.end(await fs.readFile(path.join(root,file))); } catch { res.writeHead(404).end(); } });
-  await new Promise(resolve => server.listen(0,'127.0.0.1',resolve)); return { url:`http://127.0.0.1:${server.address().port}/`, close:()=>new Promise(resolve=>server.close(resolve)) };
-}
+async function serve() { return require('./serve.cjs')(); }
 async function run() {
   const hosting = await serve();
   try { for (const engine of process.argv.includes('--chrome-only')?['chromium']:['chromium','webkit']) { const browser = await pw[engine].launch(engine==='chromium'?{channel:'chrome',headless:true}:{headless:true}); try {
@@ -23,7 +18,7 @@ async function run() {
     await page.locator('#file-menu > summary').click(); await page.locator('#save-browser').click(); await page.waitForFunction(()=>document.querySelector('[data-open-source=browser-manual]') || localStorage.length>0);
     await page.locator('#file-menu > summary').click(); await page.locator('#open-file').click(); await page.waitForFunction(()=>document.getElementById('storage-open-dialog').open); assert.ok(await page.locator('[data-open-source=browser-manual]').count(),'Explicit browser save is a distinct opening candidate'); await page.keyboard.press('Escape');
     await page.locator('#file-menu > summary').click(); await page.locator('#autosave-settings').click(); await page.waitForFunction(()=>document.getElementById('autosave-dialog').open); assert.equal(await page.locator('#local-auto-start').isDisabled(), engine!=='chromium' ? true : await page.locator('#local-auto-start').isDisabled()); await page.keyboard.press('Escape');
-    await page.setViewportSize({width:390,height:736}); const toggle=page.locator('#toolbar-toggle'); if(await toggle.isVisible()&&await toggle.getAttribute('aria-expanded')==='false')await toggle.click(); await page.locator('#settings-menu > summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape'); await page.locator('#file-menu > summary').click(); await page.locator('#open-file').click(); const box=await page.locator('#storage-open-dialog').boundingBox(); assert.ok(box.x>=0&&box.x+box.width<=391); await page.keyboard.press('Escape'); assert.deepEqual(errors,[]); await context.close(); console.log(`${engine}: storage candidate dialogs passed`);
+    await page.setViewportSize({width:390,height:736}); const toggle=page.locator('#toolbar-toggle'); if(await toggle.isVisible()&&await toggle.getAttribute('aria-expanded')==='false')await toggle.click(); await page.locator('#settings-menu > summary').click(); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape'); await page.locator('#file-menu > summary').click(); await page.locator('#open-file').click(); const box=await page.locator('#storage-open-dialog').boundingBox(); assert.ok(box.x>=0&&box.x+box.width<=391); await page.keyboard.press('Escape'); assert.deepEqual(errors,[]); await context.close(); console.log(`${engine}: storage candidate dialogs passed`);
   } finally { await browser.close(); } } } finally { await hosting.close(); }
 }
 run().catch(error=>{console.error(error);process.exitCode=1});

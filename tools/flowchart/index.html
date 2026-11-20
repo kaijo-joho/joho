@@ -7,7 +7,16 @@
   <title>フローチャートエディタ — 海城 情報科</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="editor.css">
+  <link rel="stylesheet" href="../shared/ui-kit.css?v=20261120">
+  <link rel="stylesheet" href="../shared/file-menu.css?v=20261113">
+  <link rel="stylesheet" href="../shared/help-panel.css?v=20261120">
+  <link rel="stylesheet" href="common-ui.css?v=20261120">
   <style id="print-page-style">@page{size:210mm 297mm;margin:0}</style>
+  <script src="../shared/ui-icons.js?v=20261113" defer></script>
+  <script src="../shared/ui-kit.js?v=20261120" defer></script>
+  <script src="../shared/file-menu.js?v=20261113" defer></script>
+  <script src="../shared/help-panel.js?v=20261120" defer></script>
+  <script src="ui-adapter.js?v=20261120" defer></script>
   <script src="core.js" defer></script>
   <script src="storage.js" defer></script>
   <script src="local-autosave.js" defer></script>
@@ -23,13 +32,14 @@
   <div id="app">
     <header class="top">
       <div class="toolbar" aria-label="フローチャートエディタのツールバー">
-        <h1 class="brand"><img src="icon.svg" alt="" width="26" height="26"><span>フローチャートエディタ</span></h1>
+        <h1 class="brand"><a href="../" aria-label="ツール一覧へ" title="ツール一覧へ"><img src="icon.svg" alt="" width="26" height="26"></a><span>フローチャートエディタ</span></h1>
+        <button type="button" id="palette-toggle" aria-label="部品パレットを閉じる" aria-expanded="true" aria-controls="parts-palette"><span data-icon="view"></span><span>部品</span></button>
         <details class="menu toolbar-group" id="file-menu">
           <summary>ファイル <span aria-hidden="true">▾</span></summary>
           <div class="menu-panel">
             <button type="button" id="new-file">新しい図</button>
-            <button type="button" id="open-file">開く… <kbd>⌘O</kbd></button>
-            <button type="button" id="save-browser">ブラウザ内に保存</button>
+            <button type="button" id="open-file">ブラウザから開く…</button>
+            <button type="button" id="save-browser">ブラウザに保存</button>
             <button type="button" id="save-file">ファイルに保存…</button>
             <button type="button" id="autosave-settings">自動保存…</button>
             <p class="save-shortcut" id="save-shortcut">⌘S：ブラウザ内に保存</p>
@@ -42,8 +52,8 @@
           <button class="icon-button" type="button" id="undo" aria-label="元に戻す (⌘Z)" title="元に戻す (⌘Z)" disabled><span data-icon="undo"></span></button>
           <button class="icon-button" type="button" id="redo" aria-label="やり直す (⌘⇧Z)" title="やり直す (⌘⇧Z)" disabled><span data-icon="redo"></span></button>
         </div>
-        <button type="button" id="toolbar-toggle" aria-expanded="false" aria-controls="toolbar-options" aria-label="ツール・設定を開閉"><span data-icon="settings"></span><span>ツール</span></button>
-        <div id="toolbar-options" class="toolbar-options" role="group" aria-label="ツールと設定">
+        <button type="button" id="toolbar-toggle" aria-expanded="false" aria-controls="toolbar-options" aria-label="作図ツールを開閉"><span data-icon="more"></span><span>ツール</span></button>
+        <div id="toolbar-options" class="toolbar-options" role="group" aria-label="作図ツール">
         <div class="toolset toolbar-group" role="group" aria-label="選択と配置">
           <button class="icon-button" type="button" data-tool="select" aria-label="選択・移動 (V)" aria-pressed="true" title="選択・移動 (V)"><span data-icon="select"></span></button>
           <button class="icon-button" type="button" data-tool="pan" aria-label="画面を移動 (H)" aria-pressed="false" title="画面を移動 (H)"><span data-icon="hand"></span></button>
@@ -56,21 +66,21 @@
           <button type="button" id="create-lanes" hidden>2つの担当領域を作る</button>
           <button type="button" id="add-lane">＋ 担当領域を追加</button>
         </div></details>
-        <div class="toolbar-end">
           <details class="menu toolbar-group" id="behavior-menu"><summary aria-label="操作の設定" title="吸着の設定"><span aria-hidden="true">操作</span></summary><div class="menu-panel right">
             <label class="check snap" title="図形の位置をグリッドへ、接続点を辺の両端・中央・等分点へ吸着"><input id="snap" type="checkbox" checked>グリッド・接続点に吸着</label>
             <label class="check" title="図形を移動するとき、ほかの図形の端や中央にそろえるためのガイドを表示"><input id="alignment-snap" type="checkbox" checked>整列ガイドに吸着</label>
           </div></details>
+        </div>
+        <div class="toolbar-end">
           <details class="menu" id="settings-menu"><summary aria-label="表示設定" title="表示設定"><span data-icon="settings"></span></summary><div class="menu-panel right">
             <label class="stack">テーマ<select id="theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label>
             <label class="stack">操作部の文字サイズ<select id="text-size"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label>
           </div></details>
           <button type="button" id="help-button" class="icon-button" aria-label="使い方">?</button>
         </div>
-        </div>
       </div>
     </header>
-    <aside class="palette" aria-label="部品パレット">
+    <aside class="palette" id="parts-palette" aria-label="部品パレット">
       <details class="palette-group" open><summary>図形</summary><div id="node-palette" class="palette-grid"></div></details>
       <details class="palette-group" open><summary>線・矢印</summary><div class="palette-grid">
         <button type="button" data-tool="edge:straight" aria-pressed="false"><span data-icon="arrow"></span><span>直線</span></button>
@@ -247,7 +257,7 @@
           <p class="muted">続きの編集には、ファイルメニューから再編集ファイルを保存します。</p>
         </div></section>
       </div>
-      <nav class="side-tabs" aria-label="右パネルを切り替える"><button type="button" data-pane-button="templates" aria-pressed="false">ひな形</button><button type="button" data-pane-button="lesson" aria-pressed="false" hidden>授業</button><button type="button" data-pane-button="trace" aria-pressed="false">トレース</button><button type="button" data-pane-button="inspect" aria-pressed="false">点検</button><button type="button" data-pane-button="export" aria-pressed="false">書き出し</button></nav>
+      <nav class="side-tabs" aria-label="右パネルを切り替える"><button type="button" data-pane-button="templates" aria-pressed="false"><span data-icon="branch"></span><span>ひな形</span></button><button type="button" data-pane-button="lesson" aria-pressed="false" hidden><span data-icon="file"></span><span>授業</span></button><button type="button" data-pane-button="trace" aria-pressed="false"><span data-icon="play"></span><span>トレース</span></button><button type="button" data-pane-button="inspect" aria-pressed="false"><span data-icon="view"></span><span>点検</span></button><button type="button" data-pane-button="export" aria-pressed="false"><span data-icon="export"></span><span>書き出し</span></button></nav>
     </aside>
   </div>
   <div id="notice" role="status" hidden></div>
@@ -365,7 +375,7 @@
   </dialog>
   <dialog id="autosave-dialog" class="storage-dialog" aria-labelledby="autosave-title">
     <h2 id="autosave-title">自動保存</h2>
-    <p>編集途中の図はブラウザ内へ自動保存します。「ブラウザ内に保存」で残した内容は上書きしません。</p>
+    <p>編集途中の図はブラウザ内へ自動保存します。「ブラウザに保存」で残した内容は上書きしません。</p>
     <h3>ローカルファイルにも自動保存</h3>
     <p>自動保存専用のファイルを選ぶと、編集内容を続けて保存します。別の図を開いたときやページを閉じたときに停止します。</p>
     <p id="local-auto-unavailable" hidden>この環境では、ローカルファイルへの自動保存を利用できません。ブラウザ内の自動保存と「ファイルに保存」を使えます。</p>
@@ -388,7 +398,7 @@
     <p><strong>状態遷移を整える：</strong>状態どうしを結ぶ矢印を選び、「形」→「遷移の矢印・ラベルを調整」で、複数の矢印の間隔、自己ループの向き・大きさ、ラベルの位置を調整できます。「同じ状態間の矢印も含める」でまとめて調整できます。間隔調整では対象を曲線にそろえます。プレビューを確認してから適用します。</p>
     <p><strong>担当ごとに作図する：</strong>アクティビティ図の「分岐セット」「並列セット」では、開始・合流と2つの処理の担当を選んで追加できます。余白が足りない場合は「担当領域」で幅・高さを調整します。「整列」→「つながり順に自動配置」の「担当領域ごとに縦に整列」で、担当別に位置を整えられます。担当をまたぐグループは先に解除します。</p>
     <p><strong>マイ部品を整理する：</strong>名前・カテゴリで検索でき、カテゴリ別の絞り込みと名前順・更新順の表示に対応します。「手動の順」で絞り込みを解除すると、セットを1つ上・下へ移動できます。名前と任意のカテゴリはプレビューの下で変更できます。</p>
-    <ol><li><strong>置く：</strong>左の部品を選び、作図画面をクリックします。部品ボタンでEnterを押すと、画面の中央に置けます。</li><li><strong>文字を書く：</strong>図形をダブルクリック、または選んでEnter。Enterで改行、⌘Enterで確定します。</li><li><strong>つなぐ：</strong>図形を選び、端の○から別の図形へドラッグします。○と接続先を順にクリックしてもつなげます。「接続先を選ぶ」からも指定できます。</li><li><strong>線を直す：</strong>線を選び、端の○でつなぎ直し、中央の◇で経路を調整します。直角の矢印は「形」→「折れ曲がり点を編集…」で、線上の＋から点を追加できます。番号付きの点をドラッグし、「位置」から座標も指定できます。Deleteで点を削除、Escapeで完了します。ラベルはダブルクリックして入力し、ドラッグして位置を変えられます。</li><li><strong>担当を分ける：</strong>アクティビティ図では「担当領域」に切り替え、追加・並べ替え・名前や幅の編集ができます。領域を削除しても図形と矢印は元の位置に残ります。領域にTabで移動してEnterを押すと名前を編集できます。</li><li><strong>保存する：</strong>ファイルメニューで「ブラウザ内に保存」「ファイルに保存」を選べます。画像は右端の「書き出し」から保存します。</li></ol>
+    <ol><li><strong>置く：</strong>左の部品を選び、作図画面をクリックします。部品ボタンでEnterを押すと、画面の中央に置けます。</li><li><strong>文字を書く：</strong>図形をダブルクリック、または選んでEnter。Enterで改行、⌘Enterで確定します。</li><li><strong>つなぐ：</strong>図形を選び、端の○から別の図形へドラッグします。○と接続先を順にクリックしてもつなげます。「接続先を選ぶ」からも指定できます。</li><li><strong>線を直す：</strong>線を選び、端の○でつなぎ直し、中央の◇で経路を調整します。直角の矢印は「形」→「折れ曲がり点を編集…」で、線上の＋から点を追加できます。番号付きの点をドラッグし、「位置」から座標も指定できます。Deleteで点を削除、Escapeで完了します。ラベルはダブルクリックして入力し、ドラッグして位置を変えられます。</li><li><strong>担当を分ける：</strong>アクティビティ図では「担当領域」に切り替え、追加・並べ替え・名前や幅の編集ができます。領域を削除しても図形と矢印は元の位置に残ります。領域にTabで移動してEnterを押すと名前を編集できます。</li><li><strong>保存する：</strong>ファイルメニューで「ブラウザに保存」「ファイルに保存…」を選べます。名前は「名前を変更…」で変更します。画像は右端の「書き出し」から保存します。</li></ol>
     <p>「吸着」をオンにすると、接続位置が辺の両端・中央・等分点にそろいます。同じ辺につながる本数に応じて、2本なら1/3・2/3、3本なら1/4・3/4も候補になります。自由な位置につなぐときはオフにします。</p>
       <p><strong>位置をそろえる：</strong>図形をドラッグすると、他の図形の端・中央にそろう位置へ吸着し、ガイドを表示します。グループもまとめて動かせます。「操作」でグリッド・接続点と整列ガイドの吸着を個別に切り替えられます。Option（Alt）を押しながらドラッグすると、吸着を一時的に解除します。</p>
       <p><strong>画像を使う：</strong>右の「書き出し」で図全体・選択部分を切り替え、画像のコピーやPNG・SVGの保存ができます。選択した図形同士の矢印やグループも含めます。担当領域を選ぶと、所属する図形も含めます。選択時の「編集」にある「選択部分を画像コピー」からも、選んだ部分をコピーできます。通常のCommand/Ctrl＋Cは、エディタで再編集する部品のコピーです。</p>
@@ -397,7 +407,7 @@
     <p><strong>形を変える：</strong>部品を選び、ポップアップの「形」から「図形の形」「矢印の形」で変更します。複数選択してまとめて変えることもできます。図形の文字・色・接続先は保ち、大きさは形と文字に合わせて調整します。初期・終了の丸や並列の棒など、文字を表示しない記号に変えても、元の文字は保持します。矢印は直線・直角・曲線と、矢じりの終点・両端・なしを選べます。自己ループは直角・曲線に対応します。</p>
     <p><strong>大きさをそろえる：</strong>図形を2つ以上選び、選択時の「編集」→「大きさをそろえる」で、基準の図形と幅・高さ・両方を選びます。各図形の中心と接続を保ち、1回のUndoで戻せます。円形の状態は縦横を同じに保ちます。固定した図形は基準として使えます。</p>
     <p><strong>書式を使い回す：</strong>選択時の「編集」→「書式をコピー」でコピー元を選び、別の部品を選んで「書式を貼り付け」を押します。文字の大きさ・太字・色、線の色・太さ・破線をコピーし、図形どうしでは塗りの色もコピーします。複数選択やグループへまとめて適用でき、繰り返し使えます。文字の内容・形・寸法・矢印の経路は変わりません。文字が収まらない場合は「書式」→「文字に大きさを合わせる」で調整できます。コピーした書式は、このページを再読み込みするまで使えます。</p>
-    <p><strong>操作を選ぶ：</strong>上部にはファイル操作・元に戻す／やり直し・ツール・設定をまとめています。幅が狭いときは「ツール」で開閉します。選択した部品への操作は、作図画面のポップアップにある「編集」「形」「書式」「色」「整列」から使います。貼り付けは未選択でも上部のツールから使えます。アクティビティ図の担当領域は「編集対象」で切り替えます。</p>
+    <p><strong>操作を選ぶ：</strong>上部にはファイル操作・元に戻す／やり直し・作図ツールをまとめています。幅が狭いときは「作図ツールを開閉」で開閉します。設定とヘルプは右端にあります。左の部品一覧は「部品パレットを開く／閉じる」で開閉できます。選択した部品への操作は、作図画面のポップアップにある「編集」「形」「書式」「色」「整列」から使います。貼り付けは未選択でも上部のツールから使えます。アクティビティ図の担当領域は「編集対象」で切り替えます。</p>
     <p><strong>色を選ぶ：</strong>ポップアップの「色」で塗り・線色・文字色を選び、18色のパレットから適用できます。「その他の色」のカラーピッカーや、R・G・Bそれぞれ0〜255の数値指定も使えます。複数の部品へまとめて適用でき、1回のUndoで戻せます。固定した部品が含まれる場合は色を変更しません。</p>
     <p>表示設定のダークモードは作図画面にも反映されます。画像・印刷の色は表示テーマで変わらず、書き出しパネルで確認できます。</p>
     <p><strong>重なりを編集する：</strong>選択時の「重なり」で、図形・文字を最前面・1つ前面・1つ背面・最背面へ移します。複数選択やグループ内の図形の順序は保ちます。「重なった部品を選ぶ」では、背後の図形や線も候補から選べます。「今の選択に追加」で複数選択もできます。選択後はポップアップで編集するか、矢印キーで移動できます。固定した部品は選択できますが、重なり順は変更できません。担当領域の上に矢印、その上に図形を描く基本の順序は保ちます。</p>
@@ -408,9 +418,9 @@
     <p><strong>出力の大きさ：</strong>「書き出し」の「PNGの寸法」で倍率・幅・高さを指定します。幅・高さは余白を含む画素数で、縦横比を保ちます。「画像の余白」では四辺を1倍時のpxで指定し、SVGにも適用します。印刷は「図の大きさ」で幅をmm指定し、左右・上下の配置を選べます。用紙に入らない場合は収まる大きさへ縮小し、実際の寸法を表示します。</p>
     <p><strong>経路を整える：</strong>直角の矢印は図形を避けて引きます。中央の◇で手動調整した線を自動に戻すときは、線を選んで「経路を整える」を押します。接続先とラベルの内容は保持します。</p>
     <p><strong>図の点検：</strong>右の「点検」に、空欄・未接続の矢印・分岐ラベルなどの見直し候補を表示します。候補を押すと該当箇所を選びます。課題や図の意図に合わせて確認してください。</p>
-    <p><strong>保存内容を選ぶ：</strong>起動時や「開く」から、自動保存・明示保存を文書名と日時で選べます。読み込むだけでは、もう一方の内容は消えません。Command/Ctrl＋Sは直近の保存先、Command/Ctrl＋Oは「開く」です。「自動保存…」では、利用できる環境で専用のローカルファイルへの自動保存も開始できます。</p>
+    <p><strong>保存内容を選ぶ：</strong>「ブラウザから開く…」から、自動保存・明示保存を文書名と日時で選べます。起動時も保存候補があれば選択画面が開きます。読み込むだけでは、もう一方の内容は消えません。「ファイルから開く…」またはCommand/Ctrl＋Oは手元のファイルを選びます。Command/Ctrl＋Sは直近の保存先へ保存します。「ファイルへの自動保存を開始…」では、利用できる環境で専用のローカルファイルへの自動保存を設定し、開始後は同じ場所の「ファイルへの自動保存を停止」で止められます。</p>
     <p><strong>印刷：</strong>ファイルメニュー、または「書き出し」の「印刷…」から用紙と向きを選びます。A4・B5（JIS）、縦・横に対応し、問題文と氏名欄はそれぞれ印刷するか選べます。図全体を1ページに収め、長い問題文は別のページに分けます。設定はこのブラウザに保存します。</p>
-    <table><caption>主なキーボード操作</caption><tbody><tr><th scope="row">選択／画面移動／文字</th><td>V ／ H ／ T</td></tr><tr><th scope="row">取り消し／やり直し</th><td>⌘Z ／ ⌘⇧Z</td></tr><tr><th scope="row">複製／保存</th><td>⌘D ／ ⌘S</td></tr><tr><th scope="row">移動</th><td>矢印キー（Shiftで10倍）</td></tr><tr><th scope="row">複数選択</th><td>Shift＋クリック／空白をドラッグ</td></tr><tr><th scope="row">画面移動／拡大縮小</th><td>Space＋ドラッグ／⌘＋ホイール</td></tr><tr><th scope="row">中止／選択解除</th><td>Escape</td></tr></tbody></table>
+    <table><caption>主なキーボード操作</caption><tbody><tr><th scope="row">選択／画面移動／文字</th><td>V ／ H ／ T</td></tr><tr><th scope="row">取り消し／やり直し</th><td>⌘Z ／ ⌘⇧Z</td></tr><tr><th scope="row">複製／保存</th><td>⌘D ／ ⌘S</td></tr><tr><th scope="row">ファイルから開く／ヘルプ</th><td>⌘O ／ ?</td></tr><tr><th scope="row">移動</th><td>矢印キー（Shiftで10倍）</td></tr><tr><th scope="row">複数選択</th><td>Shift＋クリック／空白をドラッグ</td></tr><tr><th scope="row">画面移動／拡大縮小</th><td>Space＋ドラッグ／⌘＋ホイール</td></tr><tr><th scope="row">中止／選択解除</th><td>Escape</td></tr></tbody></table>
     <p>Windowsでは⌘の代わりにCtrlを使います。図の種類を切り替えても、描いた図はそのまま残ります。</p><div class="dialog-actions"><button type="button" class="primary" data-close-dialog>閉じる</button></div></div></dialog>
   <div id="print-sheet" aria-hidden="true"></div>
 </body>

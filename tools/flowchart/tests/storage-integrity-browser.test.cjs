@@ -9,19 +9,7 @@ const Storage = require('../storage.js');
 let pw;
 try { pw = require('playwright'); } catch { pw = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')); }
 
-async function serve() {
-  const root = path.resolve(__dirname, '..');
-  const allowed = new Set(['index.html','output.js','parts.js','layout.js','transitions.js','core.js','render.js','storage.js','local-autosave.js','editor.js','editor.css','icon.svg']);
-  const types = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml' };
-  const server = http.createServer(async (req, res) => {
-    const name = new URL(req.url, 'http://localhost').pathname.slice(1) || 'index.html';
-    if (!allowed.has(name)) return res.writeHead(404).end();
-    try { res.writeHead(200, { 'Content-Type': types[path.extname(name)] + '; charset=utf-8' }); res.end(await fs.readFile(path.join(root, name))); }
-    catch { res.writeHead(404).end(); }
-  });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  return { url: 'http://127.0.0.1:' + server.address().port + '/', close: () => new Promise(resolve => server.close(resolve)) };
-}
+async function serve() { return require('./serve.cjs')(); }
 function fixture(title) {
   const doc = Core.createDocument(); doc.id = 'storage_integrity'; doc.title = title;
   doc.nodes = [Core.createNode('process', 80, 100, { id:'process', text:title })];
@@ -52,7 +40,8 @@ const readDocument = page => page.evaluate(() => DiagramEditor.getDocument());
 const recordsFrom = page => page.evaluate(() => ({ auto:localStorage.getItem('kaijo.diagram.recovery.v1'), manual:localStorage.getItem('kaijo.diagram.saved.v1') }));
 async function rename(page, title) {
   if (!await page.locator('#file-menu').evaluate(el => el.open)) await page.locator('#file-menu > summary').click();
-  await page.locator('#document-title').fill(title); await page.locator('#document-title').press('Tab');
+  await page.locator('#rename-file').click();
+  await page.locator('#document-title').fill(title); await page.locator('#rename-form button[type=submit]').click();
   await page.waitForFunction(value => JSON.parse(localStorage.getItem('kaijo.diagram.recovery.v1')).document.title === value, title);
   await page.keyboard.press('Escape');
 }
@@ -133,6 +122,15 @@ async function checkLocalWiring(browser, url) {
     await page.evaluate(() => { testLocal.pick = 'ok'; }); await page.locator('#local-auto-start').click();
     await page.waitForFunction(() => testLocal.writes === 1);
     assert.equal(JSON.parse(await page.evaluate(() => testLocal.text)).saveInfo.method, 'auto');
+    assert.match(await page.locator('#autosave-settings').textContent(), /自動保存を停止/);
+    await page.keyboard.press('Escape'); await page.locator('#autosave-dialog').waitFor({state:'hidden'});
+    const beforeStop = await page.evaluate(() => DiagramEditor.getDocument());
+    await fileAction(page, 'autosave-settings');
+    assert.equal(await page.locator('#autosave-dialog').isVisible(), false, 'The same menu item stops automatic saving without another dialog');
+    assert.match(await page.locator('#autosave-settings').textContent(), /自動保存を開始/);
+    assert.deepEqual(await page.evaluate(() => DiagramEditor.getDocument()), beforeStop);
+    await fileAction(page, 'autosave-settings'); await page.locator('#local-auto-start').click();
+    await page.waitForFunction(() => testLocal.writes >= 2);
     await page.keyboard.press('Escape'); await rename(page, 'ファイルにも更新');
     await page.waitForFunction(() => JSON.parse(testLocal.text).title === 'ファイルにも更新');
     assert.equal((await recordsFrom(page)).manual, records[Storage.MANUAL_KEY], 'Automatic file saving never changes the explicit snapshot');

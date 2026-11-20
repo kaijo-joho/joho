@@ -8,17 +8,11 @@ const Core = require('../core.js');
 let pw;
 try { pw = require('playwright'); } catch { pw = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')); }
 
-async function serve() {
-  const root = path.resolve(__dirname, '..');
-  const allowed = new Set(['index.html', 'output.js', 'parts.js','layout.js','transitions.js', 'core.js', 'render.js', 'editor.js', 'editor.css', 'storage.js', 'local-autosave.js', 'icon.svg']);
-  const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' };
-  const server = http.createServer(async (req, res) => {
-    const file = new URL(req.url, 'http://localhost').pathname.slice(1) || 'index.html';
-    if (!allowed.has(file)) { res.writeHead(404); res.end(); return; }
-    try { const data = await fs.readFile(path.join(root, file)); res.writeHead(200, { 'Content-Type': `${types[path.extname(file)]}; charset=utf-8` }); res.end(data); } catch { res.writeHead(404); res.end(); }
-  });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  return { url: `http://127.0.0.1:${server.address().port}/`, close: () => new Promise(resolve => server.close(resolve)) };
+async function serve() { return require('./serve.cjs')(); }
+// OSの印刷ダイアログは模擬する。PDF自体は下のpage.pdfでChromeから生成する。
+async function submitPrint(page) {
+  await page.evaluate(() => { window.print = () => window.dispatchEvent(new Event('beforeprint')); });
+  await page.locator('#print-submit').click();
 }
 async function run() {
   const url = process.argv.slice(2).find(arg => /^https?:/.test(arg));
@@ -225,18 +219,18 @@ async function run() {
         for (const width of [1280,736,390]) {
           await page.setViewportSize({width,height:860});
           for (const theme of ['light','dark','auto']) {
-            await openMenuFor(page, '#settings-menu'); await page.locator('#theme').selectOption(theme);
+            await openMenuFor(page, '#settings-menu'); await page.locator('[data-theme-choice="' + theme + '"]').click();
             for (const size of ['standard','large','largest']) {
               await page.locator('#text-size').selectOption(size);
               const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
               assert.equal(overflow,false,`${engine} ${width} ${theme} ${size} horizontal overflow`);
             }
-            await page.locator('.brand').click(); layouts.push(`${width}/${theme}`);
+            await page.locator('#settings-menu > summary').press('Escape'); layouts.push(`${width}/${theme}`);
           }
         }
         await page.screenshot({path:path.join(artifacts, `${engine}-mobile.png`),fullPage:true});
-        await clickToolbarAction(page, 'help-button'); assert.equal(await page.locator('#help-dialog').isVisible(),true);
-        await page.keyboard.press('Escape'); await page.waitForFunction(() => !document.getElementById('help-dialog').open && document.getElementById('help-button') === document.activeElement);
+        await clickToolbarAction(page, 'help-button'); assert.equal(await page.locator('#operation-help').isVisible(),true);
+        await page.keyboard.press('Escape'); await page.waitForFunction(() => document.getElementById('operation-help').hidden && document.getElementById('help-button') === document.activeElement);
         if (engine === 'chromium') {
           await page.setViewportSize({width:1280,height:860});
           await page.pdf({path:path.join(artifacts,'diagram-print.pdf'),format:'A4',printBackground:true});
@@ -318,7 +312,7 @@ async function checkImageExportTools(browser, url, artifacts) {
     await page.evaluate(() => document.getElementById('export-copy-image').dispatchEvent(new MouseEvent('click', { bubbles: true })));
     assert.equal(await page.evaluate(() => window.__delayedWrites.length), 1);
     await page.evaluate(id => DiagramEditor.select([id]), outside.id);
-    await page.locator('#file-menu > summary').click(); await page.locator('#document-title').fill('コピー開始後の名前'); await page.locator('#document-title').press('Tab'); await page.locator('#file-menu > summary').press('Escape');
+    await page.locator('#file-menu > summary').click(); await page.locator('#rename-file').click(); await page.locator('#document-title').fill('コピー開始後の名前'); await page.locator('#rename-form button[type=submit]').click();
     await page.locator('#transparent').uncheck(); await page.locator('#export-scale').selectOption('4');
     await page.evaluate(() => { HTMLCanvasElement.prototype.toBlob = window.__originalToBlob; window.__finishPng(); });
     await page.waitForFunction(() => !!window.__delayedPng && !document.getElementById('export-copy-image').disabled);
@@ -341,7 +335,7 @@ async function checkImageExportTools(browser, url, artifacts) {
   } finally { await context.close(); }
   const touch = await browser.newContext({ viewport: { width: 390, height: 736 }, hasTouch: true, isMobile: true, colorScheme: 'dark' });
   try {
-    const page = await touch.newPage(); await page.goto(url); await page.waitForFunction(() => !!window.DiagramEditor); await page.locator('#toolbar-toggle').tap(); await page.locator('#settings-menu > summary').tap(); await page.locator('#text-size').selectOption('largest'); await page.locator('#theme').selectOption('dark'); await page.locator('#settings-menu > summary').press('Escape');
+    const page = await touch.newPage(); await page.goto(url); await page.waitForFunction(() => !!window.DiagramEditor); await page.locator('#toolbar-toggle').tap(); await page.locator('#settings-menu > summary').tap(); await page.locator('#text-size').selectOption('largest'); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#settings-menu > summary').press('Escape');
     const mobileDoc = Core.createTemplate('flow-branch'); await loadFixture(page, mobileDoc);
     await page.locator('[data-pane-button=export]').tap(); for (const id of ['export-scope', 'export-copy-image', 'export-png', 'export-svg']) { await page.locator(`#${id}`).scrollIntoViewIfNeeded(); await expectWithinViewport(page, `#${id}`, `${id} fits the mobile export panel`); }
     await page.locator('#export-png').scrollIntoViewIfNeeded(); const pendingDownload = page.waitForEvent('download'); await page.locator('#export-png').tap();
@@ -368,7 +362,7 @@ async function checkSizeStyleTools(browser, url, artifacts) {
     await page.evaluate(id => DiagramEditor.select([id]), a.id); await openEditMenu(page); await page.locator('#copy-style-button').click(); assert.match(await page.locator('#style-clipboard-status').textContent(), /コピー元/);
     const beforeStyle = await getDoc(); await page.evaluate(id => DiagramEditor.select([id]), b.id); await openEditMenu(page); assert.equal(await page.locator('#paste-style-button').isDisabled(), false); await page.locator('#paste-style-button').click(); current = await getDoc(); const styled = current.nodes.find(n=>n.id===b.id), beforeTarget = beforeStyle.nodes.find(n=>n.id===b.id); assert.deepEqual(styled.style, beforeStyle.nodes.find(n=>n.id===a.id).style); assert.equal(styled.text,beforeTarget.text); assert.equal(styled.x,beforeTarget.x); assert.equal(styled.w,beforeTarget.w);
     await page.evaluate(id => DiagramEditor.select([id]), b.id); await clickToolbarAction(page, 'copy-button'); assert.ok((await getDoc()).nodes.length===2,'Ordinary copy remains separate from style clipboard');
-    await openMenuFor(page, '#settings-menu'); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape'); await page.setViewportSize({width:736,height:736}); await page.waitForFunction(()=>document.querySelector('.toolbar').dataset.compact==='true'); await page.evaluate(ids => DiagramEditor.select(ids), [a.id,b.id]); await openEditMenu(page); await page.locator('#match-size-button').click(); await expectWithinViewport(page,'#size-dialog','Size dialog fits at 736px'); await page.keyboard.press('Escape'); await page.waitForFunction(() => !document.getElementById('size-dialog').open && document.querySelector('#edit-menu > summary') === document.activeElement); await page.screenshot({path:path.join(artifacts,`${browser.browserType().name()}-size-style-736-dark.png`),fullPage:true}); assert.deepEqual(errors,[]);
+    await openMenuFor(page, '#settings-menu'); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape'); await page.setViewportSize({width:736,height:736}); await page.waitForFunction(()=>document.querySelector('.toolbar').dataset.compact==='true'); await page.evaluate(ids => DiagramEditor.select(ids), [a.id,b.id]); await openEditMenu(page); await page.locator('#match-size-button').click(); await expectWithinViewport(page,'#size-dialog','Size dialog fits at 736px'); await page.keyboard.press('Escape'); await page.waitForFunction(() => !document.getElementById('size-dialog').open && document.querySelector('#edit-menu > summary') === document.activeElement); await page.screenshot({path:path.join(artifacts,`${browser.browserType().name()}-size-style-736-dark.png`),fullPage:true}); assert.deepEqual(errors,[]);
   } finally { await context.close(); }
 }
 
@@ -481,7 +475,7 @@ async function checkSizeStyleDetails(browser, url, artifacts) {
     await page.keyboard.press('Escape'); await closed('size-dialog');
     const lockedDoc = await getDoc();
     for (const [width, theme] of [[1280, 'light'], [736, 'dark']]) {
-      await page.setViewportSize({ width, height: 860 }); if (width <= 736) await page.waitForFunction(() => document.querySelector('.toolbar').dataset.compact === 'true'); await openMenuFor(page, '#settings-menu'); await page.locator('#theme').selectOption(theme); await page.locator('#settings-menu > summary').press('Escape');
+      await page.setViewportSize({ width, height: 860 }); if (width <= 736) await page.waitForFunction(() => document.querySelector('.toolbar').dataset.compact === 'true'); await openMenuFor(page, '#settings-menu'); await page.locator('[data-theme-choice="' + theme + '"]').click(); await page.locator('#settings-menu > summary').press('Escape');
       await menuAction('copy-style-button'); await expectWithinViewport(page, '#style-dialog', `Style chooser fits ${width}px`);
       await page.screenshot({ path: path.join(artifacts, `${browser.browserType().name()}-style-dialog-${width}-${theme}.png`), fullPage: true });
       await page.keyboard.press('Escape'); await closed('style-dialog'); assert.deepEqual(await getDoc(), lockedDoc);
@@ -495,7 +489,7 @@ async function checkSizeStyleTouch(browser, url, artifacts) {
   try {
     const page = await context.newPage(), errors = []; page.on('pageerror', e => errors.push(e.message)); page.setDefaultTimeout(12000);
     await page.goto(url); await page.waitForFunction(() => !!window.DiagramEditor);
-    await page.locator('#toolbar-toggle').tap(); await page.locator('#settings-menu > summary').tap(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape');
+    await page.locator('#toolbar-toggle').tap(); await page.locator('#settings-menu > summary').tap(); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape');
     const doc = Core.createDocument(), a = Core.createNode('process', 80, 160, { id: 'touch_size_a', text: '基準', w: 240, h: 100, style: { fill: '#ffeeaa', color: '#123456', stroke: '#b83232', fontSize: 24, bold: true, dashed: true } }), b = Core.createNode('process', 80, 370, { id: 'touch_size_b', text: '対象', w: 140, h: 80 }); doc.nodes = [a, b];
     await loadFixture(page, doc); await page.evaluate(ids => DiagramEditor.select(ids), [a.id, b.id]);
     await page.locator('#edit-menu > summary').tap(); await page.locator('#match-size-button').tap();
@@ -541,7 +535,7 @@ async function checkAuthoringTools(browser, url, artifacts) {
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `Toolbar has no horizontal overflow at ${width}px and ${size}`); await checkTopMenus();
     }
     await page.setViewportSize({ width: 736, height: 736 }); await page.screenshot({ path: path.join(artifacts, `${browser.browserType().name()}-authoring-toolbar-736.png`), fullPage: true });
-    await openMenuFor(page, '#settings-menu'); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('standard'); await page.locator('#settings-menu > summary').press('Escape'); await checkTopMenus();
+    await openMenuFor(page, '#settings-menu'); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#text-size').selectOption('standard'); await page.locator('#settings-menu > summary').press('Escape'); await checkTopMenus();
     await openBehaviorMenu(page); await page.locator('#alignment-snap').uncheck(); await page.reload(); await restoreBrowserAuto(page);
     await openBehaviorMenu(page); assert.equal(await page.locator('#alignment-snap').isChecked(), false, 'Disabled alignment snapping survives a reload'); await page.locator('#alignment-snap').check(); await page.reload(); await restoreBrowserAuto(page);
     await openBehaviorMenu(page); assert.equal(await page.locator('#alignment-snap').isChecked(), true, 'Enabled alignment snapping survives a reload'); await page.locator('#behavior-menu > summary').press('Escape');
@@ -635,8 +629,9 @@ async function checkAuthoringTools(browser, url, artifacts) {
   const touch = await browser.newContext({ viewport: { width: 390, height: 736 }, hasTouch: true, isMobile: true, colorScheme: 'dark' });
   try {
     const page = await touch.newPage(); page.setDefaultTimeout(12000); await page.goto(url); await page.waitForFunction(() => !!window.DiagramEditor);
-    await page.locator('#toolbar-toggle').tap(); await page.locator('#settings-menu > summary').tap(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape');
+    await page.locator('#toolbar-toggle').tap(); await page.locator('#settings-menu > summary').tap(); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, 'The production toolbar remains horizontally usable at 390px');
+    await openToolbarOptions(page);
     for (const selector of ['#paste-button', '#connect-button']) {
       await page.locator(selector).scrollIntoViewIfNeeded(); const box = await page.locator(selector).boundingBox(); assert.ok(box && box.width >= 44 && box.height >= 44, `${selector} remains a 44px touch target`);
     }
@@ -744,7 +739,7 @@ async function checkLearningTools(browser, url, artifacts) {
     assert.equal(await page.locator('#lesson-author').isHidden(), true); assert.equal(await page.locator('#lesson-student').isVisible(), true);
     assert.equal(await page.locator('#assignment-instructions').textContent(), author.lesson.instructions, 'Instructions are rendered as text, never HTML');
     for (const size of ['standard', 'large', 'largest']) {
-      await openMenuFor(page, '#settings-menu'); await page.locator('#text-size').selectOption(size); await page.locator('.brand').click();
+      await openMenuFor(page, '#settings-menu'); await page.locator('#text-size').selectOption(size); await page.locator('#settings-menu > summary').press('Escape');
       await expectWithinViewport(page, '#assignment-instructions', `Lesson instructions fit at ${size} text size`);
     }
     await select([outside.id]); await page.locator(`[data-node="${outside.id}"]`).dblclick(); await page.locator('#inline-editor').fill('生徒の入力'); await page.locator('#inline-editor').press('Control+Enter');
@@ -819,11 +814,11 @@ async function checkLearningTools(browser, url, artifacts) {
     assert.match(await page.locator('#trace-history').textContent(), /左/);
     assert.equal(await page.locator('[data-trace-node="trace_join"][data-trace-edge="trace_finish"]').count(), 0, 'A join waits for every fork branch');
     await page.screenshot({ path: path.join(artifacts, `${browser.browserType().name()}-trace-join-wait.png`), fullPage: true });
-    await openMenuFor(page, '#settings-menu'); await page.locator('#theme').selectOption('dark'); await page.locator('.brand').click();
+    await openMenuFor(page, '#settings-menu'); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#settings-menu > summary').press('Escape');
     await page.setViewportSize({ width: 390, height: 736 });
     await waitForDiagramWithinCanvas(page);
     for (const size of ['standard', 'large', 'largest']) {
-      await openMenuFor(page, '#settings-menu'); await page.locator('#text-size').selectOption(size); await page.locator('.brand').click();
+      await openMenuFor(page, '#settings-menu'); await page.locator('#text-size').selectOption(size); await page.locator('#settings-menu > summary').press('Escape');
       await expectWithinViewport(page, '#trace-stop', `Trace controls fit at ${size} text size`);
     }
     await page.screenshot({ path: path.join(artifacts, `${browser.browserType().name()}-trace-join-wait-390-dark.png`), fullPage: true });
@@ -841,7 +836,7 @@ async function checkLearningTools(browser, url, artifacts) {
     await page.locator('[data-pane-button="export"]').click();
     assert.doesNotMatch(await page.locator('#export-preview').innerHTML(), /trace-bar|diagram-learning-overlay/);
 
-    for (const theme of ['light', 'dark', 'auto']) { await openMenuFor(page, '#settings-menu'); await page.locator('#theme').selectOption(theme); await page.locator('.brand').click(); }
+    for (const theme of ['light', 'dark', 'auto']) { await openMenuFor(page, '#settings-menu'); await page.locator('[data-theme-choice="' + theme + '"]').click(); await page.locator('#settings-menu > summary').press('Escape'); }
     for (const width of [1280, 736, 390]) { await page.setViewportSize({ width, height: 736 }); await waitForLayout(page); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false); }
     await page.screenshot({ path: path.join(artifacts, `${browser.browserType().name()}-learning.png`), fullPage: true });
     assert.deepEqual(errors, []);
@@ -1146,7 +1141,7 @@ async function checkReviewTools(browser, url, artifacts) {
       assert.equal(await page.locator('#print-preview .print-name-field').count() > 0, includeName, 'Name-field preference updates the preview');
       assert.equal(await page.locator('#print-preview .print-diagram svg').count(), 1, 'The diagram is present in the print preview');
       assert.match(await page.locator('#print-summary').textContent(), new RegExp(paper));
-      await page.locator('#print-submit').click();
+      await submitPrint(page);
       await page.waitForFunction(() => document.querySelector('#print-sheet .print-diagram svg'));
       assert.equal(await page.locator('#print-sheet .print-name-field').count() > 0, includeName, 'beforeprint updates the real print DOM');
       if (browser.browserType().name() === 'chromium') await page.pdf({ path: path.join(artifacts, `print-${paper}-${orientation}-${includeName ? 'name' : 'noname'}.pdf`), preferCSSPageSize: true, printBackground: true });
@@ -1161,7 +1156,7 @@ async function checkReviewTools(browser, url, artifacts) {
     await page.locator('#print-paper').selectOption('A4'); await page.locator('#print-orientation').selectOption('portrait');
     if (await page.locator('#print-name').isChecked()) await page.locator('#print-name').click(); if (!await page.locator('#print-instructions').isChecked()) await page.locator('#print-instructions').click();
     await page.screenshot({ path: path.join(artifacts, `${browser.browserType().name()}-print-a4-portrait-preview.png`), fullPage: true });
-    await page.locator('#print-submit').click(); if (browser.browserType().name() === 'chromium') await page.pdf({ path: path.join(artifacts, 'print-a4-portrait.pdf'), preferCSSPageSize: true, printBackground: true });
+    await submitPrint(page); if (browser.browserType().name() === 'chromium') await page.pdf({ path: path.join(artifacts, 'print-a4-portrait.pdf'), preferCSSPageSize: true, printBackground: true });
     await page.locator('#print-dialog [data-close-dialog]').click();
 
     // Long instructions may paginate, but their text and the final diagram must remain in the printed DOM.
@@ -1170,7 +1165,7 @@ async function checkReviewTools(browser, url, artifacts) {
     await page.waitForFunction(() => document.getElementById('print-dialog').open);
     await page.locator('#print-paper').selectOption('B5'); await page.locator('#print-orientation').selectOption('landscape'); if (!await page.locator('#print-name').isChecked()) await page.locator('#print-name').click(); if (!await page.locator('#print-instructions').isChecked()) await page.locator('#print-instructions').click();
     const longBeforePrint = await getDoc();
-    await page.locator('#print-submit').click(); await page.waitForFunction(() => document.querySelector('#print-sheet .print-diagram svg'));
+    await submitPrint(page); await page.waitForFunction(() => document.querySelector('#print-sheet .print-diagram svg'));
     const printedInstructions = await page.locator('#print-sheet .print-instructions').allTextContents();
     assert.equal(printedInstructions.join(''), longDoc.lesson.instructions, 'Every instruction character is retained across printed pages');
     assert.ok(await page.locator('#print-sheet .print-page').count() > 1, 'Long instructions use more than one printed page');
@@ -1185,7 +1180,7 @@ async function checkReviewTools(browser, url, artifacts) {
     assert.equal(await page.locator('#print-preview .print-instructions').count(), 0, 'Disabled instructions are omitted from preview');
     assert.equal(await page.locator('#print-preview .print-page').count(), 1, 'Disabled instructions use one print page');
     assert.equal(await page.locator('#print-preview .print-name-field').count(), 1, 'The name field is retained when instructions are omitted');
-    await page.locator('#print-submit').click(); await page.waitForFunction(() => document.querySelector('#print-sheet .print-diagram svg'));
+    await submitPrint(page); await page.waitForFunction(() => document.querySelector('#print-sheet .print-diagram svg'));
     assert.equal(await page.locator('#print-sheet .print-instructions').count(), 0, 'Disabled instructions are omitted from real print DOM');
     assert.equal(await page.locator('#print-sheet .print-name-field').count(), 1, 'The real print DOM keeps the name field');
     assert.deepEqual(await getDoc(), longBeforePrint, 'Instruction preference does not alter the document');
@@ -1195,7 +1190,7 @@ async function checkReviewTools(browser, url, artifacts) {
     await checkDefaultLabelDrag(page, artifacts, browser.browserType().name());
 
     await page.setViewportSize({ width: 390, height: 736 }); await page.waitForFunction(() => document.querySelector('.toolbar').dataset.compact === 'true');
-    await openMenuFor(page, '#settings-menu'); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('large'); await page.locator('#settings-menu > summary').press('Escape');
+    await openMenuFor(page, '#settings-menu'); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#text-size').selectOption('large'); await page.locator('#settings-menu > summary').press('Escape');
     await page.locator('[data-pane-button="inspect"]').click();
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, 'Review UI fits a 390px viewport at large text');
     await page.screenshot({ path: path.join(artifacts, `${browser.browserType().name()}-review-390-dark.png`), fullPage: true });
@@ -1278,12 +1273,12 @@ async function checkLaneTools(browser, url, artifacts) {
     assert.match(await page.evaluate(() => DiagramEditor.exportSVG()), /担当|lane/, 'SVG export includes lane content');
     await page.locator('[data-pane-button="export"]').click(); const png = page.waitForEvent('download'); await page.locator('#export-png').click(); await (await png).saveAs(path.join(artifacts, `${browser.browserType().name()}-lanes.png`));
     await page.locator('#side-print').click(); await page.locator('#print-name').check();
-    for (const paper of ['A4', 'B5']) { await page.locator('#print-paper').selectOption(paper); await page.locator('#print-submit').click(); assert.equal((await getDoc()).lanes.length, 3); assert.equal(await page.locator('#print-name').isChecked(), true, 'Print settings retain the name preference'); }
+    for (const paper of ['A4', 'B5']) { await page.locator('#print-paper').selectOption(paper); await submitPrint(page); assert.equal((await getDoc()).lanes.length, 3); assert.equal(await page.locator('#print-name').isChecked(), true, 'Print settings retain the name preference'); }
     await page.locator('#print-dialog [data-close-dialog]').click(); assert.deepEqual(await getDoc(), { ...savedDoc, id: 'lane_reopened' });
 
     await checkClassroomLaneOutput(page, artifacts, browser.browserType().name());
 
-    await page.setViewportSize({ width: 390, height: 736 }); await page.waitForFunction(() => document.querySelector('.toolbar').dataset.compact === 'true'); await openMenuFor(page, '#settings-menu'); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape'); await closeSidePane(page);
+    await page.setViewportSize({ width: 390, height: 736 }); await page.waitForFunction(() => document.querySelector('.toolbar').dataset.compact === 'true'); await openMenuFor(page, '#settings-menu'); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape'); await closeSidePane(page);
     await selectLayer(page, 'lanes'); await page.locator('#lane-title').fill('長い担当領域の名前を確認する'); await page.locator('#lane-title').press('Enter');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, 'Lane controls fit 390px dark largest text');
     await page.screenshot({ path: path.join(artifacts, `${browser.browserType().name()}-lanes-390-dark.png`), fullPage: true });
@@ -1322,7 +1317,7 @@ async function checkClassroomLaneOutput(page, artifacts, engine) {
   for (const [paper, includeName] of [['A4', false], ['B5', true]]) {
     await page.locator('#print-paper').selectOption(paper); await page.locator('#print-orientation').selectOption('portrait');
     if (await page.locator('#print-name').isChecked() !== includeName) await page.locator('#print-name').click();
-    await page.locator('#print-submit').click(); await page.waitForFunction(() => document.querySelector('#print-sheet .print-diagram svg'));
+    await submitPrint(page); await page.waitForFunction(() => document.querySelector('#print-sheet .print-diagram svg'));
     const layout = await page.evaluate(() => { const sheet = document.getElementById('print-sheet'); sheet.classList.add('is-measuring'); const pages = [...sheet.querySelectorAll('.print-page')], diagram = sheet.querySelector('.print-diagram'), svg = diagram?.querySelector('svg'), d = diagram?.getBoundingClientRect(), s = svg?.getBoundingClientRect(); sheet.classList.remove('is-measuring'); return { pages: pages.length, names: sheet.querySelectorAll('.print-name-field').length, diagram: d && { w: d.width, h: d.height }, svg: s && { w: s.width, h: s.height } }; });
     assert.equal(layout.pages, 1, `${paper} classroom print uses one page`); assert.equal(layout.names, includeName ? 1 : 0, `${paper} classroom print name-field setting is retained`);
     assert.ok(layout.diagram.w > 0 && layout.diagram.h > 0 && layout.svg.w > 0 && layout.svg.h > 0 && layout.svg.w <= layout.diagram.w + 1 && layout.svg.h <= layout.diagram.h + 1, `${paper} classroom diagram fits its print area`);
@@ -1584,7 +1579,7 @@ async function checkTemplateOutputs(browser, url, engine, artifacts) {
       await page.locator('[data-open-source="local-file"]').click();
       await page.waitForFunction(id => DiagramEditor.getDocument().id === id,expected.id);
       assert.deepEqual(await page.evaluate(() => DiagramEditor.getDocument()),expected);
-      await openMenuFor(page, '#settings-menu'); await page.locator('#theme').selectOption('dark'); await page.locator('.brand').click();
+      await openMenuFor(page, '#settings-menu'); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#settings-menu > summary').press('Escape');
       async function download(selector, output) { const waiting=page.waitForEvent('download'); await page.locator(selector).click(); const file=await waiting; await file.saveAs(output); return fs.readFile(output); }
       await page.locator('#file-menu > summary').click();
       const json = await download('#save-file',engine==='chromium'?file:path.join(artifacts,`${engine}-${template}.diagram.json`));
@@ -1689,7 +1684,7 @@ async function checkDarkCanvas(browser, url, artifacts) {
     await page.goto(url);await page.waitForFunction(()=>!!window.DiagramEditor);
     const d=Core.createDocument();Core.addBranch(d,360,180);await loadFixture(page,d);
     const baseline=await page.evaluate(()=>DiagramEditor.exportSVG());
-    async function theme(value) { await openMenuFor(page,'#settings-menu');await page.locator('#theme').selectOption(value);await page.locator('#settings-menu > summary').press('Escape'); }
+    async function theme(value) { await openMenuFor(page,'#settings-menu');await page.locator('[data-theme-choice="' + value + '"]').click();await page.locator('#settings-menu > summary').press('Escape'); }
     await theme('dark');
     const fill=()=>page.locator(`[data-node="${d.nodes[1].id}"] polygon`).first().getAttribute('fill');
     assert.equal(await fill(),'#273442');assert.equal(await page.locator('#stage').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(24, 33, 43)');
@@ -1743,7 +1738,7 @@ async function checkShapeChanges(browser, url, artifacts) {
     await page.locator('#edge-head').selectOption('none');d=await getDoc();assert.ok(d.edges.slice(0,2).every(e=>e.head==='none'));assert.deepEqual(d.edges[0].bend,mixed.edges[0].bend);
     await page.locator('#node-shape').selectOption('decision');assert.deepEqual((await getDoc()).edges,d.edges);
     for(const width of [736,390]) {
-      await page.setViewportSize({width,height:860});if(width<=736)await page.waitForFunction(()=>document.querySelector('.toolbar').dataset.compact==='true');await openMenuFor(page,'#settings-menu');await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.locator('#settings-menu > summary').press('Escape');await openMenuFor(page,'#shape-menu');
+      await page.setViewportSize({width,height:860});if(width<=736)await page.waitForFunction(()=>document.querySelector('.toolbar').dataset.compact==='true');await openMenuFor(page,'#settings-menu');await page.locator('[data-theme-choice="dark"]').click();await page.locator('#text-size').selectOption('largest');await page.locator('#settings-menu > summary').press('Escape');await openMenuFor(page,'#shape-menu');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
       for(const id of ['node-shape','edge-kind','edge-head']){const box=await page.locator(`#${id}`).boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width+1,`${id} fits ${width}px`);}
     }

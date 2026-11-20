@@ -23,6 +23,7 @@
     alignLeft: 'M4 3v18M8 7h12M8 12h7M8 17h10', alignCenter: 'M12 3v18M4 7h16M7 12h10M5 17h14', alignRight: 'M20 3v18M4 7h12M9 12h7M6 17h10', alignTop: 'M3 4h18M7 8v12m5-12v7m5-7v10', alignMiddle: 'M3 12h18M7 4v16m5-13v10m5-12v14', alignBottom: 'M3 20h18M7 4v12m5-7v7m5-10v10'
   };
   $$('[data-icon]').forEach(el => { el.innerHTML = `<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${icons[el.dataset.icon] || icons.select}"/></svg>`; });
+  let ui = null;
   let doc = C.createDocument('flowchart');
   let history = new C.History(doc), saved = C.serializeDocument(doc);
   let committed = C.clone(doc);
@@ -36,7 +37,7 @@
   let trace = null, traceStartId = null, lessonPreview = null;
   let recoveryState = 'idle';
   let storageArmed = false, lastSaveLocation = 'browser', localFileCandidate = null, localManualSnapshot = null;
-  let openingSnapshot = false, choosingLocalSave = false, localPickerEpoch = 0;
+  let openingSnapshot = false, choosingLocalSave = false, localPickerEpoch = 0, storageScope = 'all';
   const localAutosave = L.create({ onState: state => { updateLocalSaveStatus(state); updateSaveStatus(); } });
   let imageOperation = null, imageCopyFallback = null;
   let styleClipboard = null, styleSourceLabel = '', sizeSelection = [];
@@ -68,7 +69,7 @@
   const objects = () => [...selectedNodes(), ...selectedEdges()];
   const content = () => doc.nodes.length || doc.edges.length;
   const dirty = () => JSON.stringify(doc, null, 2) !== saved;
-  const isInput = target => target instanceof Element && !!target.closest('input,textarea,select,[contenteditable=true]');
+  const isInput = target => target instanceof Element && (!!target.closest('input,textarea,select,[contenteditable=true]') || !!ui?.contains(target));
   const isDialog = () => !!document.querySelector('dialog[open]');
   const snapped = n => $('snap').checked ? Math.round(n / 10) * 10 : n;
   const studentMode = () => !!doc.lesson?.studentMode;
@@ -685,6 +686,7 @@
     $$('[data-pane-button]').forEach(el => el.setAttribute('aria-pressed', String(el.dataset.paneButton === pane)));
     renderExport();
     renderLesson(); renderTrace(); renderInspection();
+    ui?.update({ blocked: !!trace || !!lessonPreview, autosaving: ['saving','saved'].includes(localAutosave.getState().status) });
     layoutToolbar(); positionMenus();
     if(waypointFocus&&routeTarget()&&!restoringFocus) {
       const target=[...$('overlay').querySelectorAll('[data-handle]')].find(el=>el.dataset.handle===waypointFocus.type&&(waypointFocus.type==='waypoint'?el.dataset.index===waypointFocus.index:el.dataset.segment===waypointFocus.segment));
@@ -1161,7 +1163,7 @@
   }
   function positionMenu(menu) {
     if (!menu.open || menu.closest('[hidden]')) return;
-    const panel = menu.querySelector(':scope > .menu-panel'), bounds = menu.querySelector('summary').getBoundingClientRect();
+    const panel = menu.querySelector(':scope > .menu-panel, :scope > .joho-file-menu__items'), bounds = menu.querySelector('summary').getBoundingClientRect();
     if (!panel || !bounds.width) return;
     const width = document.documentElement.clientWidth, height = window.innerHeight;
     const topLimit=menu.closest('.format-bar')?Math.max(8,Math.min(height-96,toolbar.getBoundingClientRect().bottom+8)):8;
@@ -1753,7 +1755,7 @@
     } catch (error) { reportStorageError(`ブラウザ内に保存できませんでした。「ファイルに保存」を使えます。${error.message}`); return false; }
   }
   function saveCurrent() { return lastSaveLocation === 'local' ? saveFile() : saveBrowser(); }
-  function updateSaveShortcut() { $('save-shortcut').textContent = `⌘/Ctrl＋S：${lastSaveLocation === 'local' ? 'ファイルに保存' : 'ブラウザ内に保存'}`; }
+  function updateSaveShortcut() { $('save-shortcut').textContent = `${window.FlowchartUI?.modifier || '⌘/Ctrl＋'}S：${lastSaveLocation === 'local' ? 'ファイルに保存' : 'ブラウザに保存'}`; }
   function reportStorageError(message) {
     notify(message, true);
     $('storage-open-error').textContent = message; $('storage-open-error').hidden = false;
@@ -1770,7 +1772,7 @@
     const browser = readBrowserSnapshots(), candidates = [
       ['browser-auto', browser.auto], ['browser-manual', browser.manual],
       ['local-auto', localAutosave.getSnapshot()], ['local-manual', localManualSnapshot], ['local-file', localFileCandidate]
-    ].filter(([, value]) => value);
+    ].filter(([source, value]) => value && (storageScope === 'browser' ? source.startsWith('browser-') : storageScope === 'file' ? source === 'local-file' : true));
     $('open-candidates').replaceChildren();
     for (const [source, snapshot] of candidates) {
       const button = document.createElement('button'); button.type = 'button'; button.className = 'storage-candidate'; button.dataset.openSource = source;
@@ -1787,13 +1789,14 @@
     $('storage-open-error').hidden = !browser.errors.length;
     return candidates.length;
   }
-  function openStorageDialog(startup = false) {
+  function openStorageDialog(startup = false, scope = 'all') {
     if (trace || lessonPreview) return;
     finishText();
     if (storageArmed) writeRecovery();
-    localFileCandidate = null;
+    localFileCandidate = null; storageScope = scope;
     renderStorageCandidates();
-    $('storage-open-title').textContent = startup ? '前回の図を開く' : '保存した図を開く';
+    $('storage-open-title').textContent = startup ? '前回の図を開く' : scope === 'browser' ? 'ブラウザに保存した図を開く' : '保存した図を開く';
+    $('choose-local-file').hidden = scope === 'browser';
     if (!$('storage-open-dialog').open) openDialog($('storage-open-dialog'), $('file-menu').querySelector('summary'));
   }
   async function openSnapshot(snapshot, source) {
@@ -1817,13 +1820,15 @@
   $('save-file').onclick = saveFile;
   $('save-browser').onclick = saveBrowser;
   $('open-file').onclick = () => openStorageDialog();
-  $('choose-local-file').onclick = () => { $('file-input').value = ''; $('file-input').click(); };
+  function chooseLocalFile() { $('file-input').value = ''; $('file-input').click(); }
+  $('choose-local-file').onclick = chooseLocalFile;
   $('file-input').onchange = async event => {
     const file = event.target.files[0]; if (!file) return;
     try {
       if (file.size > 2 * 1024 * 1024) throw new Error('ファイルは2MB以内にしてください。');
       const next = S.parseFile(await file.text(), { lastModified: file.lastModified });
-      localFileCandidate = { ...next, name: file.name }; renderStorageCandidates();
+      localFileCandidate = { ...next, name: file.name }; storageScope = 'file'; renderStorageCandidates();
+      $('storage-open-title').textContent = 'ファイルから図を開く'; $('choose-local-file').hidden = false;
       if (!$('storage-open-dialog').open) openDialog($('storage-open-dialog'), $('file-menu').querySelector('summary'));
       document.querySelector('#open-candidates [data-open-source="local-file"]')?.focus();
     } catch (error) { reportStorageError(`読み込めませんでした。${error.message}`); }
@@ -1833,6 +1838,7 @@
     $('local-auto-status').textContent = `${labels[state.status] || '停止中'}${state.name ? `：${state.name}` : ''}${state.message ? ` — ${state.message}` : ''}`;
     $('local-auto-status').dataset.error = String(state.status === 'failed');
     $('local-auto-stop').disabled = !['saving', 'saved'].includes(state.status);
+    ui?.update({ blocked: !!trace || !!lessonPreview, autosaving: ['saving','saved'].includes(state.status) });
   }
   const supportsLocalAutosave = window.isSecureContext && typeof window.showSaveFilePicker === 'function';
   $('local-auto-unavailable').hidden = supportsLocalAutosave;
@@ -2054,23 +2060,24 @@
   function savePreferences() { try { localStorage.setItem(PREFS, JSON.stringify({ theme: $('theme').value, textSize: $('text-size').value, snap: $('snap').checked, alignmentSnap: $('alignment-snap').checked, print: printSettings(), image:{...imageOptions(),transparent:$('transparent').checked}, saveLocation: lastSaveLocation })); } catch { /* Editing remains available when browser storage is disabled. */ } }
   $('theme').onchange = e => { document.documentElement.dataset.theme = e.target.value; savePreferences(); render(); };
   systemTheme.addEventListener('change', () => { if ($('theme').value === 'auto') render(); });
-  $('text-size').onchange = e => { document.documentElement.dataset.textSize = e.target.value; savePreferences(); layoutToolbar(); positionMenus(); };
+  $('text-size').onchange = e => { document.documentElement.dataset.textSize = e.target.value; savePreferences(); layoutToolbar(); positionMenus(); ui?.refresh(); };
   $('snap').onchange = () => { savePreferences(); render(); };
   $('alignment-snap').onchange = () => { savePreferences(); render(); };
   document.addEventListener('keydown', event => {
-    if (event.isComposing || event.keyCode === 229 || isDialog()) return;
+    if (event.isComposing || event.keyCode === 229 || isDialog() || ui?.contains(event.target)) return;
     const openMenu = event.target.closest('details.menu[open]');
     if (event.key === 'Escape' && openMenu) { event.preventDefault(); openMenu.open = false; openMenu.querySelector('summary').focus(); return; }
     if (event.key === 'Escape' && toolbar.dataset.compact === 'true' && toolbarOptions.classList.contains('is-open')) { event.preventDefault(); setToolbarOpen(false, true); return; }
     if (isInput(event.target)) return;
     const key = event.key.toLowerCase(), command = event.metaKey || event.ctrlKey;
+    if (event.key === '?' && !command && !drag && !connection) { event.preventDefault(); $('help-button').click(); return; }
     if (event.key === 'Alt' && drag?.type === 'move') { event.preventDefault(); updateMove(true); return; }
     if (trace && event.key === 'Escape') { event.preventDefault(); stopTrace(); return; }
     if (command) {
       if (key === 'z') { event.preventDefault(); event.shiftKey ? redo() : undo(); }
       else if (key === 'y') { event.preventDefault(); redo(); }
       else if (key === 's') { event.preventDefault(); saveCurrent(); }
-      else if (key === 'o' && !trace && !lessonPreview) { event.preventDefault(); openStorageDialog(); }
+      else if (key === 'o' && !trace && !lessonPreview) { event.preventDefault(); chooseLocalFile(); }
       else if (key === 'a') { event.preventDefault(); selectAll(); }
       else if (key === 'd') { event.preventDefault(); duplicate(); }
       else if (key === 'g' && !trace) { event.preventDefault(); (event.shiftKey ? $('ungroup-button') : $('group-button')).click(); }
@@ -2162,6 +2169,23 @@
     }catch{/* 古い・不正な画像設定は既定値で開く。 */}
     if (['browser','local'].includes(preferences.saveLocation)) lastSaveLocation = preferences.saveLocation;
   } catch { /* 表示設定の失敗でも、保存した図は別に読み込める。 */ }
+  if (window.FlowchartUI) {
+    const oldNew = $('new-file').onclick, oldAuto = $('autosave-settings').onclick;
+    try {
+      ui = FlowchartUI.create({
+        busy: () => !!drag || !!connection || !!editing?.composing,
+        helpBusy: () => !!drag || !!connection || !!editing,
+        getDocument: () => doc, finishText, openDialog,
+        rename: title => change(() => { doc.title = title; }),
+        layout: () => { layoutToolbar(); positionMenus(); },
+        actions: {
+          new: () => oldNew(), save: saveCurrent, browserSave: saveBrowser, fileSave: saveFile,
+          browserOpen: () => openStorageDialog(false, 'browser'), fileOpen: chooseLocalFile,
+          auto: () => ['saving','saved'].includes(localAutosave.getState().status) ? localAutosave.stop() : oldAuto()
+        }
+      });
+    } catch { /* 共通UIが使えなくても、既存の編集・保存を続ける。 */ }
+  }
   updateSaveShortcut(); updateLocalSaveStatus();
   render();
   window.DiagramEditor = Object.freeze({ getDocument: () => C.clone(doc), getTrace: () => trace ? C.clone(trace) : null, exportSVG: () => R.svgDocument(doc, { padding: 32 }), fit, select: ids => select(ids), setTool, undo, redo });

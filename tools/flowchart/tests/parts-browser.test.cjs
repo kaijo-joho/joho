@@ -13,19 +13,7 @@ const PARTS_AUTO = 'kaijo.flowchart.parts.auto.v1';
 const PARTS_SAVED = 'kaijo.flowchart.parts.saved.v1';
 const clone = value => JSON.parse(JSON.stringify(value));
 
-async function serve() {
-  const root = path.resolve(__dirname, '..');
-  const allowed = new Set(['index.html', 'core.js', 'output.js', 'render.js', 'parts.js','layout.js','transitions.js', 'editor.js', 'editor.css', 'storage.js', 'local-autosave.js', 'icon.svg']);
-  const types = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml' };
-  const server = http.createServer(async (request, response) => {
-    const file = new URL(request.url, 'http://localhost').pathname.slice(1) || 'index.html';
-    if (!allowed.has(file)) return response.writeHead(404).end();
-    try { response.writeHead(200, { 'Content-Type': `${types[path.extname(file)] || 'application/octet-stream'}; charset=utf-8` }); response.end(await fs.readFile(path.join(root, file))); }
-    catch { response.writeHead(404).end(); }
-  });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  return { url: `http://127.0.0.1:${server.address().port}/`, close: () => new Promise(resolve => server.close(resolve)) };
-}
+async function serve() { return require('./serve.cjs')(); }
 
 function fixture() {
   const doc = Core.createDocument('flowchart');
@@ -64,7 +52,7 @@ async function bytes(download) {
 
 async function darkLargest(page) {
   await menu(page, 'settings-menu');
-  await page.locator('#theme').selectOption('dark');
+  await page.locator('[data-theme-choice="dark"]').click();
   await page.locator('#text-size').selectOption('largest');
   await page.locator('#settings-menu > summary').press('Escape');
 }
@@ -206,7 +194,7 @@ async function mobile(browser, url, engine, artifacts) {
     const page = await context.newPage(); page.setDefaultTimeout(12000); const errors=[]; page.on('pageerror', error => errors.push(error.message));
     await page.goto(url); await page.waitForFunction(() => !!window.DiagramEditor);
     if (await page.locator('#toolbar-toggle').isVisible() && await page.locator('#toolbar-toggle').getAttribute('aria-expanded') === 'false') await page.locator('#toolbar-toggle').tap();
-    await page.locator('#settings-menu > summary').tap(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape');
+    await page.locator('#settings-menu > summary').tap(); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape');
     await page.locator('#my-parts').tap(); await page.waitForFunction(() => document.getElementById('parts-dialog').open); await page.locator('[data-parts-source="auto"]').tap();
     const dialog = await page.locator('#parts-dialog').boundingBox(); assert.ok(dialog.x >= 0 && dialog.x + dialog.width <= 390 && dialog.y >= 0 && dialog.y + dialog.height <= 844);
     await page.screenshot({ path:path.join(artifacts, `${engine}-narrow-dark-largest.png`) });

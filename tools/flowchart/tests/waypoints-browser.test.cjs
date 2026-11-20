@@ -3,17 +3,7 @@ const fs = require('node:fs/promises'), http = require('node:http'), path = requ
 const Core = require('../core.js');
 const Render = require('../render.js');
 let pw; try { pw = require('playwright'); } catch { pw = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')); }
-async function serve() {
-  const root=path.resolve(__dirname,'..'),allowed=new Set(['index.html','output.js','parts.js','layout.js','transitions.js','core.js','render.js','editor.js','editor.css','storage.js','local-autosave.js','icon.svg']);
-  const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'};
-  const server=http.createServer(async(req,res)=>{
-    const file=new URL(req.url,'http://localhost').pathname.slice(1)||'index.html';
-    if(!allowed.has(file))return res.writeHead(404).end();
-    try {res.writeHead(200,{'Content-Type':types[path.extname(file)]});res.end(await fs.readFile(path.join(root,file)));}catch{res.writeHead(404).end();}
-  });
-  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-  return {url:`http://127.0.0.1:${server.address().port}/`,close:()=>new Promise(resolve=>server.close(resolve))};
-}
+async function serve() { return require('./serve.cjs')(); }
 const getDoc=page=>page.evaluate(()=>DiagramEditor.getDocument());
 const select=(page,ids)=>page.evaluate(ids=>DiagramEditor.select(ids),ids);
 async function load(page,doc) {
@@ -111,7 +101,7 @@ async function mobile(browser,url,artifacts,engine) {
   try {
     const page=await context.newPage();page.setDefaultTimeout(12000);const errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto(url);await page.waitForFunction(()=>!!window.DiagramEditor);
-    await page.locator('#toolbar-toggle').tap();await page.locator('#settings-menu > summary').tap();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.locator('#text-size').press('Escape');
+    await page.locator('#toolbar-toggle').tap();await page.locator('#settings-menu > summary').tap();await page.locator('[data-theme-choice="dark"]').click();await page.locator('#text-size').selectOption('largest');await page.locator('#text-size').press('Escape');
     const d=fixture();d.edges[0].waypoints=[{x:380,y:182},{x:380,y:392}];await load(page,d);await start(page,d.edges[0].id);
     await page.locator('[data-handle="waypoint"][data-index="1"]').tap();assert.equal(await page.locator('#waypoint-index').inputValue(),'1');
     await page.locator('#waypoint-position > summary').tap();const panel=await page.locator('#waypoint-position > .menu-panel').boundingBox();assert.ok(panel.x>=0&&panel.x+panel.width<=391&&panel.y>=0&&panel.y+panel.height<=845);

@@ -5,19 +5,7 @@ const Core = require('../core.js'), Parts = require('../parts.js'), Render = req
 let pw;
 try { pw = require('playwright'); } catch { pw = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')); }
 
-async function serve() {
-  const root = path.resolve(__dirname, '..');
-  const allowed = new Set(['index.html','core.js','output.js','render.js','parts.js','layout.js','transitions.js','editor.js','editor.css','storage.js','local-autosave.js','icon.svg']);
-  const types = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml' };
-  const server = http.createServer(async (req, res) => {
-    const file = new URL(req.url, 'http://localhost').pathname.slice(1) || 'index.html';
-    if (!allowed.has(file)) return res.writeHead(404).end();
-    try { res.writeHead(200, {'Content-Type': types[path.extname(file)]}); res.end(await fs.readFile(path.join(root, file))); }
-    catch { res.writeHead(404).end(); }
-  });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  return {url:`http://127.0.0.1:${server.address().port}/`, close:() => new Promise(resolve => server.close(resolve))};
-}
+async function serve() { return require('./serve.cjs')(); }
 function fixture() {
   const doc = Core.createDocument();
   const a = Core.createNode('process', 60, 90, {id:'preview_a',text:'入力',style:{fill:'#ffdd66'}});
@@ -62,7 +50,7 @@ async function check(browser, url, narrow) {
     await page.goto(url); await page.waitForFunction(() => !!window.DiagramEditor);
     if (narrow) {
       await page.locator('#toolbar-toggle').click(); await page.locator('#settings-menu > summary').click();
-      await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape');
+      await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape');
     }
     await load(page, doc);
     await page.locator('#file-menu > summary').click(); await page.locator('#save-browser').click();

@@ -12,19 +12,7 @@ catch { playwright = require(path.join(os.homedir(), '.cache/codex-runtimes/code
 const ALLOWED = new Set(['index.html', 'core.js', 'render.js', 'output.js', 'parts.js','layout.js','transitions.js', 'editor.js', 'editor.css', 'storage.js', 'local-autosave.js', 'icon.svg']);
 const TYPES = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml' };
 
-async function serve() {
-  const root = path.resolve(__dirname, '..');
-  const server = http.createServer(async (request, response) => {
-    const file = new URL(request.url, 'http://localhost').pathname.slice(1) || 'index.html';
-    if (!ALLOWED.has(file)) return response.writeHead(404).end();
-    try {
-      response.writeHead(200, { 'Content-Type':`${TYPES[path.extname(file)] || 'application/octet-stream'}; charset=utf-8` });
-      response.end(await fs.readFile(path.join(root, file)));
-    } catch { response.writeHead(404).end(); }
-  });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  return { url:`http://127.0.0.1:${server.address().port}/`, close:() => new Promise(resolve => server.close(resolve)) };
-}
+async function serve() { return require('./serve.cjs')(); }
 
 function fixture({ long = false } = {}) {
   const doc = Core.createDocument();
@@ -74,7 +62,7 @@ async function chooseOverlap(page) {
 }
 async function darkLargest(page) {
   await menu(page, 'settings-menu');
-  await page.locator('#theme').selectOption('dark');
+  await page.locator('[data-theme-choice="dark"]').click();
   await page.locator('#text-size').selectOption('largest');
   await page.locator('#settings-menu > summary').press('Escape');
 }

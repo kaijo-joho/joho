@@ -4,12 +4,7 @@ const fs=require('node:fs/promises'),http=require('node:http'),os=require('node:
 const C=require('../core.js'),B=require('../parts.js');
 let pw;try{pw=require('playwright');}catch{pw=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'));}
 const AUTO='kaijo.flowchart.parts.auto.v1',SAVED='kaijo.flowchart.parts.saved.v1';
-async function serve(){
-  const allowed=new Set(['index.html','core.js','render.js','layout.js','transitions.js','parts.js','output.js','storage.js','local-autosave.js','editor.js','editor.css','icon.svg']);
-  const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'};
-  const server=http.createServer(async(req,res)=>{const file=new URL(req.url,'http://localhost').pathname.slice(1)||'index.html';if(!allowed.has(file))return res.writeHead(404).end();try{res.writeHead(200,{'Content-Type':`${types[path.extname(file)]}; charset=utf-8`});res.end(await fs.readFile(path.join(__dirname,'..',file)));}catch{res.writeHead(404).end();}});
-  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));return{url:`http://127.0.0.1:${server.address().port}/`,close:()=>new Promise(resolve=>server.close(resolve))};
-}
+async function serve() { return require('./serve.cjs')(); }
 function fixture(){const d=C.createDocument();d.id='authoring_fixture';d.title='文字と配置';d.nodes=[C.createNode('process',100,140,{id:'a',w:180,h:120,text:'入力する\n値を確認'}),C.createNode('process',420,290,{id:'b',w:160,h:100,text:'処理する'}),C.createNode('process',160,480,{id:'c',w:140,h:80,text:'出力する'})];d.edges=[C.createEdge({nodeId:'a',side:'left'},{nodeId:'b',side:'right'},{id:'ab',waypoints:[{x:70,y:320}],label:{text:'次へ',dx:12,dy:-20}}),C.createEdge({nodeId:'b'},{nodeId:'c'},{id:'bc'})];return d;}
 const getDoc=page=>page.evaluate(()=>DiagramEditor.getDocument());
 const select=(page,ids)=>page.evaluate(ids=>DiagramEditor.select(ids),ids);
@@ -72,7 +67,7 @@ async function organizeParts(page){
 }
 async function responsive(browser,url,width){
   const context=await browser.newContext({viewport:{width,height:820},hasTouch:width===390});const page=await context.newPage();
-  try{await page.goto(url);await page.waitForFunction(()=>!!window.DiagramEditor);await load(page,fixture());await menu(page,'settings-menu');await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await select(page,['a','b','c']);await openLayout(page);
+  try{await page.goto(url);await page.waitForFunction(()=>!!window.DiagramEditor);await load(page,fixture());await menu(page,'settings-menu');await page.locator('[data-theme-choice="dark"]').click();await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await select(page,['a','b','c']);await openLayout(page);
     for(const id of ['layout-title','layout-apply']){const box=await page.locator('#'+id).boundingBox();assert.ok(box.x>=0&&box.y>=0&&box.x+box.width<=width&&box.y+box.height<=820,`${id} visible at ${width}`);}
     await page.locator('#layout-direction').focus();await page.keyboard.press('Tab');assert.equal(await page.locator('#layout-gap').evaluate(el=>el===document.activeElement),true);await page.keyboard.press('Shift+Tab');assert.equal(await page.locator('#layout-direction').evaluate(el=>el===document.activeElement),true);
     if(width===390)await page.locator('#layout-apply').tap();else await page.locator('#layout-apply').press('Enter');assert.deepEqual((await getDoc(page)).nodes.map(n=>n.y),[140,320,480]);

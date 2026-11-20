@@ -2,12 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=r
 const C=require('../core.js');
 let pw;try{pw=require('playwright');}catch{pw=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'));}
 const getDoc=page=>page.evaluate(()=>DiagramEditor.getDocument());
-async function serve(){
-  const root=path.resolve(__dirname,'..'),allowed=new Set(['index.html','editor.css','icon.svg','core.js','render.js','output.js','parts.js','layout.js','transitions.js','editor.js','storage.js','local-autosave.js']);
-  const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'};
-  const server=http.createServer(async(req,res)=>{const name=new URL(req.url,'http://localhost').pathname.slice(1)||'index.html';if(!allowed.has(name))return res.writeHead(404).end();try{res.writeHead(200,{'Content-Type':types[path.extname(name)]});res.end(await fs.readFile(path.join(root,name)));}catch{res.writeHead(404).end();}});
-  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));return {url:`http://127.0.0.1:${server.address().port}/`,close:()=>new Promise(resolve=>server.close(resolve))};
-}
+async function serve() { return require('./serve.cjs')(); }
 async function menu(page,id){if(await page.locator('#'+id).getAttribute('open')===null)await page.locator('#'+id+' > summary').click();}
 async function fill(page,id,value){await page.locator('#'+id).fill(String(value));await page.locator('#'+id).press('Tab');}
 async function settings(page){if(await page.locator('.toolbar').getAttribute('data-compact')==='true'&&await page.locator('#toolbar-toggle').getAttribute('aria-expanded')!=='true')await page.locator('#toolbar-toggle').click();await menu(page,'settings-menu');}
@@ -31,7 +26,7 @@ async function check(browser,url,artifacts,engine){
     await page.locator('#export-size-mode').selectOption('height');await fill(page,'export-height',372);assert.match(await page.locator('#export-name').textContent(),/652 × 372 px/);
     await page.locator('#export-size-mode').selectOption('width');await fill(page,'export-width',0);assert.equal(await page.locator('#export-png').isDisabled(),true);assert.equal(await page.locator('#export-error').isVisible(),true);
     await fill(page,'export-width',100000);const cap=(await page.locator('#export-name').textContent()).match(/PNG (\d+) × (\d+) px/);assert.ok(Number(cap[1])<=8192&&Number(cap[2])<=8192&&Number(cap[1])*Number(cap[2])<=32000000);assert.match(await page.locator('#export-name').textContent(),/解像度を調整/);await fill(page,'export-width',978);
-    await settings(page);await page.locator('#theme').selectOption('dark');await page.locator('#settings-menu > summary').press('Escape');assert.match(await page.locator('#export-preview').innerHTML(),/#ff0000/);
+    await settings(page);await page.locator('[data-theme-choice="dark"]').click();await page.locator('#settings-menu > summary').press('Escape');assert.match(await page.locator('#export-preview').innerHTML(),/#ff0000/);
     assert.deepEqual(await getDoc(page),doc);assert.equal(await page.locator('#undo').isDisabled(),true);assert.deepEqual(await page.evaluate(()=>[localStorage.getItem('kaijo.diagram.recovery.v1'),localStorage.getItem('kaijo.diagram.saved.v1')]),savedBefore,'Output settings do not mark or save the drawing');
     await page.screenshot({path:path.join(artifacts,engine+'-output-wide.png')});
     await page.locator('#side-print').click();await page.locator('#print-size-mode').selectOption('width');await fill(page,'print-width',80);await page.locator('#print-align').selectOption('right');await page.locator('#print-valign').selectOption('bottom');await page.locator('#print-name').check();
@@ -52,7 +47,7 @@ async function check(browser,url,artifacts,engine){
 }
 async function mobile(browser,url,artifacts,engine){
   const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true});
-  try{const page=await context.newPage(),errors=[];page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));await page.goto(url);await page.waitForFunction(()=>!!window.DiagramEditor);await settings(page);await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.locator('#settings-menu > summary').press('Escape');await load(page,sample());await page.locator('[data-pane-button="export"]').tap();await page.locator('#export-size-mode').selectOption('width');await fill(page,'export-width',600);await page.locator('#export-margins > summary').tap();await fill(page,'export-left',50);
+  try{const page=await context.newPage(),errors=[];page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));await page.goto(url);await page.waitForFunction(()=>!!window.DiagramEditor);await settings(page);await page.locator('[data-theme-choice="dark"]').click();await page.locator('#text-size').selectOption('largest');await page.locator('#settings-menu > summary').press('Escape');await load(page,sample());await page.locator('[data-pane-button="export"]').tap();await page.locator('#export-size-mode').selectOption('width');await fill(page,'export-width',600);await page.locator('#export-margins > summary').tap();await fill(page,'export-left',50);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=390),true);await page.screenshot({path:path.join(artifacts,engine+'-output-390.png'),fullPage:true});await page.locator('#side-print').tap();await page.locator('#print-size-mode').selectOption('width');await fill(page,'print-width',70);await page.locator('#print-align').selectOption('left');await page.locator('#print-valign').selectOption('top');
     const g=await printGeometry(page);assert.ok(Math.abs(g.w*25.4/96-70)<.05);assert.ok(Math.abs(g.x)<.1&&Math.abs(g.y)<.1);const dialog=await page.locator('#print-dialog').boundingBox();assert.ok(dialog.x>=0&&dialog.x+dialog.width<=391);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=390),true);
     for(const id of ['print-paper','print-size-mode','print-width','print-align','print-submit'])assert.ok((await page.locator('#'+id).boundingBox()).height>=43,id+' tap target');

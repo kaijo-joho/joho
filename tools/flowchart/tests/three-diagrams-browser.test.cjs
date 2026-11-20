@@ -3,12 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs/promises'),http=require('node:http'),os=require('node:os'),path=require('node:path');
 const C=require('../core.js'),Q=require('../layout.js'),T=require('../transitions.js');
 let pw;try{pw=require('playwright');}catch{pw=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'));}
-async function serve(){
-  const allowed=new Set(['index.html','core.js','render.js','layout.js','transitions.js','parts.js','output.js','storage.js','local-autosave.js','editor.js','editor.css','icon.svg']);
-  const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'};
-  const server=http.createServer(async(req,res)=>{const file=new URL(req.url,'http://localhost').pathname.slice(1)||'index.html';if(!allowed.has(file))return res.writeHead(404).end();try{res.writeHead(200,{'Content-Type':`${types[path.extname(file)]}; charset=utf-8`});res.end(await fs.readFile(path.join(__dirname,'..',file)));}catch{res.writeHead(404).end();}});
-  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));return{url:`http://127.0.0.1:${server.address().port}/`,close:()=>new Promise(resolve=>server.close(resolve))};
-}
+async function serve() { return require('./serve.cjs')(); }
 const getDoc=page=>page.evaluate(()=>DiagramEditor.getDocument());
 const select=(page,ids)=>page.evaluate(ids=>DiagramEditor.select(ids),ids);
 async function menu(page,id){const target=page.locator('#'+id);if(await page.locator('.toolbar').getAttribute('data-compact')==='true'){const needed=await target.evaluate(el=>!!el.closest('#toolbar-options')),expanded=await page.locator('#toolbar-toggle').getAttribute('aria-expanded')==='true';if(needed!==expanded)await page.locator('#toolbar-toggle').click();}if(!await target.evaluate(el=>el.open))await target.locator(':scope > summary').click();}
@@ -59,7 +54,7 @@ async function fits(page,id,width){for(const target of [`#${id} h2`,`#${id} .dia
 async function snapshot(page,name){if(!process.env.FLOWCHART_ARTIFACT_DIR)return;await fs.mkdir(process.env.FLOWCHART_ARTIFACT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.FLOWCHART_ARTIFACT_DIR,name+'.png')});}
 async function responsive(browser,url,width,errors){
   const context=await browser.newContext({viewport:{width,height:820},hasTouch:width===390}),page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
-  try{await page.goto(url);await page.waitForFunction(()=>!!window.DiagramEditor);await menu(page,'settings-menu');await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');
+  try{await page.goto(url);await page.waitForFunction(()=>!!window.DiagramEditor);await menu(page,'settings-menu');await page.locator('[data-theme-choice="dark"]').click();await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');
     const doc=C.createTemplate('flow-choice');await load(page,doc);await select(page,doc.nodes.map(n=>n.id));await openLayout(page);await fits(page,'layout-dialog',width);await snapshot(page,`layout-${width}`);await page.locator('#layout-direction').focus();await page.keyboard.press('Tab');assert.equal(await page.locator('#layout-gap').evaluate(el=>el===document.activeElement),true);await page.keyboard.press('Shift+Tab');assert.equal(await page.locator('#layout-direction').evaluate(el=>el===document.activeElement),true);await close(page,'layout-dialog');
     const state=C.createTemplate('state-device');await load(page,state);await select(page,[state.edges[0].id]);await openTransitions(page);await fits(page,'transition-dialog',width);await snapshot(page,`transition-${width}`);await page.locator('#transition-mode').selectOption('label');await page.locator('#transition-label-x').fill('20');await fits(page,'transition-dialog',width);if(width===390)await page.locator('#transition-apply').tap();else await page.locator('#transition-apply').press('Enter');assert.equal((await getDoc(page)).edges[0].label.dx,20);
     await load(page,C.createDocument('activity'));await page.locator('[data-activity-set="parallel"]').click();await fits(page,'activity-set-dialog',width);await snapshot(page,`activity-set-${width}`);if(width===390)await page.locator('#activity-set-apply').tap();else await page.locator('#activity-set-apply').press('Enter');assert.equal((await getDoc(page)).nodes.length,4);

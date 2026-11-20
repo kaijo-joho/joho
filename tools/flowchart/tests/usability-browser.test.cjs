@@ -11,19 +11,7 @@ try { pw = require('playwright'); } catch { pw = require(path.join(os.homedir(),
 
 const PARTS_AUTO = 'kaijo.flowchart.parts.auto.v1';
 
-async function serve() {
-  const root = path.resolve(__dirname, '..');
-  const allowed = new Set(['index.html', 'core.js', 'output.js', 'render.js', 'parts.js','layout.js','transitions.js', 'editor.js', 'editor.css', 'storage.js', 'local-autosave.js', 'icon.svg']);
-  const types = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml' };
-  const server = http.createServer(async (request, response) => {
-    const file = new URL(request.url, 'http://localhost').pathname.slice(1) || 'index.html';
-    if (!allowed.has(file)) return response.writeHead(404).end();
-    try { response.writeHead(200, { 'Content-Type':`${types[path.extname(file)] || 'application/octet-stream'}; charset=utf-8` }); response.end(await fs.readFile(path.join(root, file))); }
-    catch { response.writeHead(404).end(); }
-  });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  return { url:`http://127.0.0.1:${server.address().port}/`, close:() => new Promise(resolve => server.close(resolve)) };
-}
+async function serve() { return require('./serve.cjs')(); }
 
 function fixture() {
   const doc = Core.createDocument('flowchart');
@@ -48,7 +36,7 @@ async function openCompactToolbar(page) {
   if (await toolbar.getAttribute('data-compact') === 'true' && await page.locator('#toolbar-toggle').getAttribute('aria-expanded') !== 'true') await page.locator('#toolbar-toggle').click();
 }
 async function menu(page, id) { await openCompactToolbar(page); if (!await page.locator('#' + id).evaluate(element => element.open)) await page.locator('#' + id + ' > summary').click(); }
-async function darkLargest(page) { await menu(page, 'settings-menu'); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape'); }
+async function darkLargest(page) { await menu(page, 'settings-menu'); await page.locator('[data-theme-choice="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.locator('#settings-menu > summary').press('Escape'); }
 async function visibleInViewport(locator, label) {
   const box = await locator.boundingBox();
   const viewport = await locator.evaluate(() => ({ width:innerWidth, height:innerHeight }));
