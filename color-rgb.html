@@ -6,28 +6,103 @@
   <title>色の見本（RGB値）</title>
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/color-study.css">
-  <link rel="stylesheet" href="./css/color-samples.css">
+  <link rel="stylesheet" href="./css/color-samples.css?v=rgb-practice-1">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/digital-color-core.js"></script>
   <script defer src="./js/color-study-core.js"></script>
-  <script defer src="./js/color-samples.js"></script>
+  <script defer src="./js/color-samples.js?v=rgb-practice-1"></script>
 </head>
 <body data-color-study>
   <main class="color-samples">
     <header class="color-samples__header">
       <p class="color-samples__back"><a href="./color.html">色の学習へ戻る</a></p>
       <h1>色の見本（RGB値）</h1>
-      <p>彩度を変えながら、色相と明度による色の変化、RGB値、カラーコードを確認します。</p>
+      <p>RGB値とカラーコードの関係を確かめ、CSSで指定する文字色と背景色を試します。</p>
+      <p><a href="#saturation-heading">色見本表の設定へ移動</a></p>
     </header>
 
+    <section class="color-samples__lab" aria-labelledby="rgb-mix-heading">
+      <h2 id="rgb-mix-heading">色を作る</h2>
+      <p>赤・緑・青のうち、1つの値だけを動かすと、色とカラーコードのどこが変わるでしょうか。</p>
+      <div class="color-samples__lab-layout">
+        <fieldset class="color-samples__lab-controls" id="rgb-mix-controls" disabled>
+          <legend>RGB値・カラーコード</legend>
+          <div class="color-samples__rgb-row">
+            <label for="mix-red">R（赤）</label>
+            <input type="range" id="mix-red" data-mix-channel min="0" max="255" step="1" value="51">
+            <span data-mix-value aria-hidden="true">51</span>
+          </div>
+          <div class="color-samples__rgb-row">
+            <label for="mix-green">G（緑）</label>
+            <input type="range" id="mix-green" data-mix-channel min="0" max="255" step="1" value="102">
+            <span data-mix-value aria-hidden="true">102</span>
+          </div>
+          <div class="color-samples__rgb-row">
+            <label for="mix-blue">B（青）</label>
+            <input type="range" id="mix-blue" data-mix-channel min="0" max="255" step="1" value="204">
+            <span data-mix-value aria-hidden="true">204</span>
+          </div>
+          <div class="color-samples__hex-field">
+            <label for="mix-hex">カラーコード</label>
+            <input type="text" id="mix-hex" value="#3366CC" spellcheck="false" autocomplete="off" aria-describedby="mix-hex-help">
+            <p id="mix-hex-help" class="color-samples__hint">16進数を6桁入力すると、色見本とRGB値に反映されます。先頭の # は省略できます。</p>
+            <p id="mix-hex-error" class="color-samples__input-error" hidden>0〜9・A〜Fで6桁入力してください。見本は最後に入力できた色のままです。</p>
+          </div>
+        </fieldset>
+        <figure class="color-samples__mix-preview">
+          <figcaption>作った色</figcaption>
+          <div id="mix-swatch" aria-hidden="true"></div>
+          <p class="color-samples__color-values"><code id="mix-rgb-value">rgb(51, 102, 204)</code> ／ <code id="mix-hex-value">#3366CC</code></p>
+        </figure>
+      </div>
+    </section>
+
+    <section class="color-samples__lab" aria-labelledby="pair-heading">
+      <h2 id="pair-heading">配色を試す</h2>
+      <p>背景色と文字色を別々に入力します。片方だけを変えて、見出しや本文の読みやすさを比べましょう。</p>
+      <div class="color-samples__lab-layout">
+        <fieldset class="color-samples__lab-controls color-samples__pair-controls" id="pair-controls" disabled>
+          <legend>組み合わせの指定</legend>
+          <div class="color-samples__hex-field">
+            <label for="pair-background">背景色（background-color）</label>
+            <input type="text" id="pair-background" value="#D9ECFF" spellcheck="false" autocomplete="off" aria-describedby="pair-hex-help">
+            <p id="pair-background-error" class="color-samples__input-error" hidden>背景色は0〜9・A〜Fで6桁入力してください。</p>
+          </div>
+          <div class="color-samples__hex-field">
+            <label for="pair-foreground">文字色（color）</label>
+            <input type="text" id="pair-foreground" value="#1F2937" spellcheck="false" autocomplete="off" aria-describedby="pair-hex-help">
+            <p id="pair-foreground-error" class="color-samples__input-error" hidden>文字色は0〜9・A〜Fで6桁入力してください。</p>
+          </div>
+          <p id="pair-hex-help" class="color-samples__hint">カラーコードを6桁入力したときだけ反映します。たとえば両方に同じ値を入れると、文字が背景に溶け込みます。</p>
+        </fieldset>
+        <figure class="color-samples__pair-preview">
+          <figcaption>配色の見本</figcaption>
+          <div id="pair-sample">
+            <h3>海辺の展望公園</h3>
+            <p>海を見渡せる展望広場と、木陰のベンチがあります。</p>
+          </div>
+          <p class="color-samples__color-values">背景色 <code id="pair-background-value">#D9ECFF</code> ／ 文字色 <code id="pair-foreground-value">#1F2937</code></p>
+        </figure>
+      </div>
+    </section>
+
     <section class="color-samples__controls" aria-labelledby="saturation-heading">
-      <h2 id="saturation-heading">彩度</h2>
+      <h2 id="saturation-heading">見本表の設定</h2>
       <div class="color-samples__slider-row">
         <label for="s-slider">彩度（0〜100%）</label>
         <input type="range" min="0" max="100" step="1" value="100" id="s-slider" aria-describedby="saturation-help" disabled>
         <output id="saturation" for="s-slider" aria-live="polite">100%</output>
       </div>
       <p id="saturation-help" class="color-samples__hint">スライダーは左右キーでも1ずつ変更できます。タッチではつまみを左右に動かしてください。</p>
+      <div class="color-samples__mode">
+        <label for="sample-mode">表の表示</label>
+        <select id="sample-mode" aria-describedby="sample-mode-help" disabled>
+          <option value="swatches">色の見本</option>
+          <option value="fixed-text">文字色を固定（背景色を比較）</option>
+          <option value="fixed-background">背景色を固定（文字色を比較）</option>
+        </select>
+      </div>
+      <p id="sample-mode-help" class="color-samples__hint">比較するときは、<a href="#pair-heading">「配色を試す」</a>で指定した片方の色を固定します。</p>
     </section>
 
     <section class="color-samples__table-section" aria-labelledby="table-heading">
@@ -35,7 +110,7 @@
       <p id="table-help" class="color-samples__axis-note">横方向は色相（30°ごと、0〜330°）、縦方向は明度（上から100〜0%、5%ごと）です。各セルにRGB値と16進数のカラーコードを表示します。</p>
       <div class="color-samples__table-frame" tabindex="0" role="region" aria-label="色の見本表。狭い画面では表の枠内を横にスクロールできます。">
         <table id="color-code" aria-describedby="table-help">
-          <caption>彩度 <span id="caption-saturation">100%</span> の色見本。色相は列、明度は行で示します。</caption>
+          <caption>彩度 <span id="caption-saturation">100%</span> の色見本。<span id="sample-caption-mode">色相は列、明度は行で示します。</span></caption>
           <thead>
             <tr>
               <th scope="col" class="color-samples__axis-heading">明度 ↓<br>色相 →</th>
@@ -57,7 +132,7 @@
         </table>
       </div>
       <p class="color-samples__note">HSLの彩度と明度を同じ幅で変えても、見た目の鮮やかさや明るさが等間隔になるとは限りません。<a href="https://www.w3.org/TR/css-color-4/#the-hsl-notation" target="_blank" rel="noopener noreferrer">W3C CSS Color Module Level 4 — HSL notation</a></p>
-      <noscript><p class="color-samples__noscript">この見本表を作成するにはJavaScriptが必要です。有効にすると彩度に応じたRGB値と色を確認できます。</p></noscript>
+      <noscript><p class="color-samples__noscript">色や配色を変更したり、色見本表を表示したりするにはJavaScriptが必要です。</p></noscript>
     </section>
   </main>
 </body>

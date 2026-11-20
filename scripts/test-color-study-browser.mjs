@@ -153,6 +153,94 @@ try {
   await expect(page.locator('#s-slider')).toBeFocused();
   checks += 4;
 
+  const mode = page.locator('#sample-mode');
+  const mixHex = page.locator('#mix-hex');
+  const mixRgb = page.locator('#mix-rgb-value');
+  const mixSwatch = page.locator('#mix-swatch');
+  const rangeValues = () => page.locator('[data-mix-channel]').evaluateAll(ranges => ranges.map(range => Number(range.value)));
+  await expect(mode).toHaveValue('swatches');
+  await expect(page.locator('.color-samples__table-text').first()).toBeHidden();
+  await expect(mixRgb).toHaveText('rgb(51, 102, 204)');
+  await page.locator('#mix-red').press('ArrowRight');
+  await expect(mixHex).toHaveValue('#3466CC');
+  await expect(mixSwatch).toHaveCSS('background-color', 'rgb(52, 102, 204)');
+  await mixHex.fill('12abef');
+  assert.deepEqual(await rangeValues(), [18, 171, 239]);
+  await expect(mixRgb).toHaveText('rgb(18, 171, 239)');
+  await expect(mixSwatch).toHaveCSS('background-color', 'rgb(18, 171, 239)');
+  await mixHex.fill('#103');
+  await mixHex.press('Enter');
+  await expect(mixHex).toHaveAttribute('aria-invalid', 'true');
+  await expect(mixHex).toHaveAttribute('aria-describedby', 'mix-hex-help mix-hex-error');
+  await expect(page.locator('#mix-hex-error')).toBeVisible();
+  await expect(mixSwatch).toHaveCSS('background-color', 'rgb(18, 171, 239)');
+  await mixHex.evaluate(input => {
+    input.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+    input.value = '＃３３６６ＣＣ';
+    input.dispatchEvent(new InputEvent('input', { bubbles: true, isComposing: true }));
+  });
+  assert.deepEqual(await rangeValues(), [18, 171, 239], 'IME入力の変換中は表示を変えない');
+  await mixHex.evaluate(input => input.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true })));
+  await expect(mixRgb).toHaveText('rgb(51, 102, 204)');
+  await expect(page.locator('#mix-hex-error')).toBeHidden();
+  await expect(mixHex).toHaveAttribute('aria-describedby', 'mix-hex-help');
+  checks += 16;
+
+  const foreground = page.locator('#pair-foreground');
+  const background = page.locator('#pair-background');
+  const pairSample = page.locator('#pair-sample');
+  await background.fill('#3366CC');
+  await foreground.fill('#3366CC');
+  // 同色でも見本文字は自動補正しない。値のラベルは観察面の外に残る。
+  await expect(pairSample).toHaveCSS('background-color', 'rgb(51, 102, 204)');
+  await expect(pairSample.locator('h3')).toHaveCSS('color', 'rgb(51, 102, 204)');
+  await expect(pairSample.locator('p')).toHaveCSS('color', 'rgb(51, 102, 204)');
+  await expect(page.locator('#pair-foreground-value')).toHaveText('#3366CC');
+  await expect(page.locator('#pair-background-value')).toHaveText('#3366CC');
+  await background.fill('invalid');
+  await background.press('Enter');
+  await expect(page.locator('#pair-background-error')).toBeVisible();
+  await expect(pairSample).toHaveCSS('background-color', 'rgb(51, 102, 204)');
+  await background.fill('#F0E0D0');
+  await expect(pairSample).toHaveCSS('background-color', 'rgb(240, 224, 208)');
+  await expect(pairSample.locator('p')).toHaveCSS('color', 'rgb(51, 102, 204)');
+  checks += 9;
+
+  const fixedCases = [
+    ['fixed-text', '文字色 #3366CC', 'rgb(51, 102, 204)'],
+    ['fixed-background', '背景色 #F0E0D0', 'rgb(240, 224, 208)']
+  ];
+  await samples.evaluate(node => node.scrollLeft = 250);
+  for (const [kind, caption, fixedColor] of fixedCases) {
+    await mode.selectOption(kind);
+    await expect(page.locator('#sample-caption-mode')).toContainText(caption);
+    await expect(page.locator('.color-samples__table-text').first()).toBeVisible();
+    for (const saturation of [0, 50, 100]) {
+      await page.locator('#s-slider').fill(String(saturation));
+      const faults = await page.locator('#color-samples-body td').evaluateAll((cells, { kind, fixedColor }) => cells.filter(cell => {
+        const candidate = 'rgb(' + [...cell.querySelectorAll('[data-channel]')].map(line => Number(line.textContent.split(':')[1])).join(', ') + ')';
+        const preview = getComputedStyle(cell.querySelector('.color-samples__table-text'));
+        const fixedText = kind === 'fixed-text';
+        const label = getComputedStyle(cell.querySelector('.color-samples__hex'));
+        const metadata = getComputedStyle(cell);
+        return preview.color !== (fixedText ? fixedColor : candidate) ||
+          preview.backgroundColor !== (fixedText ? candidate : fixedColor) ||
+          label.color !== metadata.color || metadata.color === metadata.backgroundColor;
+      }).length, { kind, fixedColor });
+      check(faults === 0, `${kind}/${saturation}: 全252セルの背景・文字・数値を分離`);
+    }
+    check(await samples.evaluate(node => node.scrollLeft) >= 249, '比較に切り替えても横位置を維持');
+    check(await oldCell.evaluate(node => node === document.querySelector('#color-samples-body td')), 'セルは再生成しない');
+    checks += 2;
+  }
+  await background.fill('#001122');
+  await expect(page.locator('.color-samples__table-text').first()).toHaveCSS('background-color', 'rgb(0, 17, 34)');
+  await expect(page.locator('#sample-caption-mode')).toContainText('#001122');
+  await mode.selectOption('swatches');
+  await expect(page.locator('.color-samples__table-text').first()).toBeHidden();
+  await expect(page.locator('#color-samples-body td').first()).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  checks += 4;
+
   const touch = await browser.newContext({viewport:{width:390,height:844},hasTouch:true});
   await touch.route('**/*',route=>new URL(route.request().url()).origin===base.origin?route.continue():route.abort());
   const touchPage = await touch.newPage();
@@ -162,6 +250,12 @@ try {
   await touchPage.locator('[data-afterimage-circle]').tap();
   await expect(touchPage.locator('[data-color-afterimage]')).toHaveAttribute('data-phase','white');
   await touchPage.goto(new URL('color-rgb.html',base).href,{waitUntil:'networkidle'});
+  const touchRed = touchPage.locator('#mix-red');
+  await touchRed.scrollIntoViewIfNeeded();
+  const mixBox = await touchRed.boundingBox();
+  await touchPage.touchscreen.tap(mixBox.x + mixBox.width * .75, mixBox.y + mixBox.height / 2);
+  check(Number(await touchRed.inputValue()) > 150, 'タッチでRGBのスライダーを調整');
+  await expect(touchPage.locator('#mix-hex-value')).not.toHaveText('#3366CC');
   const slider = touchPage.locator('#s-slider');
   await slider.scrollIntoViewIfNeeded();
   const box = await slider.boundingBox();
@@ -176,7 +270,7 @@ try {
     await staticPage.goto(new URL(file,base).href);
     await expect(staticPage.locator('noscript p')).toContainText('JavaScript');
     await expect(staticPage.locator('noscript p')).toBeVisible();
-    check(await staticPage.locator('input:not([disabled]),button:not([disabled])').count()===0, 'JS無効時は反応しない操作欄を無効化');
+    check(await staticPage.locator('input:enabled,button:enabled,select:enabled').count()===0, 'JS無効時は反応しない操作欄を無効化');
   }
   check(await staticPage.locator('h1').count()===1, '見本ページの見出し');
   await noJs.close();
