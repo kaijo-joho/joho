@@ -9,7 +9,7 @@
   const guideIds = new Set(['start','account','renew','folder','get','open','edit','save','restore',
     'display','preview','hints','first-practice','submit','receipt'].map(id => 'htmleditor:op-' + id));
   const channel = 'joho-help-desk-consultation-v1';
-  const incoming = new Set(['hello', 'ready', 'unavailable']);
+  const incoming = new Set(['hello', 'ready', 'unavailable', 'close']);
   const loadTimeout = 20000;
 
   function validatedUrl(value, guideRevision) {
@@ -29,7 +29,7 @@
     return canonical;
   }
 
-  function create({ view, guideRevision, isActive, onVisibility }) {
+  function create({ view, guideRevision, isActive, onVisibility, onClose }) {
     const { gasOrigin, withinFrame } = root.HtmlEditorDownload || {};
     if (root.location.origin !== parentOrigin || root !== root.top ||
         !['/tools/htmleditor/', '/tools/htmleditor/index.html'].includes(root.location.pathname) ||
@@ -63,11 +63,25 @@
     signIn.href = 'https://accounts.google.com/';
     const retry = node('button', '小窓で再試行');
     recovery.append(signIn, retry);
-    controls.append(mainActions, status, recovery);
+    const confirmation = node('section', '');
+    confirmation.setAttribute('aria-label', '相談の切り替え');
+    const keep = node('button', '前の相談を続ける');
+    const replace = node('button', '破棄して新しい相談を開く');
+    const confirmActions = node('div', '', 'tool-help-consultation__actions');
+    confirmActions.append(keep, replace);
+    confirmation.append(node('p', '新しい相談を開くと、前のフォームに入力した内容は消えます。'), confirmActions);
+    confirmation.hidden = true;
+    controls.append(mainActions, status, recovery, confirmation);
     controls.hidden = true;
     view.append(controls);
 
-    let url, frame, stopListening = () => {};
+    let url, frame, nextUrl, stopListening = () => {};
+    function confirmSwitch(value) {
+      nextUrl = value;
+      mainActions.hidden = Boolean(value);
+      confirmation.hidden = !value;
+      controls.toggleAttribute('data-confirming', Boolean(value));
+    }
     function show(state, message = '') {
       controls.dataset.state = state;
       status.hidden = state === 'ready';
@@ -78,7 +92,7 @@
     }
     function focus() {
       if (controls.hidden || !isActive()) return;
-      const target = controls.dataset.state === 'ready' ? frame : recovery.hidden ? status : retry;
+      const target = nextUrl ? keep : controls.dataset.state === 'ready' ? frame : recovery.hidden ? status : retry;
       target?.focus({ preventScroll: true });
     }
     function discardFrame() {
@@ -110,7 +124,7 @@
       let source, sourceOrigin;
       function finish(state, message) {
         const waiting = doc.activeElement === status;
-        if (state === 'ready') stopListening();
+        if (state === 'ready') root.clearTimeout(timer);
         else discardFrame();
         show(state, message);
         if (waiting) focus();
@@ -122,13 +136,18 @@
             Object.keys(data).length !== 3 || !gasOrigin(event.origin) ||
             !withinFrame(event.source, frame.contentWindow)) return;
         if (source && (event.source !== source || event.origin !== sourceOrigin)) return;
+        if (controls.dataset.state === 'ready') {
+          if (data.type === 'close' && source && !controls.hidden && !frame.hidden && isActive() &&
+              doc.activeElement === frame) onClose();
+          return;
+        }
         if (data.type === 'hello') {
           source = event.source;
           sourceOrigin = event.origin;
           source.postMessage({ channel, type: 'connect', bridge }, sourceOrigin);
         } else if (source && data.type === 'ready') {
           finish('ready');
-        } else if (source) {
+        } else if (source && data.type === 'unavailable') {
           finish('unavailable', '相談フォームを表示できません。別タブで学校アカウントを確認し、小窓で再試行してください。');
         }
       }
@@ -147,22 +166,33 @@
       delete view.dataset.consultationOpen;
       onVisibility(false);
     });
+    function openForm(href) {
+      const changed = url !== href;
+      url = href;
+      standalone.href = url;
+      confirmSwitch(null);
+      if (changed) start();
+      else {
+        if (frame) frame.hidden = controls.dataset.state !== 'ready';
+        focus();
+      }
+    }
+    keep.addEventListener('click', () => openForm(url));
+    replace.addEventListener('click', () => { if (nextUrl) openForm(nextUrl); });
     retry.addEventListener('click', start);
     return {
       open(value) {
         const checked = validatedUrl(value, guideRevision);
         if (!checked) return;
-        const changed = url !== checked.href;
-        url = checked.href;
-        standalone.href = url;
         controls.hidden = false;
         view.dataset.consultationOpen = 'true';
         onVisibility(true);
-        if (changed) start();
-        else {
-          if (frame) frame.hidden = controls.dataset.state !== 'ready';
+        if (url !== checked.href && controls.dataset.state === 'ready') {
+          // 入力は学校用フォーム内にある。利用者が破棄を選ぶまで、その枠を保持する。
+          frame.hidden = true;
+          confirmSwitch(checked.href);
           focus();
-        }
+        } else openForm(checked.href);
       },
       get isOpen() { return !controls.hidden; },
       focus,

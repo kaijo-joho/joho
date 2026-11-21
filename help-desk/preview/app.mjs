@@ -304,7 +304,11 @@ function consultAboutGuide(guide, flow, unresolved = false, showSchoolPage) {
 function answerGuideQuestion(guide, choiceId) {
   const next = choose(guide, state.flow, choiceId);
   if (next.phase === 'handoff') {
-    if (consultAboutGuide(guide, next) && !state.schoolUrl) state.flow = next;
+    if (embedding) consultAboutGuide(guide, next, false, url => {
+      state.flow = { ...next, consultationUrl: url };
+      render(true);
+    });
+    else if (consultAboutGuide(guide, next) && !state.schoolUrl) state.flow = next;
   } else { state.flow = next; render(true); }
 }
 
@@ -583,6 +587,8 @@ function flowPanel() {
     if (operation) append(block, operationContent(operation, flow.guidance));
     else append(block, el('section', { class: 'procedure' }, el('h3', {}, '確認すること'), p(flow.guidance, 'prose')));
     append(block, guideReferences(guide), guideOutcome(guide, flow));
+  } else if (embedding && flow.phase === 'handoff' && flow.consultationUrl) {
+    append(block, flow.guidance ? p(flow.guidance, 'desk-bubble') : null, schoolAccessPanel(flow.consultationUrl, true));
   } else if (flow.phase === 'solved') {
     append(block, el('h2', {}, '元の作業を続けてください。'), p('この確認だけでは相談の送信や通知は行いません。'),
       embedding ? actions(button('最初の質問一覧に戻る', resetGuideSession, true)) : null);

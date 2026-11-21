@@ -102,6 +102,11 @@
   grid-row: 1;
   padding: .45em .25em;
 }
+.tool-help-consultation__controls[data-confirming] {
+  grid-row: 1 / -1;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
 .tool-help-consultation__actions {
   display: flex;
   flex-wrap: wrap;

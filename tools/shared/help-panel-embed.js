@@ -141,7 +141,7 @@
     let frame, port, token, timer, focusFrame;
     root.dataset.helpDeskState = 'idle';
     const active = () => !root.hidden && root.dataset.minimized !== 'true' && !view.hidden;
-    const consultation = createConsultation?.({ view, guideRevision, isActive: active,
+    const consultation = createConsultation?.({ view, guideRevision, isActive: active, onClose: shell.close,
       onVisibility(open) {
         if (frame) frame.hidden = open || root.dataset.helpDeskState !== 'ready';
         banner.hidden = open || root.dataset.helpDeskState === 'ready';
